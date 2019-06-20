@@ -13,6 +13,7 @@
 #include "../include/KurganovTadmor.h"
 #include "../include/Parameters.h"
 #include "../include/DynamicalVariables.h"
+#include "../include/GhostCells.h"
 #include "../include/FluxTerms.h"
 #include "../include/SourceTerms.h"
 #include "../include/InferredVariables.h"

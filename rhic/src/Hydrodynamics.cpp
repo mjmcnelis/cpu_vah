@@ -12,11 +12,13 @@
 #include <ctime>
 #include "../include/Hydrodynamics.h"
 #include "../include/DynamicalVariables.h"
+#include "../include/GhostCells.h"
 #include "../include/Parameters.h"
 #include "../include/FileIO.h"
 #include "../include/InitialConditions.h"
 #include "../include/KurganovTadmor.h"
 #include "../include/EquationOfState.h"
+
 
 using namespace std;
 
