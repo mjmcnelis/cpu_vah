@@ -8,40 +8,31 @@
 #ifndef DYNAMICALVARIABLES_H_
 #define DYNAMICALVARIABLES_H_
 
+#define PRECISION double
+
 #define NUMBER_CONSERVATION_LAWS 4
 
 // keep these undefined for now
 //#define PIMUNU
 //#define W_TZ_MU		// there's a segfault when turn on  6/13 (because PIMUNU needs to be turned on too)
-// force both of them to turn on or none 
-
-/*********************************************************/
+// force both of them to turn on or none
 
 #ifndef PIMUNU
-#define NUMBER_PROPAGATED_PIMUNU_COMPONENTS 0
+#define PIMUNU_COMPONENTS 0
 #else
-#define NUMBER_PROPAGATED_PIMUNU_COMPONENTS 10
+#define PIMUNU_COMPONENTS 10
 #endif
 
 #ifndef W_TZ_MU
-#define NUMBER_PROPAGATED_WTZMU_COMPONENTS 0
+#define WTZMU_COMPONENTS 0
 #else
-#define NUMBER_PROPAGATED_WTZMU_COMPONENTS 4
+#define WTZMU_COMPONENTS 4
 #endif
 
-#define NUMBER_DISSIPATIVE_CURRENTS (NUMBER_PROPAGATED_WTZMU_COMPONENTS + NUMBER_PROPAGATED_PIMUNU_COMPONENTS)
+#define NUMBER_RESIDUAL_CURRENTS (PIMUNU_COMPONENTS + WTZMU_COMPONENTS)
 
-// what do I do with this? find out what this marco does
-// Because of PL matching it's not exactly ideal hydro
-#if NUMBER_DISSIPATIVE_CURRENTS == 0
-#define IDEAL
-#endif
-
-// the +1 is for PL
-#define NUMBER_CONSERVED_VARIABLES (NUMBER_CONSERVATION_LAWS + 1 + NUMBER_DISSIPATIVE_CURRENTS)
-/*********************************************************/
-
-#define PRECISION double
+// the +1 is for pl
+#define NUMBER_CONSERVED_VARIABLES (NUMBER_CONSERVATION_LAWS + 1 + NUMBER_RESIDUAL_CURRENTS)
 
 typedef struct
 {
@@ -79,43 +70,6 @@ typedef struct
 	PRECISION * un;
 } FLUID_VELOCITY;
 
-
-// this was an old debugging
-// can replace it with something else
-typedef struct
-{
-	PRECISION *knudsenNumberTaupiT;
-	PRECISION *knudsenNumberTaupiL;
-	PRECISION *knudsenNumberTaupi;
-	PRECISION *knudsenNumberTauPi;
-	PRECISION *Rpi;
-	PRECISION *RPi;
-	PRECISION *Rw;
-	PRECISION *Rpi2;
-	PRECISION *RPi2;
-	PRECISION *Rw2;
-	PRECISION *fTSolution;
-	PRECISION *regulations;
-	PRECISION *regMag;
-	PRECISION *regTr;
-	PRECISION *regU0;
-	PRECISION *regU1;
-	PRECISION *regU2;
-	PRECISION *regU3;
-	PRECISION *regZ0;
-	PRECISION *regZ1;
-	PRECISION *regZ2;
-	PRECISION *regZ3;
-	PRECISION *stt;
-	PRECISION *sxx;
-	PRECISION *syy;
-	PRECISION *snn;
-	PRECISION *taupi;
-	PRECISION *dxux;
-	PRECISION *dyuy;
-	PRECISION *theta;
-} VALIDITY_DOMAIN;
-
 // q, u = current variables
 // up = previous fluid velocity
 // Q = updated variables
@@ -125,11 +79,6 @@ typedef struct
 extern CONSERVED_VARIABLES *q, *Q, *qS;
 extern FLUID_VELOCITY *u, *up, *uS;
 extern PRECISION *e, *p;
-
-
-// for debugging only
-extern VALIDITY_DOMAIN *validityDomain;
-extern double *fTSol_X1,*fTSol_Y1,*fTSol_1,*fTSol_X2,*fTSol_Y2,*fTSol_2;
 
 // swap q <-> Q
 void set_current_conserved_variables();

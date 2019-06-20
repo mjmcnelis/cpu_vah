@@ -16,7 +16,6 @@
 #include "../include/FileIO.h"
 #include "../include/InitialConditions.h"
 #include "../include/KurganovTadmor.h"
-#include "../include/EnergyMomentumTensor.h"
 #include "../include/EquationOfState.h"
 
 using namespace std;

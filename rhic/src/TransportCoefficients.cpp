@@ -1,6 +1,6 @@
 #include <math.h> // for math functions
 
-#include "../include/AnisotropicDistributionFunctions.h"
+#include "../include/TransportCoefficients.h"
 
 
 // these will need to be replaced by my own transport coefficients

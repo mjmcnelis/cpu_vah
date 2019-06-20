@@ -11,22 +11,6 @@
 #include "../include/EquationOfState.h"
 
 
- // Parameterization based on the Equation of state from the Wuppertal-Budapest collaboration
- // Tref 1.01355
-
- // h0 0.1396
- // h1 (-0.1800)
- // h2 0.0350
-
- // alpha 0.01
-
- // nf = 2+1+1
- // f0 5.59
- // f1 7.34
- // f2 (-5.60)
- // g1 1.42
- // g2 0.5
-
 
 PRECISION equilibriumPressure(PRECISION e) {
 #ifndef CONFORMAL_EOS

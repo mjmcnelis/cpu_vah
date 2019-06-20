@@ -1,5 +1,5 @@
-#ifndef ANISOTROPICDISTRIBUTIONFUNCTIONS_H_
-#define ANISOTROPICDISTRIBUTIONFUNCTIONS_H_
+#ifndef TRANSPORTCOEFFICIENTS_H_
+#define TRANSPORTCOEFFICIENTS_H_
 
 #include "DynamicalVariables.h"
 
@@ -14,4 +14,4 @@ double *beta_lPi, double *delta_lPi, double *lambda_piPi, double *beta_PiPi, dou
 // perhaps I should make a struct containing all the transport coefficients
 // it would be faster to calculate them
 
-#endif /* ANISOTROPICDISTRIBUTIONFUNCTIONS_H_ */
+#endif

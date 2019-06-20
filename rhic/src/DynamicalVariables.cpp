@@ -6,20 +6,16 @@
  */
 #include <stdlib.h>
 #include <iostream>
-#include <math.h> 
+#include <math.h>
 #include "../include/DynamicalVariables.h"
 #include "../include/Parameters.h"
 
 using namespace std;
 
 CONSERVED_VARIABLES *q, *Q, *qS;		// the extern variables are defined here
-
 FLUID_VELOCITY *u, *up, *uS;			// so what is this purpose then?
-
 PRECISION *e, *p;
 
-VALIDITY_DOMAIN *validityDomain;
-double *fTSol_X1,*fTSol_Y1,*fTSol_1,*fTSol_X2,*fTSol_Y2,*fTSol_2;
 
 inline int linear_column_index(int i, int j, int k, int nx, int ny)
 {
@@ -56,7 +52,7 @@ void allocate_memory(int len)
 	uS->un = (PRECISION *)calloc(len, bytes);
 
 
-	// conserved variables at current time step 
+	// conserved variables at current time step
 	q = (CONSERVED_VARIABLES *)calloc(1, sizeof(CONSERVED_VARIABLES));
 	q->ttt = (PRECISION *)calloc(len, bytes);
 	q->ttx = (PRECISION *)calloc(len, bytes);
@@ -133,54 +129,6 @@ void allocate_memory(int len)
 	Q->WyTz = (PRECISION *)calloc(len, bytes);
 	Q->WnTz = (PRECISION *)calloc(len, bytes);
 #endif
-
-	//=======================================================
-	// Validity domain
-	//=======================================================
-	validityDomain = (VALIDITY_DOMAIN *)calloc(1, sizeof(VALIDITY_DOMAIN));
-	validityDomain->knudsenNumberTaupiT = (PRECISION *)calloc(len, bytes);
-	validityDomain->knudsenNumberTaupiL = (PRECISION *)calloc(len, bytes);
-	validityDomain->knudsenNumberTaupi = (PRECISION *)calloc(len, bytes);
-	validityDomain->knudsenNumberTauPi = (PRECISION *)calloc(len, bytes);
-	validityDomain->Rpi = (PRECISION *)calloc(len, bytes);
-	validityDomain->RPi = (PRECISION *)calloc(len, bytes);
-	validityDomain->Rw = (PRECISION *)calloc(len, bytes);
-	validityDomain->Rpi2 = (PRECISION *)calloc(len, bytes);
-	validityDomain->RPi2 = (PRECISION *)calloc(len, bytes);
-	validityDomain->Rw2 = (PRECISION *)calloc(len, bytes);
-	validityDomain->fTSolution = (PRECISION *)calloc(len, bytes);
-	validityDomain->regulations = (PRECISION *)calloc(len, bytes);
-	validityDomain->regMag = (PRECISION *)calloc(len, bytes);
-	validityDomain->regTr = (PRECISION *)calloc(len, bytes);
-	validityDomain->regU0 = (PRECISION *)calloc(len, bytes);
-	validityDomain->regU1 = (PRECISION *)calloc(len, bytes);
-	validityDomain->regU2 = (PRECISION *)calloc(len, bytes);
-	validityDomain->regU3 = (PRECISION *)calloc(len, bytes);
-	validityDomain->regZ0 = (PRECISION *)calloc(len, bytes);
-	validityDomain->regZ1 = (PRECISION *)calloc(len, bytes);
-	validityDomain->regZ2 = (PRECISION *)calloc(len, bytes);
-	validityDomain->regZ3 = (PRECISION *)calloc(len, bytes);
-
-	for(int s = 0; s < len; s++)
-	{
-	 validityDomain->regulations[s] = (PRECISION) 1.0;
-	}
-
-	validityDomain->stt = (PRECISION *)calloc(len, bytes);
-	validityDomain->sxx = (PRECISION *)calloc(len, bytes);
-	validityDomain->syy = (PRECISION *)calloc(len, bytes);
-	validityDomain->snn = (PRECISION *)calloc(len, bytes);
-	validityDomain->taupi = (PRECISION *)calloc(len, bytes);
-	validityDomain->dxux = (PRECISION *)calloc(len, bytes);
-	validityDomain->dyuy = (PRECISION *)calloc(len, bytes);
-	validityDomain->theta = (PRECISION *)calloc(len, bytes);
-
-	fTSol_X1 = (double *)calloc(len, bytes);
-	fTSol_Y1 = (double *)calloc(len, bytes);
-	fTSol_1 = (double *)calloc(len, bytes);
-	fTSol_X2 = (double *)calloc(len, bytes);
-	fTSol_Y2 = (double *)calloc(len, bytes);
-	fTSol_2 = (double *)calloc(len, bytes);
 }
 
 
@@ -223,6 +171,8 @@ void setGhostCellVars(CONSERVED_VARIABLES * const __restrict__ q, PRECISION * co
 #endif
 }
 
+
+// define ghost cells elsewhere
 
 // edited on 6/8
 void set_ghost_cells(CONSERVED_VARIABLES * const __restrict__ q, PRECISION * const __restrict__ e, PRECISION * const __restrict__ p, FLUID_VELOCITY * const __restrict__ u, int nx, int ny, int nz, int ncx, int ncy)
