@@ -14,7 +14,7 @@ using namespace std;
 
 CONSERVED_VARIABLES *q, *Q, *qS;		// the extern variables are defined here
 FLUID_VELOCITY *u, *up, *uS;			// so what is this purpose then?
-PRECISION *e, *p;
+PRECISION *e;
 
 
 inline int linear_column_index(int i, int j, int k, int nx, int ny)
@@ -28,7 +28,6 @@ void allocate_memory(int len)
 
 	// primary variables
 	e = (PRECISION *)calloc(len, bytes);
-	p = (PRECISION *)calloc(len, bytes);
 
 	// fluid velocity at current time step
 	u = (FLUID_VELOCITY *)calloc(1, sizeof(FLUID_VELOCITY));
@@ -58,7 +57,8 @@ void allocate_memory(int len)
 	q->ttx = (PRECISION *)calloc(len, bytes);
 	q->tty = (PRECISION *)calloc(len, bytes);
 	q->ttn = (PRECISION *)calloc(len, bytes);
-	q->pl = (PRECISION *)calloc(len, bytes);
+	q->pl  = (PRECISION *)calloc(len, bytes);
+	q->pt  = (PRECISION *)calloc(len, bytes);
 #ifdef PIMUNU
 	q->pitt = (PRECISION *)calloc(len, bytes);
 	q->pitx = (PRECISION *)calloc(len, bytes);
@@ -84,7 +84,8 @@ void allocate_memory(int len)
 	qS->ttx = (PRECISION *)calloc(len, bytes);
 	qS->tty = (PRECISION *)calloc(len, bytes);
 	qS->ttn = (PRECISION *)calloc(len, bytes);
-	qS->pl = (PRECISION *)calloc(len, bytes);
+	qS->pl  = (PRECISION *)calloc(len, bytes);
+	qS->pt  = (PRECISION *)calloc(len, bytes);
 #ifdef PIMUNU
 	qS->pitt = (PRECISION *)calloc(len, bytes);
 	qS->pitx = (PRECISION *)calloc(len, bytes);
@@ -110,7 +111,8 @@ void allocate_memory(int len)
 	Q->ttx = (PRECISION *)calloc(len, bytes);
 	Q->tty = (PRECISION *)calloc(len, bytes);
 	Q->ttn = (PRECISION *)calloc(len, bytes);
-	Q->pl = (PRECISION *)calloc(len, bytes);
+	Q->pl  = (PRECISION *)calloc(len, bytes);
+	Q->pt  = (PRECISION *)calloc(len, bytes);
 #ifdef PIMUNU
 	Q->pitt = (PRECISION *)calloc(len, bytes);
 	Q->pitx = (PRECISION *)calloc(len, bytes);
@@ -198,7 +200,6 @@ void free_conserved_variables(CONSERVED_VARIABLES * q)
 void free_memory()
 {
 	free(e);
-	free(p);
 
 	free_fluid_velocity(u);
 	free_fluid_velocity(up);

@@ -10,10 +10,6 @@
 
 #include <libconfig.h>
 
-#define N_GHOST_CELLS_M 2						// ghost cells on left side
-#define N_GHOST_CELLS_P 2						// ghost cells on right side
-#define N_GHOST_CELLS 4							// total 
-
 void getIntegerProperty(config_t * cfg, const char * propName, int * propValue);
 void getDoubleProperty(config_t * cfg, const char * propName, double * propValue);
 
@@ -22,10 +18,6 @@ struct LatticeParameters
 	int numLatticePointsX;
 	int numLatticePointsY;
 	int numLatticePointsRapidity;
-
-	int numComputationalLatticePointsX;			// includes ghost cells
-	int numComputationalLatticePointsY;
-	int numComputationalLatticePointsRapidity;
 
 	int numProperTimePoints;
 
@@ -54,8 +46,8 @@ struct InitialConditionParameters
 
 struct HydroParameters
 {
-	double initialProperTimePoint;
-	double shearViscosityToEntropyDensity;
+	double tau_initial;
+	double shear_viscosity;
 	double freezeoutTemperatureGeV;
 };
 

@@ -3,7 +3,7 @@
 #include "../include/DynamicalVariables.h"
 
 
-void get_primary_neighbor_cells(const PRECISION * const __restrict__ E, const PRECISION * const __restrict__ P, PRECISION * const __restrict__ e1, PRECISION * const __restrict__ p1, int sim, int sip, int sjm, int sjp, int skm, int skp)
+void get_primary_neighbor_cells(const PRECISION * const __restrict__ E, PRECISION * const __restrict__ e1, int sim, int sip, int sjm, int sjp, int skm, int skp)
 {
 	// energy density of neighbor cells stored in e1 = (e_sim, e_sip, e_sjm, e_sjp, e_skm, e_skp)
 	e1[0] = E[sim];		// i-1
@@ -12,16 +12,6 @@ void get_primary_neighbor_cells(const PRECISION * const __restrict__ E, const PR
 	e1[3] = E[sjp];		// j+1
 	e1[4] = E[skm];		// k-1
 	e1[5] = E[skp];		// k+1
-
-	//------------------------------------------------------------
-
-	// equilibrium pressure of neighbor cells stored in p1 = (p_sim, p_sip, p_sjm, p_sjp, p_skm, p_skp)
-	p1[0] = P[sim];
-	p1[1] = P[sip];
-	p1[2] = P[sjm];
-	p1[3] = P[sjp];
-	p1[4] = P[skm];
-	p1[5] = P[skp];
 }
 
 

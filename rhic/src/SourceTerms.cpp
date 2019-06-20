@@ -50,40 +50,36 @@ inline PRECISION bulkViscosityToEntropyDensity(PRECISION T)   // need some hydro
 }
 
 
-inline double sign(PRECISION x)
+// inline double sign(PRECISION x)
+// {
+// 	if(x < 0.0) return -1.0;
+// 	else return 1.0;
+// }
+
+
+// inline PRECISION minmod(PRECISION x, PRECISION y)
+// {
+// 	return (sign(x) + sign(y)) * fmin(fabs(x), fabs(y)) / 2.0;
+// }
+
+
+// inline PRECISION minmod3(PRECISION x, PRECISION y, PRECISION z)
+// {
+//    return minmod(x, minmod(y, z));
+// }
+
+
+inline PRECISION approximate_derivative(PRECISION qm, PRECISION q, PRECISION qp)
 {
-	if(x < 0.0) return -1.0;
-	else return 1.0;
+	//return minmod3(THETA * (q - qm), (qp - qm) / 2.0, THETA * (qp - q));
+	return (qp - qm) / 2.0;
 }
 
 
-inline PRECISION minmod(PRECISION x, PRECISION y)
-{
-	return (sign(x) + sign(y)) * fmin(fabs(x), fabs(y)) / 2.0;
-}
-
-
-inline PRECISION minmod3(PRECISION x, PRECISION y, PRECISION z)
-{
-   return minmod(x, minmod(y, z));
-}
-
-
-PRECISION approximate_derivative(PRECISION qm, PRECISION q, PRECISION qp)
-{
-	return minmod3(THETA * (q - qm), (qp - qm) / 2.0, THETA * (qp - q));
-}
-
-
-void source_terms(const PRECISION * const __restrict__ Q, PRECISION * const __restrict__ S, const FLUID_VELOCITY * const __restrict__ u,
-PRECISION utp, PRECISION uxp, PRECISION uyp, PRECISION unp,
-PRECISION t, const PRECISION * const __restrict__ evec, const PRECISION * const __restrict__ pvec,
-int s, int d_ncx, int d_ncy, int d_ncz, PRECISION etabar, PRECISION dt, PRECISION dx, PRECISION dy, PRECISION dn,
-int i, int j, int k, double x, double y, double z, const CONSERVED_VARIABLES * const __restrict__ currentVars, const PRECISION * const __restrict__ qi1, const PRECISION * const __restrict__ qj1, const PRECISION * const __restrict__ qk1, const PRECISION * const __restrict__ e1, const PRECISION * const __restrict__ p1, PRECISION e_s, PRECISION p_s, const PRECISION * const __restrict__ ui1, const PRECISION * const __restrict__ uj1, const PRECISION * const __restrict__ uk1, PRECISION ut, PRECISION ux, PRECISION uy, PRECISION un, PRECISION ut_p, PRECISION ux_p, PRECISION uy_p, PRECISION un_p)
+void source_terms(PRECISION * const __restrict__ S, const PRECISION * const __restrict__ Q, PRECISION e_s, PRECISION t, const PRECISION * const __restrict__ qi1, const PRECISION * const __restrict__ qj1, const PRECISION * const __restrict__ qk1, const PRECISION * const __restrict__ e1, const PRECISION * const __restrict__ ui1, const PRECISION * const __restrict__ uj1, const PRECISION * const __restrict__ uk1, PRECISION ut, PRECISION ux, PRECISION uy, PRECISION un, PRECISION ut_p, PRECISION ux_p, PRECISION uy_p, PRECISION un_p, PRECISION dt, PRECISION dx, PRECISION dy, PRECISION dn, PRECISION etabar)
 {
 	PRECISION t2 = t * t;
 	PRECISION t3 = t2 * t;
-	PRECISION t4 = t3 * t;
 
 	// conserved variables
 	PRECISION ttt = Q[0];
@@ -167,25 +163,11 @@ int i, int j, int k, double x, double y, double z, const CONSERVED_VARIABLES * c
 	PRECISION e_skp = e1[5];
 
 
-	PRECISION p_sim = p1[0];		// p [i-1, i+1]
-	PRECISION p_sip = p1[1];
-
-	PRECISION p_sjm = p1[2];		// p [j-1, j+1]
-	PRECISION p_sjp = p1[3];
-
-	PRECISION p_skm = p1[4];		// p [k-1, k+1]
-	PRECISION p_skp = p1[5];
-
-
-
 	// primary variable spatial derivatives
-	PRECISION de_dx = approximate_derivative(e_sim, e_s, e_sip) / dx;
+	PRECISION de_dx = approximate_derivative(e_sim, e_s, e_sip) / dx;		// after put in pt matching won't need this either
 	PRECISION de_dy = approximate_derivative(e_sjm, e_s, e_sjp) / dy;
 	PRECISION de_dn = approximate_derivative(e_skm, e_s, e_skp) / dn;
 
-	PRECISION dp_dx = approximate_derivative(p_sim, p_s, p_sip) / dx;
-	PRECISION dp_dy = approximate_derivative(p_sjm, p_s, p_sjp) / dy;
-	PRECISION dp_dn = approximate_derivative(p_skm, p_s, p_skp) / dn;
 
 
 
@@ -285,7 +267,7 @@ int i, int j, int k, double x, double y, double z, const CONSERVED_VARIABLES * c
 	PRECISION ztzn = zt * zn;
 	PRECISION zn2  = zn * zn;
 
-	PRECISION A = zt2 * stt  -  2 * t2 * ztzn * stn  +  t4 * zn2 * snn;
+	PRECISION A = zt2 * stt  -  2 * t2 * ztzn * stn  +  t2 * t2 * zn2 * snn;
 
 	// longitudinal and transverse expansion rates
 	PRECISION thetaT = 2.0 * theta_over_3  +  A;
@@ -294,6 +276,7 @@ int i, int j, int k, double x, double y, double z, const CONSERVED_VARIABLES * c
 
 	// anisotropic transport coefficients
 	if(e_s == 0) e_s = 1.e-7;
+	PRECISION p = equilibriumPressure(e_s);
 	PRECISION T = effectiveTemperature(e_s);
 
 	PRECISION taupiInv = 0.2 * T / etabar;
@@ -344,7 +327,7 @@ int i, int j, int k, double x, double y, double z, const CONSERVED_VARIABLES * c
 
 	// source terms
 	PRECISION tnn = (e_s + pt) * un2  +  pt / t2  +  Lnn;
-	PRECISION dpl = - (pl - p_s) * taupiInv  +  zeta_zz * thetaL  -  zeta_zT * thetaT;
+	PRECISION dpl = - (pl - p) * taupiInv  +  zeta_zz * thetaL  -  zeta_zT * thetaT;
 
 	// conservation laws
 	S[0] = - (ttt / t  +  t * tnn)  +  div_v * (Ltt - pt)  -  vx * dpt_dx  -  vy * dpt_dy  -  vn * dpt_dn  +  vx * dLtt_dx  +  vy * dLtt_dy  +  vn * dLtt_dn - dLtn_dn;

@@ -10,7 +10,7 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 	return i  +  nx * (j  +  ny * k);
 }
 
-void regulate_dissipative_currents(PRECISION t, CONSERVED_VARIABLES * const __restrict__ Q_current, PRECISION * const __restrict__ e, PRECISION * const __restrict__ p, const FLUID_VELOCITY * const __restrict__ u, int nx, int ny, int nz, int ncx, int ncy)
+void regulate_dissipative_currents(PRECISION t, CONSERVED_VARIABLES * const __restrict__ Q_current, PRECISION * const __restrict__ e, const FLUID_VELOCITY * const __restrict__ u, int nx, int ny, int nz)
 {
 	PRECISION eps = 1.e-7;
 
@@ -25,22 +25,15 @@ void regulate_dissipative_currents(PRECISION t, CONSERVED_VARIABLES * const __re
 		{
 			for(int i = 2; i < nx + 2; i++)
 			{
-				int s = linear_column_index(i, j, k, ncx, ncy);
+				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
 				PRECISION e_s = e[s];
-				PRECISION p_s = p[s];
 				PRECISION pl = Q_current->pl[s];
 
 				// is this necessary?
-				if(e_s < 0.0)
-				{
-					e[s] = eps;
-					p[s] = eps;
-				}
-				if(pl < 0.0)
-				{
-					Q_current->pl[s] = eps;
-				}
+				if(e_s < 0.0) e[s] = eps;
+				
+				if(pl < 0.0) Q_current->pl[s] = eps;
 
 				PRECISION pt = 0.5 * (e_s - pl);	// temporary
 

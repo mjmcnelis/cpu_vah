@@ -24,6 +24,9 @@ using namespace std;
 
 #define FREQ 10
 
+const double hbarc = 0.197326938;
+
+
 int central_index(int nx, int ny, int nz, int ncx, int ncy, int ncz)
 {
 	// (not sure what this means)
@@ -35,41 +38,8 @@ int central_index(int nx, int ny, int nz, int ncx, int ncy, int ncz)
 }
 
 
-void run_hydro(void * latticeParams, void * initCondParams, void * hydroParams)
+void print_parameters(int nx, int ny, int nz, double dt, double dx, double dy, double dz, double T_switch, double e_switch, double etabar)
 {
-	const double hbarc = 0.197326938;
-
-	// Parameters
-	struct LatticeParameters * lattice = (struct LatticeParameters *) latticeParams;
-	struct InitialConditionParameters * initCond = (struct InitialConditionParameters *) initCondParams;
-	struct HydroParameters * hydro = (struct HydroParameters *) hydroParams;
-
-	// System configuration
-	int nx = lattice->numLatticePointsX;									// physical grid
-	int ny = lattice->numLatticePointsY;
-	int nz = lattice->numLatticePointsRapidity;
-	int nt = lattice->numProperTimePoints;
-
-	int ncx = lattice->numComputationalLatticePointsX;						// (physical + ghost + white) grid
-	int ncy = lattice->numComputationalLatticePointsY;
-	int ncz = lattice->numComputationalLatticePointsRapidity;
-
-	PRECISION dx = lattice->latticeSpacingX;								// lattice spacing
-	PRECISION dy = lattice->latticeSpacingY;
-	PRECISION dz = lattice->latticeSpacingRapidity;
-	double dt = lattice->latticeSpacingProperTime;							// time resolution
-
-	PRECISION etabar = (PRECISION)(hydro->shearViscosityToEntropyDensity);	// shear viscosity
-
-
-	double t0 = hydro->initialProperTimePoint;								// initial longitudinal proper time
-																			// if use F.S. need t_fs instead
-
-
-	const double T_switch = (hydro->freezeoutTemperatureGeV) / hbarc;		// switching temperature [fm^-1]
-	const double e_switch = equilibriumEnergyDensity(T_switch);				// switching energy density [fm^-4]
-
-
 	printf("Time resolution    = %.3f fm/c\n", dt);
 	printf("Hydro grid         = %d x %d x %d\n", nx, ny, nz);
 	printf("Spatial resolution = (%.3f fm, %.3f fm, %.3f)\n", dx, dy, dz);
@@ -82,6 +52,43 @@ void run_hydro(void * latticeParams, void * initCondParams, void * hydroParams)
 #else
 	printf("Equation of state     = QCD\n");
 #endif
+}
+
+
+void run_hydro(void * latticeParams, void * initCondParams, void * hydroParams)
+{
+	// Parameters
+	struct LatticeParameters * lattice = (struct LatticeParameters *) latticeParams;
+	struct InitialConditionParameters * initCond = (struct InitialConditionParameters *) initCondParams;
+	struct HydroParameters * hydro = (struct HydroParameters *) hydroParams;
+
+	// System configuration
+	int nx = lattice->numLatticePointsX;				// physical grid
+	int ny = lattice->numLatticePointsY;
+	int nz = lattice->numLatticePointsRapidity;
+	int nt = lattice->numProperTimePoints;
+
+	int ncx = nx + 4;									// (physical + ghost + white) grid
+	int ncy = ny + 4;
+	int ncz = nz + 4;
+
+	PRECISION dx = lattice->latticeSpacingX;			// lattice spacing
+	PRECISION dy = lattice->latticeSpacingY;
+	PRECISION dz = lattice->latticeSpacingRapidity;
+	double dt = lattice->latticeSpacingProperTime;		// time resolution
+
+	PRECISION etabar = hydro->shear_viscosity;			// shear viscosity
+
+
+	double t0 = hydro->tau_initial;						// initial longitudinal proper time
+														// if use F.S. need t_fs instead
+
+	double T_switch = (hydro->freezeoutTemperatureGeV) / hbarc;		// switching temperature [fm^-1]
+	double e_switch = equilibriumEnergyDensity(T_switch);			// switching energy density [fm^-4]
+
+
+	print_parameters(nx, ny, nz, dt, dx, dy, dz, T_switch, e_switch, etabar);
+	
 
 	// allocate memory for computational grid points
 	allocate_memory(ncx * ncy * ncz);
@@ -89,7 +96,7 @@ void run_hydro(void * latticeParams, void * initCondParams, void * hydroParams)
 	// fluid dynamic initialization
 	double t = t0;
 	set_initial_conditions(t, latticeParams, initCondParams, hydroParams);	// generate initial conditions (Tmunu, e, p, u, up, pl, pimunu, Wmu)
-	set_ghost_cells(q, e, p, u, nx, ny, nz, ncx, ncy);						// initialize ghost cells (all current variables)
+	set_ghost_cells(q, e, u, nx, ny, nz);									// initialize ghost cells (all current variables)
 
 	printf("\n");
 
@@ -105,8 +112,14 @@ void run_hydro(void * latticeParams, void * initCondParams, void * hydroParams)
 	{
 		// output variables to file occasionally (for testing)
 		if(n % FREQ == 0)
-		{
-			printf("t = %.3f fm/c\t\te = %.3f GeV/fm^3\tp = %.3f GeV/fm^3\tpl = %.3f GeV/fm^3\tT = %.3f GeV\n", t, e[sctr] * hbarc, p[sctr] * hbarc, q->pl[sctr] * hbarc, effectiveTemperature(e[sctr]) * hbarc);
+		{	
+			PRECISION ectr = e[sctr] * hbarc;
+			PRECISION pctr = equilibriumPressure(e[sctr]) * hbarc;
+			PRECISION Tctr = effectiveTemperature(e[sctr]) * hbarc;
+			PRECISION plctr = q->pl[sctr] * hbarc;
+			PRECISION ptctr = q->pt[sctr] * hbarc;
+
+			printf("t = %.3f fm/c\t\te = %.3f GeV/fm^3\tpl = %.3f GeV/fm^3\tpt = %.3f GeV/fm^3\tT = %.3f GeV\n", t, ectr, plctr, ptctr, Tctr);
 
 			output_dynamical_variables(t, nx, ny, nz, dx, dy, dz);
 
@@ -116,7 +129,7 @@ void run_hydro(void * latticeParams, void * initCondParams, void * hydroParams)
 				break;	// need to change it so that all cells below freezeout temperature
 			}
 		}
-		rungeKutta2(t, dt, q, Q, nx, ny, nz, ncx, ncy, dx, dy, dz, etabar);		// evolve one time step
+		rungeKutta2(t, dt, nx, ny, nz, dx, dy, dz, etabar);
 		steps += 1.0;
 		t += dt;
 	}

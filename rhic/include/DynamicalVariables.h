@@ -31,7 +31,7 @@
 
 #define NUMBER_RESIDUAL_CURRENTS (PIMUNU_COMPONENTS + WTZMU_COMPONENTS)
 
-// the +1 is for pl
+// todo: change +1 to +2 for pl + pt
 #define NUMBER_CONSERVED_VARIABLES (NUMBER_CONSERVATION_LAWS + 1 + NUMBER_RESIDUAL_CURRENTS)
 
 typedef struct
@@ -40,8 +40,8 @@ typedef struct
 	PRECISION * ttx;
 	PRECISION * tty;
 	PRECISION * ttn;
-	PRECISION * pl;		// need to add pt
-	//PRECISION *pt;
+	PRECISION * pl;		
+	PRECISION * pt;
 #ifdef PIMUNU
 	PRECISION * pitt;
 	PRECISION * pitx;
@@ -78,7 +78,7 @@ typedef struct
 
 extern CONSERVED_VARIABLES *q, *Q, *qS;
 extern FLUID_VELOCITY *u, *up, *uS;
-extern PRECISION *e, *p;
+extern PRECISION *e;
 
 // swap q <-> Q
 void set_current_conserved_variables();
@@ -86,11 +86,7 @@ void set_current_conserved_variables();
 // swap u <-> up
 void swap_fluid_velocity(FLUID_VELOCITY ** arr1, FLUID_VELOCITY ** arr2);
 
-// ghost cell boundary conditions
-void set_ghost_cells(CONSERVED_VARIABLES * const __restrict__ q, PRECISION * const __restrict__ e, PRECISION * const __restrict__ p, FLUID_VELOCITY * const __restrict__ u, int nx, int ny, int nz, int ncx, int ncy);
-
-// memory
-void allocate_memory(int len);
+void allocate_memory(int len);	// memory
 void free_memory();
 
 #endif

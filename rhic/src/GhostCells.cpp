@@ -9,14 +9,13 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 }
 
 
-void ghost_cell_bc(CONSERVED_VARIABLES * const __restrict__ q, PRECISION * const __restrict__ e, PRECISION * const __restrict__ p, FLUID_VELOCITY * const __restrict__ u, int s, int sBC)
+void ghost_cell_BC(CONSERVED_VARIABLES * const __restrict__ q, PRECISION * const __restrict__ e, FLUID_VELOCITY * const __restrict__ u, int s, int sBC)
 {
 	// s = ghost cell index
 	// sBC = physical cell at boundary index
 
 	// set the ghost cells
 	e[s] = e[sBC];
-	p[s] = p[sBC];
 
 	u->ut[s] = u->ut[sBC];
 	u->ux[s] = u->ux[sBC];
@@ -51,7 +50,7 @@ void ghost_cell_bc(CONSERVED_VARIABLES * const __restrict__ q, PRECISION * const
 
 
 
-void set_ghost_cells(CONSERVED_VARIABLES * const __restrict__ q, PRECISION * const __restrict__ e, PRECISION * const __restrict__ p, FLUID_VELOCITY * const __restrict__ u, int nx, int ny, int nz, int ncx, int ncy)
+void set_ghost_cells(CONSERVED_VARIABLES * const __restrict__ q, PRECISION * const __restrict__ e, FLUID_VELOCITY * const __restrict__ u, int nx, int ny, int nz)
 {
 	int s;		// ghost cell index
 	int sBC;	// physical boundary index
@@ -64,16 +63,16 @@ void set_ghost_cells(CONSERVED_VARIABLES * const __restrict__ q, PRECISION * con
 		{
 			for(int i = 0; i <= 1; i++)				// set left ghost cells (x)
 			{
-				s = linear_column_index(i, j, k, ncx, ncy);
-				sBC = linear_column_index(2, j, k, ncx, ncy);
-				ghost_cell_bc(q, e, p, u, s, sBC);
+				s = linear_column_index(i, j, k, nx + 4, ny + 4);
+				sBC = linear_column_index(2, j, k, nx + 4, ny + 4);
+				ghost_cell_BC(q, e, u, s, sBC);
 			}
 
 			for(int i = nx + 2; i <= nx + 3; i++)	// set right ghost cells (x)
 			{
-				s = linear_column_index(i, j, k, ncx, ncy);
-				sBC = linear_column_index(nx + 1, j, k, ncx, ncy);
-				ghost_cell_bc(q, e, p, u, s, sBC);
+				s = linear_column_index(i, j, k, nx + 4, ny + 4);
+				sBC = linear_column_index(nx + 1, j, k, nx + 4, ny + 4);
+				ghost_cell_BC(q, e, u, s, sBC);
 			}
 		}
 	}
@@ -85,16 +84,16 @@ void set_ghost_cells(CONSERVED_VARIABLES * const __restrict__ q, PRECISION * con
 		{
 			for(int j = 0; j <= 1; j++)				// set left ghost cells (y)
 			{
-				s = linear_column_index(i, j, k, ncx, ncy);
-				sBC = linear_column_index(i, 2, k, ncx, ncy);
-				ghost_cell_bc(q, e, p, u, s, sBC);
+				s = linear_column_index(i, j, k, nx + 4, ny + 4);
+				sBC = linear_column_index(i, 2, k, nx + 4, ny + 4);
+				ghost_cell_BC(q, e, u, s, sBC);
 			}
 
 			for(int j = ny + 2; j <= ny + 3; j++)	// set right ghost cells (y)
 			{
-				s = linear_column_index(i, j, k, ncx, ncy);
-				sBC = linear_column_index(i, ny + 1, k, ncx, ncy);
-				ghost_cell_bc(q, e, p, u, s, sBC);
+				s = linear_column_index(i, j, k, nx + 4, ny + 4);
+				sBC = linear_column_index(i, ny + 1, k, nx + 4, ny + 4);
+				ghost_cell_BC(q, e, u, s, sBC);
 			}
 		}
 
@@ -102,16 +101,16 @@ void set_ghost_cells(CONSERVED_VARIABLES * const __restrict__ q, PRECISION * con
 		{
 			for(int k = 0; k <= 1; k++)				// set left ghost cells (z)
 			{
-				s = linear_column_index(i, j, k, ncx, ncy);
-				sBC = linear_column_index(i, j, 2, ncx, ncy);
-				ghost_cell_bc(q, e, p, u, s, sBC);
+				s = linear_column_index(i, j, k, nx + 4, ny + 4);
+				sBC = linear_column_index(i, j, 2, nx + 4, ny + 4);
+				ghost_cell_BC(q, e, u, s, sBC);
 			}
 
 			for(int k = nz + 2; k <= nz + 3; k++)	// set right ghost cells (z)
 			{
-				s = linear_column_index(i, j, k, ncx, ncy);
-				sBC = linear_column_index(i, j, nz + 1, ncx, ncy);
-				ghost_cell_bc(q, e, p, u, s, sBC);
+				s = linear_column_index(i, j, k, nx + 4, ny + 4);
+				sBC = linear_column_index(i, j, nz + 1, nx + 4, ny + 4);
+				ghost_cell_BC(q, e, u, s, sBC);
 			}
 		}
 	}

@@ -21,7 +21,7 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 
 
 // this is a temporary test for conformal PL matching
-void get_inferred_variables_test(PRECISION t, const PRECISION * const __restrict__ q, PRECISION * const __restrict__ e, PRECISION * const __restrict__ p, PRECISION * const __restrict__ ut, PRECISION * const __restrict__ ux, PRECISION * const __restrict__ uy, PRECISION * const __restrict__ un)
+void get_inferred_variables_test(PRECISION t, const PRECISION * const __restrict__ q, PRECISION * const __restrict__ e, PRECISION * const __restrict__ ut, PRECISION * const __restrict__ ux, PRECISION * const __restrict__ uy, PRECISION * const __restrict__ un)
 {
 	PRECISION Ttt = q[0];
 	PRECISION Ttx = q[1];
@@ -37,7 +37,6 @@ void get_inferred_variables_test(PRECISION t, const PRECISION * const __restrict
 	PRECISION e_s = 0.5 * (-(Mt - pl)  +  sqrt(fabs((Mt - pl) * (Mt - pl)  +  8.0 * (Mt * (Mt - 0.5 * pl) - (Mx * Mx  +  My * My)))));
 
 	if(e_s < 1.e-3) e_s = 1.e-3;				// this cutoff is important
-	PRECISION p_s = equilibriumPressure(e_s);
 
 	PRECISION pt = 0.5 * (e_s - pl);			// conformal formula
 
@@ -47,7 +46,7 @@ void get_inferred_variables_test(PRECISION t, const PRECISION * const __restrict
 	PRECISION uy_s = My / ut_s / (e_s + pt);
 	PRECISION un_s = 0.0;
 
-	if(std::isnan(ut_s))
+	if(std::isnan(ut_s))	// I'm not sure what's going nan???
 	{
 		printf("\ngetInferredVariables error: u^mu = (%lf, %lf, %lf, %lf) is nan\n", ut_s, ux_s, uy_s, un_s);
 		exit(-1);
@@ -55,8 +54,8 @@ void get_inferred_variables_test(PRECISION t, const PRECISION * const __restrict
 
 	// get solution for primary variables
 	*e = e_s;
-	*p = p_s;
-	*ut = sqrt(1.0  +  ux_s * ux_s  +  uy_s * uy_s);
+	*ut = sqrt(1.0  +  ux_s * ux_s  +  uy_s * uy_s);	// I guess renormalize helps?
+	//*ut = ut_s;
 	*ux = ux_s;
 	*uy = uy_s;
 	*un = un_s;
@@ -66,7 +65,7 @@ void get_inferred_variables_test(PRECISION t, const PRECISION * const __restrict
 
 
 
-void get_inferred_variables(PRECISION t, const PRECISION * const __restrict__ q, PRECISION * const __restrict__ e, PRECISION * const __restrict__ p, PRECISION * const __restrict__ ut, PRECISION * const __restrict__ ux, PRECISION * const __restrict__ uy, PRECISION * const __restrict__ un)
+void get_inferred_variables(PRECISION t, const PRECISION * const __restrict__ q, PRECISION * const __restrict__ e, PRECISION * const __restrict__ ut, PRECISION * const __restrict__ ux, PRECISION * const __restrict__ uy, PRECISION * const __restrict__ un)
 {
 	// this is what my version looks like
 	PRECISION Ttt = q[0];
@@ -142,11 +141,10 @@ void get_inferred_variables(PRECISION t, const PRECISION * const __restrict__ q,
 
 	// solution for (e, p)
 	PRECISION e_s = Mt  -  dP_zt2  -  (Mx * Mx  +  My * My) / ut_numerator  -  t2 * Mn * Mn * ut_numerator / (Mt + Pl) / (Mt + Pl);
-	PRECISION p_s = equilibriumPressure(e_s);
 
-	if(e_s < 0.0 || p_s < 0.0)
+	if(e_s < 0.0)
 	{
-		printf("\ngetInferredVariables error: (e, p) = (%lf, %lf) is negative\n", e_s, p_s);
+		printf("\ngetInferredVariables error: e = %lf is negative\n", e_s);
 	}
 
 	PRECISION e_plus_Pt = e_s + Pt;
@@ -157,7 +155,7 @@ void get_inferred_variables(PRECISION t, const PRECISION * const __restrict__ q,
 	PRECISION uy_s = My / ut_s / e_plus_Pt;
 	PRECISION un_s = F * ut_s;
 
-	if(std::isnan(ut_s))
+	if(std::isnan(ut_s) || std::isnan(ux_s) || std::isnan(uy_s) || std::isnan(un_s))
 	{
 		printf("\ngetInferredVariables error: u^mu = (%lf, %lf, %lf, %lf) is nan\n", ut_s, ux_s, uy_s, un_s);
 	}
@@ -176,8 +174,7 @@ void get_inferred_variables(PRECISION t, const PRECISION * const __restrict__ q,
 
 	// get solution for primary variables
 	*e = e_s;
-	*p = p_s;
-	*ut = sqrt(1.0  +  ux_s * ux_s  +  uy_s * uy_s  +  t2 * un_s * un_s);	// renormalize u
+	*ut = sqrt(1.0  +  ux_s * ux_s  +  uy_s * uy_s  +  t2 * un_s * un_s);
 	*ux = ux_s;
 	*uy = uy_s;
 	*un = un_s;
@@ -185,7 +182,7 @@ void get_inferred_variables(PRECISION t, const PRECISION * const __restrict__ q,
 
 
 
-void set_inferred_variables(const CONSERVED_VARIABLES * const __restrict__ q, PRECISION * const __restrict__ e, PRECISION * const __restrict__ p, FLUID_VELOCITY * const __restrict__ u, PRECISION t, int nx, int ny, int nz, int ncx, int ncy)
+void set_inferred_variables(const CONSERVED_VARIABLES * const __restrict__ q, PRECISION * const __restrict__ e, FLUID_VELOCITY * const __restrict__ u, PRECISION t, int nx, int ny, int nz)
 {
 	int N = 6;  // default size for q_s array (T^\tau\mu, Pl, Pt)
 
@@ -206,9 +203,9 @@ void set_inferred_variables(const CONSERVED_VARIABLES * const __restrict__ q, PR
 		{
 			for(int i = 2; i < nx + 2; i++)
 			{
-				int s = linear_column_index(i, j, k, ncx, ncy);
+				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
-				PRECISION e_s, p_s, ut_s, ux_s, uy_s, un_s;		// do I really need p_s?
+				PRECISION e_s, ut_s, ux_s, uy_s, un_s;		// do I really need p_s?
 
 				q_s[0] = q->ttt[s];
 				q_s[1] = q->ttx[s];
@@ -234,11 +231,10 @@ void set_inferred_variables(const CONSERVED_VARIABLES * const __restrict__ q, PR
 				// compute the updated values for (e, p, u^mu)
 				//
 				// test version for conformal PL matching
-				get_inferred_variables_test(t, q_s, &e_s, &p_s, &ut_s, &ux_s, &uy_s, &un_s);
+				get_inferred_variables_test(t, q_s, &e_s, &ut_s, &ux_s, &uy_s, &un_s);
 
 				// set the updated values to current variables
 				e[s] = e_s;
-				p[s] = p_s;
 
 				u->ut[s] = ut_s;	// should I renormalize this?
 				u->ux[s] = ux_s;

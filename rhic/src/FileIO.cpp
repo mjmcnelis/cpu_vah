@@ -50,7 +50,6 @@ void output(const PRECISION * const var, double t, const char * var_name, int nx
 void output_dynamical_variables(double t, int nx, int ny, int nz, double dx, double dy, double dz)
 {
 	output(e, t, "e", nx, ny, nz, dx, dy, dz);
-	output(p, t, "p", nx, ny, nz, dx, dy, dz);
 
 	output(u->ux, t, "ux", nx, ny, nz, dx, dy, dz);
 	output(u->uy, t, "uy", nx, ny, nz, dx, dy, dz);

@@ -7,8 +7,8 @@
 // get the neighbor cells of hydroydynamic variables along (x,y,n)
 // used to compute the source and flux terms in the euler step
 
-// primary variables of neighbor cells (e, p)
-void get_primary_neighbor_cells(const PRECISION * const __restrict__ E, const PRECISION * const __restrict__ P, PRECISION * const __restrict__ e1, PRECISION * const __restrict__ p1, int sim, int sip, int sjm, int sjp, int skm, int skp);
+// primary variables of neighbor cells (e)
+void get_primary_neighbor_cells(const PRECISION * const __restrict__ E, PRECISION * const __restrict__ e1, int sim, int sip, int sjm, int sjp, int skm, int skp);
 
 
 // fluid velocity of neighbor cells (ut, ux, uy, un)

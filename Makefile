@@ -1,3 +1,4 @@
+
 DIR_MAIN       = ./
 DIR_SRC        = $(DIR_MAIN)rhic/src
 DIR_H          = $(DIR_MAIN)rhic/include
@@ -15,7 +16,7 @@ CFLAGS         = $(DEBUG) $(OPTIMIZATION) $(FLOWTRACE) $(OPTIONS)
 LIBS     = -L /usr/local/lib -lm -lgsl -lgslcblas -lconfig -lc++
 INCLUDES = -I /usr/local/include -I rhic/include
 
-CPP     := $(shell find $(DIR_SRC) -name '*.cpp')
+CPP := $(shell find $(DIR_SRC) -name '*.cpp')
 OBJ = $(CPP:$(DIR_SRC)%.cpp=$(DIR_OBJ)%.o)
 
 EXE = cpu-vah

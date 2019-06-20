@@ -11,7 +11,7 @@
 #include "../include/DynamicalVariables.h"
 
 
-inline double sign(PRECISION x)
+inline PRECISION sign(PRECISION x)
 {
 	if(x < 0.0) return -1.0;
 	else return 1.0;
@@ -31,40 +31,38 @@ inline PRECISION minmod3(PRECISION x, PRECISION y, PRECISION z)
 
 PRECISION approx_derivative(PRECISION qm, PRECISION q, PRECISION qp)
 {
-	// qm = q_{i-1}		|	q = q_i		|	qp = q_{i+1}
-
 	return minmod3(THETA * (q - qm), (qp - qm) / 2.0, THETA * (qp - q));
 }
 
 
-PRECISION rightHalfCellExtrapolationForward(PRECISION qmm, PRECISION qm, PRECISION q, PRECISION qp, PRECISION qpp)
+PRECISION right_half_cell_extrapolation_forward(PRECISION qmm, PRECISION qm, PRECISION q, PRECISION qp, PRECISION qpp)
 {
 
 	return qp - approx_derivative(q, qp, qpp) / 2.0;	// Eq. (63)
 }
 
 
-PRECISION leftHalfCellExtrapolationForward(PRECISION qmm, PRECISION qm, PRECISION q, PRECISION qp, PRECISION qpp)
+PRECISION left_half_cell_extrapolation_forward(PRECISION qmm, PRECISION qm, PRECISION q, PRECISION qp, PRECISION qpp)
 {
 	return q + approx_derivative(qm, q, qp) / 2.0;		// Eq. (64)
 }
 
 
-PRECISION rightHalfCellExtrapolationBackwards(PRECISION qmm, PRECISION qm, PRECISION q, PRECISION qp, PRECISION qpp)
+PRECISION right_half_cell_extrapolation_backward(PRECISION qmm, PRECISION qm, PRECISION q, PRECISION qp, PRECISION qpp)
 {
 	return q - approx_derivative(qm, q, qp) / 2.0;		// Eq. (65)
 }
 
 
-PRECISION leftHalfCellExtrapolationBackwards(PRECISION qmm, PRECISION qm, PRECISION q, PRECISION qp, PRECISION qpp)
+PRECISION left_half_cell_extrapolation_backward(PRECISION qmm, PRECISION qm, PRECISION q, PRECISION qp, PRECISION qpp)
 {
 	return qm + approx_derivative(qmm, qm, q) / 2.0;	// Eq. (66)
 }
 
 
-void flux_terms(const PRECISION * const __restrict__ Q_data, const PRECISION * const __restrict__ Q1_data, const PRECISION * const __restrict__ Q2_data, const PRECISION * const __restrict__ V_data, PRECISION u_i, PRECISION ut, PRECISION * const __restrict__ H,
-	PRECISION (* const rightHalfCellExtrapolation)(PRECISION qmm, PRECISION qm, PRECISION q, PRECISION qp, PRECISION qpp),
-	PRECISION (* const leftHalfCellExtrapolation)(PRECISION qmm, PRECISION qm, PRECISION q, PRECISION qp, PRECISION qpp))
+void flux_terms(PRECISION * const __restrict__ H, const PRECISION * const __restrict__ Q_data, const PRECISION * const __restrict__ Q1_data, const PRECISION * const __restrict__ Q2_data, const PRECISION * const __restrict__ V_data, PRECISION u_i, PRECISION ut,
+	PRECISION (* const right_half_cell_extrapolation)(PRECISION qmm, PRECISION qm, PRECISION q, PRECISION qp, PRECISION qpp),
+	PRECISION (* const left_half_cell_extrapolation)(PRECISION qmm, PRECISION qm, PRECISION q, PRECISION qp, PRECISION qpp))
 {
 	// neighbor fluid velocities
 	PRECISION vmm = V_data[0];
@@ -74,13 +72,13 @@ void flux_terms(const PRECISION * const __restrict__ Q_data, const PRECISION * c
 	PRECISION vpp = V_data[3];
 
 	// left / right extrapolated speeds
-	PRECISION vL = fabs(leftHalfCellExtrapolation(vmm, vm, v, vp, vpp));
-	PRECISION vR = fabs(rightHalfCellExtrapolation(vmm, vm, v, vp, vpp));
+	PRECISION vL = fabs(left_half_cell_extrapolation(vmm, vm, v, vp, vpp));
+	PRECISION vR = fabs(right_half_cell_extrapolation(vmm, vm, v, vp, vpp));
 
 	// local propagation speed
 	PRECISION a = fmax(vL, vR);
 
-	// compute left / right extrapolated values of F = vq, q and v
+	// left / right extrapolated values of q and F = vq 
 	PRECISION qmm, qm, q, qp, qpp;
 	PRECISION Fmm, Fm, F, Fp, Fpp;
 	PRECISION qL, qR, FL, FR;
@@ -102,11 +100,11 @@ void flux_terms(const PRECISION * const __restrict__ Q_data, const PRECISION * c
 		Fp 	= qp * vp;
 		Fpp = qpp * vpp;
 
-		qL = leftHalfCellExtrapolation(qmm, qm, q, qp, qpp);
-		qR = rightHalfCellExtrapolation(qmm, qm, q, qp, qpp);
+		qL = left_half_cell_extrapolation(qmm, qm, q, qp, qpp);
+		qR = right_half_cell_extrapolation(qmm, qm, q, qp, qpp);
 
-		FL = leftHalfCellExtrapolation(Fmm, Fm, F, Fp, Fpp);
-		FR = rightHalfCellExtrapolation(Fmm, Fm, F, Fp, Fpp);
+		FL = left_half_cell_extrapolation(Fmm, Fm, F, Fp, Fpp);
+		FR = right_half_cell_extrapolation(Fmm, Fm, F, Fp, Fpp);
 
 		// H from Eq.(61)
 		H[n] = (FR + FL  -  a * (qR - qL)) / 2.0;

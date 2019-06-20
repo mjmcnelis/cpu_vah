@@ -78,10 +78,6 @@ void loadLatticeParameters(config_t *cfg, void * params)
 	lattice->numLatticePointsRapidity = numLatticePointsRapidity;
 	lattice->numProperTimePoints = numProperTimePoints;
 
-	lattice->numComputationalLatticePointsX = numLatticePointsX + N_GHOST_CELLS;
-	lattice->numComputationalLatticePointsY = numLatticePointsY + N_GHOST_CELLS;
-	lattice->numComputationalLatticePointsRapidity = numLatticePointsRapidity + N_GHOST_CELLS;
-
 	lattice->latticeSpacingX = latticeSpacingX;
 	lattice->latticeSpacingY = latticeSpacingY;
 	lattice->latticeSpacingRapidity = latticeSpacingRapidity;
@@ -166,28 +162,28 @@ void loadHydroParameters(config_t *cfg, void * params)
 		exit(-1);
 	}
 
-	double initialProperTimePoint;
-	double shearViscosityToEntropyDensity;
+	double tau_initial;
+	double shear_viscosity;
 	double freezeoutTemperatureGeV;
 
 	// get hydro parameters
-	getDoubleProperty(cfg, "initialProperTimePoint", &initialProperTimePoint);
-	getDoubleProperty(cfg, "shearViscosityToEntropyDensity", &shearViscosityToEntropyDensity);
+	getDoubleProperty(cfg, "tau_initial", &tau_initial);
+	getDoubleProperty(cfg, "shear_viscosity", &shear_viscosity);
 	getDoubleProperty(cfg, "freezeoutTemperatureGeV", &freezeoutTemperatureGeV);
 
 	printf("Hydro parameters:");
 	printf("\n-----------------\n");
-	printf("initialProperTimePoint         = %.3f\n", initialProperTimePoint);
-	printf("shearViscosityToEntropyDensity = %.3f\n", shearViscosityToEntropyDensity);
-	printf("freezeoutTemperatureGeV        = %.3f\n", freezeoutTemperatureGeV);
+	printf("tau_initial  = %.3f\n", tau_initial);
+	printf("shear_viscosity         = %.3f\n", shear_viscosity);
+	printf("freezeoutTemperatureGeV = %.3f\n", freezeoutTemperatureGeV);
 	printf("\n");
 
 
 	// set hydro struct
 	struct HydroParameters * hydro = (struct HydroParameters *) params;
 
-	hydro->initialProperTimePoint = initialProperTimePoint;
-	hydro->shearViscosityToEntropyDensity = shearViscosityToEntropyDensity;
+	hydro->tau_initial             = tau_initial;
+	hydro->shear_viscosity         = shear_viscosity;
 	hydro->freezeoutTemperatureGeV = freezeoutTemperatureGeV;
 }
 

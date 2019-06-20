@@ -43,17 +43,19 @@ void set_initial_conserved_variables(double t, int nx, int ny, int nz)
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
 				// get the variables (computed from initialConditions(...))
+				PRECISION e_s = e[s];
+
 				PRECISION ux = u->ux[s];
 				PRECISION uy = u->uy[s];
 				PRECISION un = u->un[s];
 				PRECISION ut = u->ut[s];
-				PRECISION e_s = e[s];
 
 				PRECISION pl = q->pl[s];
 
 				////////////////////////////////
 				//
-				PRECISION pt = 0.5 * (e_s - pl);	// use conformal formula for now
+				//PRECISION pt = 0.5 * (e_s - pl);	// use conformal formula for now
+				PRECISION pt = q->pt[s];
 				//
 				////////////////////////////////
 
@@ -109,8 +111,11 @@ void set_equilibrium_initial_condition(int nx, int ny, int nz)
 			{
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
-				q->pl[s] = p[s];		// set pl to equilibium pressure
-				//q->pt[s] = p[s];		// todo: add pt
+				PRECISION e_s = e[s];
+				PRECISION p_s = equilibriumPressure(e_s);
+
+				q->pl[s] = p_s;		// set (pl, pt) to equilibium pressure
+				q->pt[s] = p_s;		
 
 			#ifdef PIMUNU
 		  		q->pitt[s] = 0.0;
@@ -154,8 +159,7 @@ void set_Bjorken_energy_density_and_flow_profile(int nx, int ny, int nz, void * 
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
 				e[s] = (PRECISION) e0;
-				p[s] = (PRECISION) equilibriumPressure(e0);
-
+	
 				u->ut[s] = 1.0;
 				u->ux[s] = 0.0;
 				u->uy[s] = 0.0;
@@ -231,7 +235,6 @@ void set_Glauber_energy_density_and_flow_profile(int nx, int ny, int nz, double 
 				double e_s = max(e_min, e0 * eT[i - 2 + (j - 2) * nx] * eL[k - 2]);
 
 				e[s] = (PRECISION) e_s;
-				p[s] = (PRECISION) equilibriumPressure(e_s);
 
 				u->ut[s] = 1.0;
 				u->ux[s] = 0.0;
@@ -256,7 +259,7 @@ void set_Gubser_energy_density_and_flow_profile(int nx, int ny, int nz, double d
 	struct InitialConditionParameters * initCond = (struct InitialConditionParameters *) initCondParams;
 	struct HydroParameters * hydro = (struct HydroParameters *) hydroParams;
 
-	double t = hydro->initialProperTimePoint;					// initial longitudinal proper time
+	double t = hydro->tau_initial;								// initial longitudinal proper time
 	double T0 = initCond->initialCentralTemperatureGeV / hbarc;	// central temperature (fm)
 
 	double q = 1.0;												// inverse length size
@@ -266,9 +269,6 @@ void set_Gubser_energy_density_and_flow_profile(int nx, int ny, int nz, double d
 
 	// normalize Gubser temperature profile s.t. central temperature = T0
 	double T0_hat = T0 * t * pow((1.0 + q2 * t2) / (2.0 * q * t), 2./3.);
-
-	int ncx = nx + 4;
-	int ncy = ny + 4;
 
 	// loop over physical grid points
 	for(int i = 2; i < nx + 2; i++)
@@ -288,7 +288,6 @@ void set_Gubser_energy_density_and_flow_profile(int nx, int ny, int nz, double d
 			double T = (T0_hat / t) * pow(2.0 * q * t, 2./3.) / pow(1.0  +  2.0 * q2 * (t2 + r2)  +  q4 * (t2 - r2) * (t2 - r2), 1./3.);
 
 			double e_s = equilibriumEnergyDensity(T);
-			double p_s = e_s / 3.0;
 
 			double ux_s = sinh(kappa) * x / r;
 			double uy_s = sinh(kappa) * y / r;
@@ -296,10 +295,9 @@ void set_Gubser_energy_density_and_flow_profile(int nx, int ny, int nz, double d
 
 			for(int k = 2; k < nz + 2; k++)
 			{
-				int s = linear_column_index(i, j, k, ncx, ncy);
+				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
 				e[s] = (PRECISION) e_s;
-				p[s] = (PRECISION) p_s;
 
 				u->ut[s] = (PRECISION) ut_s;
 				u->ux[s] = (PRECISION) ux_s;

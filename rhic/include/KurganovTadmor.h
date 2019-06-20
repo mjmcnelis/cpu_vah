@@ -10,6 +10,6 @@
 
 #include "DynamicalVariables.h"
 
-void rungeKutta2(PRECISION t, PRECISION dt, CONSERVED_VARIABLES * __restrict__ q, CONSERVED_VARIABLES * __restrict__ Q, int nx, int ny, int nz, int ncx, int ncy, PRECISION dx, PRECISION dy, PRECISION dz, PRECISION etabar);
+void rungeKutta2(PRECISION t, PRECISION dt, int nx, int ny, int nz, PRECISION dx, PRECISION dy, PRECISION dz, PRECISION etabar);
 
 #endif
