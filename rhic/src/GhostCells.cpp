@@ -1,5 +1,6 @@
 
 #include "../include/GhostCells.h"
+#include "../include/Precision.h"
 #include "../include/DynamicalVariables.h"
 
 
@@ -9,7 +10,7 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 }
 
 
-void ghost_cell_BC(CONSERVED_VARIABLES * const __restrict__ q, PRECISION * const __restrict__ e, FLUID_VELOCITY * const __restrict__ u, int s, int sBC)
+void ghost_cell_BC(CONSERVED_VARIABLES * const __restrict__ q, precision * const __restrict__ e, FLUID_VELOCITY * const __restrict__ u, int s, int sBC)
 {
 	// s = ghost cell index	 |	sBC = physical cell at boundary index
 
@@ -51,7 +52,7 @@ void ghost_cell_BC(CONSERVED_VARIABLES * const __restrict__ q, PRECISION * const
 
 
 
-void set_ghost_cells(CONSERVED_VARIABLES * const __restrict__ q, PRECISION * const __restrict__ e, FLUID_VELOCITY * const __restrict__ u, int nx, int ny, int nz)
+void set_ghost_cells(CONSERVED_VARIABLES * const __restrict__ q, precision * const __restrict__ e, FLUID_VELOCITY * const __restrict__ u, int nx, int ny, int nz)
 {
 	int s;		// ghost cell index
 	int sBC;	// physical boundary index

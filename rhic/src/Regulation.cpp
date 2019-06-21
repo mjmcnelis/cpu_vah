@@ -2,8 +2,8 @@
 #include <math.h>
 
 #include "../include/Regulation.h"
+#include "../include/Precision.h"
 #include "../include/DynamicalVariables.h"
-
 
 inline int linear_column_index(int i, int j, int k, int nx, int ny)
 {

@@ -1,9 +1,3 @@
-/*
- * HydroPlugin.c
- *
- *  Created on: Oct 23, 2015
- *      Author: bazow
- */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -11,6 +5,7 @@
 #include <iomanip>
 #include <ctime>
 #include "../include/Hydrodynamics.h"
+#include "../include/Precision.h"
 #include "../include/DynamicalVariables.h"
 #include "../include/GhostCells.h"
 #include "../include/Parameters.h"
@@ -72,12 +67,12 @@ void run_hydro(void * latticeParams, void * initCondParams, void * hydroParams)
 	int ncy = ny + 4;
 	int ncz = nz + 4;
 
-	PRECISION dx = lattice->latticeSpacingX;			// lattice spacing
-	PRECISION dy = lattice->latticeSpacingY;
-	PRECISION dz = lattice->latticeSpacingRapidity;
+	precision dx = lattice->latticeSpacingX;			// lattice spacing
+	precision dy = lattice->latticeSpacingY;
+	precision dz = lattice->latticeSpacingRapidity;
 	double dt = lattice->latticeSpacingProperTime;		// time resolution
 
-	PRECISION etabar = hydro->shear_viscosity;			// shear viscosity
+	precision etabar = hydro->shear_viscosity;			// shear viscosity
 
 
 	double t0 = hydro->tau_initial;						// initial longitudinal proper time
@@ -113,11 +108,11 @@ void run_hydro(void * latticeParams, void * initCondParams, void * hydroParams)
 		// output variables to file occasionally (for testing)
 		if(n % FREQ == 0)
 		{	
-			PRECISION ectr = e[sctr] * hbarc;
-			PRECISION pctr = equilibriumPressure(e[sctr]) * hbarc;
-			PRECISION Tctr = effectiveTemperature(e[sctr]) * hbarc;
-			PRECISION plctr = q->pl[sctr] * hbarc;
-			PRECISION ptctr = q->pt[sctr] * hbarc;
+			precision ectr = e[sctr] * hbarc;
+			precision pctr = equilibriumPressure(e[sctr]) * hbarc;
+			precision Tctr = effectiveTemperature(e[sctr]) * hbarc;
+			precision plctr = q->pl[sctr] * hbarc;
+			precision ptctr = q->pt[sctr] * hbarc;
 
 			printf("t = %.3f fm/c\t\te = %.3f GeV/fm^3\tpl = %.3f GeV/fm^3\tpt = %.3f GeV/fm^3\tT = %.3f GeV\n", t, ectr, plctr, ptctr, Tctr);
 
@@ -129,13 +124,16 @@ void run_hydro(void * latticeParams, void * initCondParams, void * hydroParams)
 				break;	// need to change it so that all cells below freezeout temperature
 			}
 		}
-		rungeKutta2(t, dt, nx, ny, nz, dx, dy, dz, etabar);
+
+		// evolve one time step
+		runge_kutta2(t, dt, nx, ny, nz, dx, dy, dz, etabar);
+
 		steps += 1.0;
 		t += dt;
 	}
 
 	// time benchmarks
-	double duration = (clock() - start) / (double)CLOCKS_PER_SEC;
+	double duration     = (clock() - start) / (double)CLOCKS_PER_SEC;
 	double spatial_grid = (double)(nx * ny * nz);
 
 	cout << "Total time             = " << setprecision(4) << duration << " s\n";

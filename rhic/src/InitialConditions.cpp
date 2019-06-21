@@ -12,6 +12,7 @@
 #include <algorithm>    // for max
 
 #include "../include/InitialConditions.h"
+#include "../include/Precision.h"
 #include "../include/DynamicalVariables.h"
 #include "../include/Parameters.h"
 #include "../include/OpticalGlauber.h"
@@ -43,32 +44,32 @@ void set_initial_conserved_variables(double t, int nx, int ny, int nz)
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
 				// get the variables (computed from initialConditions(...))
-				PRECISION e_s = e[s];
+				precision e_s = e[s];
 
-				PRECISION ux = u->ux[s];
-				PRECISION uy = u->uy[s];
-				PRECISION un = u->un[s];
-				PRECISION ut = u->ut[s];
+				precision ux = u->ux[s];
+				precision uy = u->uy[s];
+				precision un = u->un[s];
+				precision ut = u->ut[s];
 
-				PRECISION pl = q->pl[s];
-				PRECISION pt = q->pt[s];
+				precision pl = q->pl[s];
+				precision pt = q->pt[s];
 
-				PRECISION utperp = sqrt(1.0  +  ux * ux  +  uy * uy);
+				precision utperp = sqrt(1.0  +  ux * ux  +  uy * uy);
 
 				// z^mu components
-				PRECISION zt = t * un / utperp;
-				PRECISION zn = ut / t / utperp;
+				precision zt = t * un / utperp;
+				precision zn = ut / t / utperp;
 
 				// only need the time components
-				PRECISION pitt = 0.0;
-				PRECISION pitx = 0.0;
-				PRECISION pity = 0.0;
-				PRECISION pitn = 0.0;
+				precision pitt = 0.0;
+				precision pitx = 0.0;
+				precision pity = 0.0;
+				precision pitn = 0.0;
 
-				PRECISION Wt = 0.0;
-				PRECISION Wx = 0.0;
-				PRECISION Wy = 0.0;
-				PRECISION Wn = 0.0;
+				precision Wt = 0.0;
+				precision Wx = 0.0;
+				precision Wy = 0.0;
+				precision Wn = 0.0;
 
 			#ifdef PIMUNU
 				pitt = q->pitt[s];
@@ -105,8 +106,8 @@ void set_equilibrium_initial_condition(int nx, int ny, int nz)
 			{
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
-				PRECISION e_s = e[s];
-				PRECISION p_s = equilibriumPressure(e_s);
+				precision e_s = e[s];
+				precision p_s = equilibriumPressure(e_s);
 
 				q->pl[s] = p_s;		// set (pl, pt) to equilibium pressure
 				q->pt[s] = p_s;
@@ -152,7 +153,7 @@ void set_Bjorken_energy_density_and_flow_profile(int nx, int ny, int nz, void * 
 			{
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
-				e[s] = (PRECISION) e0;
+				e[s] = (precision) e0;
 
 				u->ut[s] = 1.0;
 				u->ux[s] = 0.0;
@@ -228,7 +229,7 @@ void set_Glauber_energy_density_and_flow_profile(int nx, int ny, int nz, double 
 
 				double e_s = max(e_min, e0 * eT[i - 2 + (j - 2) * nx] * eL[k - 2]);
 
-				e[s] = (PRECISION) e_s;
+				e[s] = (precision) e_s;
 
 				u->ut[s] = 1.0;
 				u->ux[s] = 0.0;
@@ -291,17 +292,17 @@ void set_Gubser_energy_density_and_flow_profile(int nx, int ny, int nz, double d
 			{
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
-				e[s] = (PRECISION) e_s;
+				e[s] = (precision) e_s;
 
-				u->ut[s] = (PRECISION) ut_s;
-				u->ux[s] = (PRECISION) ux_s;
-				u->uy[s] = (PRECISION) uy_s;
+				u->ut[s] = (precision) ut_s;
+				u->ux[s] = (precision) ux_s;
+				u->uy[s] = (precision) uy_s;
 				u->un[s] = 0.0;
 
 				// also initialize up = u
-				up->ut[s] = (PRECISION) ut_s;
-				up->ux[s] = (PRECISION) ux_s;
-				up->uy[s] = (PRECISION) uy_s;
+				up->ut[s] = (precision) ut_s;
+				up->ux[s] = (precision) ux_s;
+				up->uy[s] = (precision) uy_s;
 				up->un[s] = 0.0;
 			}
 		}

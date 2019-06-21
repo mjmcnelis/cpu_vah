@@ -1,15 +1,11 @@
-/*
- * FullyDiscreteKurganovTadmorScheme.h
- *
- *  Created on: Oct 23, 2015
- *      Author: bazow
- */
 
 #ifndef KURGANOVTADMOR_H_
 #define KURGANOVTADMOR_H_
 
-#include "DynamicalVariables.h"
+#include "Precision.h"
 
-void rungeKutta2(PRECISION t, PRECISION dt, int nx, int ny, int nz, PRECISION dx, PRECISION dy, PRECISION dz, PRECISION etabar);
+
+void runge_kutta2(precision t, precision dt, int nx, int ny, int nz, precision dx, precision dy, precision dz, precision etabar);
+
 
 #endif

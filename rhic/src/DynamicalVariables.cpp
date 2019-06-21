@@ -1,12 +1,8 @@
-/*
- * DynamicalVariables.cpp
- *
- *  Created on: Oct 22, 2015
- *      Author: bazow
- */
+
 #include <stdlib.h>
 #include <iostream>
 #include <math.h>
+#include "../include/Precision.h"
 #include "../include/DynamicalVariables.h"
 #include "../include/Parameters.h"
 
@@ -14,7 +10,7 @@ using namespace std;
 
 CONSERVED_VARIABLES *q, *Q, *qS;	// the extern variables are defined here
 FLUID_VELOCITY *u, *up, *uS;		// so what is this purpose then?
-PRECISION *e;
+precision *e;
 
 
 inline int linear_column_index(int i, int j, int k, int nx, int ny)
@@ -24,115 +20,118 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 
 void allocate_memory(int len)
 {
-	size_t bytes = sizeof(PRECISION);
+	size_t bytes = sizeof(precision);
 
 	// primary variables
-	e = (PRECISION *)calloc(len, bytes);
+	e = (precision *)calloc(len, bytes);
 
 	// fluid velocity at current time step
 	u = (FLUID_VELOCITY *)calloc(1, sizeof(FLUID_VELOCITY));
-	u->ut = (PRECISION *)calloc(len, bytes);
-	u->ux = (PRECISION *)calloc(len, bytes);
-	u->uy = (PRECISION *)calloc(len, bytes);
-	u->un = (PRECISION *)calloc(len, bytes);
+	u->ut = (precision *)calloc(len, bytes);
+	u->ux = (precision *)calloc(len, bytes);
+	u->uy = (precision *)calloc(len, bytes);
+	u->un = (precision *)calloc(len, bytes);
 
 	// fluid velocity at previous time step
 	up = (FLUID_VELOCITY *)calloc(1, sizeof(FLUID_VELOCITY));
-	up->ut = (PRECISION *)calloc(len, bytes);
-	up->ux = (PRECISION *)calloc(len, bytes);
-	up->uy = (PRECISION *)calloc(len, bytes);
-	up->un = (PRECISION *)calloc(len, bytes);
+	up->ut = (precision *)calloc(len, bytes);
+	up->ux = (precision *)calloc(len, bytes);
+	up->uy = (precision *)calloc(len, bytes);
+	up->un = (precision *)calloc(len, bytes);
 
 	// fluid velocity at intermediate time step
 	uS = (FLUID_VELOCITY *)calloc(1, sizeof(FLUID_VELOCITY));
-	uS->ut = (PRECISION *)calloc(len, bytes);
-	uS->ux = (PRECISION *)calloc(len, bytes);
-	uS->uy = (PRECISION *)calloc(len, bytes);
-	uS->un = (PRECISION *)calloc(len, bytes);
+	uS->ut = (precision *)calloc(len, bytes);
+	uS->ux = (precision *)calloc(len, bytes);
+	uS->uy = (precision *)calloc(len, bytes);
+	uS->un = (precision *)calloc(len, bytes);
 
 
 	// conserved variables at current time step
 	q = (CONSERVED_VARIABLES *)calloc(1, sizeof(CONSERVED_VARIABLES));
-	q->ttt = (PRECISION *)calloc(len, bytes);
-	q->ttx = (PRECISION *)calloc(len, bytes);
-	q->tty = (PRECISION *)calloc(len, bytes);
-	q->ttn = (PRECISION *)calloc(len, bytes);
-	q->pl  = (PRECISION *)calloc(len, bytes);
-	q->pt  = (PRECISION *)calloc(len, bytes);
+	q->ttt = (precision *)calloc(len, bytes);
+	q->ttx = (precision *)calloc(len, bytes);
+	q->tty = (precision *)calloc(len, bytes);
+	q->ttn = (precision *)calloc(len, bytes);
+
+	q->pl  = (precision *)calloc(len, bytes);
+	q->pt  = (precision *)calloc(len, bytes);
 
 #ifdef PIMUNU
-	q->pitt = (PRECISION *)calloc(len, bytes);
-	q->pitx = (PRECISION *)calloc(len, bytes);
-	q->pity = (PRECISION *)calloc(len, bytes);
-	q->pitn = (PRECISION *)calloc(len, bytes);
-	q->pixx = (PRECISION *)calloc(len, bytes);
-	q->pixy = (PRECISION *)calloc(len, bytes);
-	q->pixn = (PRECISION *)calloc(len, bytes);
-	q->piyy = (PRECISION *)calloc(len, bytes);
-	q->piyn = (PRECISION *)calloc(len, bytes);
-	q->pinn = (PRECISION *)calloc(len, bytes);
+	q->pitt = (precision *)calloc(len, bytes);
+	q->pitx = (precision *)calloc(len, bytes);
+	q->pity = (precision *)calloc(len, bytes);
+	q->pitn = (precision *)calloc(len, bytes);
+	q->pixx = (precision *)calloc(len, bytes);
+	q->pixy = (precision *)calloc(len, bytes);
+	q->pixn = (precision *)calloc(len, bytes);
+	q->piyy = (precision *)calloc(len, bytes);
+	q->piyn = (precision *)calloc(len, bytes);
+	q->pinn = (precision *)calloc(len, bytes);
 #endif
 #ifdef WTZMU
-	q->WtTz = (PRECISION *)calloc(len, bytes);
-	q->WxTz = (PRECISION *)calloc(len, bytes);
-	q->WyTz = (PRECISION *)calloc(len, bytes);
-	q->WnTz = (PRECISION *)calloc(len, bytes);
+	q->WtTz = (precision *)calloc(len, bytes);
+	q->WxTz = (precision *)calloc(len, bytes);
+	q->WyTz = (precision *)calloc(len, bytes);
+	q->WnTz = (precision *)calloc(len, bytes);
 #endif
 
 	// conversed variables at intermediate time step
 	qS = (CONSERVED_VARIABLES *)calloc(1, sizeof(CONSERVED_VARIABLES));
-	qS->ttt = (PRECISION *)calloc(len, bytes);
-	qS->ttx = (PRECISION *)calloc(len, bytes);
-	qS->tty = (PRECISION *)calloc(len, bytes);
-	qS->ttn = (PRECISION *)calloc(len, bytes);
-	qS->pl  = (PRECISION *)calloc(len, bytes);
-	qS->pt  = (PRECISION *)calloc(len, bytes);
+	qS->ttt = (precision *)calloc(len, bytes);
+	qS->ttx = (precision *)calloc(len, bytes);
+	qS->tty = (precision *)calloc(len, bytes);
+	qS->ttn = (precision *)calloc(len, bytes);
+
+	qS->pl  = (precision *)calloc(len, bytes);
+	qS->pt  = (precision *)calloc(len, bytes);
 
 #ifdef PIMUNU
-	qS->pitt = (PRECISION *)calloc(len, bytes);
-	qS->pitx = (PRECISION *)calloc(len, bytes);
-	qS->pity = (PRECISION *)calloc(len, bytes);
-	qS->pitn = (PRECISION *)calloc(len, bytes);
-	qS->pixx = (PRECISION *)calloc(len, bytes);
-	qS->pixy = (PRECISION *)calloc(len, bytes);
-	qS->pixn = (PRECISION *)calloc(len, bytes);
-	qS->piyy = (PRECISION *)calloc(len, bytes);
-	qS->piyn = (PRECISION *)calloc(len, bytes);
-	qS->pinn = (PRECISION *)calloc(len, bytes);
+	qS->pitt = (precision *)calloc(len, bytes);
+	qS->pitx = (precision *)calloc(len, bytes);
+	qS->pity = (precision *)calloc(len, bytes);
+	qS->pitn = (precision *)calloc(len, bytes);
+	qS->pixx = (precision *)calloc(len, bytes);
+	qS->pixy = (precision *)calloc(len, bytes);
+	qS->pixn = (precision *)calloc(len, bytes);
+	qS->piyy = (precision *)calloc(len, bytes);
+	qS->piyn = (precision *)calloc(len, bytes);
+	qS->pinn = (precision *)calloc(len, bytes);
 #endif
 #ifdef WTZMU
-	qS->WtTz = (PRECISION *)calloc(len, bytes);
-	qS->WxTz = (PRECISION *)calloc(len, bytes);
-	qS->WyTz = (PRECISION *)calloc(len, bytes);
-	qS->WnTz = (PRECISION *)calloc(len, bytes);
+	qS->WtTz = (precision *)calloc(len, bytes);
+	qS->WxTz = (precision *)calloc(len, bytes);
+	qS->WyTz = (precision *)calloc(len, bytes);
+	qS->WnTz = (precision *)calloc(len, bytes);
 #endif
 
 	// conserved variables at next time step
 	Q = (CONSERVED_VARIABLES *)calloc(1, sizeof(CONSERVED_VARIABLES));
-	Q->ttt = (PRECISION *)calloc(len, bytes);
-	Q->ttx = (PRECISION *)calloc(len, bytes);
-	Q->tty = (PRECISION *)calloc(len, bytes);
-	Q->ttn = (PRECISION *)calloc(len, bytes);
-	Q->pl  = (PRECISION *)calloc(len, bytes);
-	Q->pt  = (PRECISION *)calloc(len, bytes);
+	Q->ttt = (precision *)calloc(len, bytes);
+	Q->ttx = (precision *)calloc(len, bytes);
+	Q->tty = (precision *)calloc(len, bytes);
+	Q->ttn = (precision *)calloc(len, bytes);
+
+	Q->pl  = (precision *)calloc(len, bytes);
+	Q->pt  = (precision *)calloc(len, bytes);
 
 #ifdef PIMUNU
-	Q->pitt = (PRECISION *)calloc(len, bytes);
-	Q->pitx = (PRECISION *)calloc(len, bytes);
-	Q->pity = (PRECISION *)calloc(len, bytes);
-	Q->pitn = (PRECISION *)calloc(len, bytes);
-	Q->pixx = (PRECISION *)calloc(len, bytes);
-	Q->pixy = (PRECISION *)calloc(len, bytes);
-	Q->pixn = (PRECISION *)calloc(len, bytes);
-	Q->piyy = (PRECISION *)calloc(len, bytes);
-	Q->piyn = (PRECISION *)calloc(len, bytes);
-	Q->pinn = (PRECISION *)calloc(len, bytes);
+	Q->pitt = (precision *)calloc(len, bytes);
+	Q->pitx = (precision *)calloc(len, bytes);
+	Q->pity = (precision *)calloc(len, bytes);
+	Q->pitn = (precision *)calloc(len, bytes);
+	Q->pixx = (precision *)calloc(len, bytes);
+	Q->pixy = (precision *)calloc(len, bytes);
+	Q->pixn = (precision *)calloc(len, bytes);
+	Q->piyy = (precision *)calloc(len, bytes);
+	Q->piyn = (precision *)calloc(len, bytes);
+	Q->pinn = (precision *)calloc(len, bytes);
 #endif
 #ifdef WTZMU
-	Q->WtTz = (PRECISION *)calloc(len, bytes);
-	Q->WxTz = (PRECISION *)calloc(len, bytes);
-	Q->WyTz = (PRECISION *)calloc(len, bytes);
-	Q->WnTz = (PRECISION *)calloc(len, bytes);
+	Q->WtTz = (precision *)calloc(len, bytes);
+	Q->WxTz = (precision *)calloc(len, bytes);
+	Q->WyTz = (precision *)calloc(len, bytes);
+	Q->WnTz = (precision *)calloc(len, bytes);
 #endif
 }
 
@@ -178,6 +177,8 @@ void free_conserved_variables(CONSERVED_VARIABLES * q)
 	free(q->ttn);
 	free(q->pl);
 
+	free(q->pt);
+
 #ifdef PIMUNU
 	free(q->pitt);
 	free(q->pitx);
@@ -190,7 +191,7 @@ void free_conserved_variables(CONSERVED_VARIABLES * q)
 	free(q->piyn);
 	free(q->pinn);
 #endif
-#ifdef W_TZ_MU
+#ifdef WTZMU
 	free(q->WtTz);
 	free(q->WxTz);
 	free(q->WyTz);

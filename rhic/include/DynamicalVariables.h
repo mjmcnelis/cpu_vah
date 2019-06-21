@@ -1,15 +1,8 @@
-/*
- * DynamicalVariables.h
- *
- *  Created on: Oct 22, 2015
- *      Author: bazow
- */
 
 #ifndef DYNAMICALVARIABLES_H_
 #define DYNAMICALVARIABLES_H_
 
-#define precision double
-#define PRECISION double
+#include "Precision.h"
 
 #define NUMBER_CONSERVATION_LAWS 4
 

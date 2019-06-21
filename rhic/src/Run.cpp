@@ -1,17 +1,27 @@
+
+
 /*
- ============================================================================
- Name        : Run.c
- Author      : Dennis Bazow
- Version     :
- Copyright   :
- Description : Run viscous hydrodynamic simulation of a relativistic heavy ion collision
- ============================================================================
+-------------------------------------------------------
+| Code        	| CPU VAH
+-------------------------------------------------------
+| Authors      	| Dennis Bazow, Mike McNelis
+-------------------------------------------------------
+| Date created	| 10/12/15
+-------------------------------------------------------
+| Last edited	| 6/21/19
+-------------------------------------------------------
+| Version     	| 2.0
+-------------------------------------------------------
+| Description 	| A viscous anisotropic hydrodynamic   
+|				| simulation of a heavy-ion collision  
+-------------------------------------------------------
  */
 
+
 #include <stdlib.h>
-#include <stdio.h> // for printf
-#include <sys/time.h> // for timing
-#include <unistd.h>		// for current working directory
+#include <stdio.h> 			// for printf
+#include <sys/time.h> 		// for timing
+// #include <unistd.h>		// for current working directory
 #include <libconfig.h>
 #include <iostream>
 

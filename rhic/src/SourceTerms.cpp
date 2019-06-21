@@ -10,6 +10,7 @@
 #include <math.h>
 #include "../include/SourceTerms.h"
 #include "../include/FluxTerms.h"
+#include "../include/Precision.h"
 #include "../include/DynamicalVariables.h"
 #include "../include/EquationOfState.h" // for bulk terms
 #include "../include/TransportCoefficients.h"
@@ -50,7 +51,7 @@ inline precision bulkViscosityToEntropyDensity(precision T)   // need some hydro
 }
 
 
-inline double sign(precision x)
+inline precision sign(precision x)
 {
 	if(x < 0.0) return -1.0;
 	else return 1.0;

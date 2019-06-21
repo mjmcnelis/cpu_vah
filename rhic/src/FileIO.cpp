@@ -1,13 +1,9 @@
-/*
- * FileIO.c
- *
- *  Created on: Oct 24, 2015
- *      Author: bazow
- */
+
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 #include "../include/FileIO.h"
-#include "../include/Parameters.h"
+#include "../include/Precision.h"
 #include "../include/DynamicalVariables.h"
 
 
@@ -17,7 +13,7 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 }
 
 
-void output(const PRECISION * const var, double t, const char * var_name, int nx, int ny, int nz, double dx, double dy, double dz)
+void output(const precision * const var, double t, const char * var_name, int nx, int ny, int nz, double dx, double dy, double dz)
 {
 	FILE * output;
 	char fname[255];
@@ -46,6 +42,38 @@ void output(const PRECISION * const var, double t, const char * var_name, int nx
 	fclose(output);
 }
 
+void output_ur(const precision * const ux, const precision * const uy, double t, int nx, int ny, int nz, double dx, double dy, double dz)
+{
+	FILE * output;
+	char fname[255];
+	sprintf(fname, "output/ur_%.3f.dat", t);
+
+	output = fopen(fname, "w");
+
+	for(int k = 2; k < nz + 2; k++)
+	{
+		double z = (k - 2.0 - (nz - 1.0)/2.0) * dz;
+
+		for(int j = 2; j < ny + 2; j++)
+		{
+			double y = (j - 2.0 - (ny - 1.0)/2.0) * dy;
+
+			for(int i = 2; i < nx + 2; i++)
+			{
+				double x = (i - 2.0 - (nx - 1.0)/2.0) * dx;
+
+				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
+
+				double ux_s = ux[s];
+				double uy_s = uy[s];
+
+				fprintf(output, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, sqrt(ux_s*ux_s + uy_s*uy_s));
+			}
+		}
+	}
+	fclose(output);
+}
+
 
 void output_dynamical_variables(double t, int nx, int ny, int nz, double dx, double dy, double dz)
 {
@@ -55,6 +83,8 @@ void output_dynamical_variables(double t, int nx, int ny, int nz, double dx, dou
 	output(u->ux, t, "ux", nx, ny, nz, dx, dy, dz);
 	output(u->uy, t, "uy", nx, ny, nz, dx, dy, dz);
 	output(u->un, t, "un", nx, ny, nz, dx, dy, dz);
+
+	output_ur(u->ux, u->uy, t, nx, ny, nz, dx, dy, dz);
 
 	output(q->pl, t, "pl", nx, ny, nz, dx, dy, dz);
 	output(q->pt, t, "pt", nx, ny, nz, dx, dy, dz);

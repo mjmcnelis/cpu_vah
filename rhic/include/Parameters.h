@@ -1,17 +1,14 @@
-/*
- * LatticeParameters.h
- *
- *  Created on: Oct 22, 2015
- *      Author: bazow
- */
 
 #ifndef PARAMETERS_H_
 #define PARAMETERS_H_
 
 #include <libconfig.h>
 
+
 void getIntegerProperty(config_t * cfg, const char * propName, int * propValue);
+
 void getDoubleProperty(config_t * cfg, const char * propName, double * propValue);
+
 
 struct LatticeParameters
 {
@@ -27,6 +24,7 @@ struct LatticeParameters
 
 	double latticeSpacingProperTime;
 };
+
 
 struct InitialConditionParameters
 {
@@ -44,6 +42,7 @@ struct InitialConditionParameters
 	double rapidityMean; 		// flat region around \ets_s = 0
 };
 
+
 struct HydroParameters
 {
 	double tau_initial;
@@ -52,7 +51,14 @@ struct HydroParameters
 };
 
 void loadLatticeParameters(config_t *cfg, void * params);
+
 void loadInitialConditionParameters(config_t *cfg, void * params);
+
 void loadHydroParameters(config_t *cfg, void * params);
 
+
 #endif 
+
+
+
+

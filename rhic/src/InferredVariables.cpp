@@ -1,18 +1,13 @@
-/*
- * EnergyMomentumTensor.cpp
- *
- *  Created on: Oct 22, 2015
- *      Author: bazow
- */
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
 #include <cmath>
 #include "../include/InferredVariables.h"
+#include "../include/Precision.h"
 #include "../include/DynamicalVariables.h"
 #include "../include/Parameters.h"
 #include "../include/EquationOfState.h"
-//#include "../include/TransportCoefficients.h"
+
 
 inline int linear_column_index(int i, int j, int k, int nx, int ny)
 {
@@ -21,30 +16,30 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 
 
 // this is a temporary test for conformal PL matching
-void get_inferred_variables_test(PRECISION t, const PRECISION * const __restrict__ q, PRECISION * const __restrict__ e, PRECISION * const __restrict__ ut, PRECISION * const __restrict__ ux, PRECISION * const __restrict__ uy, PRECISION * const __restrict__ un)
+void get_inferred_variables_test(precision t, const precision * const __restrict__ q, precision * const __restrict__ e, precision * const __restrict__ ut, precision * const __restrict__ ux, precision * const __restrict__ uy, precision * const __restrict__ un)
 {
-	PRECISION Ttt = q[0];
-	PRECISION Ttx = q[1];
-	PRECISION Tty = q[2];
+	precision Ttt = q[0];
+	precision Ttx = q[1];
+	precision Tty = q[2];
 
-	PRECISION pl  = q[4];
+	precision pl  = q[4];
 
-	PRECISION Mt = Ttt;
-	PRECISION Mx = Ttx;
-	PRECISION My = Tty;
+	precision Mt = Ttt;
+	precision Mx = Ttx;
+	precision My = Tty;
 
 	// conformal solution for (e, p)
-	PRECISION e_s = 0.5 * (-(Mt - pl)  +  sqrt(fabs((Mt - pl) * (Mt - pl)  +  8.0 * (Mt * (Mt - 0.5 * pl) - (Mx * Mx  +  My * My)))));
+	precision e_s = 0.5 * (-(Mt - pl)  +  sqrt(fabs((Mt - pl) * (Mt - pl)  +  8.0 * (Mt * (Mt - 0.5 * pl) - (Mx * Mx  +  My * My)))));
 
 	if(e_s < 1.e-3) e_s = 1.e-3;				// this cutoff is important
 
-	PRECISION pt = 0.5 * (e_s - pl);			// conformal formula
+	precision pt = 0.5 * (e_s - pl);			// conformal formula
 
 	// solution for u^mu
-	PRECISION ut_s = sqrt(fabs((Mt + pt) / (e_s + pt)));
-	PRECISION ux_s = Mx / ut_s / (e_s + pt);
-	PRECISION uy_s = My / ut_s / (e_s + pt);
-	PRECISION un_s = 0.0;
+	precision ut_s = sqrt(fabs((Mt + pt) / (e_s + pt)));
+	precision ux_s = Mx / ut_s / (e_s + pt);
+	precision uy_s = My / ut_s / (e_s + pt);
+	precision un_s = 0.0;
 
 	if(std::isnan(ut_s))	// I'm not sure what's going nan???
 	{
@@ -65,26 +60,26 @@ void get_inferred_variables_test(PRECISION t, const PRECISION * const __restrict
 
 
 
-void get_inferred_variables(PRECISION t, const PRECISION * const __restrict__ q, PRECISION * const __restrict__ e, PRECISION * const __restrict__ ut, PRECISION * const __restrict__ ux, PRECISION * const __restrict__ uy, PRECISION * const __restrict__ un)
+void get_inferred_variables(precision t, const precision * const __restrict__ q, precision * const __restrict__ e, precision * const __restrict__ ut, precision * const __restrict__ ux, precision * const __restrict__ uy, precision * const __restrict__ un)
 {
 	// this is what my version looks like
-	PRECISION Ttt = q[0];
-	PRECISION Ttx = q[1];
-	PRECISION Tty = q[2];
-	PRECISION Ttn = q[3];
-	PRECISION Pl = q[4];
+	precision Ttt = q[0];
+	precision Ttx = q[1];
+	precision Tty = q[2];
+	precision Ttn = q[3];
+	precision Pl = q[4];
 
-	PRECISION Pt = 0.0;		// the conformal eos depends on e which is a problem
+	precision Pt = 0.0;		// the conformal eos depends on e which is a problem
 
-	PRECISION pitt = 0.0;
-	PRECISION pitx = 0.0;
-	PRECISION pity = 0.0;
-	PRECISION pitn = 0.0;
+	precision pitt = 0.0;
+	precision pitx = 0.0;
+	precision pity = 0.0;
+	precision pitn = 0.0;
 
-	PRECISION Wt = 0.0;
-	PRECISION Wx = 0.0;
-	PRECISION Wy = 0.0;
-	PRECISION Wn = 0.0;
+	precision Wt = 0.0;
+	precision Wx = 0.0;
+	precision Wy = 0.0;
+	precision Wn = 0.0;
 
 #ifdef PIMUNU
 	pitt = q[6];
@@ -103,23 +98,23 @@ void get_inferred_variables(PRECISION t, const PRECISION * const __restrict__ q,
 	// I can use Wt = t2 * Wn * zn / zt
 	// well it also shows up in B (so maybe I can't)
 
-	PRECISION Kt = Ttt - pitt;				// [fm^-4]
-	PRECISION Kx = Ttx - pitx;				// [fm^-4]
-	PRECISION Ky = Tty - pity;				// [fm^-4]
-	PRECISION Kn = Ttn - pitn;				// [fm^-5]
+	precision Kt = Ttt - pitt;				// [fm^-4]
+	precision Kx = Ttx - pitx;				// [fm^-4]
+	precision Ky = Tty - pity;				// [fm^-4]
+	precision Kn = Ttn - pitn;				// [fm^-5]
 
-	PRECISION A = Kn / (Kt + Pl);		  	// [fm^-1] (check these formulas)
-	PRECISION B = Wt / (t * (Kt + Pl));		// [fm^-1]
+	precision A = Kn / (Kt + Pl);		  	// [fm^-1] (check these formulas)
+	precision B = Wt / (t * (Kt + Pl));		// [fm^-1]
 
-	PRECISION t2 = t * t;
+	precision t2 = t * t;
 
-	PRECISION t2A2 = t2 * A * A;
-	PRECISION t2B2 = t2 * B * B;
+	precision t2A2 = t2 * A * A;
+	precision t2B2 = t2 * B * B;
 
 	// figure out how to deal with this
-	PRECISION F = (A  -  B * sqrt(1.0 + t2B2 - t2A2)) / (1.0 + t2B2);	// [fm^-1]
-	PRECISION Ft = t * F;												// [1]
-	PRECISION x = sqrt(1.0  -  Ft * Ft);								// [1]
+	precision F = (A  -  B * sqrt(1.0 + t2B2 - t2A2)) / (1.0 + t2B2);	// [fm^-1]
+	precision Ft = t * F;												// [1]
+	precision x = sqrt(1.0  -  Ft * Ft);								// [1]
 
 	if(std::isnan(F) || std::isnan(x))
 	{
@@ -127,33 +122,33 @@ void get_inferred_variables(PRECISION t, const PRECISION * const __restrict__ q,
 		//exit(-1);
 	}
 
-	PRECISION zt = Ft / x;					// [1]
-	PRECISION zn = 1.0 / (x * t);			// [fm^-1]
+	precision zt = Ft / x;					// [1]
+	precision zn = 1.0 / (x * t);			// [fm^-1]
 
-	PRECISION Mt = Kt  -  2.0 * Wt * zt;
-	PRECISION Mx = Kx  -  Wx * zt;
-	PRECISION My = Ky  -  Wy * zt;
-	PRECISION Mn = Kn  -  (Wt * zn  +  Wn * zt);
+	precision Mt = Kt  -  2.0 * Wt * zt;
+	precision Mx = Kx  -  Wx * zt;
+	precision My = Ky  -  Wy * zt;
+	precision Mn = Kn  -  (Wt * zn  +  Wn * zt);
 
-	PRECISION dP_zt2 = (Pl - Pt) * zt * zt;
-	PRECISION ut_numerator = Mt + Pt - dP_zt2;
+	precision dP_zt2 = (Pl - Pt) * zt * zt;
+	precision ut_numerator = Mt + Pt - dP_zt2;
 
 
 	// solution for (e, p)
-	PRECISION e_s = Mt  -  dP_zt2  -  (Mx * Mx  +  My * My) / ut_numerator  -  t2 * Mn * Mn * ut_numerator / (Mt + Pl) / (Mt + Pl);
+	precision e_s = Mt  -  dP_zt2  -  (Mx * Mx  +  My * My) / ut_numerator  -  t2 * Mn * Mn * ut_numerator / (Mt + Pl) / (Mt + Pl);
 
 	if(e_s < 0.0)
 	{
 		printf("\ngetInferredVariables error: e = %lf is negative\n", e_s);
 	}
 
-	PRECISION e_plus_Pt = e_s + Pt;
+	precision e_plus_Pt = e_s + Pt;
 
 	// solution for u^mu
-	PRECISION ut_s = sqrt(ut_numerator / e_plus_Pt);
-	PRECISION ux_s = Mx / ut_s / e_plus_Pt;
-	PRECISION uy_s = My / ut_s / e_plus_Pt;
-	PRECISION un_s = F * ut_s;
+	precision ut_s = sqrt(ut_numerator / e_plus_Pt);
+	precision ux_s = Mx / ut_s / e_plus_Pt;
+	precision uy_s = My / ut_s / e_plus_Pt;
+	precision un_s = F * ut_s;
 
 	if(std::isnan(ut_s) || std::isnan(ux_s) || std::isnan(uy_s) || std::isnan(un_s))
 	{
@@ -182,7 +177,7 @@ void get_inferred_variables(PRECISION t, const PRECISION * const __restrict__ q,
 
 
 
-void set_inferred_variables(const CONSERVED_VARIABLES * const __restrict__ q, PRECISION * const __restrict__ e, FLUID_VELOCITY * const __restrict__ u, PRECISION t, int nx, int ny, int nz)
+void set_inferred_variables(const CONSERVED_VARIABLES * const __restrict__ q, precision * const __restrict__ e, FLUID_VELOCITY * const __restrict__ u, precision t, int nx, int ny, int nz)
 {
 	int N = 6;  // default size for q_s array (T^\tau\mu, Pl, Pt)
 
@@ -194,7 +189,7 @@ void set_inferred_variables(const CONSERVED_VARIABLES * const __restrict__ q, PR
 // 	N += 4;
 // #endif
 	const int nq = N;
-	PRECISION q_s[nq];
+	precision q_s[nq];
 
 	// loop over the physical grid points
 	for(int k = 2; k < nz + 2; k++)
@@ -205,7 +200,7 @@ void set_inferred_variables(const CONSERVED_VARIABLES * const __restrict__ q, PR
 			{
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
-				PRECISION e_s, ut_s, ux_s, uy_s, un_s;		// do I really need p_s?
+				precision e_s, ut_s, ux_s, uy_s, un_s;		// do I really need p_s?
 
 				q_s[0] = q->ttt[s];
 				q_s[1] = q->ttx[s];

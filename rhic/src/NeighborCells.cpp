@@ -1,9 +1,9 @@
 
 #include "../include/NeighborCells.h"
-#include "../include/DynamicalVariables.h"
+#include "../include/Precision.h"
 
 
-void get_primary_neighbor_cells(const PRECISION * const __restrict__ E, PRECISION * const __restrict__ e1, int sim, int sip, int sjm, int sjp, int skm, int skp)
+void get_primary_neighbor_cells(const precision * const __restrict__ E, precision * const __restrict__ e1, int sim, int sip, int sjm, int sjp, int skm, int skp)
 {
 	// energy density of neighbor cells stored in e1 = (e_sim, e_sip, e_sjm, e_sjp, e_skm, e_skp)
 	e1[0] = E[sim];		// i-1
@@ -15,7 +15,7 @@ void get_primary_neighbor_cells(const PRECISION * const __restrict__ E, PRECISIO
 }
 
 
-void get_u_neighbor_cells(const PRECISION * const __restrict__ ut, const PRECISION * const __restrict__ ux, const PRECISION * const __restrict__ uy, const PRECISION * const __restrict__ un, PRECISION * const __restrict__ ui1, PRECISION * const __restrict__ uj1, PRECISION * const __restrict__ uk1, int sim, int sip, int sjm, int sjp, int skm, int skp)
+void get_u_neighbor_cells(const precision * const __restrict__ ut, const precision * const __restrict__ ux, const precision * const __restrict__ uy, const precision * const __restrict__ un, precision * const __restrict__ ui1, precision * const __restrict__ uj1, precision * const __restrict__ uk1, int sim, int sip, int sjm, int sjp, int skm, int skp)
 {
 	ui1[0] = ut[sim];		// fluid velocity of neighbor cells
 	ui1[1] = ut[sip];		// along x [i-1, i+1] stored in ui1
@@ -59,7 +59,7 @@ void get_u_neighbor_cells(const PRECISION * const __restrict__ ut, const PRECISI
 }
 
 
-void get_v_neighbor_cells(const PRECISION * const __restrict__ ut, const PRECISION * const __restrict__ ux, const PRECISION * const __restrict__ uy, const PRECISION * const __restrict__ un, PRECISION * const __restrict__ vxi, PRECISION * const __restrict__ vyj, PRECISION * const __restrict__ vnk, int simm, int sim, int sip, int sipp, int sjmm, int sjm, int sjp, int sjpp, int skmm, int skm, int skp, int skpp)
+void get_v_neighbor_cells(const precision * const __restrict__ ut, const precision * const __restrict__ ux, const precision * const __restrict__ uy, const precision * const __restrict__ un, precision * const __restrict__ vxi, precision * const __restrict__ vyj, precision * const __restrict__ vnk, int simm, int sim, int sip, int sipp, int sjmm, int sjm, int sjp, int sjpp, int skmm, int skm, int skp, int skpp)
 {
 	vxi[0]  = ux[simm] / ut[simm];		// vx neighbor cells [i-2, i-1, i+1, i+2] stored in vxi
 	vxi[1]  = ux[sim]  / ut[sim];
@@ -82,7 +82,7 @@ void get_v_neighbor_cells(const PRECISION * const __restrict__ ut, const PRECISI
 }
 
 
-void get_q_neighbor_cells(const PRECISION * const __restrict__ q_s, PRECISION * const __restrict__ qi1, PRECISION * const __restrict__ qj1, PRECISION * const __restrict__ qk1, PRECISION * const __restrict__ qi2, PRECISION * const __restrict__ qj2, PRECISION * const __restrict__ qk2, int * r, int simm, int sim, int sip, int sipp, int sjmm, int sjm, int sjp, int sjpp, int skmm, int skm, int skp, int skpp)
+void get_q_neighbor_cells(const precision * const __restrict__ q_s, precision * const __restrict__ qi1, precision * const __restrict__ qj1, precision * const __restrict__ qk1, precision * const __restrict__ qi2, precision * const __restrict__ qj2, precision * const __restrict__ qk2, int * r, int simm, int sim, int sip, int sipp, int sjmm, int sjm, int sjp, int sjpp, int skmm, int skm, int skp, int skpp)
 {
 	int n = *r;
 

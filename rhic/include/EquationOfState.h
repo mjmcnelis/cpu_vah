@@ -1,14 +1,8 @@
-/*
- * EquationOfState.h
- *
- *  Created on: Oct 22, 2015
- *      Author: bazow
- */
 
 #ifndef EQUATIONOFSTATE_H_
 #define EQUATIONOFSTATE_H_
 
-#include "DynamicalVariables.h"
+#include "Precision.h"
 
 #define CONFORMAL_EOS
 
@@ -16,14 +10,16 @@
 //#define EOS_FACTOR 15.6269 // Nc=3, Nf=3
 #define EOS_FACTOR 13.8997 // Nc=3, Nf=2.5
 
-PRECISION equilibriumPressure(PRECISION e);
 
-PRECISION speedOfSoundSquared(PRECISION e);
+precision equilibriumPressure(precision e);
 
-PRECISION effectiveTemperature(PRECISION e);
+precision speedOfSoundSquared(precision e);
 
-PRECISION equilibriumEnergyDensity(PRECISION T);
+precision effectiveTemperature(precision e);
 
-PRECISION derivativeEnergyDensityWithRespectToTemperature(PRECISION T);
+precision equilibriumEnergyDensity(precision T);
 
-#endif /* EQUATIONOFSTATE_H_ */
+precision derivativeEnergyDensityWithRespectToTemperature(precision T);
+
+
+#endif 

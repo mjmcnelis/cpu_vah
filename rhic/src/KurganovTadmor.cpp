@@ -12,6 +12,7 @@
 
 #include "../include/KurganovTadmor.h"
 #include "../include/Parameters.h"
+#include "../include/Precision.h"
 #include "../include/DynamicalVariables.h"
 #include "../include/GhostCells.h"
 #include "../include/FluxTerms.h"
@@ -30,7 +31,7 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 }
 
 
-void euler_step(precision t, const CONSERVED_VARIABLES * const __restrict__ q_current, CONSERVED_VARIABLES * const __restrict__ q_updated,
+void euler_step(precision t, const CONSERVED_VARIABLES * const __restrict__ q, CONSERVED_VARIABLES * const __restrict__ Q,
 const precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict__ u, const FLUID_VELOCITY * const __restrict__ up, int nx, int ny, int nz, precision dt, precision dx, precision dy, precision dn, precision etabar)
 {
 	// compute the euler step
@@ -96,13 +97,13 @@ const precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict_
 
 				int r = 0;
 
-				ql[0] = q_current->ttt[s];		// conserved variables of cell s
-				ql[1] = q_current->ttx[s];
-				ql[2] = q_current->tty[s];
-				ql[3] = q_current->ttn[s];
+				ql[0] = q->ttt[s];		// conserved variables of cell s
+				ql[1] = q->ttx[s];
+				ql[2] = q->tty[s];
+				ql[3] = q->ttn[s];
 
-				ql[4] = q_current->pl[s];
-				ql[5] = q_current->pt[s];		// added pt
+				ql[4] = q->pl[s];
+				ql[5] = q->pt[s];		// added pt
 
 				precision e_s = e[s];
 
@@ -116,38 +117,41 @@ const precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict_
 				precision uy_p = up->uy[s];
 				precision un_p = up->un[s];
 
+
 				// get primary variables of neighbor cells
 				get_primary_neighbor_cells(e, e1, sim, sip, sjm, sjp, skm, skp);
 
+
 				get_u_neighbor_cells(u->ut, u->ux, u->uy, u->un, ui1, uj1, uk1, sim, sip, sjm, sjp, skm, skp);
+
 
 				// get spatial fluid velocity of neighbor cells
 				get_v_neighbor_cells(u->ut, u->ux, u->uy, u->un, vxi, vyj, vnk, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
 
 				// get conserved variables of neighbor cells
-				get_q_neighbor_cells(q_current->ttt, qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
-				get_q_neighbor_cells(q_current->ttx, qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
-				get_q_neighbor_cells(q_current->tty, qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
-				get_q_neighbor_cells(q_current->ttn, qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
-				get_q_neighbor_cells(q_current->pl,  qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
+				get_q_neighbor_cells(q->ttt, qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
+				get_q_neighbor_cells(q->ttx, qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
+				get_q_neighbor_cells(q->tty, qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
+				get_q_neighbor_cells(q->ttn, qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
 
-
-				get_q_neighbor_cells(q_current->pt, qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
-
-
+				get_q_neighbor_cells(q->pl,  qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
+				get_q_neighbor_cells(q->pt,  qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
 
 
 
 				// compute the external source terms (S)
 				source_terms(S, ql, e_s, t, qi1, qj1, qk1, e1, ui1, uj1, uk1, ut, ux, uy, un, ut_p, ux_p, uy_p, un_p, dt, dx, dy, dn, etabar);
 
+
 				// compute the flux terms Hx_plus, Hx_minus
 				flux_terms(Hx_plus, ql, qi1, qi2, vxi, ux, ut, &right_half_cell_extrapolation_forward, &left_half_cell_extrapolation_forward);
 				flux_terms(Hx_minus, ql, qi1, qi2, vxi, ux, ut, &right_half_cell_extrapolation_backward, &left_half_cell_extrapolation_backward);
 
+
 				// compute the flux terms Hy_plus, Hy_minus
 				flux_terms(Hy_plus, ql, qj1, qj2, vyj, uy, ut, &right_half_cell_extrapolation_forward, &left_half_cell_extrapolation_forward);
 				flux_terms(Hy_minus, ql, qj1, qj2, vyj, uy, ut, &right_half_cell_extrapolation_backward, &left_half_cell_extrapolation_backward);
+
 
 				// compute the flux terms Hn_plus, Hn_minus
 				flux_terms(Hn_plus, ql, qk1, qk2, vnk, un, ut, &right_half_cell_extrapolation_forward, &left_half_cell_extrapolation_forward);
@@ -165,31 +169,31 @@ const precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict_
 
 
 				// update Q
-				q_updated->ttt[s] = ql[0];
-				q_updated->ttx[s] = ql[1];
-				q_updated->tty[s] = ql[2];
-				q_updated->ttn[s] = ql[3];
+				Q->ttt[s] = ql[0];
+				Q->ttx[s] = ql[1];
+				Q->tty[s] = ql[2];
+				Q->ttn[s] = ql[3];
 
-				q_updated->pl[s] = ql[4];
-				q_updated->pt[s] = ql[5];
+				Q->pl[s] = ql[4];
+				Q->pt[s] = ql[5];
 
 			#ifdef PIMUNU
-				q_updated->pitt[s] = ql[5];
-				q_updated->pitx[s] = ql[6];
-				q_updated->pity[s] = ql[7];
-				q_updated->pitn[s] = ql[8];
-				q_updated->pixx[s] = ql[9];
-				q_updated->pixy[s] = ql[10];
-				q_updated->pixn[s] = ql[11];
-				q_updated->piyy[s] = ql[12];
-				q_updated->piyn[s] = ql[13];
-				q_updated->pinn[s] = ql[14];
+				Q->pitt[s] = ql[5];
+				Q->pitx[s] = ql[6];
+				Q->pity[s] = ql[7];
+				Q->pitn[s] = ql[8];
+				Q->pixx[s] = ql[9];
+				Q->pixy[s] = ql[10];
+				Q->pixn[s] = ql[11];
+				Q->piyy[s] = ql[12];
+				Q->piyn[s] = ql[13];
+				Q->pinn[s] = ql[14];
 			#endif
 			#ifdef WTZMU
-				q_updated->WtTz[s] = ql[15];
-				q_updated->WxTz[s] = ql[16];
-				q_updated->WyTz[s] = ql[17];
-				q_updated->WnTz[s] = ql[18];
+				Q->WtTz[s] = ql[15];
+				Q->WxTz[s] = ql[16];
+				Q->WyTz[s] = ql[17];
+				Q->WnTz[s] = ql[18];
 			#endif
 			}
 		}
@@ -197,7 +201,7 @@ const precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict_
 }
 
 
-void convex_combination(const CONSERVED_VARIABLES * const __restrict__ ql, CONSERVED_VARIABLES * const __restrict__ Ql, int nx, int ny, int nz)
+void convex_combination(const CONSERVED_VARIABLES * const __restrict__ q, CONSERVED_VARIABLES * const __restrict__ Q, int nx, int ny, int nz)
  {
  	// rungeKutta2 update: (q + Q) / 2  -> store in Q
 
@@ -210,31 +214,31 @@ void convex_combination(const CONSERVED_VARIABLES * const __restrict__ ql, CONSE
 			{
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
-				Ql->ttt[s] = (ql->ttt[s]  +  Ql->ttt[s]) / 2.0;
-				Ql->ttx[s] = (ql->ttx[s]  +  Ql->ttx[s]) / 2.0;
-				Ql->tty[s] = (ql->tty[s]  +  Ql->tty[s]) / 2.0;
-				Ql->ttn[s] = (ql->ttn[s]  +  Ql->ttn[s]) / 2.0;
+				Q->ttt[s] = (q->ttt[s]  +  Q->ttt[s]) / 2.0;
+				Q->ttx[s] = (q->ttx[s]  +  Q->ttx[s]) / 2.0;
+				Q->tty[s] = (q->tty[s]  +  Q->tty[s]) / 2.0;
+				Q->ttn[s] = (q->ttn[s]  +  Q->ttn[s]) / 2.0;
 
-				Ql->pl[s] = (ql->pl[s]  +  Ql->pl[s]) / 2.0;
-				Ql->pt[s] = (ql->pt[s]  +  Ql->pt[s]) / 2.0;
+				Q->pl[s] = (q->pl[s]  +  Q->pl[s]) / 2.0;
+				Q->pt[s] = (q->pt[s]  +  Q->pt[s]) / 2.0;
 
 			#ifdef PIMUNU
-				Ql->pitt[s] = (ql->pitt[s]  +  Ql->pitt[s]) / 2.0;
-				Ql->pitx[s] = (ql->pitx[s]  +  Ql->pitx[s]) / 2.0;
-				Ql->pity[s] = (ql->pity[s]  +  Ql->pity[s]) / 2.0;
-				Ql->pitn[s] = (ql->pitn[s]  +  Ql->pitn[s]) / 2.0;
-				Ql->pixx[s] = (ql->pixx[s]  +  Ql->pixx[s]) / 2.0;
-				Ql->pixy[s] = (ql->pixy[s]  +  Ql->pixy[s]) / 2.0;
-				Ql->pixn[s] = (ql->pixn[s]  +  Ql->pixn[s]) / 2.0;
-				Ql->piyy[s] = (ql->piyy[s]  +  Ql->piyy[s]) / 2.0;
-				Ql->piyn[s] = (ql->piyn[s]  +  Ql->piyn[s]) / 2.0;
-				Ql->pinn[s] = (ql->pinn[s]  +  Ql->pinn[s]) / 2.0;
+				Q->pitt[s] = (q->pitt[s]  +  Q->pitt[s]) / 2.0;
+				Q->pitx[s] = (q->pitx[s]  +  Q->pitx[s]) / 2.0;
+				Q->pity[s] = (q->pity[s]  +  Q->pity[s]) / 2.0;
+				Q->pitn[s] = (q->pitn[s]  +  Q->pitn[s]) / 2.0;
+				Q->pixx[s] = (q->pixx[s]  +  Q->pixx[s]) / 2.0;
+				Q->pixy[s] = (q->pixy[s]  +  Q->pixy[s]) / 2.0;
+				Q->pixn[s] = (q->pixn[s]  +  Q->pixn[s]) / 2.0;
+				Q->piyy[s] = (q->piyy[s]  +  Q->piyy[s]) / 2.0;
+				Q->piyn[s] = (q->piyn[s]  +  Q->piyn[s]) / 2.0;
+				Q->pinn[s] = (q->pinn[s]  +  Q->pinn[s]) / 2.0;
 			#endif
 			#ifdef WTZMU
-				Ql->WtTz[s] = (ql->WtTz[s]  +  Ql->WtTz[s]) / 2.0;
-				Ql->WxTz[s] = (ql->WxTz[s]  +  Ql->WxTz[s]) / 2.0;
-				Ql->WyTz[s] = (ql->WyTz[s]  +  Ql->WyTz[s]) / 2.0;
-				Ql->WnTz[s] = (ql->WnTz[s]  +  Ql->WnTz[s]) / 2.0;
+				Q->WtTz[s] = (q->WtTz[s]  +  Q->WtTz[s]) / 2.0;
+				Q->WxTz[s] = (q->WxTz[s]  +  Q->WxTz[s]) / 2.0;
+				Q->WyTz[s] = (q->WyTz[s]  +  Q->WyTz[s]) / 2.0;
+				Q->WnTz[s] = (q->WnTz[s]  +  Q->WnTz[s]) / 2.0;
 			#endif
 			}
 		}
@@ -243,8 +247,7 @@ void convex_combination(const CONSERVED_VARIABLES * const __restrict__ ql, CONSE
 
 
 // main algorithm
-// void rungeKutta2(precision t, precision dt, CONSERVED_VARIABLES * __restrict__ q, CONSERVED_VARIABLES * __restrict__ Q, int nx, int ny, int nz, int ncx, int ncy, precision dx, precision dy, precision dz, precision etabar)
-void rungeKutta2(precision t, precision dt, int nx, int ny, int nz, precision dx, precision dy, precision dz, precision etabar)
+void runge_kutta2(precision t, precision dt, int nx, int ny, int nz, precision dx, precision dy, precision dz, precision etabar)
 {
 	// first intermediate time step (compute qS = q + dt.(S - dHx/dx - dHy/dy - dHz/dz))
 	euler_step(t, q, qS, e, u, up, nx, ny, nz, dt, dx, dy, dz, etabar);
