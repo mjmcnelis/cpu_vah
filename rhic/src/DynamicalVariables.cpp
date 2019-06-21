@@ -12,8 +12,8 @@
 
 using namespace std;
 
-CONSERVED_VARIABLES *q, *Q, *qS;		// the extern variables are defined here
-FLUID_VELOCITY *u, *up, *uS;			// so what is this purpose then?
+CONSERVED_VARIABLES *q, *Q, *qS;	// the extern variables are defined here
+FLUID_VELOCITY *u, *up, *uS;		// so what is this purpose then?
 PRECISION *e;
 
 
@@ -59,6 +59,7 @@ void allocate_memory(int len)
 	q->ttn = (PRECISION *)calloc(len, bytes);
 	q->pl  = (PRECISION *)calloc(len, bytes);
 	q->pt  = (PRECISION *)calloc(len, bytes);
+
 #ifdef PIMUNU
 	q->pitt = (PRECISION *)calloc(len, bytes);
 	q->pitx = (PRECISION *)calloc(len, bytes);
@@ -71,7 +72,7 @@ void allocate_memory(int len)
 	q->piyn = (PRECISION *)calloc(len, bytes);
 	q->pinn = (PRECISION *)calloc(len, bytes);
 #endif
-#ifdef W_TZ_MU
+#ifdef WTZMU
 	q->WtTz = (PRECISION *)calloc(len, bytes);
 	q->WxTz = (PRECISION *)calloc(len, bytes);
 	q->WyTz = (PRECISION *)calloc(len, bytes);
@@ -86,6 +87,7 @@ void allocate_memory(int len)
 	qS->ttn = (PRECISION *)calloc(len, bytes);
 	qS->pl  = (PRECISION *)calloc(len, bytes);
 	qS->pt  = (PRECISION *)calloc(len, bytes);
+
 #ifdef PIMUNU
 	qS->pitt = (PRECISION *)calloc(len, bytes);
 	qS->pitx = (PRECISION *)calloc(len, bytes);
@@ -98,7 +100,7 @@ void allocate_memory(int len)
 	qS->piyn = (PRECISION *)calloc(len, bytes);
 	qS->pinn = (PRECISION *)calloc(len, bytes);
 #endif
-#ifdef W_TZ_MU
+#ifdef WTZMU
 	qS->WtTz = (PRECISION *)calloc(len, bytes);
 	qS->WxTz = (PRECISION *)calloc(len, bytes);
 	qS->WyTz = (PRECISION *)calloc(len, bytes);
@@ -113,6 +115,7 @@ void allocate_memory(int len)
 	Q->ttn = (PRECISION *)calloc(len, bytes);
 	Q->pl  = (PRECISION *)calloc(len, bytes);
 	Q->pt  = (PRECISION *)calloc(len, bytes);
+
 #ifdef PIMUNU
 	Q->pitt = (PRECISION *)calloc(len, bytes);
 	Q->pitx = (PRECISION *)calloc(len, bytes);
@@ -125,7 +128,7 @@ void allocate_memory(int len)
 	Q->piyn = (PRECISION *)calloc(len, bytes);
 	Q->pinn = (PRECISION *)calloc(len, bytes);
 #endif
-#ifdef W_TZ_MU
+#ifdef WTZMU
 	Q->WtTz = (PRECISION *)calloc(len, bytes);
 	Q->WxTz = (PRECISION *)calloc(len, bytes);
 	Q->WyTz = (PRECISION *)calloc(len, bytes);

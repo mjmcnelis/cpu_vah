@@ -30,44 +30,44 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 }
 
 
-void euler_step(PRECISION t, const CONSERVED_VARIABLES * const __restrict__ q_current, CONSERVED_VARIABLES * const __restrict__ q_updated,
-const PRECISION * const __restrict__ e, const FLUID_VELOCITY * const __restrict__ u, const FLUID_VELOCITY * const __restrict__ up, int nx, int ny, int nz, PRECISION dt, PRECISION dx, PRECISION dy, PRECISION dn, PRECISION etabar)
+void euler_step(precision t, const CONSERVED_VARIABLES * const __restrict__ q_current, CONSERVED_VARIABLES * const __restrict__ q_updated,
+const precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict__ u, const FLUID_VELOCITY * const __restrict__ up, int nx, int ny, int nz, precision dt, precision dx, precision dy, precision dn, precision etabar)
 {
 	// compute the euler step
 	int stride_x = 1;									// strides for neighbor cells along x, y, n
 	int stride_y = nx + 4;								// stride formulas based from linear_column_index()
 	int stride_z = (nx + 4) * (ny + 4);
 
-	PRECISION Q_s[NUMBER_CONSERVED_VARIABLES];			// current variables at cell s
-	PRECISION S[NUMBER_CONSERVED_VARIABLES];			// external source terms in hydrodynamic equations
+	precision ql[NUMBER_CONSERVED_VARIABLES];			// current variables at cell s
+	precision S[NUMBER_CONSERVED_VARIABLES];			// external source terms in hydrodynamic equations
 
-	PRECISION e1[6];									// primary variables of neighbors [i-1, i+1, j-1, j+1, k-1, k+1]
+	precision e1[6];									// primary variables of neighbors [i-1, i+1, j-1, j+1, k-1, k+1]
 
-	PRECISION qi1[2 * NUMBER_CONSERVED_VARIABLES];		// conserved variables of neighbor cells along x [i-1, i+1]
-	PRECISION qj1[2 * NUMBER_CONSERVED_VARIABLES];		// conserved variables of neighbor cells along y [j-1, j+1]
-	PRECISION qk1[2 * NUMBER_CONSERVED_VARIABLES];		// conserved variables of neighbor cells along n [k-1, k+1]
+	precision qi1[2 * NUMBER_CONSERVED_VARIABLES];		// conserved variables of neighbor cells along x [i-1, i+1]
+	precision qj1[2 * NUMBER_CONSERVED_VARIABLES];		// conserved variables of neighbor cells along y [j-1, j+1]
+	precision qk1[2 * NUMBER_CONSERVED_VARIABLES];		// conserved variables of neighbor cells along n [k-1, k+1]
 
-	PRECISION qi2[2 * NUMBER_CONSERVED_VARIABLES];		// conserved variables of neighbor cells along x [i-2, i+2]
-	PRECISION qj2[2 * NUMBER_CONSERVED_VARIABLES];		// conserved variables of neighbor cells along y [j-2, j+2]
-	PRECISION qk2[2 * NUMBER_CONSERVED_VARIABLES];		// conserved variables of neighbor cells along n [k-2, k+2]
+	precision qi2[2 * NUMBER_CONSERVED_VARIABLES];		// conserved variables of neighbor cells along x [i-2, i+2]
+	precision qj2[2 * NUMBER_CONSERVED_VARIABLES];		// conserved variables of neighbor cells along y [j-2, j+2]
+	precision qk2[2 * NUMBER_CONSERVED_VARIABLES];		// conserved variables of neighbor cells along n [k-2, k+2]
 
-	PRECISION ui1[8];									// fluid velocity of neighbor cells along x [i-1, i+1]
-	PRECISION uj1[8];									// fluid velocity of neighbor cells along y [j-1, j+1]
-	PRECISION uk1[8];									// fluid velocity of neighbor cells along n [k-1, k+1]
+	precision ui1[8];									// fluid velocity of neighbor cells along x [i-1, i+1]
+	precision uj1[8];									// fluid velocity of neighbor cells along y [j-1, j+1]
+	precision uk1[8];									// fluid velocity of neighbor cells along n [k-1, k+1]
 
 	// for flux terms
-	PRECISION vxi[4];									// vx of neighbor cells along x [i-2, i-1, i+1, i+2]
-	PRECISION vyj[4];									// vy of neighbor cells along y [j-2, j-1, j+1, j+2]
-	PRECISION vnk[4];									// vn of neighbor cells along n [k-2, k-1, k+1, k+2]
+	precision vxi[4];									// vx of neighbor cells along x [i-2, i-1, i+1, i+2]
+	precision vyj[4];									// vy of neighbor cells along y [j-2, j-1, j+1, j+2]
+	precision vnk[4];									// vn of neighbor cells along n [k-2, k-1, k+1, k+2]
 
-	PRECISION Hx_plus[NUMBER_CONSERVED_VARIABLES];		// Hx_{i + 1/2}
-	PRECISION Hx_minus[NUMBER_CONSERVED_VARIABLES];		// Hx_{i - 1/2}
+	precision Hx_plus[NUMBER_CONSERVED_VARIABLES];		// Hx_{i + 1/2}
+	precision Hx_minus[NUMBER_CONSERVED_VARIABLES];		// Hx_{i - 1/2}
 
-	PRECISION Hy_plus[NUMBER_CONSERVED_VARIABLES];		// Hy_{j + 1/2}
-	PRECISION Hy_minus[NUMBER_CONSERVED_VARIABLES];		// Hy_{j - 1/2}
+	precision Hy_plus[NUMBER_CONSERVED_VARIABLES];		// Hy_{j + 1/2}
+	precision Hy_minus[NUMBER_CONSERVED_VARIABLES];		// Hy_{j - 1/2}
 
-	PRECISION Hn_plus[NUMBER_CONSERVED_VARIABLES];		// Hn_{k + 1/2}
-	PRECISION Hn_minus[NUMBER_CONSERVED_VARIABLES];		// Hn_{k - 1/2}
+	precision Hn_plus[NUMBER_CONSERVED_VARIABLES];		// Hn_{k + 1/2}
+	precision Hn_minus[NUMBER_CONSERVED_VARIABLES];		// Hn_{k - 1/2}
 
 
 	// loop over physical grid points
@@ -96,24 +96,25 @@ const PRECISION * const __restrict__ e, const FLUID_VELOCITY * const __restrict_
 
 				int r = 0;
 
-				Q_s[0] = q_current->ttt[s];		// conserved variables of cell s
-				Q_s[1] = q_current->ttx[s];
-				Q_s[2] = q_current->tty[s];
-				Q_s[3] = q_current->ttn[s];
+				ql[0] = q_current->ttt[s];		// conserved variables of cell s
+				ql[1] = q_current->ttx[s];
+				ql[2] = q_current->tty[s];
+				ql[3] = q_current->ttn[s];
 
-				Q_s[4] = q_current->pl[s];		// todo: add pt
+				ql[4] = q_current->pl[s];
+				ql[5] = q_current->pt[s];		// added pt
 
-				PRECISION e_s = e[s];
-			
-				PRECISION ut = u->ut[s];		// current fluid velocity
-				PRECISION ux = u->ux[s];
-				PRECISION uy = u->uy[s];
-				PRECISION un = u->un[s];
+				precision e_s = e[s];
 
-				PRECISION ut_p = up->ut[s];		// previous fluid velocity
-				PRECISION ux_p = up->ux[s];
-				PRECISION uy_p = up->uy[s];
-				PRECISION un_p = up->un[s];
+				precision ut = u->ut[s];		// current fluid velocity
+				precision ux = u->ux[s];
+				precision uy = u->uy[s];
+				precision un = u->un[s];
+
+				precision ut_p = up->ut[s];		// previous fluid velocity
+				precision ux_p = up->ux[s];
+				precision uy_p = up->uy[s];
+				precision un_p = up->un[s];
 
 				// get primary variables of neighbor cells
 				get_primary_neighbor_cells(e, e1, sim, sip, sjm, sjp, skm, skp);
@@ -131,57 +132,64 @@ const PRECISION * const __restrict__ e, const FLUID_VELOCITY * const __restrict_
 				get_q_neighbor_cells(q_current->pl,  qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
 
 
+				get_q_neighbor_cells(q_current->pt, qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
+
+
 
 
 
 				// compute the external source terms (S)
-				source_terms(S, Q_s, e_s, t, qi1, qj1, qk1, e1, ui1, uj1, uk1, ut, ux, uy, un, ut_p, ux_p, uy_p, un_p, dt, dx, dy, dn, etabar);
+				source_terms(S, ql, e_s, t, qi1, qj1, qk1, e1, ui1, uj1, uk1, ut, ux, uy, un, ut_p, ux_p, uy_p, un_p, dt, dx, dy, dn, etabar);
 
 				// compute the flux terms Hx_plus, Hx_minus
-				flux_terms(Hx_plus, Q_s, qi1, qi2, vxi, ux, ut, &right_half_cell_extrapolation_forward, &left_half_cell_extrapolation_forward);
-				flux_terms(Hx_minus, Q_s, qi1, qi2, vxi, ux, ut, &right_half_cell_extrapolation_backward, &left_half_cell_extrapolation_backward);
+				flux_terms(Hx_plus, ql, qi1, qi2, vxi, ux, ut, &right_half_cell_extrapolation_forward, &left_half_cell_extrapolation_forward);
+				flux_terms(Hx_minus, ql, qi1, qi2, vxi, ux, ut, &right_half_cell_extrapolation_backward, &left_half_cell_extrapolation_backward);
 
 				// compute the flux terms Hy_plus, Hy_minus
-				flux_terms(Hy_plus, Q_s, qj1, qj2, vyj, uy, ut, &right_half_cell_extrapolation_forward, &left_half_cell_extrapolation_forward);
-				flux_terms(Hy_minus, Q_s, qj1, qj2, vyj, uy, ut, &right_half_cell_extrapolation_backward, &left_half_cell_extrapolation_backward);
+				flux_terms(Hy_plus, ql, qj1, qj2, vyj, uy, ut, &right_half_cell_extrapolation_forward, &left_half_cell_extrapolation_forward);
+				flux_terms(Hy_minus, ql, qj1, qj2, vyj, uy, ut, &right_half_cell_extrapolation_backward, &left_half_cell_extrapolation_backward);
 
 				// compute the flux terms Hn_plus, Hn_minus
-				flux_terms(Hn_plus, Q_s, qk1, qk2, vnk, un, ut, &right_half_cell_extrapolation_forward, &left_half_cell_extrapolation_forward);
-				flux_terms(Hn_minus, Q_s, qk1, qk2, vnk, un, ut, &right_half_cell_extrapolation_backward, &left_half_cell_extrapolation_backward);
+				flux_terms(Hn_plus, ql, qk1, qk2, vnk, un, ut, &right_half_cell_extrapolation_forward, &left_half_cell_extrapolation_forward);
+				flux_terms(Hn_minus, ql, qk1, qk2, vnk, un, ut, &right_half_cell_extrapolation_backward, &left_half_cell_extrapolation_backward);
 
 
 				// add euler step
 				for(short n = 0; n < NUMBER_CONSERVED_VARIABLES; n++)
 				{
-					Q_s[n] += dt * (S[n]  +  (Hx_minus[n] - Hx_plus[n]) / dx  +  (Hy_minus[n] - Hy_plus[n]) / dy  +  (Hn_minus[n] - Hn_plus[n]) / dn);
+					// question: is last term 1/(t.dn) or 1/dn?
+					ql[n] += dt * (S[n]  +  (Hx_minus[n] - Hx_plus[n]) / dx  +  (Hy_minus[n] - Hy_plus[n]) / dy  +  (Hn_minus[n] - Hn_plus[n]) / dn);
+
+					//ql[n] += dt * (S[n]  +  (Hx_minus[n] - Hx_plus[n]) / dx  +  (Hy_minus[n] - Hy_plus[n]) / dy)  +  (Hn_minus[n] - Hn_plus[n]) / dn;
 				}
 
 
 				// update Q
-				q_updated->ttt[s] = Q_s[0];
-				q_updated->ttx[s] = Q_s[1];
-				q_updated->tty[s] = Q_s[2];
-				q_updated->ttn[s] = Q_s[3];
+				q_updated->ttt[s] = ql[0];
+				q_updated->ttx[s] = ql[1];
+				q_updated->tty[s] = ql[2];
+				q_updated->ttn[s] = ql[3];
 
-				q_updated->pl[s] = Q_s[4];
+				q_updated->pl[s] = ql[4];
+				q_updated->pt[s] = ql[5];
 
 			#ifdef PIMUNU
-				q_updated->pitt[s] = Q_s[5];
-				q_updated->pitx[s] = Q_s[6];
-				q_updated->pity[s] = Q_s[7];
-				q_updated->pitn[s] = Q_s[8];
-				q_updated->pixx[s] = Q_s[9];
-				q_updated->pixy[s] = Q_s[10];
-				q_updated->pixn[s] = Q_s[11];
-				q_updated->piyy[s] = Q_s[12];
-				q_updated->piyn[s] = Q_s[13];
-				q_updated->pinn[s] = Q_s[14];
+				q_updated->pitt[s] = ql[5];
+				q_updated->pitx[s] = ql[6];
+				q_updated->pity[s] = ql[7];
+				q_updated->pitn[s] = ql[8];
+				q_updated->pixx[s] = ql[9];
+				q_updated->pixy[s] = ql[10];
+				q_updated->pixn[s] = ql[11];
+				q_updated->piyy[s] = ql[12];
+				q_updated->piyn[s] = ql[13];
+				q_updated->pinn[s] = ql[14];
 			#endif
-			#ifdef W_TZ_MU
-				q_updated->WtTz[s] = Q_s[15];
-				q_updated->WxTz[s] = Q_s[16];
-				q_updated->WyTz[s] = Q_s[17];
-				q_updated->WnTz[s] = Q_s[18];
+			#ifdef WTZMU
+				q_updated->WtTz[s] = ql[15];
+				q_updated->WxTz[s] = ql[16];
+				q_updated->WyTz[s] = ql[17];
+				q_updated->WnTz[s] = ql[18];
 			#endif
 			}
 		}
@@ -189,7 +197,7 @@ const PRECISION * const __restrict__ e, const FLUID_VELOCITY * const __restrict_
 }
 
 
-void convex_combination(const CONSERVED_VARIABLES * const __restrict__ q, CONSERVED_VARIABLES * const __restrict__ Q, int nx, int ny, int nz)
+void convex_combination(const CONSERVED_VARIABLES * const __restrict__ ql, CONSERVED_VARIABLES * const __restrict__ Ql, int nx, int ny, int nz)
  {
  	// rungeKutta2 update: (q + Q) / 2  -> store in Q
 
@@ -202,31 +210,31 @@ void convex_combination(const CONSERVED_VARIABLES * const __restrict__ q, CONSER
 			{
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
-				Q->ttt[s] = (q->ttt[s]  +  Q->ttt[s]) / 2.0;
-				Q->ttx[s] = (q->ttx[s]  +  Q->ttx[s]) / 2.0;
-				Q->tty[s] = (q->tty[s]  +  Q->tty[s]) / 2.0;
-				Q->ttn[s] = (q->ttn[s]  +  Q->ttn[s]) / 2.0;
+				Ql->ttt[s] = (ql->ttt[s]  +  Ql->ttt[s]) / 2.0;
+				Ql->ttx[s] = (ql->ttx[s]  +  Ql->ttx[s]) / 2.0;
+				Ql->tty[s] = (ql->tty[s]  +  Ql->tty[s]) / 2.0;
+				Ql->ttn[s] = (ql->ttn[s]  +  Ql->ttn[s]) / 2.0;
 
-				Q->pl[s] = (q->pl[s]  +  Q->pl[s]) / 2.0;
-				//Q->pt[s] = (q->pt[s]  +  Q->pt[s]) / 2.0;  // add pt
+				Ql->pl[s] = (ql->pl[s]  +  Ql->pl[s]) / 2.0;
+				Ql->pt[s] = (ql->pt[s]  +  Ql->pt[s]) / 2.0;
 
 			#ifdef PIMUNU
-				Q->pitt[s] = (q->pitt[s]  +  Q->pitt[s]) / 2.0;
-				Q->pitx[s] = (q->pitx[s]  +  Q->pitx[s]) / 2.0;
-				Q->pity[s] = (q->pity[s]  +  Q->pity[s]) / 2.0;
-				Q->pitn[s] = (q->pitn[s]  +  Q->pitn[s]) / 2.0;
-				Q->pixx[s] = (q->pixx[s]  +  Q->pixx[s]) / 2.0;
-				Q->pixy[s] = (q->pixy[s]  +  Q->pixy[s]) / 2.0;
-				Q->pixn[s] = (q->pixn[s]  +  Q->pixn[s]) / 2.0;
-				Q->piyy[s] = (q->piyy[s]  +  Q->piyy[s]) / 2.0;
-				Q->piyn[s] = (q->piyn[s]  +  Q->piyn[s]) / 2.0;
-				Q->pinn[s] = (q->pinn[s]  +  Q->pinn[s]) / 2.0;
+				Ql->pitt[s] = (ql->pitt[s]  +  Ql->pitt[s]) / 2.0;
+				Ql->pitx[s] = (ql->pitx[s]  +  Ql->pitx[s]) / 2.0;
+				Ql->pity[s] = (ql->pity[s]  +  Ql->pity[s]) / 2.0;
+				Ql->pitn[s] = (ql->pitn[s]  +  Ql->pitn[s]) / 2.0;
+				Ql->pixx[s] = (ql->pixx[s]  +  Ql->pixx[s]) / 2.0;
+				Ql->pixy[s] = (ql->pixy[s]  +  Ql->pixy[s]) / 2.0;
+				Ql->pixn[s] = (ql->pixn[s]  +  Ql->pixn[s]) / 2.0;
+				Ql->piyy[s] = (ql->piyy[s]  +  Ql->piyy[s]) / 2.0;
+				Ql->piyn[s] = (ql->piyn[s]  +  Ql->piyn[s]) / 2.0;
+				Ql->pinn[s] = (ql->pinn[s]  +  Ql->pinn[s]) / 2.0;
 			#endif
-			#ifdef W_TZ_MU
-				Q->WtTz[s] = (q->WtTz[s]  +  Q->WtTz[s]) / 2.0;
-				Q->WxTz[s] = (q->WxTz[s]  +  Q->WxTz[s]) / 2.0;
-				Q->WyTz[s] = (q->WyTz[s]  +  Q->WyTz[s]) / 2.0;
-				Q->WnTz[s] = (q->WnTz[s]  +  Q->WnTz[s]) / 2.0;
+			#ifdef WTZMU
+				Ql->WtTz[s] = (ql->WtTz[s]  +  Ql->WtTz[s]) / 2.0;
+				Ql->WxTz[s] = (ql->WxTz[s]  +  Ql->WxTz[s]) / 2.0;
+				Ql->WyTz[s] = (ql->WyTz[s]  +  Ql->WyTz[s]) / 2.0;
+				Ql->WnTz[s] = (ql->WnTz[s]  +  Ql->WnTz[s]) / 2.0;
 			#endif
 			}
 		}
@@ -235,8 +243,8 @@ void convex_combination(const CONSERVED_VARIABLES * const __restrict__ q, CONSER
 
 
 // main algorithm
-// void rungeKutta2(PRECISION t, PRECISION dt, CONSERVED_VARIABLES * __restrict__ q, CONSERVED_VARIABLES * __restrict__ Q, int nx, int ny, int nz, int ncx, int ncy, PRECISION dx, PRECISION dy, PRECISION dz, PRECISION etabar)
-void rungeKutta2(PRECISION t, PRECISION dt, int nx, int ny, int nz, PRECISION dx, PRECISION dy, PRECISION dz, PRECISION etabar)
+// void rungeKutta2(precision t, precision dt, CONSERVED_VARIABLES * __restrict__ q, CONSERVED_VARIABLES * __restrict__ Q, int nx, int ny, int nz, int ncx, int ncy, precision dx, precision dy, precision dz, precision etabar)
+void rungeKutta2(precision t, precision dt, int nx, int ny, int nz, precision dx, precision dy, precision dz, precision etabar)
 {
 	// first intermediate time step (compute qS = q + dt.(S - dHx/dx - dHy/dy - dHz/dz))
 	euler_step(t, q, qS, e, u, up, nx, ny, nz, dt, dx, dy, dz, etabar);
@@ -244,13 +252,13 @@ void rungeKutta2(PRECISION t, PRECISION dt, int nx, int ny, int nz, PRECISION dx
 	// next time step
 	t += dt;
 
-	// compute uS, e, 
+	// compute uS, e,
 	set_inferred_variables(qS, e, uS, t, nx, ny, nz);
 
 	// regulate dissipative components of qS
 	regulate_dissipative_currents(t, qS, e, uS, nx, ny, nz);
 
-	// set ghost cells for qS, uS, e, 
+	// set ghost cells for qS, uS, e,
 	set_ghost_cells(qS, e, uS, nx, ny, nz);
 
 	// second intermediate time step (compute Q = qS + dt.(S - dHx/dx - dHy/dy - dHz/dz))
@@ -263,13 +271,13 @@ void rungeKutta2(PRECISION t, PRECISION dt, int nx, int ny, int nz, PRECISION dx
 	swap_fluid_velocity(&up, &u);
 
 	// maybe this can all be grouped together in one function somehow
-	// compute u, e, 
+	// compute u, e,
 	set_inferred_variables(Q, e, u, t, nx, ny, nz);
 
 	// regulate dissipative components of Q
 	regulate_dissipative_currents(t, Q, e, u, nx, ny, nz);
 
-	// set ghost cells for Q, u, e, 
+	// set ghost cells for Q, u, e,
 	set_ghost_cells(Q, e, u, nx, ny, nz);
 
 	// swap q and Q

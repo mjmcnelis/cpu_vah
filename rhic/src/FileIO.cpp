@@ -51,12 +51,13 @@ void output_dynamical_variables(double t, int nx, int ny, int nz, double dx, dou
 {
 	output(e, t, "e", nx, ny, nz, dx, dy, dz);
 
+	output(u->ut, t, "ut", nx, ny, nz, dx, dy, dz);
 	output(u->ux, t, "ux", nx, ny, nz, dx, dy, dz);
 	output(u->uy, t, "uy", nx, ny, nz, dx, dy, dz);
 	output(u->un, t, "un", nx, ny, nz, dx, dy, dz);
-	output(u->ut, t, "ut", nx, ny, nz, dx, dy, dz);
 
 	output(q->pl, t, "pl", nx, ny, nz, dx, dy, dz);
+	output(q->pt, t, "pt", nx, ny, nz, dx, dy, dz);
 
 #ifdef PIMUNU
 	output(q->pitt, t, "pitt", nx, ny, nz, dx, dy, dz);
@@ -70,7 +71,7 @@ void output_dynamical_variables(double t, int nx, int ny, int nz, double dx, dou
 	output(q->piyn, t, "piyn", nx, ny, nz, dx, dy, dz);
 	output(q->pinn, t, "pinn", nx, ny, nz, dx, dy, dz);
 #endif
-#ifdef W_TZ_MU
+#ifdef WTZMU
 	output(q->WtTz, t, "WtTz", nx, ny, nz, dx, dy, dz);
 	output(q->WxTz, t, "WxTz", nx, ny, nz, dx, dy, dz);
 	output(q->WyTz, t, "WyTz", nx, ny, nz, dx, dy, dz);

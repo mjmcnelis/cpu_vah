@@ -30,7 +30,7 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 	return i  +  nx * (j  +  ny * k);
 }
 
-// initialize conserved variables 
+// initialize conserved variables
 void set_initial_conserved_variables(double t, int nx, int ny, int nz)
 {
 	// loop over the physical grid points
@@ -51,13 +51,7 @@ void set_initial_conserved_variables(double t, int nx, int ny, int nz)
 				PRECISION ut = u->ut[s];
 
 				PRECISION pl = q->pl[s];
-
-				////////////////////////////////
-				//
-				//PRECISION pt = 0.5 * (e_s - pl);	// use conformal formula for now
 				PRECISION pt = q->pt[s];
-				//
-				////////////////////////////////
 
 				PRECISION utperp = sqrt(1.0  +  ux * ux  +  uy * uy);
 
@@ -82,13 +76,13 @@ void set_initial_conserved_variables(double t, int nx, int ny, int nz)
 				pity = q->pity[s];
 				pitn = q->pitn[s];
 			#endif
-			#ifdef W_TZ_MU
+			#ifdef WTZMU
 				Wt = q->WtTz[s];
 				Wx = q->WxTz[s];
 				Wy = q->WyTz[s];
 				Wn = q->WnTz[s];
 			#endif
-				
+
 				// initialize the time components of Tmunu
 				q->ttt[s] = (e_s + pt) * ut * ut  -   pt  +  (pl - pt) * zt * zt  +  2.0 * Wt * zt  +  pitt;
 				q->ttx[s] = (e_s + pt) * ut * ux  +  Wx * zt  +  pitx;
@@ -115,7 +109,7 @@ void set_equilibrium_initial_condition(int nx, int ny, int nz)
 				PRECISION p_s = equilibriumPressure(e_s);
 
 				q->pl[s] = p_s;		// set (pl, pt) to equilibium pressure
-				q->pt[s] = p_s;		
+				q->pt[s] = p_s;
 
 			#ifdef PIMUNU
 		  		q->pitt[s] = 0.0;
@@ -159,7 +153,7 @@ void set_Bjorken_energy_density_and_flow_profile(int nx, int ny, int nz, void * 
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
 				e[s] = (PRECISION) e0;
-	
+
 				u->ut[s] = 1.0;
 				u->ux[s] = 0.0;
 				u->uy[s] = 0.0;

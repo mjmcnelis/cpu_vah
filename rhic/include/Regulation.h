@@ -4,7 +4,7 @@
 
 #include "DynamicalVariables.h"
 
-void regulate_dissipative_currents(PRECISION t, CONSERVED_VARIABLES * const __restrict__ Q_current, PRECISION * const __restrict__ e, const FLUID_VELOCITY * const __restrict__ u, int nx, int ny, int nz);
+void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __restrict__ Q_current, precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict__ u, int nx, int ny, int nz);
 
 #endif
 

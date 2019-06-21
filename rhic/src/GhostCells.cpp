@@ -11,11 +11,10 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 
 void ghost_cell_BC(CONSERVED_VARIABLES * const __restrict__ q, PRECISION * const __restrict__ e, FLUID_VELOCITY * const __restrict__ u, int s, int sBC)
 {
-	// s = ghost cell index
-	// sBC = physical cell at boundary index
+	// s = ghost cell index	 |	sBC = physical cell at boundary index
 
 	// set the ghost cells
-	e[s] = e[sBC];
+	e[s] = e[sBC];			// this is no longer needed
 
 	u->ut[s] = u->ut[sBC];
 	u->ux[s] = u->ux[sBC];
@@ -26,7 +25,9 @@ void ghost_cell_BC(CONSERVED_VARIABLES * const __restrict__ q, PRECISION * const
 	q->ttx[s] = q->ttx[sBC];
 	q->tty[s] = q->tty[sBC];
 	q->ttn[s] = q->ttn[sBC];
+
 	q->pl[s] = q->pl[sBC];
+	q->pt[s] = q->pt[sBC];
 
 #ifdef PIMUNU
 	q->pitt[s] = q->pitt[sBC];
@@ -40,7 +41,7 @@ void ghost_cell_BC(CONSERVED_VARIABLES * const __restrict__ q, PRECISION * const
 	q->piyn[s] = q->piyn[sBC];
 	q->pinn[s] = q->pinn[sBC];
 #endif
-#ifdef W_TZ_MU
+#ifdef WTZMU
 	q->WtTz[s] = q->WtTz[sBC];
 	q->WxTz[s] = q->WxTz[sBC];
 	q->WyTz[s] = q->WyTz[sBC];
@@ -58,7 +59,6 @@ void set_ghost_cells(CONSERVED_VARIABLES * const __restrict__ q, PRECISION * con
 	// loop over the physical (y,z) lattice points
 	for(int j = 2; j < ny + 2; j++)
 	{
-		//for(int k = 2; k < ncz; ++k)
 		for(int k = 2; k < nz + 2; k++)
 		{
 			for(int i = 0; i <= 1; i++)				// set left ghost cells (x)

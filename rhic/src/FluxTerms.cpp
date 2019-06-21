@@ -78,7 +78,7 @@ void flux_terms(PRECISION * const __restrict__ H, const PRECISION * const __rest
 	// local propagation speed
 	PRECISION a = fmax(vL, vR);
 
-	// left / right extrapolated values of q and F = vq 
+	// left / right extrapolated values of q and F = vq
 	PRECISION qmm, qm, q, qp, qpp;
 	PRECISION Fmm, Fm, F, Fp, Fpp;
 	PRECISION qL, qR, FL, FR;
