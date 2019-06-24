@@ -285,21 +285,33 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 	precision taupiInv = 0.2 * T / etabar;
 
-	precision a  = pl / e_s;
-	precision a2 = a * a;
-	precision a3 = a2 * a;
-	precision a4 = a3 * a;
-	precision a5 = a4 * a;
-	precision a6 = a5 * a;
-	precision a7 = a6 * a;
 
-	precision Rtilde = (-6.674731906076046e-6 + 0.004617789933500251*a + 0.7207562721999754*a2 + 9.097427250602184*a3 - 4.475814747302824*a4 - 36.37501529319408*a5 +
-     46.868405146729316*a6 - 15.833867583743228*a7)/
-   (0.06856675185266 + 2.9181587012768597*a + 11.951184087839218*a2 - 29.708257843442173*a3 - 2.618233802059826*a4 + 34.646239784689065*a5 -
-     19.62596366454439*a6 + 2.374808442453899*a7);
+	transport_coefficients aniso;
 
-	precision zeta_zz = Rtilde * e_s  -  3.0 * pl;
-	precision zeta_zT = (Rtilde * e_s +  pl) / 2.0;
+	aniso.compute_transport_coefficients(e_s, pl, pt);
+
+	precision zeta_zz = aniso.I_240  -  3.0 * pl;
+	precision zeta_zT = aniso.I_221  -  pl;				// okay now it's working
+
+	
+	// precision a  = pl / e_s;
+	// precision a2 = a * a;
+	// precision a3 = a2 * a;
+	// precision a4 = a3 * a;
+	// precision a5 = a4 * a;
+	// precision a6 = a5 * a;
+	// precision a7 = a6 * a;
+
+	// precision Rtilde = (-6.674731906076046e-6 + 0.004617789933500251*a + 0.7207562721999754*a2 + 9.097427250602184*a3 - 4.475814747302824*a4 - 36.37501529319408*a5 +
+ //     46.868405146729316*a6 - 15.833867583743228*a7)/
+ //   (0.06856675185266 + 2.9181587012768597*a + 11.951184087839218*a2 - 29.708257843442173*a3 - 2.618233802059826*a4 + 34.646239784689065*a5 -
+ //     19.62596366454439*a6 + 2.374808442453899*a7);
+
+	// precision zeta_zz = Rtilde * e_s  -  3.0 * pl;
+	// precision zeta_zT = (Rtilde * e_s +  pl) / 2.0;
+	
+
+
 
 	precision dp = pl - pt;
 
@@ -331,7 +343,8 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 	// source terms
 	precision tnn = (e_s + pt) * un2  +  pt / t2  +  Lnn;
-	precision dpl = - (pl - p) * taupiInv  +  zeta_zz * thetaL  -  zeta_zT * thetaT;
+	//precision dpl = - (pl - p) * taupiInv  +  zeta_zz * thetaL  -  zeta_zT * thetaT;
+	precision dpl = - (pl - p) * taupiInv  +  zeta_zz * thetaL  +  zeta_zT * thetaT;
 
 	// conservation laws
 	S[0] = - (ttt / t  +  t * tnn)  +  div_v * (Ltt - pt)  -  vx * dpt_dx  -  vy * dpt_dy  -  vn * dpt_dn  +  vx * dLtt_dx  +  vy * dLtt_dy  +  vn * dLtt_dn - dLtn_dn;

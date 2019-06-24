@@ -1,17 +1,54 @@
+
 #ifndef TRANSPORTCOEFFICIENTS_H_
 #define TRANSPORTCOEFFICIENTS_H_
 
-#include "DynamicalVariables.h"
-
-double transversePressureHat(double e, double p, double pl);
-double Rbar0_fun(double a);
-double Rbar0P_fun(double a);
-
-void secondOrderTransportCoefficientsZ(double e, double p, double pl, double cs2, double T,
-double *beta_lPi, double *delta_lPi, double *lambda_piPi, double *beta_PiPi, double *delta_PiPi, double *lambda_Pipi);
+#include "Precision.h"
+using namespace std;
 
 
-// perhaps I should make a struct containing all the transport coefficients
-// it would be faster to calculate them
+class transport_coefficients
+{
+	private:
+		int alpha;			// # generalized powers (0 : alpha - 1)
+		int points;			// # quadrature points
+		double ** root;		// roots and weights for Gauss-Laguerre quadrature
+    	double ** weight;
+
+		// declare this once (in hydrodynamics) and pass it via pointer I guess
+		// waste as little time opening and reading the files
+
+	public:
+    	precision Lambda;
+    	precision aT;
+    	precision aL;
+
+    	precision w;
+    	precision z;
+    	precision t;
+
+		precision I_240;		// make a list of all the functions I need
+		precision I_221;
+
+		transport_coefficients();
+		~transport_coefficients();
+
+		// gauss-laguerre data
+		//void load_roots_and_weights();
+
+		// conformal approximation (can be called in a root-finding kernel I guess, or temporarily in source terms)
+		void compute_anisotropic_parameters_conformal(precision e_scaled, precision x);
+
+		// have a root-solver here (it will be called in a root-finding kernel)
+
+		void compute_transport_coefficients(precision e, precision pl, precision pt);
+		// my idea last night was to use PL-PT matching (conformal EOS)
+		// to propagate initial conditions instead of free-streaming
+		// vahydro captures free-streaming (the problem is starting too early)
+};
+
 
 #endif
+
+
+
+
