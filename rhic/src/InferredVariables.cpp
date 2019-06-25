@@ -24,7 +24,7 @@ void get_inferred_variables_test(precision t, const precision * const __restrict
 	precision Tty = q[2];
 
 	precision pl  = q[4];
-	precision pt  = q[5];
+	//precision pt  = q[5];
 
 	precision Mt = Ttt;
 	precision Mx = Ttx;
@@ -33,14 +33,14 @@ void get_inferred_variables_test(precision t, const precision * const __restrict
 	// conformal solution for (e, p)
 	
 	// solution for (e, p)
-	precision e_s = Mt  -  (Mx * Mx  +  My * My) / (Mt + pt);
+	//precision e_s = Mt  -  (Mx * Mx  +  My * My) / (Mt + pt);
 
 
-	//precision e_s = 0.5 * (-(Mt - pl)  +  sqrt(fabs((Mt - pl) * (Mt - pl)  +  8.0 * (Mt * (Mt - 0.5 * pl) - (Mx * Mx  +  My * My)))));
+	precision e_s = 0.5 * (-(Mt - pl)  +  sqrt(fabs((Mt - pl) * (Mt - pl)  +  8.0 * (Mt * (Mt - 0.5 * pl) - (Mx * Mx  +  My * My)))));
 
 	if(e_s < 1.e-3 || std::isnan(e_s)) e_s = 1.e-3;				// this cutoff is important
 
-	//precision pt = 0.5 * (e_s - pl);			// conformal formula
+	precision pt = 0.5 * (e_s - pl);			// conformal formula
 
 	// solution for u^mu
 	precision ut_s = sqrt(fabs((Mt + pt) / (e_s + pt)));

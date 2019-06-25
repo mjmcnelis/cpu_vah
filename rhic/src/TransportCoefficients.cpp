@@ -84,6 +84,12 @@ void transport_coefficients::compute_transport_coefficients(precision e, precisi
    	// 	printf("x = %lf is out of range\n", x);
    	// }
 
+	if(!(aL >= 0.001 && aL <= 20.0))
+	{
+		printf("aL = %lf is out of range\n", aL);
+		exit(-1);
+	}
+
   
 	// why does z go nan?
 

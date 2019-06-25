@@ -75,6 +75,59 @@ void output_ur(const precision * const ux, const precision * const uy, double t,
 }
 
 
+void output_aL(const precision * const e, const precision * const pl, double t, int nx, int ny, int nz, double dx, double dy, double dz)
+{
+	FILE * output;
+	char fname[255];
+	sprintf(fname, "output/aL_%.3f.dat", t);
+
+	output = fopen(fname, "w");
+
+	for(int k = 2; k < nz + 2; k++)
+	{
+		double z = (k - 2.0 - (nz - 1.0)/2.0) * dz;
+
+		for(int j = 2; j < ny + 2; j++)
+		{
+			double y = (j - 2.0 - (ny - 1.0)/2.0) * dy;
+
+			for(int i = 2; i < nx + 2; i++)
+			{
+				double x = (i - 2.0 - (nx - 1.0)/2.0) * dx;
+
+				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
+
+				precision x0 = pl[s] / e[s];			// x = pl / e 
+				precision x2  = x0   * x0;
+				precision x3  = x2  * x0;
+				precision x4  = x3  * x0;
+				precision x5  = x4  * x0;
+				precision x6  = x5  * x0;
+				precision x7  = x6  * x0;
+				precision x8  = x7  * x0;
+				precision x9  = x8  * x0;
+				precision x10 = x9  * x0;
+				precision x11 = x10 * x0;
+				precision x12 = x11 * x0;
+				precision x13 = x12 * x0;
+				precision x14 = x13 * x0;
+
+				precision aL = (5.6098342562962155e-24 + 1.0056714201158781e-17*x0 + 8.574287549260127e-13*x2 + 8.639689853874967e-9*x3 + 0.000014337184308704522*x4 + 
+			     0.0047402683487226555*x5 + 0.3461801244895056*x6 + 5.3061287395562*x7 + 3.7804213528647956*x8 - 55.646719325650224*x9 + 
+			     71.68906037132133*x10 + 0.6485422288016947*x11 - 52.86438720903515*x12 + 32.635674688615836*x13 - 5.899614102635062*x14)/
+			   (1.2460117685059638e-20 + 3.9506205613753145e-15*x0 + 1.090135069930889e-10*x2 + 4.2931027828550746e-7*x3 + 0.00030704101799886117*x4 + 
+			     0.04575504592470687*x5 + 1.4479634250149949*x6 + 6.077429142899631*x7 - 29.171395065126873*x8 + 13.501854646832847*x9 + 
+			     65.98203155631907*x10 - 111.65365949648432*x11 + 71.83676912638525*x12 - 19.66184593458614*x13 + 1.5947903161928916*x14);
+
+				fprintf(output, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, aL);
+			}
+		}
+	}
+	fclose(output);
+	
+}
+
+
 void output_dynamical_variables(double t, int nx, int ny, int nz, double dx, double dy, double dz)
 {
 	output(e, t, "e", nx, ny, nz, dx, dy, dz);
@@ -85,6 +138,7 @@ void output_dynamical_variables(double t, int nx, int ny, int nz, double dx, dou
 	output(u->un, t, "un", nx, ny, nz, dx, dy, dz);
 
 	output_ur(u->ux, u->uy, t, nx, ny, nz, dx, dy, dz);
+	output_aL(e, q->pl, t, nx, ny, nz, dx, dy, dz);
 
 	output(q->pl, t, "pl", nx, ny, nz, dx, dy, dz);
 	output(q->pt, t, "pt", nx, ny, nz, dx, dy, dz);
