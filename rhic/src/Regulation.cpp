@@ -1,9 +1,12 @@
 
+#include <stdlib.h>
 #include <math.h>
-
+#include <cmath>
 #include "../include/Regulation.h"
 #include "../include/Precision.h"
 #include "../include/DynamicalVariables.h"
+
+using namespace std;
 
 inline int linear_column_index(int i, int j, int k, int nx, int ny)
 {
@@ -36,16 +39,21 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 				// 	el[s] = eps;
 				// 	e_s = eps;
 				// }
-				if(pl < epsilon)
+				if(pl < epsilon || std::isnan(pl))
 				{
 					ql->pl[s] = epsilon;
 					pl = epsilon;
 				}
-				if(pt < epsilon)
+			// #ifdef CONFORMAL_EOS
+			// 	ql->pt[s] = 0.5 * (e_s - pl);
+			// 	pt = 0.5 * (e_s - pl);
+			// #endif
+				if(pt < epsilon || std::isnan(pt))
 				{
 					ql->pt[s] = epsilon;
 					pt = epsilon;
 				}
+
 
 				precision ut = ul->ut[s];
 				precision ux = ul->ux[s];

@@ -10,6 +10,6 @@ const precision delta = 0.01;	// window for taylor expansion of t_nlq functions 
 precision t_200(precision z, precision t);
 precision t_240(precision z, precision t);
 precision t_221(precision z, precision t); 
-
+precision t_202(precision z, precision t); 
 
 #endif

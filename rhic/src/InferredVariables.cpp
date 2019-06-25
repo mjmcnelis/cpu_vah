@@ -8,6 +8,7 @@
 #include "../include/Parameters.h"
 #include "../include/EquationOfState.h"
 
+using namespace std;
 
 inline int linear_column_index(int i, int j, int k, int nx, int ny)
 {
@@ -23,17 +24,23 @@ void get_inferred_variables_test(precision t, const precision * const __restrict
 	precision Tty = q[2];
 
 	precision pl  = q[4];
+	precision pt  = q[5];
 
 	precision Mt = Ttt;
 	precision Mx = Ttx;
 	precision My = Tty;
 
 	// conformal solution for (e, p)
-	precision e_s = 0.5 * (-(Mt - pl)  +  sqrt(fabs((Mt - pl) * (Mt - pl)  +  8.0 * (Mt * (Mt - 0.5 * pl) - (Mx * Mx  +  My * My)))));
+	
+	// solution for (e, p)
+	precision e_s = Mt  -  (Mx * Mx  +  My * My) / (Mt + pt);
 
-	if(e_s < 1.e-3) e_s = 1.e-3;				// this cutoff is important
 
-	precision pt = 0.5 * (e_s - pl);			// conformal formula
+	//precision e_s = 0.5 * (-(Mt - pl)  +  sqrt(fabs((Mt - pl) * (Mt - pl)  +  8.0 * (Mt * (Mt - 0.5 * pl) - (Mx * Mx  +  My * My)))));
+
+	if(e_s < 1.e-3 || std::isnan(e_s)) e_s = 1.e-3;				// this cutoff is important
+
+	//precision pt = 0.5 * (e_s - pl);			// conformal formula
 
 	// solution for u^mu
 	precision ut_s = sqrt(fabs((Mt + pt) / (e_s + pt)));
@@ -200,14 +207,14 @@ void set_inferred_variables(const CONSERVED_VARIABLES * const __restrict__ q, pr
 			{
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
-				precision e_s, ut_s, ux_s, uy_s, un_s;		// do I really need p_s?
+				precision e_s, ut_s, ux_s, uy_s, un_s;		
 
 				q_s[0] = q->ttt[s];
 				q_s[1] = q->ttx[s];
 				q_s[2] = q->tty[s];
 				q_s[3] = q->ttn[s];
 				q_s[4] = q->pl[s];
-				//q_s[5] = q->pt[s];  // need to add pt to the struct
+				q_s[5] = q->pt[s];  
 
 			#ifdef PIMUNU
 				q_s[6] = q->pitt[s];

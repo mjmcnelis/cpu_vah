@@ -28,15 +28,13 @@ class transport_coefficients
 
 		precision I_240;		// make a list of all the functions I need
 		precision I_221;
+		precision I_202;
 
 		transport_coefficients();
 		~transport_coefficients();
 
 		// gauss-laguerre data
 		//void load_roots_and_weights();
-
-		// conformal approximation (can be called in a root-finding kernel I guess, or temporarily in source terms)
-		void compute_anisotropic_parameters_conformal(precision e_scaled, precision x);
 
 		// have a root-solver here (it will be called in a root-finding kernel)
 

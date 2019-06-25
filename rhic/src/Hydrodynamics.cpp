@@ -113,8 +113,9 @@ void run_hydro(void * latticeParams, void * initCondParams, void * hydroParams)
 			precision Tctr = effectiveTemperature(e[sctr]) * hbarc;
 			precision plctr = q->pl[sctr] * hbarc;
 			precision ptctr = q->pt[sctr] * hbarc;
+			precision pt_check = 0.5 * (ectr - plctr);
 
-			printf("t = %.3f fm/c\t\te = %.3f GeV/fm^3\tpl = %.3f GeV/fm^3\tpt = %.3f GeV/fm^3\tT = %.3f GeV\n", t, ectr, plctr, ptctr, Tctr);
+			printf("t = %.3f fm/c\t\te = %.3f GeV/fm^3\tpl = %.3f GeV/fm^3\tpt = %.3f GeV/fm^3\tpt_check = %.3f GeV/fm^3\tT = %.3f GeV\n", t, ectr, plctr, ptctr, pt_check, Tctr);
 
 			output_dynamical_variables(t, nx, ny, nz, dx, dy, dz);
 

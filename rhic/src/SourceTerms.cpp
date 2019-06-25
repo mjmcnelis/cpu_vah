@@ -92,7 +92,7 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision pt = ql[5];
 
 
-	pt = 0.5 * (e_s - pl);	// temporary
+	//pt = 0.5 * (e_s - pl);	// temporary
 
 
 	// fluid velocity
@@ -157,20 +157,20 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 
 	// primary variables
-	precision e_sim = e1[0];		// e [i-1, i+1]
-	precision e_sip = e1[1];
+	// precision e_sim = e1[0];		// e [i-1, i+1]
+	// precision e_sip = e1[1];
 
-	precision e_sjm = e1[2];		// e [j-1, j+1]
-	precision e_sjp = e1[3];
+	// precision e_sjm = e1[2];		// e [j-1, j+1]
+	// precision e_sjp = e1[3];
 
-	precision e_skm = e1[4];		// e [k-1, k+1]
-	precision e_skp = e1[5];
+	// precision e_skm = e1[4];		// e [k-1, k+1]
+	// precision e_skp = e1[5];
 
 
-	// primary variable spatial derivatives
-	precision de_dx = approximate_derivative(e_sim, e_s, e_sip) / dx;		// after put in pt matching won't need this either
-	precision de_dy = approximate_derivative(e_sjm, e_s, e_sjp) / dy;
-	precision de_dn = approximate_derivative(e_skm, e_s, e_skp) / dn;
+	// // primary variable spatial derivatives
+	// precision de_dx = approximate_derivative(e_sim, e_s, e_sip) / dx;		// after put in pt matching won't need this either
+	// precision de_dy = approximate_derivative(e_sjm, e_s, e_sjp) / dy;
+	// precision de_dn = approximate_derivative(e_skm, e_s, e_skp) / dn;
 
 
 
@@ -188,13 +188,30 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision pl_skm = qk1[n];		// pl [k-1, k+1]  	(skm = k-1)
 	precision pl_skp = qk1[n + 1];	//					(skp = k+1)
 
+	n += 2;
+
+	precision pt_sim = qi1[n];		// pt [i-1, i+1]
+	precision pt_sip = qi1[n + 1];	
+
+	precision pt_sjm = qj1[n];		// pt [j-1, j+1]
+	precision pt_sjp = qj1[n + 1];  
+
+	precision pt_skm = qk1[n];		// pt [k-1, k+1]  	
+	precision pt_skp = qk1[n + 1];	
+
+
 	precision dpl_dx = approximate_derivative(pl_sim, pl, pl_sip) / dx;
 	precision dpl_dy = approximate_derivative(pl_sjm, pl, pl_sjp) / dy;
 	precision dpl_dn = approximate_derivative(pl_skm, pl, pl_skp) / dn;
 
-	precision dpt_dx = 0.5 * (de_dx - dpl_dx);	// temporary
-	precision dpt_dy = 0.5 * (de_dy - dpl_dy);
-	precision dpt_dn = 0.5 * (de_dn - dpl_dn);
+	precision dpt_dx = approximate_derivative(pt_sim, pt, pt_sip) / dx;
+	precision dpt_dy = approximate_derivative(pt_sjm, pt, pt_sjp) / dy;
+	precision dpt_dn = approximate_derivative(pt_skm, pt, pt_skp) / dn;
+
+
+	// precision dpt_dx = 0.5 * (de_dx - dpl_dx);	// is this the problem??
+	// precision dpt_dy = 0.5 * (de_dy - dpl_dy);
+	// precision dpt_dn = 0.5 * (de_dn - dpl_dn);
 
 
 	// spatial velocity components
@@ -211,16 +228,16 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 
 	// time derivatives of u
-	precision dtut = (ut - ut_p) / dt;
-	precision dtux = (ux - ux_p) / dt;
-	precision dtuy = (uy - uy_p) / dt;
-	precision dtun = (un - un_p) / dt;
+	precision dut_dt = (ut - ut_p) / dt;
+	precision dux_dt = (ux - ux_p) / dt;
+	precision duy_dt = (uy - uy_p) / dt;
+	precision dun_dt = (un - un_p) / dt;
 
 
-	precision dut = ut * dtut  +  ux * dut_dx  +  uy * dut_dy  +  un * dut_dn;
-	precision dux = ut * dtux  +  ux * dux_dx  +  uy * dux_dy  +  un * dux_dn;
-	precision duy = ut * dtuy  +  ux * duy_dx  +  uy * duy_dy  +  un * duy_dn;
-	precision dun = ut * dtun  +  ux * dun_dx  +  uy * dun_dy  +  un * dun_dn;
+	precision dut = ut * dut_dt  +  ux * dut_dx  +  uy * dut_dy  +  un * dut_dn;
+	precision dux = ut * dux_dt  +  ux * dux_dx  +  uy * dux_dy  +  un * dux_dn;
+	precision duy = ut * duy_dt  +  ux * duy_dx  +  uy * duy_dy  +  un * duy_dn;
+	precision dun = ut * dun_dt  +  ux * dun_dx  +  uy * dun_dy  +  un * dun_dn;
 
 
 
@@ -228,14 +245,14 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 
 	// expansion rate
-	precision theta = dtut  +  dux_dx  +  duy_dy  +  dun_dn  +  ut / t;
+	precision theta = dut_dt  +  dux_dx  +  duy_dy  +  dun_dn  +  ut / t;
 	precision theta_over_3 = theta / 3.0;
 
 	// shear tensor
-	precision stt = - t * ut * un2  +  (dtut  -  ut * dut)  +  (ut2 - 1.0) * theta_over_3;
+	precision stt = - t * ut * un2  +  (dut_dt  -  ut * dut)  +  (ut2 - 1.0) * theta_over_3;
 	// precision stx = -(t * un2 * ux) / 2 + (dtux - dut_dx) / 2 - (ux * dut + ut * dux) / 2 + ut * ux * theta / 3;
 	// precision sty = -(t * un2 * uy) / 2 + (dtuy - dut_dy) / 2 - (uy * dut + ut * duy) / 2 + ut * uy * theta / 3;
-	precision stn = - un * (2.0 * ut2  +  t2 * un2) / (2.0 * t)  +  (dtun  -  dut_dn / t2) / 2.0  -  (un * dut  +  ut * dun) / 2.0  +  ut * un * theta_over_3;
+	precision stn = - un * (2.0 * ut2  +  t2 * un2) / (2.0 * t)  +  (dun_dt  -  dut_dn / t2) / 2.0  -  (un * dut  +  ut * dun) / 2.0  +  ut * un * theta_over_3;
 	// precision sxx = -(dux_dx + ux * dux) + (1 + ux*ux) * theta / 3;
 	// precision sxy = -(duy_dx + dux_dy) / 2 - (uy * dux + ux * duy) / 2	+ ux * uy * theta / 3;
 	// precision sxn = -ut * ux * un / t - (dun_dx + dux_dn / t2) / 2 - (un * dux + ux * dun) / 2 + ux * un * theta / 3;
@@ -286,12 +303,17 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision taupiInv = 0.2 * T / etabar;
 
 
-	transport_coefficients aniso;
+	transport_coefficients aniso;							// maybe there's lag time by 
 
-	aniso.compute_transport_coefficients(e_s, pl, pt);
+	aniso.compute_transport_coefficients(e_s, pl, pt);		// here I'm using the conformal formula to compute xiL
 
-	precision zeta_zz = aniso.I_240  -  3.0 * pl;
-	precision zeta_zT = aniso.I_221  -  pl;				// okay now it's working
+	// pl
+	precision zeta_LL = aniso.I_240  -  3.0 * pl;
+	precision zeta_TL = aniso.I_221  -  pl;				
+
+	// pt
+	precision zeta_LT = aniso.I_221  -  pt;				
+	precision zeta_TT = 2.0 * (aniso.I_202 - pt);		
 
 	
 	// precision a  = pl / e_s;
@@ -307,11 +329,9 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
  //   (0.06856675185266 + 2.9181587012768597*a + 11.951184087839218*a2 - 29.708257843442173*a3 - 2.618233802059826*a4 + 34.646239784689065*a5 -
  //     19.62596366454439*a6 + 2.374808442453899*a7);
 
-	// precision zeta_zz = Rtilde * e_s  -  3.0 * pl;
-	// precision zeta_zT = (Rtilde * e_s +  pl) / 2.0;
+	// precision zeta_LL = Rtilde * e_s  -  3.0 * pl;
+	// precision zeta_TL = (Rtilde * e_s +  pl) / 2.0;
 	
-
-
 
 	precision dp = pl - pt;
 
@@ -343,17 +363,21 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 	// source terms
 	precision tnn = (e_s + pt) * un2  +  pt / t2  +  Lnn;
-	//precision dpl = - (pl - p) * taupiInv  +  zeta_zz * thetaL  -  zeta_zT * thetaT;
-	precision dpl = - (pl - p) * taupiInv  +  zeta_zz * thetaL  +  zeta_zT * thetaT;
+	
+	precision dpl = - dp * taupiInv / 1.5  +  zeta_LL * thetaL  +  zeta_TL * thetaT;
+	precision dpt =   dp * taupiInv / 3.0  +  zeta_LT * thetaL  +  zeta_TT * thetaT;
+
 
 	// conservation laws
 	S[0] = - (ttt / t  +  t * tnn)  +  div_v * (Ltt - pt)  -  vx * dpt_dx  -  vy * dpt_dy  -  vn * dpt_dn  +  vx * dLtt_dx  +  vy * dLtt_dy  +  vn * dLtt_dn - dLtn_dn;
 	S[1] = - ttx / t  -  dpt_dx;
 	S[2] = - tty / t  -  dpt_dy;
-	S[3] = - 3.0 * ttn / t  -  dpt_dn / t2  +  div_v * Ltn  +  vx * dLtn_dx  +  vy * dLtn_dy  +  2.0 * vn * dLtn_dn  -  dLnn_dn;
+	//S[3] = - 3.0 * ttn / t  -  dpt_dn / t2  +  div_v * Ltn  +  vx * dLtn_dx  +  vy * dLtn_dy  +  2.0 * vn * dLtn_dn  -  dLnn_dn;
+	S[3] = 0.0;	// temp
 
 	// relaxation equations
 	S[4] = dpl / ut  +  div_v * pl;
+	S[5] = dpt / ut  +  div_v * pt;
 
 }
 
