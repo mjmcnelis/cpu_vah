@@ -52,7 +52,12 @@ void set_initial_conserved_variables(double t, int nx, int ny, int nz)
 				precision ut = u->ut[s];
 
 				precision pl = q->pl[s];
+
+			#if (PT_MATCHING == 1)
 				precision pt = q->pt[s];
+			#else
+				precision pt = 0.5 * (e_s - pl);
+			#endif
 
 				precision utperp = sqrt(1.0  +  ux * ux  +  uy * uy);
 
@@ -110,7 +115,10 @@ void set_equilibrium_initial_condition(int nx, int ny, int nz)
 				precision p_s = equilibriumPressure(e_s);
 
 				q->pl[s] = p_s;		// set (pl, pt) to equilibium pressure
+
+			#if (PT_MATCHING == 1)
 				q->pt[s] = p_s;
+			#endif
 
 			#ifdef PIMUNU
 		  		q->pitt[s] = 0.0;

@@ -19,45 +19,54 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 // this is a temporary test for conformal PL matching
 void get_inferred_variables_test(precision t, const precision * const __restrict__ q, precision * const __restrict__ e, precision * const __restrict__ ut, precision * const __restrict__ ux, precision * const __restrict__ uy, precision * const __restrict__ un)
 {
-	precision Ttt = q[0];
-	precision Ttx = q[1];
-	precision Tty = q[2];
-
+	precision ttt = q[0];
+	precision ttx = q[1];
+	precision tty = q[2];
+	precision ttn = q[3];
 	precision pl  = q[4];
-	//precision pt  = q[5];
-
-	precision Mt = Ttt;
-	precision Mx = Ttx;
-	precision My = Tty;
-
-	// conformal solution for (e, p)
 	
-	// solution for (e, p)
-	//precision e_s = Mt  -  (Mx * Mx  +  My * My) / (Mt + pt);
+	precision Mt = ttt;
+	precision Mx = ttx;
+	precision My = tty;
+	precision Mn = ttn;
 
+// reconstruction formula for energy density
+#if (PT_MATCHING == 0)
 
+	// this needs to be further generalized to include Mn
 	precision e_s = 0.5 * (-(Mt - pl)  +  sqrt(fabs((Mt - pl) * (Mt - pl)  +  8.0 * (Mt * (Mt - 0.5 * pl) - (Mx * Mx  +  My * My)))));
 
-	if(e_s < 1.e-3 || std::isnan(e_s)) e_s = 1.e-3;				// this cutoff is important
+	if(e_s < 1.e-3 || std::isnan(e_s)) e_s = 1.e-3;		// this cutoff is important
 
-	precision pt = 0.5 * (e_s - pl);			// conformal formula
+	precision pt = 0.5 * (e_s - pl);					// conformal formula
 
-	// solution for u^mu
+#else
+	precision pt  = q[5];
+
+	precision e_s = Mt  -  (Mx * Mx  +  My * My) / (Mt + pt);	// generalize 
+
+	if(e_s < 1.e-3 || std::isnan(e_s)) e_s = 1.e-3;
+
+#endif
+
+	// fluid velocity (generalize)
 	precision ut_s = sqrt(fabs((Mt + pt) / (e_s + pt)));
 	precision ux_s = Mx / ut_s / (e_s + pt);
 	precision uy_s = My / ut_s / (e_s + pt);
 	precision un_s = 0.0;
 
-	if(std::isnan(ut_s))	// I'm not sure what's going nan???
-	{
+
+	if(std::isnan(ut_s))	
+	{	
+		// I'm not sure what's going nan???
 		printf("\ngetInferredVariables error: u^mu = (%lf, %lf, %lf, %lf) is nan\n", ut_s, ux_s, uy_s, un_s);
 		exit(-1);
 	}
 
+
 	// get solution for primary variables
-	*e = e_s;
-	*ut = sqrt(1.0  +  ux_s * ux_s  +  uy_s * uy_s);	// I guess renormalize helps?
-	//*ut = ut_s;
+	*e  = e_s;
+	*ut = sqrt(1.0  +  ux_s * ux_s  +  uy_s * uy_s  +  t * t * un_s * un_s);
 	*ux = ux_s;
 	*uy = uy_s;
 	*un = un_s;
@@ -186,8 +195,11 @@ void get_inferred_variables(precision t, const precision * const __restrict__ q,
 
 void set_inferred_variables(const CONSERVED_VARIABLES * const __restrict__ q, precision * const __restrict__ e, FLUID_VELOCITY * const __restrict__ u, precision t, int nx, int ny, int nz)
 {
-	int N = 6;  // default size for q_s array (T^\tau\mu, Pl, Pt)
+	int N = 5;  // default size for q_s array (ttt, ttx, tty, ttn, pl)
 
+#if (PT_MATCHING == 1)
+	N += 1;
+#endif
 // #ifdef PIMUNU
 // 	N += 4;		// add time components of pimunu and Wmu
 // #endif
@@ -214,7 +226,10 @@ void set_inferred_variables(const CONSERVED_VARIABLES * const __restrict__ q, pr
 				q_s[2] = q->tty[s];
 				q_s[3] = q->ttn[s];
 				q_s[4] = q->pl[s];
+
+			#if (PT_MATCHING == 1)
 				q_s[5] = q->pt[s];  
+			#endif
 
 			#ifdef PIMUNU
 				q_s[6] = q->pitt[s];
@@ -231,14 +246,10 @@ void set_inferred_variables(const CONSERVED_VARIABLES * const __restrict__ q, pr
 			#endif
 
 				// compute the updated values for (e, p, u^mu)
-				//
-				// test version for conformal PL matching
 				get_inferred_variables_test(t, q_s, &e_s, &ut_s, &ux_s, &uy_s, &un_s);
 
-				// set the updated values to current variables
-				e[s] = e_s;
-
-				u->ut[s] = ut_s;	// should I renormalize this?
+				e[s]     = e_s;
+				u->ut[s] = ut_s;	
 				u->ux[s] = ux_s;
 				u->uy[s] = uy_s;
 				u->un[s] = un_s;

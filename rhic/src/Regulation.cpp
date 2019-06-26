@@ -15,7 +15,7 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 
 void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __restrict__ ql, precision * const __restrict__ el, const FLUID_VELOCITY * const __restrict__ ul, int nx, int ny, int nz)
 {
-	precision epsilon = 1.e-7;
+	precision epsilon = 1.e-5;	// is there a more effective way to regulate pl, pt? 
 
 	precision xi0 = 0.1;		// regulation parameters (maybe move these in hydro parameters?)
 	precision rho_max = 1.0;
@@ -32,28 +32,23 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 
 				precision e_s = el[s];
 				precision pl  = ql->pl[s];
-				precision pt  = ql->pt[s];
-
-				// if(e_s < eps) // already regulated in inferred variables
-				// {
-				// 	el[s] = eps;
-				// 	e_s = eps;
-				// }
+				
 				if(pl < epsilon || std::isnan(pl))
 				{
 					ql->pl[s] = epsilon;
 					pl = epsilon;
 				}
-			// #ifdef CONFORMAL_EOS
-			// 	ql->pt[s] = 0.5 * (e_s - pl);
-			// 	pt = 0.5 * (e_s - pl);
-			// #endif
+
+			#if (PT_MATCHING == 1)
+				precision pt  = ql->pt[s];
 				if(pt < epsilon || std::isnan(pt))
 				{
 					ql->pt[s] = epsilon;
 					pt = epsilon;
 				}
-
+			#else
+				precision pt = 0.5 * (e_s - pl);
+			#endif
 
 				precision ut = ul->ut[s];
 				precision ux = ul->ux[s];

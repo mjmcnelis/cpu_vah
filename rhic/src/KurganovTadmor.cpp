@@ -97,13 +97,16 @@ const precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict_
 
 				int r = 0;
 
-				ql[0] = q->ttt[s];		// conserved variables of cell s
+				ql[0] = q->ttt[s];				// conserved variables of cell s
 				ql[1] = q->ttx[s];
 				ql[2] = q->tty[s];
 				ql[3] = q->ttn[s];
 
 				ql[4] = q->pl[s];
-				ql[5] = q->pt[s];		// added pt
+
+			#if (PT_MATCHING == 1)
+				ql[5] = q->pt[s];		
+			#endif
 
 				precision e_s = e[s];
 
@@ -119,8 +122,9 @@ const precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict_
 
 
 				// get primary variables of neighbor cells
+			#if (PT_MATCHING == 0)
 				get_primary_neighbor_cells(e, e1, sim, sip, sjm, sjp, skm, skp);
-
+			#endif
 
 				get_u_neighbor_cells(u->ut, u->ux, u->uy, u->un, ui1, uj1, uk1, sim, sip, sjm, sjp, skm, skp);
 
@@ -135,8 +139,10 @@ const precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict_
 				get_q_neighbor_cells(q->ttn, qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
 
 				get_q_neighbor_cells(q->pl,  qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
-				get_q_neighbor_cells(q->pt,  qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
 
+			#if (PT_MATCHING == 1)
+				get_q_neighbor_cells(q->pt,  qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
+			#endif
 
 
 				// compute the external source terms (S)
@@ -175,7 +181,10 @@ const precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict_
 				Q->ttn[s] = ql[3];
 
 				Q->pl[s] = ql[4];
+
+			#if (PT_MATCHING == 1)
 				Q->pt[s] = ql[5];
+			#endif
 
 			#ifdef PIMUNU
 				Q->pitt[s] = ql[5];
@@ -220,7 +229,10 @@ void convex_combination(const CONSERVED_VARIABLES * const __restrict__ q, CONSER
 				Q->ttn[s] = (q->ttn[s]  +  Q->ttn[s]) / 2.0;
 
 				Q->pl[s] = (q->pl[s]  +  Q->pl[s]) / 2.0;
+
+			#if (PT_MATCHING == 1)
 				Q->pt[s] = (q->pt[s]  +  Q->pt[s]) / 2.0;
+			#endif
 
 			#ifdef PIMUNU
 				Q->pitt[s] = (q->pitt[s]  +  Q->pitt[s]) / 2.0;

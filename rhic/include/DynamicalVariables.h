@@ -2,6 +2,7 @@
 #ifndef DYNAMICALVARIABLES_H_
 #define DYNAMICALVARIABLES_H_
 
+#include "EquationofState.h"
 #include "Precision.h"
 
 #define NUMBER_CONSERVATION_LAWS 4
@@ -12,21 +13,32 @@
 // force both of them to turn on or none
 
 #ifndef PIMUNU
-#define PIMUNU_COMPONENTS 0
+	#define PIMUNU_COMPONENTS 0
 #else
-#define PIMUNU_COMPONENTS 10
+	#define PIMUNU_COMPONENTS 10
 #endif
 
+
 #ifndef WTZMU
-#define WTZMU_COMPONENTS 0
+	#define WTZMU_COMPONENTS 0
 #else
-#define WTZMU_COMPONENTS 4
+	#define WTZMU_COMPONENTS 4
 #endif
+
 
 #define NUMBER_RESIDUAL_CURRENTS (PIMUNU_COMPONENTS + WTZMU_COMPONENTS)
 
-// todo: change +1 to +2 for pl + pt
-#define NUMBER_CONSERVED_VARIABLES (NUMBER_CONSERVATION_LAWS + 2 + NUMBER_RESIDUAL_CURRENTS)
+#define PL_MATCHING 1
+
+
+#ifndef CONFORMAL_EOS
+	#define PT_MATCHING 1
+#else
+	#define PT_MATCHING 0
+#endif
+
+
+#define NUMBER_CONSERVED_VARIABLES (NUMBER_CONSERVATION_LAWS + PL_MATCHING + PT_MATCHING + NUMBER_RESIDUAL_CURRENTS)
 
 typedef struct
 {
@@ -35,7 +47,11 @@ typedef struct
 	precision * tty;
 	precision * ttn;
 	precision * pl;
+
+#if (PT_MATCHING == 1)
 	precision * pt;
+#endif
+
 #ifdef PIMUNU
 	precision * pitt;
 	precision * pitx;

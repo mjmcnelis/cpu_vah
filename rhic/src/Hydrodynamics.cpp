@@ -17,7 +17,7 @@
 
 using namespace std;
 
-#define FREQ 10
+#define FREQ 1
 
 const double hbarc = 0.197326938;
 
@@ -58,6 +58,8 @@ void run_hydro(void * latticeParams, void * initCondParams, void * hydroParams)
 	struct HydroParameters * hydro = (struct HydroParameters *) hydroParams;
 
 	// System configuration
+	int initialType = initCond->initialConditionType;	// initial condition type
+
 	int nx = lattice->numLatticePointsX;				// physical grid
 	int ny = lattice->numLatticePointsY;
 	int nz = lattice->numLatticePointsRapidity;
@@ -74,7 +76,8 @@ void run_hydro(void * latticeParams, void * initCondParams, void * hydroParams)
 
 	precision etabar = hydro->shear_viscosity;			// shear viscosity
 
-
+	double T0 = initCond->initialCentralTemperatureGeV;
+	double e0 = equilibriumEnergyDensity(T0 / hbarc);
 	double t0 = hydro->tau_initial;						// initial longitudinal proper time
 														// if use F.S. need t_fs instead
 
@@ -112,12 +115,18 @@ void run_hydro(void * latticeParams, void * initCondParams, void * hydroParams)
 			precision pctr = equilibriumPressure(e[sctr]) * hbarc;
 			precision Tctr = effectiveTemperature(e[sctr]) * hbarc;
 			precision plctr = q->pl[sctr] * hbarc;
+
+		#if (PT_MATCHING == 1)
 			precision ptctr = q->pt[sctr] * hbarc;
+		#else
+			precision ptctr = 0.5 * (ectr - plctr);
+		#endif
+			
 			precision pt_check = 0.5 * (ectr - plctr);
 
 			printf("t = %.3f fm/c\t\te = %.3f GeV/fm^3\tpl = %.3f GeV/fm^3\tpt = %.3f GeV/fm^3\tpt_check = %.3f GeV/fm^3\tT = %.3f GeV\n", t, ectr, plctr, ptctr, pt_check, Tctr);
 
-			output_dynamical_variables(t, nx, ny, nz, dx, dy, dz);
+			output_dynamical_variables(t, nx, ny, nz, dx, dy, dz, initialType, e0);
 
 			if(e[sctr] < e_switch) 	// replace with freezeout finder not finding any cells
 			{
@@ -138,6 +147,7 @@ void run_hydro(void * latticeParams, void * initCondParams, void * hydroParams)
 	double spatial_grid = (double)(nx * ny * nz);
 
 	cout << "Total time             = " << setprecision(4) << duration << " s\n";
+	cout << "Average time/step      = " << setprecision(3) << 1000.0 * duration / steps << " ms\n";
 	cout << "Average time/cell/step = " << setprecision(3) << 1000.0 * duration / (spatial_grid * steps) << " ms\n";
 
 	free_memory();

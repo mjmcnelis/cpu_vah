@@ -5,6 +5,7 @@
 #include <math.h> // for math functions
 #include <cmath>
 #include "../include/TransportCoefficients.h"
+#include "../include/DynamicalVariables.h"
 #include "../include/EquationOfState.h"
 #include "../include/Hypergeometric.h"
 
@@ -47,7 +48,7 @@ void transport_coefficients::compute_transport_coefficients(precision e, precisi
 
 #ifdef CONFORMAL_EOS
 	//precision x = 3.0 * pl / e;		// x = pl / peq 
-	precision x = pl / e;			// x = pl / e 
+	precision x = pl / e;				// x = pl / e 
 	precision x2  = x   * x;
 	precision x3  = x2  * x;
 	precision x4  = x3  * x;
@@ -79,16 +80,12 @@ void transport_coefficients::compute_transport_coefficients(precision e, precisi
      0.04575504592470687*x5 + 1.4479634250149949*x6 + 6.077429142899631*x7 - 29.171395065126873*x8 + 13.501854646832847*x9 + 
      65.98203155631907*x10 - 111.65365949648432*x11 + 71.83676912638525*x12 - 19.66184593458614*x13 + 1.5947903161928916*x14);
 
-   	// if(!(x >= 2.99618e-6 && x <= 2.95249))
-   	// {
-   	// 	printf("x = %lf is out of range\n", x);
-   	// }
-
-	if(!(aL >= 0.001 && aL <= 20.0))
-	{
-		printf("aL = %lf is out of range\n", aL);
-		exit(-1);
-	}
+   	if(!(aL >= 0.001 && aL <= 20.0))
+   	{
+   		printf("aL = %lf is out of range\n", aL);
+   		aL = max(0.001, min(aL, 20.0));
+   	}
+	
 
   
 	// why does z go nan?
@@ -102,7 +99,7 @@ void transport_coefficients::compute_transport_coefficients(precision e, precisi
 
 	if(z <= -1.0 || std::isnan(z))
 	{
-		printf("Transport coefficients error: z = %lf\n", z);
+		printf("Transport coefficients error: (z, aL) = (%lf, %lf)\n", z, aL);
 		exit(-1);
 	}
 
@@ -114,7 +111,11 @@ void transport_coefficients::compute_transport_coefficients(precision e, precisi
 
 	I_240 = EOS_FACTOR * aL2 * Lambda4 * t_240(z, t) / 2.0;
 	I_221 = EOS_FACTOR * Lambda4 * t_221(z, t) / 4.0;
+
+#if (PT_MATCHING == 1)
 	I_202 = EOS_FACTOR * Lambda4 * t_202(z, t) / 16.0 / aL2;
+#endif
+
 #else
 	// nonconformal formula
 #endif

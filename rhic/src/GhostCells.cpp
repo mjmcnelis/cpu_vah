@@ -28,7 +28,10 @@ void ghost_cell_BC(CONSERVED_VARIABLES * const __restrict__ q, precision * const
 	q->ttn[s] = q->ttn[sBC];
 
 	q->pl[s] = q->pl[sBC];
+
+#if (PT_MATCHING == 1)
 	q->pt[s] = q->pt[sBC];
+#endif
 
 #ifdef PIMUNU
 	q->pitt[s] = q->pitt[sBC];
