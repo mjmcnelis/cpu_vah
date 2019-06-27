@@ -7,8 +7,8 @@
 #define CONFORMAL_EOS
 
 // ideal gas of massless quarks and gluons
-//#define EOS_FACTOR 15.6269 // Nc=3, Nf=3
-#define EOS_FACTOR 13.8997 // Nc=3, Nf=2.5
+#define EOS_FACTOR 15.6269 // Nc=3, Nf=3
+//#define EOS_FACTOR 13.8997 // Nc=3, Nf=2.5
 
 
 precision equilibriumPressure(precision e);
@@ -22,4 +22,4 @@ precision equilibriumEnergyDensity(precision T);
 precision derivativeEnergyDensityWithRespectToTemperature(precision T);
 
 
-#endif 
+#endif
