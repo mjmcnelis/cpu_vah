@@ -5,9 +5,10 @@
  *      Author: bazow
  */
 
-#include <math.h> // for math functions
-#include <stdio.h> // for printf
 #include <stdlib.h> //TEMP
+#include <stdio.h> // for printf
+#include <math.h> // for math functions
+#include <cmath>
 #include <iostream>
 #include <algorithm>    // for max
 
@@ -265,13 +266,16 @@ void set_Gubser_energy_density_and_flow_profile(int nx, int ny, int nz, double d
 	double t = hydro->tau_initial;								// initial longitudinal proper time
 	double T0 = initCond->initialCentralTemperatureGeV / hbarc;	// central temperature (fm)
 
-	double q = 1.0;												// inverse length size
+	//double q = 0.142857;										// inverse length size
+	double q = 1.0;												// go with a nucleon-like width
 	double q2 = q * q;
 	double q4 = q2 * q2;
 	double t2 = t * t;
 
 	// normalize Gubser temperature profile s.t. central temperature = T0
 	double T0_hat = T0 * t * pow((1.0 + q2 * t2) / (2.0 * q * t), 2./3.);
+
+	double e_min = 1.e-3;	// minimum energy density
 
 	// loop over physical grid points
 	for(int i = 2; i < nx + 2; i++)
@@ -285,15 +289,26 @@ void set_Gubser_energy_density_and_flow_profile(int nx, int ny, int nz, double d
 			double r = sqrt(x * x  +  y * y);
 			double r2 = r * r;
 
-			double kappa = atanh(2.0 * q2 * t * r / (1.0  +  q2 * (t2 + r2)));
+			double arg = 2.0 * q2 * t * r / (1.0  +  q2 * (t2 + r2));
+			double kappa = atanh(arg);
+
+			if(std::isnan(kappa) || fabs(arg) >= 1.0)
+			{
+				printf("Gubser initial conditions error: (kappa, arg) = (%lf, %lf)\n", kappa, arg);
+				exit(-1);
+			}
 
 			// temperature
 			double T = (T0_hat / t) * pow(2.0 * q * t, 2./3.) / pow(1.0  +  2.0 * q2 * (t2 + r2)  +  q4 * (t2 - r2) * (t2 - r2), 1./3.);
 
-			double e_s = equilibriumEnergyDensity(T);
+			double e_s = max(e_min, equilibriumEnergyDensity(T));
 
-			double ux_s = sinh(kappa) * x / r;
+			double ux_s = sinh(kappa) * x / r;		
 			double uy_s = sinh(kappa) * y / r;
+
+			if(std::isnan(ux_s)) ux_s = 0.0;	// remove x/r = 0/0 nan
+			if(std::isnan(uy_s)) uy_s = 0.0;	// remove y/r = 0/0 nan
+
 			double ut_s = sqrt(1.0  +  ux_s * ux_s  +  uy_s * uy_s);
 
 			for(int k = 2; k < nz + 2; k++)
