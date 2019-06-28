@@ -275,6 +275,9 @@ void set_Gubser_energy_density_and_flow_profile(int nx, int ny, int nz, double d
 	// normalize Gubser temperature profile s.t. central temperature = T0
 	double T0_hat = T0 * t * pow((1.0 + q2 * t2) / (2.0 * q * t), 2./3.);
 
+	cout << T0_hat << endl;
+	//double T0_hat = 1.2;
+
 	double e_min = 1.e-3;	// minimum energy density
 
 	// loop over physical grid points
@@ -303,7 +306,7 @@ void set_Gubser_energy_density_and_flow_profile(int nx, int ny, int nz, double d
 
 			double e_s = max(e_min, equilibriumEnergyDensity(T));
 
-			double ux_s = sinh(kappa) * x / r;		
+			double ux_s = sinh(kappa) * x / r;
 			double uy_s = sinh(kappa) * y / r;
 
 			if(std::isnan(ux_s)) ux_s = 0.0;	// remove x/r = 0/0 nan

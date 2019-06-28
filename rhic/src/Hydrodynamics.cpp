@@ -17,7 +17,7 @@
 
 using namespace std;
 
-#define FREQ 25
+#define FREQ 50
 
 const double hbarc = 0.197326938;
 
@@ -30,6 +30,13 @@ int central_index(int nx, int ny, int nz, int ncx, int ncy, int ncz)
 	int kctr = (nz % 2 == 0) ? ncz/2 : (ncz-1)/2;
 
 	return ictr  +  ncx * (jctr  +  ncy * kctr);
+}
+
+inline void print_hydro_center(double t, double e, double peq, double pl, double pt, double T)
+{
+	double pt_check = 0.5 * (e - pl);
+
+	printf("t = %.3f fm/c\t\te = %.3f GeV/fm^3\tpeq = %.3f GeV/fm^3\tpl = %.3f GeV/fm^3\tpt = %.3f GeV/fm^3\tpt_check = %.3f GeV/fm^3\tT = %.3f GeV\n", t, e, peq, pl, pt, pt_check, T);
 }
 
 
@@ -86,7 +93,7 @@ void run_hydro(void * latticeParams, void * initCondParams, void * hydroParams)
 
 
 	print_parameters(nx, ny, nz, dt, dx, dy, dz, T_switch, e_switch, etabar);
-	
+
 
 	// allocate memory for computational grid points
 	allocate_memory(ncx * ncy * ncz);
@@ -110,9 +117,9 @@ void run_hydro(void * latticeParams, void * initCondParams, void * hydroParams)
 	{
 		// output variables to file occasionally (for testing)
 		if(n % FREQ == 0)
-		{	
+		{
 			precision ectr = e[sctr] * hbarc;
-			precision pctr = equilibriumPressure(e[sctr]) * hbarc;
+			precision peqctr = equilibriumPressure(e[sctr]) * hbarc;
 			precision Tctr = effectiveTemperature(e[sctr]) * hbarc;
 			precision plctr = q->pl[sctr] * hbarc;
 
@@ -121,10 +128,8 @@ void run_hydro(void * latticeParams, void * initCondParams, void * hydroParams)
 		#else
 			precision ptctr = 0.5 * (ectr - plctr);
 		#endif
-			
-			precision pt_check = 0.5 * (ectr - plctr);
 
-			printf("t = %.3f fm/c\t\te = %.3f GeV/fm^3\tpl = %.3f GeV/fm^3\tpt = %.3f GeV/fm^3\tpt_check = %.3f GeV/fm^3\tT = %.3f GeV\n", t, ectr, plctr, ptctr, pt_check, Tctr);
+			print_hydro_center(t, ectr, peqctr, plctr, ptctr, Tctr);
 
 			output_dynamical_variables(t, nx, ny, nz, dx, dy, dz, initialType, e0);
 
