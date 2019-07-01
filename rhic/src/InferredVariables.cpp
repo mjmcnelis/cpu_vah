@@ -10,6 +10,11 @@
 
 using namespace std;
 
+double ttt_error = 1.e-14;
+double ttx_error = 1.e-14;
+double tty_error = 1.e-14;
+double ttn_error = 1.e-14;
+
 inline int linear_column_index(int i, int j, int k, int nx, int ny)
 {
 	return i  +  nx * (j  +  ny * k);
@@ -55,21 +60,45 @@ void get_inferred_variables_test(precision t, const precision * const __restrict
 	precision uy_s = My / ut_s / (e_s + pt);
 	precision un_s = 0.0;
 
-
 	if(std::isnan(ut_s))	
 	{	
 		// I'm not sure what's going nan???
-		printf("\ngetInferredVariables error: u^mu = (%lf, %lf, %lf, %lf) is nan\n", ut_s, ux_s, uy_s, un_s);
+		printf("\nget_inferred_variables_test error: u^mu = (%lf, %lf, %lf, %lf) is nan\n", ut_s, ux_s, uy_s, un_s);
 		exit(-1);
 	}
 
+	// renormalize?
+	//ut_s = sqrt(1.0  +  ux_s * ux_s  +  uy_s * uy_s  +  t * t * un_s * un_s);
+
+	precision utperp = sqrt(1.0  +  ux_s * ux_s  +  uy_s * uy_s);
+
+	precision zt = t * un_s / utperp;
+	precision zn = ut_s / (t * utperp);
 
 	// get solution for primary variables
 	*e  = e_s;
-	*ut = sqrt(1.0  +  ux_s * ux_s  +  uy_s * uy_s  +  t * t * un_s * un_s);
+	*ut = ut_s;
 	*ux = ux_s;
 	*uy = uy_s;
 	*un = un_s;
+
+
+	// test energy-momentum tensor reconstruction
+	double dttt = fabs((e_s + pt) * ut_s * ut_s  -  pt  +  (pl - pt) * zt * zt  -  ttt);
+	double dttx = fabs((e_s + pt) * ut_s * ux_s  -  ttx);
+	double dtty = fabs((e_s + pt) * ut_s * uy_s  -  tty);
+	double dttn = fabs((e_s + pt) * ut_s * un_s  +  (pl - pt) * zt * zn  -  ttn);
+
+	if(dttt > ttt_error || dttx > ttx_error || dtty > tty_error || dttn > ttn_error)
+	{
+		ttt_error = fmax(dttt, ttt_error);
+		ttx_error = fmax(dttx, ttx_error);
+		tty_error = fmax(dtty, tty_error);
+		ttn_error = fmax(dttn, ttn_error);
+
+		printf("\nget_inferred_variables_test: |dt^{tau/mu}| = (%.6g, %.6g, %.6g, %.6g)\n", ttt_error, ttx_error, tty_error, ttn_error);
+	}
+
 }
 
 
