@@ -273,10 +273,10 @@ void set_Gubser_energy_density_and_flow_profile(int nx, int ny, int nz, double d
 	double t2 = t * t;
 
 	// normalize Gubser temperature profile s.t. central temperature = T0
-	double T0_hat = T0 * t * pow((1.0 + q2 * t2) / (2.0 * q * t), 2./3.);
+	//double T0_hat = T0 * t * pow((1.0 + q2 * t2) / (2.0 * q * t), 2./3.);
 
-	cout << T0_hat << endl;
-	//double T0_hat = 1.2;
+	//cout << T0_hat << endl;
+	double T0_hat = 1.2;
 
 	double e_min = 1.e-3;	// minimum energy density
 
