@@ -258,7 +258,7 @@ void set_Glauber_energy_density_and_flow_profile(int nx, int ny, int nz, double 
 
 
 // Initial conditions for the Gubser flow test
-void set_Gubser_energy_density_and_flow_profile(int nx, int ny, int nz, double dx, double dy, double dz, void * initCondParams, void * hydroParams)
+void set_Gubser_energy_density_and_flow_profile(int nx, int ny, int nz, double dt, double dx, double dy, double dz, void * initCondParams, void * hydroParams)
 {
 	struct InitialConditionParameters * initCond = (struct InitialConditionParameters *) initCondParams;
 	struct HydroParameters * hydro = (struct HydroParameters *) hydroParams;
@@ -278,8 +278,6 @@ void set_Gubser_energy_density_and_flow_profile(int nx, int ny, int nz, double d
 	//cout << T0_hat << endl;
 	double T0_hat = 1.2;
 
-	double e_min = 1.e-3;	// minimum energy density
-
 	// loop over physical grid points
 	for(int i = 2; i < nx + 2; i++)
 	{
@@ -295,24 +293,39 @@ void set_Gubser_energy_density_and_flow_profile(int nx, int ny, int nz, double d
 			double arg = 2.0 * q2 * t * r / (1.0  +  q2 * (t2 + r2));
 			double kappa = atanh(arg);
 
+			double arg_p =  2.0 * q2 * (t - dt) * r / (1.0  +  q2 * ((t - dt) * (t - dt)  +  r2));
+			double kappa_p = atanh(arg_p);
+
 			if(std::isnan(kappa) || fabs(arg) >= 1.0)
 			{
 				printf("Gubser initial conditions error: (kappa, arg) = (%lf, %lf)\n", kappa, arg);
+				exit(-1);
+			}
+			if(std::isnan(kappa_p) || fabs(arg_p) >= 1.0)
+			{
+				printf("Gubser initial conditions error: (kappa_p, arg_p) = (%lf, %lf)\n", kappa_p, arg_p);
 				exit(-1);
 			}
 
 			// temperature
 			double T = (T0_hat / t) * pow(2.0 * q * t, 2./3.) / pow(1.0  +  2.0 * q2 * (t2 + r2)  +  q4 * (t2 - r2) * (t2 - r2), 1./3.);
 
-			double e_s = max(e_min, equilibriumEnergyDensity(T));
+			double e_s = max(E_MIN, equilibriumEnergyDensity(T));
 
-			double ux_s = sinh(kappa) * x / r;
-			double uy_s = sinh(kappa) * y / r;
+			double ux = sinh(kappa) * x / r;
+			double uy = sinh(kappa) * y / r;
 
-			if(std::isnan(ux_s)) ux_s = 0.0;	// remove x/r = 0/0 nan
-			if(std::isnan(uy_s)) uy_s = 0.0;	// remove y/r = 0/0 nan
+			double uxp = sinh(kappa_p) * x / r;
+			double uyp = sinh(kappa_p) * y / r;
 
-			double ut_s = sqrt(1.0  +  ux_s * ux_s  +  uy_s * uy_s);
+			if(std::isnan(ux)) ux = 0.0;	// remove x/r = 0/0 nan
+			if(std::isnan(uy)) uy = 0.0;	// remove y/r = 0/0 nan
+
+			if(std::isnan(uxp)) uxp = 0.0;	// remove x/r = 0/0 nan
+			if(std::isnan(uyp)) uyp = 0.0;	// remove y/r = 0/0 nan
+
+			double ut = sqrt(1.0  +  ux * ux  +  uy * uy);
+			double utp = sqrt(1.0  +  uxp * uxp  +  uyp * uyp);
 
 			for(int k = 2; k < nz + 2; k++)
 			{
@@ -320,15 +333,15 @@ void set_Gubser_energy_density_and_flow_profile(int nx, int ny, int nz, double d
 
 				e[s] = (precision) e_s;
 
-				u->ut[s] = (precision) ut_s;
-				u->ux[s] = (precision) ux_s;
-				u->uy[s] = (precision) uy_s;
+				u->ut[s] = ut;
+				u->ux[s] = ux;
+				u->uy[s] = uy;
 				u->un[s] = 0.0;
 
 				// also initialize up = u
-				up->ut[s] = (precision) ut_s;
-				up->ux[s] = (precision) ux_s;
-				up->uy[s] = (precision) uy_s;
+				up->ut[s] = utp;
+				up->ux[s] = uxp;
+				up->uy[s] = uyp;
 				up->un[s] = 0.0;
 			}
 		}
@@ -352,6 +365,7 @@ void set_initial_conditions(double t, void * latticeParams, void * initCondParam
 	int ny = lattice->numLatticePointsY;
 	int nz = lattice->numLatticePointsRapidity;
 
+	double dt = lattice->latticeSpacingProperTime;
 	double dx = lattice->latticeSpacingX;
 	double dy = lattice->latticeSpacingY;
 	double dz = lattice->latticeSpacingRapidity;
@@ -385,7 +399,7 @@ void set_initial_conditions(double t, void * latticeParams, void * initCondParam
 			exit(-1);
 		#endif
 
-			set_Gubser_energy_density_and_flow_profile(nx, ny, nz, dx, dy, dz, initCondParams, hydroParams);
+			set_Gubser_energy_density_and_flow_profile(nx, ny, nz, dt, dx, dy, dz, initCondParams, hydroParams);
 			set_equilibrium_initial_condition(nx, ny, nz);
 			set_initial_conserved_variables(t, nx, ny, nz);
 

@@ -6,7 +6,11 @@
 #include "../include/EquationOfState.h"
 
 
-precision equilibriumPressure(precision e) {
+// replaced powf with pow (7/2/19)
+// it didn't change anything
+
+precision equilibriumPressure(precision e) 
+{
 #ifndef CONFORMAL_EOS
     // Equation of state from the Wuppertal-Budapest collaboration
     double e1 = (double)e;
@@ -51,9 +55,11 @@ precision equilibriumPressure(precision e) {
 	double b11 = 5.928138360995685e-11;
 	double b12 = 3.2581066229887368e-18;
 	precision b = (precision)fma(b12,e12,fma(b11,e11,fma(b10,e10,fma(b9,e9,fma(b8,e8,fma(b7,e7,fma(b6,e6,fma(b5,e5,fma(b4,e4,fma(b3,e3,fma(b2,e2,fma(b1,e1,b0))))))))))));
+    
     return a/b;
+
 #else
-    return e/3.0;
+    return e / 3.0;
 #endif
 }
 
@@ -119,7 +125,7 @@ precision effectiveTemperature(precision e) {
 					+ 1051.0730543534657 * e8 + 5.916312075925817 * e9
 					+ 0.003778342768228011 * e10 + 1.8472801679382593e-7 * e11);
 #else
-	return powf(e / EOS_FACTOR, 0.25);
+	return pow(e / EOS_FACTOR, 0.25);
 #endif
 }
 
@@ -174,49 +180,8 @@ precision equilibriumEnergyDensity(precision T) {
 					- 33.58687934953277 * T20 + 3.2520554133126285 * T21
 					- 0.19647288043440464 * T22 + 0.005443394551264717 * T23);
 #else
-	return EOS_FACTOR * powf(T, 4.0);
+	return EOS_FACTOR * pow(T, 4.0);
 #endif
 }
 
-precision derivativeEnergyDensityWithRespectToTemperature(precision T) {
-#ifndef CONFORMAL_EOS
-	// Effective temperature from the Wuppertal-Budapest collaboration
-	double T1 = (double) T;
-	double T2 = T1 * T1;
-	double T3 = T2 * T1;
-	double T4 = T3 * T1;
-	double T5 = T4 * T1;
-	double T6 = T5 * T1;
-	double T7 = T6 * T1;
-	double T8 = T7 * T1;
-	double T9 = T8 * T1;
-	double T10 = T9 * T1;
-	double T11 = T10 * T1;
-	double T12 = T11 * T1;
-	double T13 = T12 * T1;
-	double T14 = T13 * T1;
-	double T15 = T14 * T1;
-	double T16 = T15 * T1;
-	double T17 = T16 * T1;
-	double T18 = T17 * T1;
-	double T19 = T18 * T1;
-	double T20 = T19 * T1;
-	double T21 = T20 * T1;
-	double T22 = T21 * T1;
-	double T23 = T22 * T1;
-	return (-0.031494763937498504 + 242.3362205025897*T - 7381.284377630215*T2 + 76140.00711480618*T3 - 318626.8893336883*T4 +
-     816969.4526840467*T5 - 1.4077502131456388e6*T6 + 932276.5758216518*T7 + 2.0843919830720688e6*T8 -
-     4.429807180805173e6*T9 - 490343.5182207036*T10 + 8.358430237661866e6*T11 - 5.736749310726519e6*T12 -
-     5.715418080920016e6*T13 + 1.0482485566550283e7*T14 - 5.426507095176461e6*T15 + 185339.33643178307*T16 +
-     1.0547668565460397e6*T17 - 814776.9940396115*T18 + 588800.42598283*T19 - 317439.80902614293*T20 +
-     97410.42727835444*T21 - 15099.361358702017*T22 + 922.756120432997*T23)/
-   (7177.666743649156 - 30194.86618888758*T + 35258.44261771079*T2 + 14018.545227919574*T3 - 40048.72302776879*T4 -
-     19144.61212778094*T5 + 43237.317984412286*T6 + 22974.51594985651*T7 - 45584.20063561873*T8 -
-     4546.064537281824*T9 + 37585.605883021555*T10 - 49259.02549065712*T11 + 51255.950072821266*T12 -
-     19777.85808464634*T13 - 17247.826673271855*T14 + 21164.570981481687*T15 - 7534.395375715286*T16 +
-     333.7081011553467*T17 + 337.2157942452745*T18 - 33.57262661808279*T19 - 12.01884142265821*T20 +
-     2.337285690393443*T21 - 0.11495807325727922*T22 + 0.002611670308392503*T23);
-#else
-	return 4.0 * EOS_FACTOR * powf(T, 3.0);
-#endif
-}
+

@@ -8,8 +8,10 @@ void get_primary_neighbor_cells(const precision * const __restrict__ E, precisio
 	// energy density of neighbor cells stored in e1 = (e_sim, e_sip, e_sjm, e_sjp, e_skm, e_skp)
 	e1[0] = E[sim];		// i-1
 	e1[1] = E[sip];		// i+1
+
 	e1[2] = E[sjm];		// j-1
 	e1[3] = E[sjp];		// j+1
+
 	e1[4] = E[skm];		// k-1
 	e1[5] = E[skp];		// k+1
 }
@@ -82,31 +84,31 @@ void get_v_neighbor_cells(const precision * const __restrict__ ut, const precisi
 }
 
 
-void get_q_neighbor_cells(const precision * const __restrict__ q_s, precision * const __restrict__ qi1, precision * const __restrict__ qj1, precision * const __restrict__ qk1, precision * const __restrict__ qi2, precision * const __restrict__ qj2, precision * const __restrict__ qk2, int * r, int simm, int sim, int sip, int sipp, int sjmm, int sjm, int sjp, int sjpp, int skmm, int skm, int skp, int skpp)
+void get_q_neighbor_cells(const precision * const __restrict__ q, precision * const __restrict__ qi1, precision * const __restrict__ qj1, precision * const __restrict__ qk1, precision * const __restrict__ qi2, precision * const __restrict__ qj2, precision * const __restrict__ qk2, int * r, int simm, int sim, int sip, int sipp, int sjmm, int sjm, int sjp, int sjpp, int skmm, int skm, int skp, int skpp)
 {
 	int n = *r;
 
-	qi1[n]     = q_s[sim];		// q neighbor cells [i-1, i+1] stored in qi1
-	qi1[n + 1] = q_s[sip];
+	qi1[n]     = q[sim];		// q neighbor cells [i-1, i+1] stored in qi1
+	qi1[n + 1] = q[sip];
 
-	qi2[n]     = q_s[simm];		// q neighbor cells [i-2, i+2] stored in qi2
-	qi2[n + 1] = q_s[sipp];
-
-	//------------------------------------------------------------
-
-	qj1[n]     = q_s[sjm];		// q neighbor cells [j-1, j+1] stored in qj1
-	qj1[n + 1] = q_s[sjp];
-
-	qj2[n]     = q_s[sjmm];		// q neighbor cells [j-2, j+2] stored in qj2
-	qj2[n + 1] = q_s[sjpp];
+	qi2[n]     = q[simm];		// q neighbor cells [i-2, i+2] stored in qi2
+	qi2[n + 1] = q[sipp];
 
 	//------------------------------------------------------------
 
-	qk1[n]     = q_s[skm];		// q neighbor cells [k-1, k+1] stored in qk1
-	qk1[n + 1] = q_s[skp];
+	qj1[n]     = q[sjm];		// q neighbor cells [j-1, j+1] stored in qj1
+	qj1[n + 1] = q[sjp];
 
-	qk2[n]     = q_s[skmm];		// q neighbor cells [k-2, k+2] stored in qk2
-	qk2[n + 1] = q_s[skpp];
+	qj2[n]     = q[sjmm];		// q neighbor cells [j-2, j+2] stored in qj2
+	qj2[n + 1] = q[sjpp];
+
+	//------------------------------------------------------------
+
+	qk1[n]     = q[skm];		// q neighbor cells [k-1, k+1] stored in qk1
+	qk1[n + 1] = q[skp];
+
+	qk2[n]     = q[skmm];		// q neighbor cells [k-2, k+2] stored in qk2
+	qk2[n + 1] = q[skpp];
 
 	*r += 2;
 }

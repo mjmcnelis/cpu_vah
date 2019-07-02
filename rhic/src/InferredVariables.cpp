@@ -10,10 +10,10 @@
 
 using namespace std;
 
-double ttt_error = 1.e-14;
-double ttx_error = 1.e-14;
-double tty_error = 1.e-14;
-double ttn_error = 1.e-14;
+double ttt_error = 1.e-13;
+double ttx_error = 1.e-13;
+double tty_error = 1.e-13;
+double ttn_error = 1.e-13;
 
 inline int linear_column_index(int i, int j, int k, int nx, int ny)
 {

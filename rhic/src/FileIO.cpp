@@ -158,6 +158,7 @@ void output_gubser_test(const precision * const e, const precision * const pl, c
 	FILE * aLplot;
 	FILE * Lambdaplot;
 	FILE * uxplot;
+	FILE * uyplot;
 	FILE * urplot;
 
 	char fname1[255];
@@ -167,6 +168,7 @@ void output_gubser_test(const precision * const e, const precision * const pl, c
 	char fname5[255];
 	char fname6[255];
 	char fname7[255];
+	char fname8[255];
 
 	sprintf(fname1, "output/e_%.3f.dat", t);
 	sprintf(fname2, "output/plpt_%.3f.dat", t);
@@ -174,7 +176,8 @@ void output_gubser_test(const precision * const e, const precision * const pl, c
 	sprintf(fname4, "output/aL_%.3f.dat", t);
 	sprintf(fname5, "output/Lambda_%.3f.dat", t);
 	sprintf(fname6, "output/ux_%.3f.dat", t);
-	sprintf(fname7, "output/ur_%.3f.dat", t);
+	sprintf(fname7, "output/uy_%.3f.dat", t);
+	sprintf(fname8, "output/ur_%.3f.dat", t);
 
 	energy      = fopen(fname1, "w");
 	plptratio   = fopen(fname2, "w");
@@ -182,7 +185,8 @@ void output_gubser_test(const precision * const e, const precision * const pl, c
 	aLplot      = fopen(fname4, "w");
 	Lambdaplot  = fopen(fname5, "w");
 	uxplot      = fopen(fname6, "w");
-	urplot      = fopen(fname7, "w");
+	uyplot      = fopen(fname7, "w");
+	urplot      = fopen(fname8, "w");
 
 	for(int k = 2; k < nz + 2; k++)
 	{
@@ -200,7 +204,7 @@ void output_gubser_test(const precision * const e, const precision * const pl, c
 
 				precision ux_s = ux[s];
 				precision uy_s = uy[s];
-				precision ur = sqrt(1.0  +  ux_s * ux_s  +  uy_s * uy_s);
+				precision ur = sqrt(ux_s * ux_s  +  uy_s * uy_s);
 
 				precision e_s = e[s];
 				precision pl_s = pl[s];
@@ -224,6 +228,7 @@ void output_gubser_test(const precision * const e, const precision * const pl, c
 				fprintf(aLplot, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, aL);
 				fprintf(Lambdaplot, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, Lambda);
 				fprintf(uxplot, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, ux_s);
+				fprintf(uyplot, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, uy_s);
 				fprintf(urplot, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, ur);
 			}
 		}
@@ -234,6 +239,7 @@ void output_gubser_test(const precision * const e, const precision * const pl, c
 	fclose(aLplot);
 	fclose(Lambdaplot);
 	fclose(uxplot);
+	fclose(uyplot);
 	fclose(urplot);
 }
 

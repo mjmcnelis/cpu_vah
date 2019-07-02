@@ -10,6 +10,7 @@
 #define EOS_FACTOR 15.6269 // Nc=3, Nf=3
 //#define EOS_FACTOR 13.8997 // Nc=3, Nf=2.5
 
+#define E_MIN 0.001		// minimum energy density
 
 precision equilibriumPressure(precision e);
 
@@ -18,8 +19,6 @@ precision speedOfSoundSquared(precision e);
 precision effectiveTemperature(precision e);
 
 precision equilibriumEnergyDensity(precision T);
-
-precision derivativeEnergyDensityWithRespectToTemperature(precision T);
 
 
 #endif
