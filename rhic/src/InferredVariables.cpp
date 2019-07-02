@@ -29,7 +29,7 @@ void get_inferred_variables_test(precision t, const precision * const __restrict
 	precision tty = q[2];
 	precision ttn = q[3];
 	precision pl  = q[4];
-	
+
 	precision Mt = ttt;
 	precision Mx = ttx;
 	precision My = tty;
@@ -48,7 +48,7 @@ void get_inferred_variables_test(precision t, const precision * const __restrict
 #else
 	precision pt  = q[5];
 
-	precision e_s = Mt  -  (Mx * Mx  +  My * My) / (Mt + pt);	// generalize 
+	precision e_s = Mt  -  (Mx * Mx  +  My * My) / (Mt + pt);	// generalize
 
 	if(e_s < 1.e-3 || std::isnan(e_s)) e_s = 1.e-3;
 
@@ -60,8 +60,8 @@ void get_inferred_variables_test(precision t, const precision * const __restrict
 	precision uy_s = My / ut_s / (e_s + pt);
 	precision un_s = 0.0;
 
-	if(std::isnan(ut_s))	
-	{	
+	if(std::isnan(ut_s))
+	{
 		// I'm not sure what's going nan???
 		printf("\nget_inferred_variables_test error: u^mu = (%lf, %lf, %lf, %lf) is nan\n", ut_s, ux_s, uy_s, un_s);
 		exit(-1);
@@ -96,7 +96,7 @@ void get_inferred_variables_test(precision t, const precision * const __restrict
 		tty_error = fmax(dtty, tty_error);
 		ttn_error = fmax(dttn, ttn_error);
 
-		printf("\nget_inferred_variables_test: |dt^{tau/mu}| = (%.6g, %.6g, %.6g, %.6g)\n", ttt_error, ttx_error, tty_error, ttn_error);
+		printf("get_inferred_variables_test: |dt^{tau/mu}| = (%.6g, %.6g, %.6g, %.6g)\n", ttt_error, ttx_error, tty_error, ttn_error);
 	}
 
 }
@@ -248,7 +248,7 @@ void set_inferred_variables(const CONSERVED_VARIABLES * const __restrict__ q, pr
 			{
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
-				precision e_s, ut_s, ux_s, uy_s, un_s;		
+				precision e_s, ut_s, ux_s, uy_s, un_s;
 
 				q_s[0] = q->ttt[s];
 				q_s[1] = q->ttx[s];
@@ -257,7 +257,7 @@ void set_inferred_variables(const CONSERVED_VARIABLES * const __restrict__ q, pr
 				q_s[4] = q->pl[s];
 
 			#if (PT_MATCHING == 1)
-				q_s[5] = q->pt[s];  
+				q_s[5] = q->pt[s];
 			#endif
 
 			#ifdef PIMUNU
@@ -278,7 +278,7 @@ void set_inferred_variables(const CONSERVED_VARIABLES * const __restrict__ q, pr
 				get_inferred_variables_test(t, q_s, &e_s, &ut_s, &ux_s, &uy_s, &un_s);
 
 				e[s]     = e_s;
-				u->ut[s] = ut_s;	
+				u->ut[s] = ut_s;
 				u->ux[s] = ux_s;
 				u->uy[s] = uy_s;
 				u->un[s] = un_s;
