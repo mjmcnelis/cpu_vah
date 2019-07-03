@@ -35,12 +35,12 @@ void euler_step(precision t, const CONSERVED_VARIABLES * const __restrict__ q, C
 const precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict__ u, const FLUID_VELOCITY * const __restrict__ up, int nx, int ny, int nz, precision dt, precision dx, precision dy, precision dn, precision etabar)
 {
 	// compute the euler step
-	int stride_x = 1;									// strides for neighbor cells along x, y, n
+	//int stride_x = 1;									// strides for neighbor cells along x, y, n
 	int stride_y = nx + 4;								// stride formulas based from linear_column_index()
 	int stride_z = (nx + 4) * (ny + 4);
 
 	precision ql[NUMBER_CONSERVED_VARIABLES];			// current variables at cell s
-	precision S[NUMBER_CONSERVED_VARIABLES];			// external source terms in hydrodynamic equations
+	precision  S[NUMBER_CONSERVED_VARIABLES];			// external source terms in hydrodynamic equations
 
 	precision e1[6];									// primary variables of neighbors [i-1, i+1, j-1, j+1, k-1, k+1]
 
@@ -61,13 +61,13 @@ const precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict_
 	precision vyj[4];									// vy of neighbor cells along y [j-2, j-1, j+1, j+2]
 	precision vnk[4];									// vn of neighbor cells along n [k-2, k-1, k+1, k+2]
 
-	precision Hx_plus[NUMBER_CONSERVED_VARIABLES];		// Hx_{i + 1/2}
+	precision  Hx_plus[NUMBER_CONSERVED_VARIABLES];		// Hx_{i + 1/2}
 	precision Hx_minus[NUMBER_CONSERVED_VARIABLES];		// Hx_{i - 1/2}
 
-	precision Hy_plus[NUMBER_CONSERVED_VARIABLES];		// Hy_{j + 1/2}
+	precision  Hy_plus[NUMBER_CONSERVED_VARIABLES];		// Hy_{j + 1/2}
 	precision Hy_minus[NUMBER_CONSERVED_VARIABLES];		// Hy_{j - 1/2}
 
-	precision Hn_plus[NUMBER_CONSERVED_VARIABLES];		// Hn_{k + 1/2}
+	precision  Hn_plus[NUMBER_CONSERVED_VARIABLES];		// Hn_{k + 1/2}
 	precision Hn_minus[NUMBER_CONSERVED_VARIABLES];		// Hn_{k - 1/2}
 
 
@@ -80,24 +80,24 @@ const precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict_
 			{
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
-				int sim  = s - stride_x;		// neighbor cell indices (x)
-				int simm = sim - stride_x;
-				int sip  = s + stride_x;
-				int sipp = sip + stride_x;
+				int simm = s - 2;			// neighbor cell indices (x)
+				int sim  = s - 1;		
+				int sip  = s + 1;
+				int sipp = s + 2;
 
-				int sjm  = s - stride_y;		// neighbor cell indices (y)
-				int sjmm = sjm - stride_y;
+				int sjmm = s - 2*stride_y;	// neighbor cell indices (y)
+				int sjm  = s - stride_y;		
 				int sjp  = s + stride_y;
-				int sjpp = sjp + stride_y;
+				int sjpp = s + 2*stride_y;
 
-				int skm  = s - stride_z;		// neighbor cell indices (n)
-				int skmm = skm - stride_z;
+				int skmm = s - 2*stride_z;	// neighbor cell indices (n)
+				int skm  = s - stride_z;		
 				int skp  = s + stride_z;
-				int skpp = skp + stride_z;
+				int skpp = s + 2*stride_z;
 
 				int r = 0;
 
-				ql[0] = q->ttt[s];				// conserved variables of cell s
+				ql[0] = q->ttt[s];			// conserved variables of cell s
 				ql[1] = q->ttx[s];
 				ql[2] = q->tty[s];
 				ql[3] = q->ttn[s];
@@ -110,12 +110,12 @@ const precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict_
 
 				precision e_s = e[s];
 
-				precision ut = u->ut[s];		// current fluid velocity
+				precision ut = u->ut[s];	// current fluid velocity
 				precision ux = u->ux[s];
 				precision uy = u->uy[s];
 				precision un = u->un[s];
 
-				precision ut_p = up->ut[s];		// previous fluid velocity
+				precision ut_p = up->ut[s];	// previous fluid velocity
 				precision ux_p = up->ux[s];
 				precision uy_p = up->uy[s];
 				precision un_p = up->un[s];
@@ -150,27 +150,24 @@ const precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict_
 
 
 				// compute the flux terms Hx_plus, Hx_minus
-				flux_terms(Hx_plus, ql, qi1, qi2, vxi, ux, ut, &right_half_cell_extrapolation_forward, &left_half_cell_extrapolation_forward);
+				flux_terms(Hx_plus,  ql, qi1, qi2, vxi, ux, ut, &right_half_cell_extrapolation_forward, &left_half_cell_extrapolation_forward);
 				flux_terms(Hx_minus, ql, qi1, qi2, vxi, ux, ut, &right_half_cell_extrapolation_backward, &left_half_cell_extrapolation_backward);
 
 
 				// compute the flux terms Hy_plus, Hy_minus
-				flux_terms(Hy_plus, ql, qj1, qj2, vyj, uy, ut, &right_half_cell_extrapolation_forward, &left_half_cell_extrapolation_forward);
+				flux_terms(Hy_plus,  ql, qj1, qj2, vyj, uy, ut, &right_half_cell_extrapolation_forward, &left_half_cell_extrapolation_forward);
 				flux_terms(Hy_minus, ql, qj1, qj2, vyj, uy, ut, &right_half_cell_extrapolation_backward, &left_half_cell_extrapolation_backward);
 
 
 				// compute the flux terms Hn_plus, Hn_minus
-				flux_terms(Hn_plus, ql, qk1, qk2, vnk, un, ut, &right_half_cell_extrapolation_forward, &left_half_cell_extrapolation_forward);
+				flux_terms(Hn_plus,  ql, qk1, qk2, vnk, un, ut, &right_half_cell_extrapolation_forward, &left_half_cell_extrapolation_forward);
 				flux_terms(Hn_minus, ql, qk1, qk2, vnk, un, ut, &right_half_cell_extrapolation_backward, &left_half_cell_extrapolation_backward);
 
 
 				// add euler step
-				for(short n = 0; n < NUMBER_CONSERVED_VARIABLES; n++)
+				for(int n = 0; n < NUMBER_CONSERVED_VARIABLES; n++)
 				{
-					// question: is last term 1/(t.dn) or 1/dn?
 					ql[n] += dt * (S[n]  +  (Hx_minus[n] - Hx_plus[n]) / dx  +  (Hy_minus[n] - Hy_plus[n]) / dy  +  (Hn_minus[n] - Hn_plus[n]) / dn);
-
-					//ql[n] += dt * (S[n]  +  (Hx_minus[n] - Hx_plus[n]) / dx  +  (Hy_minus[n] - Hy_plus[n]) / dy)  +  (Hn_minus[n] - Hn_plus[n]) / dn;
 				}
 
 
@@ -180,7 +177,7 @@ const precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict_
 				Q->tty[s] = ql[2];
 				Q->ttn[s] = ql[3];
 
-				Q->pl[s] = ql[4];
+				Q->pl[s]  = ql[4];
 
 			#if (PT_MATCHING == 1)
 				Q->pt[s] = ql[5];
@@ -228,10 +225,10 @@ void convex_combination(const CONSERVED_VARIABLES * const __restrict__ q, CONSER
 				Q->tty[s] = (q->tty[s]  +  Q->tty[s]) / 2.0;
 				Q->ttn[s] = (q->ttn[s]  +  Q->ttn[s]) / 2.0;
 
-				Q->pl[s] = (q->pl[s]  +  Q->pl[s]) / 2.0;
+				Q->pl[s]  = (q->pl[s]  +  Q->pl[s]) / 2.0;
 
 			#if (PT_MATCHING == 1)
-				Q->pt[s] = (q->pt[s]  +  Q->pt[s]) / 2.0;
+				Q->pt[s]  = (q->pt[s]  +  Q->pt[s]) / 2.0;
 			#endif
 
 			#ifdef PIMUNU

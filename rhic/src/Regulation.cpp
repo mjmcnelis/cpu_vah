@@ -1,5 +1,6 @@
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <math.h>
 #include <cmath>
 #include "../include/Regulation.h"
@@ -8,6 +9,9 @@
 
 using namespace std;
 
+int conformal_error = 0;
+double bulkPi_error = 1.e-14;
+
 inline int linear_column_index(int i, int j, int k, int nx, int ny)
 {
 	return i  +  nx * (j  +  ny * k);
@@ -15,7 +19,7 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 
 void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __restrict__ ql, precision * const __restrict__ el, const FLUID_VELOCITY * const __restrict__ ul, int nx, int ny, int nz)
 {
-	precision epsilon = 1.e-5;	// is there a more effective way to regulate pl, pt? 
+	precision epsilon = 1.e-6;	// is there a more effective way to regulate pl, pt? 
 
 	precision xi0 = 0.1;		// regulation parameters (maybe move these in hydro parameters?)
 	precision rho_max = 1.0;
@@ -32,6 +36,37 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 
 				precision e_s = el[s];
 				precision pl  = ql->pl[s];
+
+
+				
+				// let's regulate bulk pressure (temp)
+			#if (PT_MATCHING == 1)
+				precision peq = equilibriumPressure(e_s);
+
+				precision pt_s = ql->pt[s];
+				//precision pt_s = 0.5 * (e_s - pl);	// obviously this is conformal
+
+				precision dp = pl - pt_s;
+
+				ql->pl[s] = peq  +  2./3. * dp;
+				ql->pt[s] = peq  -  1./3. * dp;
+
+				// precision bulkPi = (2.*pt_s  +  pl) / 3.0  -  peq;
+
+				// if(fabs(bulkPi) > bulkPi_error)
+				// {	
+				// 	conformal_error++;
+				// 	bulkPi_error = fabs(bulkPi);
+				// 	printf("Conformal EoS error %d: (|bulkPi|, |R_Pi^-1| = (%.6g, %.6g) at grid point (%d, %d, %d)\n", conformal_error, bulkPi_error, bulkPi_error / peq, i, j, k);
+
+				// 	// there's some violation at t < 1.250 (is it really cause for concern?)
+				// 	// they occur around the center (85 - 90) 
+					
+				// }
+			#endif
+
+
+
 				
 				if(pl < epsilon || std::isnan(pl))
 				{
@@ -64,6 +99,14 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 
 				// sqrt(T_aniso.T_aniso)
 				precision T_aniso_mag = sqrt(e_s * e_s  +  pl * pl  +  2.0 * pt * pt);
+
+
+
+
+
+
+
+
 
 				// regulate transverse shear stress
 			#ifdef PIMUNU

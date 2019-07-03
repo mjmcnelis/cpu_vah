@@ -79,7 +79,7 @@ void flux_terms(precision * const __restrict__ H, const precision * const __rest
 	precision qL, qR, FL, FR;
 	int p = 0;
 
-	for(short n = 0; n < NUMBER_CONSERVED_VARIABLES; n++)
+	for(int n = 0; n < NUMBER_CONSERVED_VARIABLES; n++)
 	{
 		q 	= Q_data[n];
 
@@ -90,9 +90,9 @@ void flux_terms(precision * const __restrict__ H, const precision * const __rest
 		qpp = Q2_data[p + 1];
 
 		Fmm = qmm * vmm;
-		Fm 	= qm * vm;
-		F 	= q * v;
-		Fp 	= qp * vp;
+		Fm 	= qm  * vm;
+		F 	= q   * v;
+		Fp 	= qp  * vp;
 		Fpp = qpp * vpp;
 
 		qL = left_half_cell_extrapolation(qmm, qm, q, qp, qpp);

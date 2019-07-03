@@ -173,7 +173,7 @@ void loadHydroParameters(config_t *cfg, void * params)
 
 	printf("Hydro parameters:");
 	printf("\n-----------------\n");
-	printf("tau_initial  = %.3f\n", tau_initial);
+	printf("tau_initial             = %.3f\n", tau_initial);
 	printf("shear_viscosity         = %.3f\n", shear_viscosity);
 	printf("freezeoutTemperatureGeV = %.3f\n", freezeoutTemperatureGeV);
 	printf("\n");

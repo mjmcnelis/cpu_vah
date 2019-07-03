@@ -393,9 +393,9 @@ void set_initial_conditions(double t, void * latticeParams, void * initCondParam
 		}
 		case 2:
 		{
-			printf("Gubser Conformal (viscous pressures initialized to zero)\n");
+			printf("Gubser (viscous pressures initialized to zero)\n");
 		#ifndef CONFORMAL_EOS
-			printf("\nsetInitialConditions error: CONFORMAL_EOS not defined in /rhic/include/EquationOfState.h, exiting...\n");
+			printf("\nGubser initial condition error: CONFORMAL_EOS not defined in /rhic/include/EquationOfState.h, exiting...\n");
 			exit(-1);
 		#endif
 
