@@ -10,6 +10,10 @@
 #include "../include/Hypergeometric.h"
 
 
+double de_error  = 5.e-7;
+double dpl_error = 5.e-7;
+double dpt_error = 5.e-7;
+
 inline precision hyper(precision z)
 {
 	if(z > delta)
@@ -40,11 +44,11 @@ transport_coefficients::~transport_coefficients()
 
 void transport_coefficients::compute_transport_coefficients(precision e, precision pl, precision pt)
 {
-	if(std::isnan(e) || std::isnan(pl) || std::isnan(pt))
-	{
-		printf("Transport coefficients error: (e, pl, pt) = (%lf, %lf, %lf)\n", e, pl, pt);
-		exit(-1);
-	}
+	// if(std::isnan(e) || std::isnan(pl) || std::isnan(pt))
+	// {
+	// 	printf("Transport coefficients error: (e, pl, pt) = (%lf, %lf, %lf)\n", e, pl, pt);
+	// 	exit(-1);
+	// }
 
 #ifdef CONFORMAL_EOS
 	//precision x = 3.0 * pl / e;		// x = pl / peq
@@ -73,7 +77,7 @@ void transport_coefficients::compute_transport_coefficients(precision e, precisi
 	//  0.18185453852532632*x5 + 5.466199358534425*x6 + 40.1581708710626*x7 + 44.38310108782752*x8 - 55.213789667214364*x9 +
 	// 1.5449108423263358*x10 + 11.636087951096759*x11 - 4.005934533735304*x12 + 0.4703844693488544*x13 - 0.014599143701745957*x14);
 
-	aL = (5.6098342562962155e-24 + 1.0056714201158781e-17*x + 8.574287549260127e-13*x2 + 8.639689853874967e-9*x3 + 0.000014337184308704522*x4 +
+	precision aL = (5.6098342562962155e-24 + 1.0056714201158781e-17*x + 8.574287549260127e-13*x2 + 8.639689853874967e-9*x3 + 0.000014337184308704522*x4 +
      0.0047402683487226555*x5 + 0.3461801244895056*x6 + 5.3061287395562*x7 + 3.7804213528647956*x8 - 55.646719325650224*x9 +
      71.68906037132133*x10 + 0.6485422288016947*x11 - 52.86438720903515*x12 + 32.635674688615836*x13 - 5.899614102635062*x14)/
    (1.2460117685059638e-20 + 3.9506205613753145e-15*x + 1.090135069930889e-10*x2 + 4.2931027828550746e-7*x3 + 0.00030704101799886117*x4 +
@@ -91,29 +95,54 @@ void transport_coefficients::compute_transport_coefficients(precision e, precisi
 	// why does z go nan?
 
 	precision aL2 = aL  * aL;
-	precision aL3 = aL2 * aL;
-	precision aL4 = aL3 * aL;
-	precision aL5 = aL4 * aL;
+	//precision aL3 = aL2 * aL;
+	//precision aL4 = aL3 * aL;
+	//precision aL5 = aL4 * aL;
 
-	z = 1.0 / (aL2)  -  1.0;	// z = xi (conformal limit)
+	precision z = 1.0 / aL2  -  1.0;	// z = xi (conformal limit)
 
-	if(z <= -1.0 || std::isnan(z))
+	// if(z <= -1.0 || std::isnan(z))
+	// {
+	// 	printf("Transport coefficients error: (z, aL) = (%lf, %lf)\n", z, aL);
+	// 	exit(-1);
+	// }
+
+	precision t = hyper(z);
+
+
+	precision Lambda4 = 2.0 * e / (aL2 * EOS_FACTOR * t_200(z, t));
+	//precision Lambda  = pow(Lambda4, 0.25);
+
+
+	// test kinetic formulas
+	precision e_a  = EOS_FACTOR * aL2 * Lambda4 * t_200(z, t) / 2.0;
+	precision pl_a = EOS_FACTOR * aL2 * Lambda4 * t_220(z, t) / 2.0;
+	precision pt_a = EOS_FACTOR       * Lambda4 * t_201(z, t) / 4.0;
+
+	precision de  = fabs((e  - e_a)  / e);
+	precision dpl = fabs((pl - pl_a) / pl);
+	precision dpt = fabs((pt - pt_a) / pt);
+
+	// check errors (largest error I see is 10^-7)
+	if(de > de_error || dpl > dpl_error || dpt > dpt_error)
 	{
-		printf("Transport coefficients error: (z, aL) = (%lf, %lf)\n", z, aL);
-		exit(-1);
+		de_error  = fmax(de,  de_error);
+		dpl_error = fmax(dpl, dpl_error);
+		dpt_error = fmax(dpt, dpt_error);
+
+		printf("Transport coefficients error: |dF| = (%.6g, %.6g, %.6g)\n", de_error, dpl_error, dpt_error);
 	}
 
-	t = hyper(z);
 
-	Lambda = pow(2.0 * e / (aL2 * EOS_FACTOR * t_200(z, t)), 0.25);
 
-	precision Lambda4 = Lambda * Lambda * Lambda * Lambda;
 
-	I_240 = EOS_FACTOR * aL2 * Lambda4 * t_240(z, t) / 2.0;
-	I_221 = EOS_FACTOR * Lambda4 * t_221(z, t) / 4.0;
+
+
+	I_240 = EOS_FACTOR * aL2 * Lambda4 * t_240(z, t) / 2.0;		// looks correct
+	I_221 = EOS_FACTOR       * Lambda4 * t_221(z, t) / 4.0;
 
 #if (PT_MATCHING == 1)
-	I_202 = EOS_FACTOR * Lambda4 * t_202(z, t) / 16.0 / aL2;
+	I_202 = EOS_FACTOR       * Lambda4 * t_202(z, t) / 16.0 / aL2;
 #endif
 
 #else

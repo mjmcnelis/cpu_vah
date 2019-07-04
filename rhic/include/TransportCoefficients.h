@@ -3,6 +3,8 @@
 #define TRANSPORTCOEFFICIENTS_H_
 
 #include "Precision.h"
+#include "DynamicalVariables.h"
+
 using namespace std;
 
 
@@ -18,17 +20,12 @@ class transport_coefficients
 		// waste as little time opening and reading the files
 
 	public:
-    	precision Lambda;
-    	precision aT;
-    	precision aL;
-
-    	precision w;
-    	precision z;
-    	precision t;
-
 		precision I_240;		// make a list of all the functions I need
 		precision I_221;
+
+	#if (PT_MATCHING == 1)
 		precision I_202;
+	#endif
 
 		transport_coefficients();
 		~transport_coefficients();
