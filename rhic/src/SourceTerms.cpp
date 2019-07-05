@@ -102,7 +102,7 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 	// fluid velocity
 
-	// I don't feel like there's anything wrong with this... 
+	// I don't feel like there's anything wrong with this...
 
 	precision ut_sim = ui1[0];		// ut [i-1, i+1]
 	precision ut_sip = ui1[1];
@@ -144,7 +144,7 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision un_skp = uk1[7];
 
 
-	// looks okay 
+	// looks okay
 	precision dut_dx = spatial_derivative(ut_sim, ut, ut_sip) / dx;
 	precision dut_dy = spatial_derivative(ut_sjm, ut, ut_sjp) / dy;
 	precision dut_dn = spatial_derivative(ut_skm, ut, ut_skp) / dn;
@@ -176,7 +176,7 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 
 	// primary variable spatial derivatives
-	precision de_dx = spatial_derivative(e_sim, e, e_sip) / dx;	
+	precision de_dx = spatial_derivative(e_sim, e, e_sip) / dx;
 	precision de_dy = spatial_derivative(e_sjm, e, e_sjp) / dy;
 	precision de_dn = spatial_derivative(e_skm, e, e_skp) / dn;
 #endif
@@ -204,13 +204,13 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	n += 2;
 
 	precision pt_sim = qi1[n];		// pt [i-1, i+1]
-	precision pt_sip = qi1[n + 1];	
+	precision pt_sip = qi1[n + 1];
 
 	precision pt_sjm = qj1[n];		// pt [j-1, j+1]
-	precision pt_sjp = qj1[n + 1];  
+	precision pt_sjp = qj1[n + 1];
 
-	precision pt_skm = qk1[n];		// pt [k-1, k+1]  	
-	precision pt_skp = qk1[n + 1];	
+	precision pt_skm = qk1[n];		// pt [k-1, k+1]
+	precision pt_skp = qk1[n + 1];
 
 	precision dpt_dx = spatial_derivative(pt_sim, pt, pt_sip) / dx;
 	precision dpt_dy = spatial_derivative(pt_sjm, pt, pt_sjp) / dy;
@@ -225,7 +225,7 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision pt_skm = 0.5 * (e_skm - pl_skm);
 	precision pt_skp = 0.5 * (e_skp - pl_skp);
 
-	precision dpt_dx = 0.5 * (de_dx - dpl_dx);	
+	precision dpt_dx = 0.5 * (de_dx - dpl_dx);
 	precision dpt_dy = 0.5 * (de_dy - dpl_dy);
 	precision dpt_dn = 0.5 * (de_dn - dpl_dn);
 #endif
@@ -236,23 +236,23 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision vn = un / ut;
 
 	// I dunno try this? (nothing really noticable)
-	precision vx_sim = ux_sim / ut_sim;
-	precision vx_sip = ux_sip / ut_sip;
+	// precision vx_sim = ux_sim / ut_sim;
+	// precision vx_sip = ux_sip / ut_sip;
 
-	precision vy_sjm = uy_sjm / ut_sjm;
-	precision vy_sjp = uy_sjp / ut_sjp;
+	// precision vy_sjm = uy_sjm / ut_sjm;
+	// precision vy_sjp = uy_sjp / ut_sjp;
 
-	precision vn_skm = un_skm / ut_skm;
-	precision vn_skp = un_skp / ut_skp;
+	// precision vn_skm = un_skm / ut_skm;
+	// precision vn_skp = un_skp / ut_skp;
 
-	precision dvx_dx = spatial_derivative(vx_sim, vx, vx_sip) / dx;
-	precision dvy_dy = spatial_derivative(vy_sjm, vy, vy_sjp) / dy;
-	precision dvn_dn = spatial_derivative(vn_skm, vn, vn_skp) / dn;
+	// precision dvx_dx = spatial_derivative(vx_sim, vx, vx_sip) / dx;
+	// precision dvy_dy = spatial_derivative(vy_sjm, vy, vy_sjp) / dy;
+	// precision dvn_dn = spatial_derivative(vn_skm, vn, vn_skp) / dn;
 
 
 	// divergence of v
-	// precision div_v = (dux_dx  +  duy_dy  +  dun_dn  -  vx * dut_dx  -  vy * dut_dy  -  vn * dut_dn) / ut;
-	precision div_v = dvx_dx  +  dvy_dy  +  dvn_dn;
+	precision div_v = (dux_dx  +  duy_dy  +  dun_dn  -  vx * dut_dx  -  vy * dut_dy  -  vn * dut_dn) / ut;
+	//precision div_v = dvx_dx  +  dvy_dy  +  dvn_dn;
 
 	precision ut2 = ut * ut;
 	precision un2 = un * un;
@@ -268,20 +268,21 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 
 	// transverse flow velocity
-	// precision uTdxuT = ux * dux_dx  +  uy * duy_dx;
-	// precision uTdyuT = ux * dux_dy  +  uy * duy_dy;
-	// precision uTdnuT = ux * dux_dn  +  uy * duy_dn;
+	precision duT2_dx = ux * dux_dx  +  uy * duy_dx;
+	precision duT2_dy = ux * dux_dy  +  uy * duy_dy;
+	precision duT2_dn = ux * dux_dn  +  uy * duy_dn;
 
 	precision utperp  = sqrt(1.0  +  ux * ux  +  uy * uy);
+	precision utperp2 = utperp * utperp;
 
-	precision utperp_sim = sqrt(1.0  +  ux_sim * ux_sim  +  uy_sim * uy_sim);
-	precision utperp_sip = sqrt(1.0  +  ux_sip * ux_sip  +  uy_sip * uy_sip);
+	// precision utperp_sim = sqrt(1.0  +  ux_sim * ux_sim  +  uy_sim * uy_sim);
+	// precision utperp_sip = sqrt(1.0  +  ux_sip * ux_sip  +  uy_sip * uy_sip);
 
-	precision utperp_sjm = sqrt(1.0  +  ux_sjm * ux_sjm  +  uy_sjm * uy_sjm);
-	precision utperp_sjp = sqrt(1.0  +  ux_sjp * ux_sjp  +  uy_sjp * uy_sjp);
+	// precision utperp_sjm = sqrt(1.0  +  ux_sjm * ux_sjm  +  uy_sjm * uy_sjm);
+	// precision utperp_sjp = sqrt(1.0  +  ux_sjp * ux_sjp  +  uy_sjp * uy_sjp);
 
-	precision utperp_skm = sqrt(1.0  +  ux_skm * ux_skm  +  uy_skm * uy_skm);
-	precision utperp_skp = sqrt(1.0  +  ux_skp * ux_skp  +  uy_skp * uy_skp);
+	// precision utperp_skm = sqrt(1.0  +  ux_skm * ux_skm  +  uy_skm * uy_skm);
+	// precision utperp_skp = sqrt(1.0  +  ux_skp * ux_skp  +  uy_skp * uy_skp);
 
 
 	// longitudinal basis vector
@@ -293,41 +294,41 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision zn2  = zn * zn;
 
 
-	precision zt_sim = t * un_sim / utperp_sim;
-	precision zt_sip = t * un_sip / utperp_sip;
+	// precision zt_sim = t * un_sim / utperp_sim;
+	// precision zt_sip = t * un_sip / utperp_sip;
 
-	precision zt_sjm = t * un_sjm / utperp_sjm;
-	precision zt_sjp = t * un_sjp / utperp_sjp;
+	// precision zt_sjm = t * un_sjm / utperp_sjm;
+	// precision zt_sjp = t * un_sjp / utperp_sjp;
 
-	precision zt_skm = t * un_skm / utperp_skm;
-	precision zt_skp = t * un_skp / utperp_skp;
+	// precision zt_skm = t * un_skm / utperp_skm;
+	// precision zt_skp = t * un_skp / utperp_skp;
 
 	// precision dzt_dx = spatial_derivative(zt_sim, zt, zt_sip) / dx;
 	// precision dzt_dy = spatial_derivative(zt_sjm, zt, zt_sjp) / dy;
 	// precision dzt_dn = spatial_derivative(zt_skm, zt, zt_skp) / dn;
 
 
-	precision zn_sim = ut_sim / t / utperp_sim;
-	precision zn_sip = ut_sip / t / utperp_sip;
+	// precision zn_sim = ut_sim / t / utperp_sim;
+	// precision zn_sip = ut_sip / t / utperp_sip;
 
-	precision zn_sjm = ut_sjm / t / utperp_sjm;
-	precision zn_sjp = ut_sjp / t / utperp_sjp;
+	// precision zn_sjm = ut_sjm / t / utperp_sjm;
+	// precision zn_sjp = ut_sjp / t / utperp_sjp;
 
-	precision zn_skm = ut_skm / t / utperp_skm;
-	precision zn_skp = ut_skp / t / utperp_skp;
+	// precision zn_skm = ut_skm / t / utperp_skm;
+	// precision zn_skp = ut_skp / t / utperp_skp;
 
 	// precision dzn_dx = spatial_derivative(zn_sim, zn, zn_sip) / dx;
 	// precision dzn_dy = spatial_derivative(zn_sjm, zn, zn_sjp) / dy;
 	// precision dzn_dn = spatial_derivative(zn_skm, zn, zn_skp) / dn;
 
 
-	// precision dzt_dx = t * (dun_dx  -  un * uTdxuT / utperp2) / utperp;
-	// precision dzt_dy = t * (dun_dy  -  un * uTdyuT / utperp2) / utperp;
-	// precision dzt_dn = t * (dun_dn  -  un * uTdnuT / utperp2) / utperp;
+	precision dzt_dx = t * (dun_dx  -  un * duT2_dx / utperp2) / utperp;
+	precision dzt_dy = t * (dun_dy  -  un * duT2_dy / utperp2) / utperp;
+	precision dzt_dn = t * (dun_dn  -  un * duT2_dn / utperp2) / utperp;
 
-	// precision dzn_dx = (dut_dx  -  ut * uTdxuT / utperp2) / (t * utperp);
-	// precision dzn_dy = (dut_dy  -  ut * uTdyuT / utperp2) / (t * utperp);
-	// precision dzn_dn = (dut_dn  -  ut * uTdnuT / utperp2) / (t * utperp);
+	precision dzn_dx = (dut_dx  -  ut * duT2_dx / utperp2) / (t * utperp);
+	precision dzn_dy = (dut_dy  -  ut * duT2_dy / utperp2) / (t * utperp);
+	precision dzn_dn = (dut_dn  -  ut * duT2_dn / utperp2) / (t * utperp);
 
 
 	// go over it again on the board (maybe review again)
@@ -344,96 +345,100 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision taupiInv = 0.2 * T / etabar;
 
 
-	// I should check this last... 
-	transport_coefficients aniso;							// maybe there's lag time by 
+	// I should check this last...
+	transport_coefficients aniso;							// maybe there's lag time by
 
 	aniso.compute_transport_coefficients(e, pl, pt);		// here I'm using the conformal formula to compute xiL
 
 	// pl
 	precision zeta_LL = aniso.I_240  -  3.0 * pl;			// I know this one isn't wrong...
-	precision zeta_TL = aniso.I_221  -  pl;				
+	precision zeta_TL = aniso.I_221  -  pl;
 
 	// pt
 #if (PT_MATCHING == 1)
-	precision zeta_LT = aniso.I_221  -  pt;				
-	precision zeta_TT = 2.0 * (aniso.I_202 - pt);		
+	precision zeta_LT = aniso.I_221  -  pt;
+	precision zeta_TT = 2.0 * (aniso.I_202 - pt);
 #endif
-	
+
 
 	precision dp  = pl - pt;
 
 	precision Ltt = dp * zt2;
 
-	precision Ltt_sim = (pl_sim - pt_sim) * zt_sim * zt_sim;
-	precision Ltt_sip = (pl_sip - pt_sip) * zt_sip * zt_sip;
+	// precision Ltt_sim = (pl_sim - pt_sim) * zt_sim * zt_sim;
+	// precision Ltt_sip = (pl_sip - pt_sip) * zt_sip * zt_sip;
 
-	precision Ltt_sjm = (pl_sjm - pt_sjm) * zt_sjm * zt_sjm;
-	precision Ltt_sjp = (pl_sjp - pt_sjp) * zt_sjp * zt_sjp;
+	// precision Ltt_sjm = (pl_sjm - pt_sjm) * zt_sjm * zt_sjm;
+	// precision Ltt_sjp = (pl_sjp - pt_sjp) * zt_sjp * zt_sjp;
 
-	precision Ltt_skm = (pl_skm - pt_skm) * zt_skm * zt_skm;
-	precision Ltt_skp = (pl_skp - pt_skp) * zt_skp * zt_skp;
+	// precision Ltt_skm = (pl_skm - pt_skm) * zt_skm * zt_skm;
+	// precision Ltt_skp = (pl_skp - pt_skp) * zt_skp * zt_skp;
 
-	precision dLtt_dx = spatial_derivative(Ltt_sim, Ltt, Ltt_sip) / dx;
+	// precision dLtt_dx = spatial_derivative(Ltt_sim, Ltt, Ltt_sip) / dx;
 
-	precision dLtt_dy = spatial_derivative(Ltt_sjm, Ltt, Ltt_sjp) / dy;
+	// precision dLtt_dy = spatial_derivative(Ltt_sjm, Ltt, Ltt_sjp) / dy;
 
-	precision dLtt_dn = spatial_derivative(Ltt_skm, Ltt, Ltt_skp) / dn;
+	// precision dLtt_dn = spatial_derivative(Ltt_skm, Ltt, Ltt_skp) / dn;
 
 
 
 	precision Ltn = dp * ztzn;
 
-	precision Ltn_sim = (pl_sim - pt_sim) * zt_sim * zn_sim;
-	precision Ltn_sip = (pl_sip - pt_sip) * zt_sip * zn_sip;
+	// precision Ltn_sim = (pl_sim - pt_sim) * zt_sim * zn_sim;
+	// precision Ltn_sip = (pl_sip - pt_sip) * zt_sip * zn_sip;
 
-	precision Ltn_sjm = (pl_sjm - pt_sjm) * zt_sjm * zn_sjm;
-	precision Ltn_sjp = (pl_sjp - pt_sjp) * zt_sjp * zn_sjp;
+	// precision Ltn_sjm = (pl_sjm - pt_sjm) * zt_sjm * zn_sjm;
+	// precision Ltn_sjp = (pl_sjp - pt_sjp) * zt_sjp * zn_sjp;
 
-	precision Ltn_skm = (pl_skm - pt_skm) * zt_skm * zn_skm;
-	precision Ltn_skp = (pl_skp - pt_skp) * zt_skp * zn_skp;
+	// precision Ltn_skm = (pl_skm - pt_skm) * zt_skm * zn_skm;
+	// precision Ltn_skp = (pl_skp - pt_skp) * zt_skp * zn_skp;
 
-	precision dLtn_dx = spatial_derivative(Ltn_sim, Ltn, Ltn_sip) / dx;
-	precision dLtn_dy = spatial_derivative(Ltn_sjm, Ltn, Ltn_sjp) / dy;
-	precision dLtn_dn = spatial_derivative(Ltn_skm, Ltn, Ltn_skp) / dn;
+	// precision dLtn_dx = spatial_derivative(Ltn_sim, Ltn, Ltn_sip) / dx;
+	// precision dLtn_dy = spatial_derivative(Ltn_sjm, Ltn, Ltn_sjp) / dy;
+	// precision dLtn_dn = spatial_derivative(Ltn_skm, Ltn, Ltn_skp) / dn;
 
 
 
 	precision Lnn = dp * zn2;
 
-	precision Lnn_skm = (pl_skm - pt_skm) * zn_skm * zn_skm;
-	precision Lnn_skp = (pl_skp - pt_skp) * zn_skp * zn_skp;
+	// precision Lnn_skm = (pl_skm - pt_skm) * zn_skm * zn_skm;
+	// precision Lnn_skp = (pl_skp - pt_skp) * zn_skp * zn_skp;
 
-	precision dLnn_dn = spatial_derivative(Lnn_skm, Lnn, Lnn_skp) / dn;
+	// precision dLnn_dn = spatial_derivative(Lnn_skm, Lnn, Lnn_skp) / dn;
 
 
 
 	precision tnn = (e + pt) * un2  +  pt / t2  +  Lnn;
 
-	
-	//precision dLtt_dx = (dpl_dx - dpt_dx) * zt2  +  2.0 * dp * zt * dzt_dx;
-	//precision dLtt_dy = (dpl_dy - dpt_dy) * zt2  +  2.0 * dp * zt * dzt_dy;
-	//precision dLtt_dn = (dpl_dn - dpt_dn) * zt2  +  2.0 * dp * zt * dzt_dn;
 
-	// precision dLtn_dx = (dpl_dx - dpt_dx) * ztzn  +  dp * (dzt_dx * zn  +  dzn_dx * zt);
-	// precision dLtn_dy = (dpl_dy - dpt_dy) * ztzn  +  dp * (dzt_dy * zn  +  dzn_dy * zt);
-	// precision dLtn_dn = (dpl_dn - dpt_dn) * ztzn  +  dp * (dzt_dn * zn  +  dzn_dn * zt);
+	precision dLtt_dx = (dpl_dx - dpt_dx) * zt2  +  2.0 * dp * zt * dzt_dx;
+	precision dLtt_dy = (dpl_dy - dpt_dy) * zt2  +  2.0 * dp * zt * dzt_dy;
+	precision dLtt_dn = (dpl_dn - dpt_dn) * zt2  +  2.0 * dp * zt * dzt_dn;
 
-	// precision dLnn_dn = (dpl_dn - dpt_dn) * zn2  +  2.0 * dp * zn * dzn_dn;
+	precision dLtn_dx = (dpl_dx - dpt_dx) * ztzn  +  dp * (dzt_dx * zn  +  dzn_dx * zt);
+	precision dLtn_dy = (dpl_dy - dpt_dy) * ztzn  +  dp * (dzt_dy * zn  +  dzn_dy * zt);
+	precision dLtn_dn = (dpl_dn - dpt_dn) * ztzn  +  dp * (dzt_dn * zn  +  dzn_dn * zt);
 
-	precision vx_skm = ux_skm / ut_skm;
-	precision vx_skp = ux_skp / ut_skp;
+	precision dLnn_dn = (dpl_dn - dpt_dn) * zn2  +  2.0 * dp * zn * dzn_dn;
 
-	precision vy_skm = uy_skm / ut_skm;
-	precision vy_skp = uy_skp / ut_skp;
+	// precision vx_skm = ux_skm / ut_skm;
+	// precision vx_skp = ux_skp / ut_skp;
 
-	precision dvx_dn = spatial_derivative(vx_skm, vx, vx_skp) / dn;
-	precision dvy_dn = spatial_derivative(vy_skm, vy, vy_skp) / dn;
+	// precision vy_skm = uy_skm / ut_skm;
+	// precision vy_skp = uy_skp / ut_skp;
+
+	// precision dvx_dn = spatial_derivative(vx_skm, vx, vx_skp) / dn;
+	// precision dvy_dn = spatial_derivative(vy_skm, vy, vy_skp) / dn;
+
+
+	precision dvx_dn = (dux_dn  -  vx * dut_dn) / ut;
+	precision dvy_dn = (duy_dn  -  vy * dut_dn) / ut;
 
 	// 7/3 added missing source terms in S[1], S[2] (don't expect any effect atm though...)
 	// there may be others (hint: make use of symmetry)
-	
+
 	// conservation laws
-	S[0] = - (ttt / t  +  t * tnn)  +  div_v * (Ltt - pt)  +  vx * (dLtt_dx - dpt_dx)  +  vy * (dLtt_dy - dpt_dy)  +  vn * (dLtt_dn - dpt_dn)  - dLtn_dn; 
+	S[0] = - (ttt / t  +  t * tnn)  +  div_v * (Ltt - pt)  +  vx * (dLtt_dx - dpt_dx)  +  vy * (dLtt_dy - dpt_dy)  +  vn * (dLtt_dn - dpt_dn)  - dLtn_dn;
 
 
 	S[1] = - ttx / t  -  dpt_dx  -  0.5 * (vx * dLtn_dn  -  Ltn * dvx_dn);
@@ -448,7 +453,7 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision dpl = - (pl - peq) * taupiInv  +  zeta_LL * thetaL  +  zeta_TL * thetaT;
 
 	S[4] = dpl / ut  +  div_v * pl;
-	
+
 
 #if (PT_MATCHING == 1)
 	precision dpt =  dp * taupiInv / 3.0  +  zeta_LT * thetaL  +  zeta_TT * thetaT;
