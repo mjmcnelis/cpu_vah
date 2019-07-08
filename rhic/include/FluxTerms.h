@@ -17,7 +17,7 @@ precision left_half_cell_extrapolation_backward(precision qmm, precision qm, pre
 
 // semi-discrete KT algorithm: computes the H-flux term Eq.(61) for a given spatial grid point
 // updated version on 6/13
-void flux_terms(precision * const __restrict__ H, const precision * const __restrict__ Q_data, const precision * const __restrict__ Q1_data, const precision * const __restrict__ Q2_data, const precision * const __restrict__ V_data, precision u_i, precision ut,
+void flux_terms(precision * const __restrict__ H, const precision * const __restrict__ q_data, const precision * const __restrict__ q1_data, const precision * const __restrict__ q2_data, const precision * const __restrict__ ui_data, const precision * const __restrict__ ut_data, precision ui, precision ut,
 	precision (* const right_half_cell_extrapolation)(precision qmm, precision qm, precision q, precision qp, precision qpp),
 	precision (* const left_half_cell_extrapolation)(precision qmm, precision qm, precision q, precision qp, precision qpp));
 

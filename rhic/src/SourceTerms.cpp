@@ -274,9 +274,9 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 	precision Ltt = dp * zt2;
 	precision Ltn = dp * ztzn;
-	precision Lnn = dp * zn2;
+	//precision Lnn = dp * zn2;
 
-	precision tnn = (e + pt) * un2  +  pt / t2  +  Lnn;
+	precision tnn = (e + pt) * un2  +  pt / t2  +  dp * zn2;
 
 	precision dLtt_dx = (dpl_dx - dpt_dx) * zt2  +  2.0 * dp * zt * dzt_dx;
 	precision dLtt_dy = (dpl_dy - dpt_dy) * zt2  +  2.0 * dp * zt * dzt_dy;
@@ -291,8 +291,8 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 	// conservation laws
 	S[0] = - (ttt / t  +  t * tnn)  +  div_v * (Ltt - pt)  +  vx * (dLtt_dx - dpt_dx)  +  vy * (dLtt_dy - dpt_dy)  +  vn * (dLtt_dn - dpt_dn)  - dLtn_dn;
-	S[1] = - ttx / t  -  dpt_dx  -  0.5 * (vx * dLtn_dn  -  Ltn * dvx_dn);
-	S[2] = - tty / t  -  dpt_dy  -  0.5 * (vy * dLtn_dn  -  Ltn * dvy_dn);
+	S[1] = - ttx / t  -  dpt_dx  -  0 * 0.5 * (vx * dLtn_dn  -  Ltn * dvx_dn);
+	S[2] = - tty / t  -  dpt_dy  -  0 * 0.5 * (vy * dLtn_dn  -  Ltn * dvy_dn);
 	S[3] = - 3.0 * ttn / t  -  dpt_dn / t2  +  div_v * Ltn  +  vx * dLtn_dx  +  vy * dLtn_dy  +  vn * dLtn_dn  -  dLnn_dn;
 
 

@@ -57,9 +57,16 @@ const precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict_
 	precision uk1[8];									// fluid velocity of neighbor cells along n [k-1, k+1]
 
 	// for flux terms
-	precision vxi[4];									// vx of neighbor cells along x [i-2, i-1, i+1, i+2]
-	precision vyj[4];									// vy of neighbor cells along y [j-2, j-1, j+1, j+2]
-	precision vnk[4];									// vn of neighbor cells along n [k-2, k-1, k+1, k+2]
+	// precision vxi[4];									// vx of neighbor cells along x [i-2, i-1, i+1, i+2]
+	// precision vyj[4];									// vy of neighbor cells along y [j-2, j-1, j+1, j+2]
+	// precision vnk[4];									// vn of neighbor cells along n [k-2, k-1, k+1, k+2]
+
+	precision uxi[4];									// ux of neighbor cells along x [i-2, i-1, i+1, i+2]
+	precision uti[4];									// ut of neighbor cells along x [i-2, i-1, i+1, i+2]
+	precision uyj[4];									// uy of neighbor cells along y [j-2, j-1, j+1, j+2]
+	precision utj[4];									// ut of neighbor cells along y [j-2, j-1, j+1, j+2]
+	precision unk[4];									// un of neighbor cells along n [k-2, k-1, k+1, k+2]
+	precision utk[4];									// ut of neighbor cells along n [k-2, k-1, k+1, k+2]
 
 	precision  Hx_plus[NUMBER_CONSERVED_VARIABLES];		// Hx_{i + 1/2}
 	precision Hx_minus[NUMBER_CONSERVED_VARIABLES];		// Hx_{i - 1/2}
@@ -130,7 +137,12 @@ const precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict_
 
 
 				// get spatial fluid velocity of neighbor cells
-				get_v_neighbor_cells(u->ut, u->ux, u->uy, u->un, vxi, vyj, vnk, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
+				flux_u_neighbor_cells(u->ut, u->ux, u->uy, u->un, uti, utj, utk, uxi, uyj, unk, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
+
+				//get_v_neighbor_cells(u->ut, u->ux, u->uy, u->un, vxi, vyj, vnk, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
+
+
+
 
 				// get conserved variables of neighbor cells
 				get_q_neighbor_cells(q->ttt, qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
@@ -150,6 +162,22 @@ const precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict_
 
 
 				// compute the flux terms Hx_plus, Hx_minus
+				flux_terms(Hx_plus,  ql, qi1, qi2, uxi, uti, ux, ut, &right_half_cell_extrapolation_forward, &left_half_cell_extrapolation_forward);
+				flux_terms(Hx_minus, ql, qi1, qi2, uxi, uti, ux, ut, &right_half_cell_extrapolation_backward, &left_half_cell_extrapolation_backward);
+
+
+				// compute the flux terms Hy_plus, Hy_minus
+				flux_terms(Hy_plus,  ql, qj1, qj2, uyj, utj, uy, ut, &right_half_cell_extrapolation_forward, &left_half_cell_extrapolation_forward);
+				flux_terms(Hy_minus, ql, qj1, qj2, uyj, utj, uy, ut, &right_half_cell_extrapolation_backward, &left_half_cell_extrapolation_backward);
+
+
+				// compute the flux terms Hn_plus, Hn_minus
+				flux_terms(Hn_plus,  ql, qk1, qk2, unk, utk, un, ut, &right_half_cell_extrapolation_forward, &left_half_cell_extrapolation_forward);
+				flux_terms(Hn_minus, ql, qk1, qk2, unk, utk, un, ut, &right_half_cell_extrapolation_backward, &left_half_cell_extrapolation_backward);
+
+
+				/*
+				// compute the flux terms Hx_plus, Hx_minus
 				flux_terms(Hx_plus,  ql, qi1, qi2, vxi, ux, ut, &right_half_cell_extrapolation_forward, &left_half_cell_extrapolation_forward);
 				flux_terms(Hx_minus, ql, qi1, qi2, vxi, ux, ut, &right_half_cell_extrapolation_backward, &left_half_cell_extrapolation_backward);
 
@@ -162,7 +190,7 @@ const precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict_
 				// compute the flux terms Hn_plus, Hn_minus
 				flux_terms(Hn_plus,  ql, qk1, qk2, vnk, un, ut, &right_half_cell_extrapolation_forward, &left_half_cell_extrapolation_forward);
 				flux_terms(Hn_minus, ql, qk1, qk2, vnk, un, ut, &right_half_cell_extrapolation_backward, &left_half_cell_extrapolation_backward);
-
+				*/
 
 				// add euler step
 				for(int n = 0; n < NUMBER_CONSERVED_VARIABLES; n++)

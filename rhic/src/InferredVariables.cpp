@@ -20,6 +20,43 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 	return i  +  nx * (j  +  ny * k);
 }
 
+void test_energy_momentum_tensor_error(const precision * const __restrict__ q, precision e, precision ut, precision ux, precision uy, precision un, precision t)
+{
+	precision ttt = q[0];
+	precision ttx = q[1];
+	precision tty = q[2];
+	precision ttn = q[3];
+	precision pl  = q[4];
+
+#if (PT_MATCHING == 0)
+	precision pt = 0.5 * (e - pl);	
+#else
+	precision pt = q[5];
+#endif
+
+	// add residual 
+	precision utperp = sqrt(1.0  +  ux * ux  +  uy * uy);
+
+	precision zt = t * un / utperp;
+	precision zn = ut / (t * utperp);
+
+	double dttt = fabs((e + pt) * ut * ut  -  pt  +  (pl - pt) * zt * zt  -  ttt);
+	double dttx = fabs((e + pt) * ut * ux  -  ttx);
+	double dtty = fabs((e + pt) * ut * uy  -  tty);
+	double dttn = fabs((e + pt) * ut * un  +  (pl - pt) * zt * zn  -  ttn);
+
+	if(dttt > ttt_error || dttx > ttx_error || dtty > tty_error || dttn > ttn_error)
+	{
+		ttt_error = fmax(dttt, ttt_error);
+		ttx_error = fmax(dttx, ttx_error);
+		tty_error = fmax(dtty, tty_error);
+		ttn_error = fmax(dttn, ttn_error);
+
+		printf("get_inferred_variables_test: |dt^{tau/mu}| = (%.6g, %.6g, %.6g, %.6g)\n", ttt_error, ttx_error, tty_error, ttn_error);
+	}
+
+}
+
 
 // this is a temporary test for conformal PL matching
 void get_inferred_variables_test(precision t, const precision * const __restrict__ q, precision * const __restrict__ e, precision * const __restrict__ ut, precision * const __restrict__ ux, precision * const __restrict__ uy, precision * const __restrict__ un)
@@ -29,6 +66,30 @@ void get_inferred_variables_test(precision t, const precision * const __restrict
 	precision tty = q[2];
 	precision ttn = q[3];
 	precision pl  = q[4];
+
+#ifdef PIMUNU
+	precision pitt = q[6];
+	precision pitx = q[7];
+	precision pity = q[8];
+	precision pitn = q[9];
+#else
+	precision pitt = 0.0;
+	precision pitx = 0.0;
+	precision pity = 0.0;
+	precision pitn = 0.0;
+#endif
+
+#ifdef W_TZ_MU
+	WtTz = q[10];  
+	WxTz = q[11];
+	WyTz = q[12];
+	WnTz = q[13];
+#else
+	precision WtTz = 0.0;
+	precision WxTz = 0.0;
+	precision WyTz = 0.0;
+	precision WnTz = 0.0;
+#endif
 
 	precision Mt = ttt;
 	precision Mx = ttx;
@@ -41,16 +102,16 @@ void get_inferred_variables_test(precision t, const precision * const __restrict
 	// this needs to be further generalized to include Mn
 	precision e_s = 0.5 * (-(Mt - pl)  +  sqrt(fabs((Mt - pl) * (Mt - pl)  +  8.0 * (Mt * (Mt - 0.5 * pl) - (Mx * Mx  +  My * My)))));
 
-	if(e_s < 1.e-3 || std::isnan(e_s)) e_s = 1.e-3;		// this cutoff is important
+	e_s = fmax(E_MIN, e_s);
 
-	precision pt = 0.5 * (e_s - pl);					// conformal formula
+	precision pt = 0.5 * (e_s - pl);							// conformal formula
 
 #else
 	precision pt  = q[5];
 
 	precision e_s = Mt  -  (Mx * Mx  +  My * My) / (Mt + pt);	// generalize
 
-	if(e_s < 1.e-3 || std::isnan(e_s)) e_s = 1.e-3;
+	e_s = fmax(E_MIN, e_s);
 
 #endif
 
@@ -62,18 +123,11 @@ void get_inferred_variables_test(precision t, const precision * const __restrict
 
 	if(std::isnan(ut_s))
 	{
-		// I'm not sure what's going nan???
 		printf("\nget_inferred_variables_test error: u^mu = (%lf, %lf, %lf, %lf) is nan\n", ut_s, ux_s, uy_s, un_s);
 		exit(-1);
 	}
 
-	// renormalize?
 	//ut_s = sqrt(1.0  +  ux_s * ux_s  +  uy_s * uy_s  +  t * t * un_s * un_s);
-
-	precision utperp = sqrt(1.0  +  ux_s * ux_s  +  uy_s * uy_s);
-
-	precision zt = t * un_s / utperp;
-	precision zn = ut_s / (t * utperp);
 
 	// get solution for primary variables
 	*e  = e_s;
@@ -82,23 +136,7 @@ void get_inferred_variables_test(precision t, const precision * const __restrict
 	*uy = uy_s;
 	*un = un_s;
 
-
-	// test energy-momentum tensor reconstruction
-	double dttt = fabs((e_s + pt) * ut_s * ut_s  -  pt  +  (pl - pt) * zt * zt  -  ttt);
-	double dttx = fabs((e_s + pt) * ut_s * ux_s  -  ttx);
-	double dtty = fabs((e_s + pt) * ut_s * uy_s  -  tty);
-	double dttn = fabs((e_s + pt) * ut_s * un_s  +  (pl - pt) * zt * zn  -  ttn);
-
-	if(dttt > ttt_error || dttx > ttx_error || dtty > tty_error || dttn > ttn_error)
-	{
-		ttt_error = fmax(dttt, ttt_error);
-		ttx_error = fmax(dttx, ttx_error);
-		tty_error = fmax(dtty, tty_error);
-		ttn_error = fmax(dttn, ttn_error);
-
-		printf("get_inferred_variables_test: |dt^{tau/mu}| = (%.6g, %.6g, %.6g, %.6g)\n", ttt_error, ttx_error, tty_error, ttn_error);
-	}
-
+	//test_energy_momentum_tensor_error(q, e_s, ut_s, ux_s, uy_s, un_s, t);
 }
 
 

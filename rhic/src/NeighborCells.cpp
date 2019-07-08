@@ -61,8 +61,47 @@ void get_u_neighbor_cells(const precision * const __restrict__ ut, const precisi
 }
 
 
+void flux_u_neighbor_cells(const precision * const __restrict__ ut, const precision * const __restrict__ ux, const precision * const __restrict__ uy, const precision * const __restrict__ un, precision * const __restrict__ uti, precision * const __restrict__ utj, precision * const __restrict__ utk, precision * const __restrict__ uxi, precision * const __restrict__ uyj, precision * const __restrict__ unk, int simm, int sim, int sip, int sipp, int sjmm, int sjm, int sjp, int sjpp, int skmm, int skm, int skp, int skpp)
+{
+	uxi[0]  = ux[simm];		// ux neighbor cells [i-2, i-1, i+1, i+2] stored in uxi
+	uxi[1]  = ux[sim];
+	uxi[2]  = ux[sip];
+	uxi[3]  = ux[sipp];
+
+	uti[0]  = ut[simm];		// ut neighbor cells [i-2, i-1, i+1, i+2] stored in uti
+	uti[1]  = ut[sim];
+	uti[2]  = ut[sip];
+	uti[3]  = ut[sipp];
+
+	//------------------------------------------------------------
+
+	uyj[0]  = uy[sjmm];		// uy neighbor cells [j-2, j-1, j+1, j+2] stored in uyj
+	uyj[1]  = uy[sjm];
+	uyj[2]  = uy[sjp];
+	uyj[3]  = uy[sjpp];
+
+	utj[0]  = ut[sjmm];		// ut neighbor cells [j-2, j-1, j+1, j+2] stored in utj
+	utj[1]  = ut[sjm];
+	utj[2]  = ut[sjp];
+	utj[3]  = ut[sjpp];
+
+	//------------------------------------------------------------
+
+	unk[0]  = un[skmm];		// un neighbor cells [k-2, k-1, k+1, k+2] stored in unk
+	unk[1]  = un[skm];
+	unk[2]  = un[skp];
+	unk[3]  = un[skpp];
+
+	utk[0]  = ut[skmm];		// ut neighbor cells [k-2, k-1, k+1, k+2] stored in utk
+	utk[1]  = ut[skm];
+	utk[2]  = ut[skp];
+	utk[3]  = ut[skpp];
+}
+
+/* // old version
 void get_v_neighbor_cells(const precision * const __restrict__ ut, const precision * const __restrict__ ux, const precision * const __restrict__ uy, const precision * const __restrict__ un, precision * const __restrict__ vxi, precision * const __restrict__ vyj, precision * const __restrict__ vnk, int simm, int sim, int sip, int sipp, int sjmm, int sjm, int sjp, int sjpp, int skmm, int skm, int skp, int skpp)
 {
+	
 	vxi[0]  = ux[simm] / ut[simm];		// vx neighbor cells [i-2, i-1, i+1, i+2] stored in vxi
 	vxi[1]  = ux[sim]  / ut[sim];
 	vxi[2]  = ux[sip]  / ut[sip];
@@ -82,6 +121,7 @@ void get_v_neighbor_cells(const precision * const __restrict__ ut, const precisi
 	vnk[2]  = un[skp]  / ut[skp];
 	vnk[3]  = un[skpp] / ut[skpp];
 }
+*/
 
 
 void get_q_neighbor_cells(const precision * const __restrict__ q, precision * const __restrict__ qi1, precision * const __restrict__ qj1, precision * const __restrict__ qk1, precision * const __restrict__ qi2, precision * const __restrict__ qj2, precision * const __restrict__ qk2, int * r, int simm, int sim, int sip, int sipp, int sjmm, int sjm, int sjp, int sjpp, int skmm, int skm, int skp, int skpp)

@@ -17,9 +17,9 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 	return i  +  nx * (j  +  ny * k);
 }
 
-void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __restrict__ ql, precision * const __restrict__ el, const FLUID_VELOCITY * const __restrict__ ul, int nx, int ny, int nz)
+void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __restrict__ q, precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict__ u, int nx, int ny, int nz)
 {
-	precision epsilon = 1.e-6;	// is there a more effective way to regulate pl, pt? 
+	precision eps = 1.e-8;	// is there a more effective way to regulate pl, pt? 
 
 	precision xi0 = 0.1;		// regulation parameters (maybe move these in hydro parameters?)
 	precision rho_max = 1.0;
@@ -34,61 +34,41 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 			{
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
-				precision e_s = el[s];
-				precision pl  = ql->pl[s];
+				precision e_s = e[s];
+				precision pl  = q->pl[s];
 
+			// regulate bulk pressure if conformal
+			#ifdef CONFORMAL_EOS
+				#if (PT_MATCHING == 1)
+					precision peq = equilibriumPressure(e_s);
+					precision pt_s  = q->pt[s];
 
-				
-				// let's regulate bulk pressure (temp)
-			#if (PT_MATCHING == 1)
-				precision peq = equilibriumPressure(e_s);
-
-				precision pt_s = ql->pt[s];
-				//precision pt_s = 0.5 * (e_s - pl);	// obviously this is conformal
-
-				precision dp = pl - pt_s;
-
-				ql->pl[s] = peq  +  2./3. * dp;
-				ql->pt[s] = peq  -  1./3. * dp;
-
-				// precision bulkPi = (2.*pt_s  +  pl) / 3.0  -  peq;
-
-				// if(fabs(bulkPi) > bulkPi_error)
-				// {	
-				// 	conformal_error++;
-				// 	bulkPi_error = fabs(bulkPi);
-				// 	printf("Conformal EoS error %d: (|bulkPi|, |R_Pi^-1| = (%.6g, %.6g) at grid point (%d, %d, %d)\n", conformal_error, bulkPi_error, bulkPi_error / peq, i, j, k);
-
-				// 	// there's some violation at t < 1.250 (is it really cause for concern?)
-				// 	// they occur around the center (85 - 90) 
-					
-				// }
+					q->pl[s] = peq  +  2./3. * (pl - pt_s);
+					q->pt[s] = peq  -  1./3. * (pl - pt_s);
+				#endif
 			#endif
-
-
-
 				
-				if(pl < epsilon || std::isnan(pl))
+				if(pl < eps)
 				{
-					ql->pl[s] = epsilon;
-					pl = epsilon;
+					q->pl[s] = eps;
+					pl = eps;
 				}
 
 			#if (PT_MATCHING == 1)
-				precision pt  = ql->pt[s];
-				if(pt < epsilon || std::isnan(pt))
+				precision pt  = q->pt[s];
+				if(pt < eps)
 				{
-					ql->pt[s] = epsilon;
-					pt = epsilon;
+					q->pt[s] = eps;
+					pt = eps;
 				}
 			#else
 				precision pt = 0.5 * (e_s - pl);
 			#endif
 
-				precision ut = ul->ut[s];
-				precision ux = ul->ux[s];
-				precision uy = ul->uy[s];
-				precision un = ul->un[s];
+				precision ut = u->ut[s];
+				precision ux = u->ux[s];
+				precision uy = u->uy[s];
+				precision un = u->un[s];
 
 				precision utperp = sqrt(1.0  +  ux * ux  +  uy * uy);
 				precision zt = t * un / utperp;
@@ -110,16 +90,16 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 
 				// regulate transverse shear stress
 			#ifdef PIMUNU
-				precision pitt = ql->pitt[s];
-				precision pitx = ql->pitx[s];
-				precision pity = ql->pity[s];
-				precision pitn = ql->pitn[s];
-				precision pixx = ql->pixx[s];
-				precision pixy = ql->pixy[s];
-				precision pixn = ql->pixn[s];
-				precision piyy = ql->piyy[s];
-				precision piyn = ql->piyn[s];
-				precision pinn = ql->pinn[s];
+				precision pitt = q->pitt[s];
+				precision pitx = q->pitx[s];
+				precision pity = q->pity[s];
+				precision pitn = q->pitn[s];
+				precision pixx = q->pixx[s];
+				precision pixy = q->pixy[s];
+				precision pixn = q->pixn[s];
+				precision piyy = q->piyy[s];
+				precision piyn = q->piyn[s];
+				precision pinn = q->pinn[s];
 
 
 				// should I enforce tracelessness and orthogonality first
@@ -161,23 +141,23 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 				else factor_pi = 1.0;
 
 				// regulate
-				ql->pitt[s] *= factor_pi;
-				ql->pitx[s] *= factor_pi;
-				ql->pity[s] *= factor_pi;
-				ql->pitn[s] *= factor_pi;
-				ql->pixx[s] *= factor_pi;
-				ql->pixy[s] *= factor_pi;
-				ql->pixn[s] *= factor_pi;
-				ql->piyy[s] *= factor_pi;
-				ql->piyn[s] *= factor_pi;
-				ql->pinn[s] *= factor_pi;
+				q->pitt[s] *= factor_pi;
+				q->pitx[s] *= factor_pi;
+				q->pity[s] *= factor_pi;
+				q->pitn[s] *= factor_pi;
+				q->pixx[s] *= factor_pi;
+				q->pixy[s] *= factor_pi;
+				q->pixn[s] *= factor_pi;
+				q->piyy[s] *= factor_pi;
+				q->piyn[s] *= factor_pi;
+				q->pinn[s] *= factor_pi;
 			#endif
 			// regulate Wmu
 			#ifdef WTZMU
-				precision WtTz = ql->WtTz[s];
-				precision WxTz = ql->WxTz[s];
-				precision WyTz = ql->WyTz[s];
-				precision WnTz = ql->WnTz[s];
+				precision WtTz = q->WtTz[s];
+				precision WxTz = q->WxTz[s];
+				precision WyTz = q->WyTz[s];
+				precision WnTz = q->WnTz[s];
 
 				// sqrt(2.W.W), W.u and W.z
 				precision W_mag = sqrt(2.0 * fabs(WtTz * WtTz  -  WxTz * WxTz  -  WyTz * WyTz  -  t2 * WnTz * WnTz));
@@ -199,10 +179,10 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 				else factor_W = 1.0;
 
 				// regulate
-				ql->WtTz[s] *= factor_W;
-				ql->WxTz[s] *= factor_W;
-				ql->WyTz[s] *= factor_W;
-				ql->WnTz[s] *= factor_W;
+				q->WtTz[s] *= factor_W;
+				q->WxTz[s] *= factor_W;
+				q->WyTz[s] *= factor_W;
+				q->WnTz[s] *= factor_W;
 			#endif
 			}
 		}
