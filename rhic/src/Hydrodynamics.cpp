@@ -100,7 +100,7 @@ void run_hydro(void * latticeParams, void * initCondParams, void * hydroParams)
 
 	// fluid dynamic initialization
 	double t = t0;
-	set_initial_conditions(t, latticeParams, initCondParams, hydroParams);	// generate initial conditions (Tmunu, e, p, u, up, pl, pimunu, Wmu)
+	set_initial_conditions(t, latticeParams, initCondParams, hydroParams);	// generate initial (Tmunu, e, p, u, up, pl, pimunu, Wmu)
 	set_ghost_cells(q, e, u, nx, ny, nz);									// initialize ghost cells (all current variables)
 
 	printf("\n");

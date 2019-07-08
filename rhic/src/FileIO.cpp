@@ -303,7 +303,7 @@ void output_dynamical_variables(double t, int nx, int ny, int nz, double dx, dou
 		output_bjorken_test(e, q->pl, e0, t, nx, ny, nz);
 		return;
 	}
-	if(initialConditionType == 2)
+	if(initialConditionType == 2 || initialConditionType == 3)
 	{
 		output_gubser_test(e, q->pl, u->ux, u->uy, t, nx, ny, nz, dx, dy, dz);
 		return;

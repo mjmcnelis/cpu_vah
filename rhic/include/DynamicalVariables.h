@@ -30,12 +30,12 @@
 
 #define PL_MATCHING 1
 
-//#define PT_MATCHING 1
-#ifndef CONFORMAL_EOS
-	#define PT_MATCHING 1
-#else
-	#define PT_MATCHING 0
-#endif
+#define PT_MATCHING 1
+// #ifndef CONFORMAL_EOS
+// 	#define PT_MATCHING 1
+// #else
+// 	#define PT_MATCHING 0
+// #endif
 
 
 #define NUMBER_CONSERVED_VARIABLES (NUMBER_CONSERVATION_LAWS + PL_MATCHING + PT_MATCHING + NUMBER_RESIDUAL_CURRENTS)
