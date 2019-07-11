@@ -17,7 +17,7 @@
 
 using namespace std;
 
-#define FREQ 50
+#define FREQ 100
 
 const double hbarc = 0.197326938;
 
@@ -42,7 +42,7 @@ inline void print_hydro_center(double t, double e, double peq, double pl, double
 
 void print_parameters(int nx, int ny, int nz, double dt, double dx, double dy, double dz, double T_switch, double e_switch, double etabar)
 {
-	printf("Time resolution    = %.3f fm/c\n", dt);
+	printf("Time resolution    = %.4f fm/c\n", dt);
 	printf("Hydro grid         = %d x %d x %d\n", nx, ny, nz);
 	printf("Spatial resolution = (%.3f fm, %.3f fm, %.3f)\n", dx, dy, dz);
 	printf("Spatial size       = %.3f fm  x  %.3f fm  x  %.3f\n", 0.5 * (nx - 1.0) * dx, 0.5 * (ny - 1.0) * dy, 0.5 * (nz - 1.0) * dz);

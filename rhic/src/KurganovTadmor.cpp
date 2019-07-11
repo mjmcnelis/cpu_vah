@@ -161,7 +161,17 @@ const precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict_
 				source_terms(S, ql, e_s, t, qi1, qj1, qk1, e1, ui1, uj1, uk1, ut, ux, uy, un, ut_p, ux_p, uy_p, un_p, dt, dx, dy, dn, etabar);
 
 
+				// new algorithm 7/9
+				flux_terms_new(Hx_plus, Hx_minus, ql, qi1, qi2, uxi, uti, ux, ut);
+				flux_terms_new(Hy_plus, Hy_minus, ql, qj1, qj2, uyj, utj, uy, ut);
+				flux_terms_new(Hn_plus, Hn_minus, ql, qk1, qk2, unk, utk, un, ut);
+
+				
+
+
 				// compute the flux terms Hx_plus, Hx_minus
+				// intermediate version 7/8
+				/*
 				flux_terms(Hx_plus,  ql, qi1, qi2, uxi, uti, ux, ut, &right_half_cell_extrapolation_forward, &left_half_cell_extrapolation_forward);
 				flux_terms(Hx_minus, ql, qi1, qi2, uxi, uti, ux, ut, &right_half_cell_extrapolation_backward, &left_half_cell_extrapolation_backward);
 
@@ -174,9 +184,10 @@ const precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict_
 				// compute the flux terms Hn_plus, Hn_minus
 				flux_terms(Hn_plus,  ql, qk1, qk2, unk, utk, un, ut, &right_half_cell_extrapolation_forward, &left_half_cell_extrapolation_forward);
 				flux_terms(Hn_minus, ql, qk1, qk2, unk, utk, un, ut, &right_half_cell_extrapolation_backward, &left_half_cell_extrapolation_backward);
-
+				*/
 
 				/*
+				// old KT algorithm
 				// compute the flux terms Hx_plus, Hx_minus
 				flux_terms(Hx_plus,  ql, qi1, qi2, vxi, ux, ut, &right_half_cell_extrapolation_forward, &left_half_cell_extrapolation_forward);
 				flux_terms(Hx_minus, ql, qi1, qi2, vxi, ux, ut, &right_half_cell_extrapolation_backward, &left_half_cell_extrapolation_backward);

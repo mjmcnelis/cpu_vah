@@ -21,6 +21,11 @@ void flux_terms(precision * const __restrict__ H, const precision * const __rest
 	precision (* const right_half_cell_extrapolation)(precision qmm, precision qm, precision q, precision qp, precision qpp),
 	precision (* const left_half_cell_extrapolation)(precision qmm, precision qm, precision q, precision qp, precision qpp));
 
+
+// new version 7/9
+void flux_terms_new(precision * const __restrict__ Hp, precision * const __restrict__ Hm, const precision * const __restrict__ q_data, const precision * const __restrict__ q1_data, const precision * const __restrict__ q2_data, const precision * const __restrict__ ui_data, const precision * const __restrict__ ut_data, precision ui, precision ut);
+
+
 #endif
 
 

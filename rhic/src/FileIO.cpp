@@ -154,38 +154,38 @@ void output_gubser_test(const precision * const e, const precision * const pl, c
 {
 	FILE * energy;
 	FILE * plptratio;
-	FILE * temperature;
-	FILE * aLplot;
-	FILE * Lambdaplot;
+	// FILE * temperature;
+	// FILE * aLplot;
+	// FILE * Lambdaplot;
 	FILE * uxplot;
-	FILE * uyplot;
+	//FILE * uyplot;
 	FILE * urplot;
 
 	char fname1[255];
 	char fname2[255];
-	char fname3[255];
-	char fname4[255];
-	char fname5[255];
+	// char fname3[255];
+	// char fname4[255];
+	// char fname5[255];
 	char fname6[255];
-	char fname7[255];
+	//char fname7[255];
 	char fname8[255];
 
 	sprintf(fname1, "output/e_%.3f.dat", t);
 	sprintf(fname2, "output/plpt_%.3f.dat", t);
-	sprintf(fname3, "output/T_%.3f.dat", t);
-	sprintf(fname4, "output/aL_%.3f.dat", t);
-	sprintf(fname5, "output/Lambda_%.3f.dat", t);
+	// sprintf(fname3, "output/T_%.3f.dat", t);
+	// sprintf(fname4, "output/aL_%.3f.dat", t);
+	// sprintf(fname5, "output/Lambda_%.3f.dat", t);
 	sprintf(fname6, "output/ux_%.3f.dat", t);
-	sprintf(fname7, "output/uy_%.3f.dat", t);
+	//sprintf(fname7, "output/uy_%.3f.dat", t);
 	sprintf(fname8, "output/ur_%.3f.dat", t);
 
 	energy      = fopen(fname1, "w");
 	plptratio   = fopen(fname2, "w");
-	temperature = fopen(fname3, "w");
-	aLplot      = fopen(fname4, "w");
-	Lambdaplot  = fopen(fname5, "w");
+	// temperature = fopen(fname3, "w");
+	// aLplot      = fopen(fname4, "w");
+	// Lambdaplot  = fopen(fname5, "w");
 	uxplot      = fopen(fname6, "w");
-	uyplot      = fopen(fname7, "w");
+	//uyplot      = fopen(fname7, "w");
 	urplot      = fopen(fname8, "w");
 
 	for(int k = 2; k < nz + 2; k++)
@@ -210,42 +210,42 @@ void output_gubser_test(const precision * const e, const precision * const pl, c
 				precision pl_s = pl[s];
 				precision pt_s = 0.5 * (e_s - pl_s);
 
-				precision T = effectiveTemperature(e_s) * hbarc;
-				precision aL = compute_conformal_aL(pl_s, e_s);
+				// precision T = effectiveTemperature(e_s) * hbarc;
+				// precision aL = compute_conformal_aL(pl_s, e_s);
 
-				precision xi = 1.0 / (aL * aL)  -  1.0;
+				// precision xi = 1.0 / (aL * aL)  -  1.0;
 
-				precision hype = 1.0;
+				// precision hype = 1.0;
 
-				if(xi > delta)
-				{
-					hype = atan(sqrt(xi)) /sqrt(xi);
-				}
-				else if(xi < - delta && xi > -1.0)
-				{
-					hype = atanh(sqrt(-xi)) / sqrt(-xi);
-				}
+				// if(xi > delta)
+				// {
+				// 	hype = atan(sqrt(xi)) /sqrt(xi);
+				// }
+				// else if(xi < - delta && xi > -1.0)
+				// {
+				// 	hype = atanh(sqrt(-xi)) / sqrt(-xi);
+				// }
 
-				precision Lambda = pow(2.0 * e_s / (aL * aL * EOS_FACTOR * t_200(xi, hype)), 0.25) * hbarc;
+				// precision Lambda = pow(2.0 * e_s / (aL * aL * EOS_FACTOR * t_200(xi, hype)), 0.25) * hbarc;
 
 				fprintf(energy, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, e_s);
 				fprintf(plptratio, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, pl_s / pt_s);
-				fprintf(temperature, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, T);
-				fprintf(aLplot, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, aL);
-				fprintf(Lambdaplot, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, Lambda);
+				// fprintf(temperature, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, T);
+				// fprintf(aLplot, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, aL);
+				// fprintf(Lambdaplot, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, Lambda);
 				fprintf(uxplot, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, ux_s);
-				fprintf(uyplot, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, uy_s);
+				//fprintf(uyplot, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, uy_s);
 				fprintf(urplot, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, ur);
 			}
 		}
 	}
 	fclose(energy);
 	fclose(plptratio);
-	fclose(temperature);
-	fclose(aLplot);
-	fclose(Lambdaplot);
+	// fclose(temperature);
+	// fclose(aLplot);
+	// fclose(Lambdaplot);
 	fclose(uxplot);
-	fclose(uyplot);
+	//fclose(uyplot);
 	fclose(urplot);
 }
 

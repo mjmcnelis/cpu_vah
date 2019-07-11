@@ -351,7 +351,9 @@ void set_aniso_gubser_energy_density_and_flow_profile(int nx, int ny, int nz, do
 
 	// initial T_hat hard coded so that initial central temperature = 0.6 GeV
 	//double T0_hat = 0.0455468;   			// plpt_ratio = 1.0
-	double T0_hat = 0.04296357;				// plpt_ratio = 0.01  (x,y = 5fm  x 5fm)
+	//double T0_hat = 0.04296357;				// plpt_ratio = 0.01  (x,y = 5fm  x 5fm)
+	//double T0_hat = 0.0328418;				// plpt_ratio = 0.01  (x,y = 6fm  x 6fm)
+	double T0_hat = 0.0261391;	  			// low plpt ratio (x,y = 7fm x 7fm)
 	//double T0_hat = 0.01537397;	  			// plpt_ratio = 0.01  (x,y = 10fm x 10fm)
 	//double T0_hat = 0.01171034;	  			// plpt_ratio = 0.01  (x,y = 12fm x 12fm)
 

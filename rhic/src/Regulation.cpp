@@ -50,6 +50,7 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 				
 				if(pl < eps)
 				{
+					printf("Regulation: pl = %lf is regulated to %lf", pl, eps);
 					q->pl[s] = eps;
 					pl = eps;
 				}
