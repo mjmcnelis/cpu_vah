@@ -203,29 +203,22 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision vn = un / ut;
 
 	// divergence of v
-	precision div_v;
+	//precision div_v = (dux_dx  +  duy_dy  +  dun_dn  -  vx * dut_dx  -  vy * dut_dy  -  vn * dut_dn) / ut;
+	
+	precision vx_sim = ux_sim / ut_sim;
+	precision vx_sip = ux_sip / ut_sip;
 
-	if(ut > 1.21061)
-	{
-		div_v = (dux_dx  +  duy_dy  +  dun_dn  -  vx * dut_dx  -  vy * dut_dy  -  vn * dut_dn) / ut;
-	}
-	else
-	{
-		precision vx_sim = ux_sim / ut_sim;
-		precision vx_sip = ux_sip / ut_sip;
+	precision vy_sjm = uy_sjm / ut_sjm;
+	precision vy_sjp = uy_sjp / ut_sjp;
 
-		precision vy_sjm = uy_sjm / ut_sjm;
-		precision vy_sjp = uy_sjp / ut_sjp;
+	precision vn_skm = un_skm / ut_skm;
+	precision vn_skp = un_skp / ut_skp;
 
-		precision vn_skm = un_skm / ut_skm;
-		precision vn_skp = un_skp / ut_skp;
+	precision dvx_dx = spatial_derivative(vx_sim, vx, vx_sip) / dx;
+	precision dvy_dy = spatial_derivative(vy_sjm, vy, vy_sjp) / dy;
+	precision dvn_dn = spatial_derivative(vn_skm, vn, vn_skp) / dn;
 
-		precision dvx_dx = spatial_derivative(vx_sim, vx, vx_sip) / dx;
-		precision dvy_dy = spatial_derivative(vy_sjm, vy, vy_sjp) / dy;
-		precision dvn_dn = spatial_derivative(vn_skm, vn, vn_skp) / dn;
-
-		div_v = dvx_dx + dvy_dy + dvn_dn;
-	}
+	precision div_v = dvx_dx + dvy_dy + dvn_dn;
 
 
 	// spatial velocity derivatives (move in if/else later)

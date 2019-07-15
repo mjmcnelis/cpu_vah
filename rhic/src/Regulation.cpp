@@ -83,12 +83,6 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 
 
 
-
-
-
-
-
-
 				// regulate transverse shear stress
 			#ifdef PIMUNU
 				precision pitt = q->pitt[s];
@@ -138,8 +132,8 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 				precision rho_pi = fmax(a0, fmax(a1, fmax(a2, fmax(a3, fmax(a4, fmax(a5, fmax(a6, fmax(a7, fmax(a8, a9)))))))));
 
 				precision factor_pi;
-				if(rho_pi > eps) factor_pi = tanh(rho_pi) / rho_pi;
-				else factor_pi = 1.0;
+				if(rho_pi > 1.e-5) factor_pi = tanh(rho_pi) / rho_pi;
+				else factor_pi = 1.0  -  rho_pi * rho_pi / 3.;
 
 				// regulate
 				q->pitt[s] *= factor_pi;
@@ -176,8 +170,8 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 				precision rho_W = fmax(b0, fmax(b1, b2));
 
 				precision factor_W;
-				if(rho_W > eps) factor_W = tanh(rho_W) / rho_W;
-				else factor_W = 1.0;
+				if(rho_W > 1.e-5) factor_W = tanh(rho_W) / rho_W;
+				else factor_W = 1.0  -  rho_W * rho_W / 3.;
 
 				// regulate
 				q->WtTz[s] *= factor_W;

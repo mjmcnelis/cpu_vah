@@ -77,45 +77,43 @@ void flux_terms_new(precision * const __restrict__ Hp, precision * const __restr
 	precision vpp = uipp / utpp;
 
 
-	precision dvp, dv, dvm;
-
-	/*
-	// spatial velocity derivatives
-	if(ut > 1.21061)
-	{
-		precision dui  = approx_derivative(uim, ui, uip);
-		precision dut  = approx_derivative(utm, ut, utp);
-		dv  = (dui   -   v * dut)  / ut;
-	}
-	else
-	{
-		dv  = approx_derivative(vm, v, vp);
-	}
-	if(utp > 1.21061)
-	{
-		precision duip = approx_derivative(ui, uip, uipp);
-		precision dutp = approx_derivative(ut, utp, utpp);
-		dvp = (duip  -  vp * dutp) / utp;
-	}
-	else
-	{
-		dvp = approx_derivative(v, vp, vpp);
-	}
-	if(utm > 1.21061)
-	{
-		precision duim = approx_derivative(uimm, uim, ui);
-		precision dutm = approx_derivative(utmm, utm, ut);	
-		dvm = (duim  -  vm * dutm) / utm;
-	}
-	else
-	{
-		dvm = approx_derivative(vmm, vm, v);
-	}
-	*/
+	// precision dvp, dv, dvm;
+	// spatial velocity derivatives (not as good)
+	// if(ut > 1.21061)
+	// {
+	// 	precision dui  = approx_derivative(uim, ui, uip);
+	// 	precision dut  = approx_derivative(utm, ut, utp);
+	// 	dv  = (dui   -   v * dut)  / ut;
+	// }
+	// else
+	// {
+	// 	dv  = approx_derivative(vm, v, vp);
+	// }
+	// if(utp > 1.21061)
+	// {
+	// 	precision duip = approx_derivative(ui, uip, uipp);
+	// 	precision dutp = approx_derivative(ut, utp, utpp);
+	// 	dvp = (duip  -  vp * dutp) / utp;
+	// }
+	// else
+	// {
+	// 	dvp = approx_derivative(v, vp, vpp);
+	// }
+	// if(utm > 1.21061)
+	// {
+	// 	precision duim = approx_derivative(uimm, uim, ui);
+	// 	precision dutm = approx_derivative(utmm, utm, ut);	
+	// 	dvm = (duim  -  vm * dutm) / utm;
+	// }
+	// else
+	// {
+	// 	dvm = approx_derivative(vmm, vm, v);
+	// }
 	
-	dvp = approx_derivative(v, vp, vpp);	
-	dv  = approx_derivative(vm, v, vp);
-	dvm = approx_derivative(vmm, vm, v);
+	
+	precision dvp = approx_derivative(v, vp, vpp);	
+	precision dv  = approx_derivative(vm, v, vp);
+	precision dvm = approx_derivative(vmm, vm, v);
 
 	// extrapolated spatial velocities
 	precision vRp = vp  -  0.5 * dvp;	// q^{+}_{i+1/2}	
@@ -151,9 +149,9 @@ void flux_terms_new(precision * const __restrict__ Hp, precision * const __restr
 		precision qLm = qm  +  0.5 * dqm;	// q^{-}_{i-1/2}
 
 		// neighbor fluxes
-		precision Fm  = qm  * vm;
-		precision F   = q   * v;
-		precision Fp  = qp  * vp;
+		precision Fm  = qm * vm;
+		precision F   = q  * v;      
+		precision Fp  = qp * vp;
 
 		// extrapolated fluxes
 		precision FRp = Fp  -  0.5 * (qp * dvp  +  vp * dqp);	// F^{+}_{i+1/2}	(R = +, p = i + 1/2)	Eq. (63)

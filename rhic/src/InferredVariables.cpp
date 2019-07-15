@@ -20,7 +20,7 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 	return i  +  nx * (j  +  ny * k);
 }
 
-void test_energy_momentum_tensor_error(const precision * const __restrict__ q, precision e, precision ut, precision ux, precision uy, precision un, precision t)
+void test_energy_momentum_tensor_error(const precision * const __restrict__ q, precision e_s, precision ut, precision ux, precision uy, precision un, precision t)
 {
 	precision ttt = q[0];
 	precision ttx = q[1];
@@ -29,21 +29,44 @@ void test_energy_momentum_tensor_error(const precision * const __restrict__ q, p
 	precision pl  = q[4];
 
 #if (PT_MATCHING == 0)
-	precision pt = 0.5 * (e - pl);	
+	precision pt = 0.5 * (e_s - pl);	
 #else
 	precision pt = q[5];
 #endif
 
-	// add residual 
+#ifdef PIMUNU
+	precision pitt = q[6];
+	precision pitx = q[7];
+	precision pity = q[8];
+	precision pitn = q[9];
+#else
+	precision pitt = 0.0;
+	precision pitx = 0.0;
+	precision pity = 0.0;
+	precision pitn = 0.0;
+#endif
+
+#ifdef W_TZ_MU
+	precision WtTz = q[10];  
+	precision WxTz = q[11];  
+	precision WyTz = q[12];  
+	precision WnTz = q[13];
+#else
+	precision WtTz = 0.0;
+	precision WxTz = 0.0;
+	precision WyTz = 0.0;
+	precision WnTz = 0.0;
+#endif
+
 	precision utperp = sqrt(1.0  +  ux * ux  +  uy * uy);
 
 	precision zt = t * un / utperp;
 	precision zn = ut / (t * utperp);
 
-	double dttt = fabs((e + pt) * ut * ut  -  pt  +  (pl - pt) * zt * zt  -  ttt);
-	double dttx = fabs((e + pt) * ut * ux  -  ttx);
-	double dtty = fabs((e + pt) * ut * uy  -  tty);
-	double dttn = fabs((e + pt) * ut * un  +  (pl - pt) * zt * zn  -  ttn);
+	precision dttt = fabs((e_s + pt) * ut * ut  -  pt  +  (pl - pt) * zt * zt  +  2.0 * WtTz * zt  +  pitt  -  ttt);
+	precision dttx = fabs((e_s + pt) * ut * ux  +  WxTz * zt  +  pitx  -  ttx);
+	precision dtty = fabs((e_s + pt) * ut * uy  +  WyTz * zt  +  pity  -  tty);
+	precision dttn = fabs((e_s + pt) * ut * un  +  (pl - pt) * zt * zn  +  WtTz * zn  +  WnTz * zt  +  pitn  -  ttn);
 
 	if(dttt > ttt_error || dttx > ttx_error || dtty > tty_error || dttn > ttn_error)
 	{
@@ -52,7 +75,34 @@ void test_energy_momentum_tensor_error(const precision * const __restrict__ q, p
 		tty_error = fmax(dtty, tty_error);
 		ttn_error = fmax(dttn, ttn_error);
 
-		printf("get_inferred_variables_test: |dt^{tau/mu}| = (%.6g, %.6g, %.6g, %.6g)\n", ttt_error, ttx_error, tty_error, ttn_error);
+		printf("get_inferred_variables: |dt^{tau/mu}| = (%.6g, %.6g, %.6g, %.6g)\n", ttt_error, ttx_error, tty_error, ttn_error);
+	}
+
+}
+
+
+
+
+void test_energy_momentum_tensor_error_new(precision ttt, precision ttx, precision tty, precision ttn, precision pl, precision pt, precision pitt, precision pitx, precision pity, precision pitn, precision WtTz, precision WxTz, precision WyTz, precision WnTz, precision e_s, precision ut, precision ux, precision uy, precision un, precision t)
+{
+	precision utperp = sqrt(1.0  +  ux * ux  +  uy * uy);
+
+	precision zt = t * un / utperp;
+	precision zn = ut / (t * utperp);
+
+	precision dttt = fabs((e_s + pt) * ut * ut  -  pt  +  (pl - pt) * zt * zt  +  2.0 * WtTz * zt  +  pitt  -  ttt);
+	precision dttx = fabs((e_s + pt) * ut * ux  +  WxTz * zt  +  pitx  -  ttx);
+	precision dtty = fabs((e_s + pt) * ut * uy  +  WyTz * zt  +  pity  -  tty);
+	precision dttn = fabs((e_s + pt) * ut * un  +  (pl - pt) * zt * zn  +  WtTz * zn  +  WnTz * zt  +  pitn  -  ttn);
+
+	if(dttt > ttt_error || dttx > ttx_error || dtty > tty_error || dttn > ttn_error)
+	{
+		ttt_error = fmax(dttt, ttt_error);
+		ttx_error = fmax(dttx, ttx_error);
+		tty_error = fmax(dtty, tty_error);
+		ttn_error = fmax(dttn, ttn_error);
+
+		printf("get_inferred_variables: |dt^{tau/mu}| = (%.6g, %.6g, %.6g, %.6g)\n", ttt_error, ttx_error, tty_error, ttn_error);
 	}
 
 }
@@ -127,7 +177,8 @@ void get_inferred_variables_test(precision t, const precision * const __restrict
 		exit(-1);
 	}
 
-	//ut_s = sqrt(1.0  +  ux_s * ux_s  +  uy_s * uy_s  +  t * t * un_s * un_s);
+	// renormalize
+	ut_s = sqrt(1.0  +  ux_s * ux_s  +  uy_s * uy_s  +  t * t * un_s * un_s);
 
 	// get solution for primary variables
 	*e  = e_s;
@@ -143,123 +194,8 @@ void get_inferred_variables_test(precision t, const precision * const __restrict
 
 
 
-void get_inferred_variables(precision t, const precision * const __restrict__ q, precision * const __restrict__ e, precision * const __restrict__ ut, precision * const __restrict__ ux, precision * const __restrict__ uy, precision * const __restrict__ un)
-{
-	// this is what my version looks like
-	precision Ttt = q[0];
-	precision Ttx = q[1];
-	precision Tty = q[2];
-	precision Ttn = q[3];
-	precision Pl = q[4];
 
-	precision Pt = 0.0;		// the conformal eos depends on e which is a problem
-
-	precision pitt = 0.0;
-	precision pitx = 0.0;
-	precision pity = 0.0;
-	precision pitn = 0.0;
-
-	precision Wt = 0.0;
-	precision Wx = 0.0;
-	precision Wy = 0.0;
-	precision Wn = 0.0;
-
-#ifdef PIMUNU
-	pitt = q[6];
-	pitx = q[7];
-	pity = q[8];
-	pitn = q[9];
-#endif
-
-#ifdef W_TZ_MU
-	Wt = q[10];  // I only need to pass an array so make sure it's the right elements
-	Wx = q[11];
-	Wy = q[12];
-	Wn = q[13];
-#endif
-
-	// I can use Wt = t2 * Wn * zn / zt
-	// well it also shows up in B (so maybe I can't)
-
-	precision Kt = Ttt - pitt;				// [fm^-4]
-	precision Kx = Ttx - pitx;				// [fm^-4]
-	precision Ky = Tty - pity;				// [fm^-4]
-	precision Kn = Ttn - pitn;				// [fm^-5]
-
-	precision A = Kn / (Kt + Pl);		  	// [fm^-1] (check these formulas)
-	precision B = Wt / (t * (Kt + Pl));		// [fm^-1]
-
-	precision t2 = t * t;
-
-	precision t2A2 = t2 * A * A;
-	precision t2B2 = t2 * B * B;
-
-	// figure out how to deal with this
-	precision F = (A  -  B * sqrt(1.0 + t2B2 - t2A2)) / (1.0 + t2B2);	// [fm^-1]
-	precision Ft = t * F;												// [1]
-	precision x = sqrt(1.0  -  Ft * Ft);								// [1]
-
-	if(std::isnan(F) || std::isnan(x))
-	{
-		printf("\ngetInferredVariables error: (F, x) = (%lf, %lf) is nan\n", F, x);
-		//exit(-1);
-	}
-
-	precision zt = Ft / x;					// [1]
-	precision zn = 1.0 / (x * t);			// [fm^-1]
-
-	precision Mt = Kt  -  2.0 * Wt * zt;
-	precision Mx = Kx  -  Wx * zt;
-	precision My = Ky  -  Wy * zt;
-	precision Mn = Kn  -  (Wt * zn  +  Wn * zt);
-
-	precision dP_zt2 = (Pl - Pt) * zt * zt;
-	precision ut_numerator = Mt + Pt - dP_zt2;
-
-
-	// solution for (e, p)
-	precision e_s = Mt  -  dP_zt2  -  (Mx * Mx  +  My * My) / ut_numerator  -  t2 * Mn * Mn * ut_numerator / (Mt + Pl) / (Mt + Pl);
-
-	if(e_s < 0.0)
-	{
-		printf("\ngetInferredVariables error: e = %lf is negative\n", e_s);
-	}
-
-	precision e_plus_Pt = e_s + Pt;
-
-	// solution for u^mu
-	precision ut_s = sqrt(ut_numerator / e_plus_Pt);
-	precision ux_s = Mx / ut_s / e_plus_Pt;
-	precision uy_s = My / ut_s / e_plus_Pt;
-	precision un_s = F * ut_s;
-
-	if(std::isnan(ut_s) || std::isnan(ux_s) || std::isnan(uy_s) || std::isnan(un_s))
-	{
-		printf("\ngetInferredVariables error: u^mu = (%lf, %lf, %lf, %lf) is nan\n", ut_s, ux_s, uy_s, un_s);
-	}
-
-	// test the reconstruction of T^{tau mu}
-	// double dTtt = e_plus_Pt * ut_s * ut_s  -  Pt  +  dP_zt2  +  2.0 * Wt * zt  +  pitt  - Ttt;
-	// double dTtx = e_plus_Pt * ut_s * ux_s  +  Wx * zt  + pitx  -  Ttx;
-	// double dTty = e_plus_Pt * ut_s * uy_s  +  Wy * zt  + pity  -  Tty;
-	// double dTtn = e_plus_Pt * ut_s * un_s  +  (Pl - Pt) * zt * zn  +  Wt * zn  +  Wn * zt  +  pitn  -  Ttn;
-
-	// double eps = 1.e-14;
-	// if(fabs(dTtt) > eps || fabs(dTtx) > eps || fabs(dTty) > eps || fabs(dTtn) > eps)
-	// {
-	// 	printf("\ngetInferredVariables error: dT^{tau/mu} = (%lf, %lf, %lf, %lf) > 1.e-14\n", dTtt, dTtx, dTty, dTtn);
-	// }
-
-	// get solution for primary variables
-	*e = e_s;
-	*ut = sqrt(1.0  +  ux_s * ux_s  +  uy_s * uy_s  +  t2 * un_s * un_s);
-	*ux = ux_s;
-	*uy = uy_s;
-	*un = un_s;
-}
-
-
-
+/*
 void set_inferred_variables(const CONSERVED_VARIABLES * const __restrict__ q, precision * const __restrict__ e, FLUID_VELOCITY * const __restrict__ u, precision t, int nx, int ny, int nz)
 {
 	int N = 5;  // default size for q_s array (ttt, ttx, tty, ttn, pl)
@@ -267,13 +203,15 @@ void set_inferred_variables(const CONSERVED_VARIABLES * const __restrict__ q, pr
 #if (PT_MATCHING == 1)
 	N += 1;
 #endif
-// #ifdef PIMUNU
-// 	N += 4;		// add time components of pimunu and Wmu
-// #endif
 
-// #ifdef W_TZ_MU
-// 	N += 4;
-// #endif
+#ifdef PIMUNU
+	N += 4;		// add time components of pimunu and Wmu
+#endif
+
+#ifdef W_TZ_MU
+	N += 4;
+#endif
+
 	const int nq = N;
 	precision q_s[nq];
 
@@ -315,11 +253,149 @@ void set_inferred_variables(const CONSERVED_VARIABLES * const __restrict__ q, pr
 				// compute the updated values for (e, p, u^mu)
 				get_inferred_variables_test(t, q_s, &e_s, &ut_s, &ux_s, &uy_s, &un_s);
 
+
+
+
 				e[s]     = e_s;
 				u->ut[s] = ut_s;
 				u->ux[s] = ux_s;
 				u->uy[s] = uy_s;
 				u->un[s] = un_s;
+			}
+		}
+	}
+}
+*/
+
+
+
+void set_inferred_variables(const CONSERVED_VARIABLES * const __restrict__ q, precision * const __restrict__ e, FLUID_VELOCITY * const __restrict__ u, precision t, int nx, int ny, int nz)
+{
+	// loop over the physical grid points
+	for(int k = 2; k < nz + 2; k++)
+	{
+		for(int j = 2; j < ny + 2; j++)
+		{
+			for(int i = 2; i < nx + 2; i++)
+			{
+				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
+
+				precision ttt = q->ttt[s];
+				precision ttx = q->ttx[s];
+				precision tty = q->tty[s];
+				precision ttn = q->ttn[s];
+				precision pl  = q->pl[s];
+
+			#if (PT_MATCHING == 1)
+				precision pt  = q->pt[s];
+			#endif
+
+			#ifdef PIMUNU
+				precision pitt = q->pitt[s];
+				precision pitx = q->pitx[s];
+				precision pity = q->pity[s];
+				precision pitn = q->pitn[s];
+			#else
+				precision pitt = 0.0;
+				precision pitx = 0.0;
+				precision pity = 0.0;
+				precision pitn = 0.0;
+			#endif
+
+			#ifdef WTZMU
+				precision WtTz = q->WtTz[s];
+				precision WxTz = q->WxTz[s];
+				precision WyTz = q->WyTz[s];
+				precision WnTz = q->WnTz[s];
+			#else
+				precision WtTz = 0.0;
+				precision WxTz = 0.0;
+				precision WyTz = 0.0;
+				precision WnTz = 0.0;
+			#endif		
+
+				precision Kt = ttt - pitt;				// [fm^-4]
+				precision Kx = ttx - pitx;				// [fm^-4]
+				precision Ky = tty - pity;				// [fm^-4]
+				precision Kn = ttn - pitn;				// [fm^-5]
+
+				precision A = Kn / (Kt + pl);		  	// [fm^-1] (check these formulas)
+				precision B = WtTz / (t * (Kt + pl));		// [fm^-1]
+
+				precision t2 = t * t;
+
+				precision t2A2 = t2 * A * A;
+				precision t2B2 = t2 * B * B;
+
+				// figure out how to deal with this
+				precision F = (A  -  B * sqrt(fabs(1.0 + t2B2 - t2A2))) / (1.0 + t2B2);	// [fm^-1]
+				precision Ft = t * F;													// [1]
+				precision x = sqrt(fabs(1.0  -  Ft * Ft));								// [1]
+
+				precision zt = Ft / x;					// [1]
+				precision zn = 1.0 / (x * t);			// [fm^-1]
+
+				precision Mt = Kt  -  2.0 * WtTz * zt;
+				precision Mx = Kx  -  WxTz * zt;
+				precision My = Ky  -  WyTz * zt;
+				precision Mn = Kn  -  (WtTz * zn  +  WnTz * zt);
+
+				
+				// solution for e
+			#if (PT_MATCHING == 1)
+				precision Ltt = (pl - pt) * zt * zt;
+
+				precision ut_numerator = Mt  +  pt  -  Ltt;
+
+				precision e_s = fmax(E_MIN, Mt  -  Ltt  -  (Mx * Mx  +  My * My) / ut_numerator  -  t2 * Mn * Mn * ut_numerator / (Mt + pl) / (Mt + pl));
+			#else
+				precision zt2  = zt * zt;
+				precision ztzn = zt * zn;
+
+
+				precision a = 0.25 * t2 * ztzn * ztzn  +  0.5 * (1.0 + zt2) * (1.0  -  0.5 * zt2);
+
+				precision b = 0.5 * t2 * Mn * ztzn  -  1.5 * t2 * pl * ztzn * ztzn  -  (0.5 * (1.0 + zt2) * (Mt - 1.5 * pl * zt2)  -  (1.0 - 0.5 * zt2) * (Mt - 0.5 * pl * (1.0 + 3.0 * zt2)));
+
+				precision c = Mx * Mx  +  My * My  +  t2 * Mn * Mn  -  1.5 * t2 * Mn * pl * ztzn  +  2.25 * t2 * pl * pl * ztzn * ztzn  -  (Mt - 0.5 * pl * (1.0 + 3.0 * zt2)) * (Mt - 1.5 * pl * zt2);
+
+
+				// quadratic formula
+				precision e_s = fmax(E_MIN, ( - b  +  sqrt(fabs(b * b  -  4.0 * a * c))) / (2.0 * a));
+				//
+
+
+				precision pt = 0.5 * (e_s - pl);
+
+				precision ut_numerator = Mt  +  pt  -  (pl - pt) * zt2;
+
+			#endif
+
+				// solution for u^mu
+				precision ut_s = sqrt(fabs(ut_numerator / (e_s + pt)));
+				precision ux_s = Mx / ut_s / (e_s + pt);
+				precision uy_s = My / ut_s / (e_s + pt);
+				precision un_s = F * ut_s;
+
+				if(std::isnan(ut_s))
+				{
+					printf("\nget_inferred_variables_test error: u^mu = (%lf, %lf, %lf, %lf) is nan\n", ut_s, ux_s, uy_s, un_s);
+					exit(-1);
+				}	
+
+				ut_s = sqrt(1.0  +  ux_s * ux_s  +  uy_s * uy_s  +  t2 * un_s * un_s);
+
+				
+				// get solution for primary variables
+				e[s]     = e_s;
+				u->ut[s] = ut_s;
+				u->ux[s] = ux_s;
+				u->uy[s] = uy_s;
+				u->un[s] = un_s;
+
+				//test_energy_momentum_tensor_error(q, e_s, ut_s, ux_s, uy_s, un_s, t);
+
+				test_energy_momentum_tensor_error_new(ttt, ttx, tty, ttn, pl, pt, pitt, pitx, pity, pitn, WtTz, WxTz, WyTz, WnTz, e_s, ut_s, ux_s, uy_s, un_s, t);
 			}
 		}
 	}
