@@ -16,12 +16,9 @@ void get_primary_neighbor_cells(const precision * const __restrict__ E, precisio
 void get_u_neighbor_cells(const precision * const __restrict__ ut, const precision * const __restrict__ ux, const precision * const __restrict__ uy, const precision * const __restrict__ un, precision * const __restrict__ ui1, precision * const __restrict__ uj1, precision * const __restrict__ uk1, int sim, int sip, int sjm, int sjp, int skm, int skp);
 
 
-void flux_u_neighbor_cells(const precision * const __restrict__ ut, const precision * const __restrict__ ux, const precision * const __restrict__ uy, const precision * const __restrict__ un, precision * const __restrict__ uti, precision * const __restrict__ utj, precision * const __restrict__ utk, precision * const __restrict__ uxi, precision * const __restrict__ uyj, precision * const __restrict__ unk, int simm, int sim, int sip, int sipp, int sjmm, int sjm, int sjp, int sjpp, int skmm, int skm, int skp, int skpp);
-
-/*
 // spatial velocity of neighbor cells (vx, vy, vn)
 void get_v_neighbor_cells(const precision * const __restrict__ ut, const precision * const __restrict__ ux, const precision * const __restrict__ uy, const precision * const __restrict__ un, precision * const __restrict__ vxi, precision * const __restrict__ vyj, precision * const __restrict__ vnk, int simm, int sim, int sip, int sipp, int sjmm, int sjm, int sjp, int sjpp, int skmm, int skm, int skp, int skpp);
-*/
+
 
 // conserved variables of neighbor cells (q)
 void get_q_neighbor_cells(const precision * const __restrict__ q, precision * const __restrict__ qi1, precision * const __restrict__ qj1, precision * const __restrict__ qk1, precision * const __restrict__ qi2, precision * const __restrict__ qj2, precision * const __restrict__ qk2, int * r, int simm, int sim, int sip, int sipp, int sjmm, int sjm, int sjp, int sjpp, int skmm, int skm, int skp, int skpp);

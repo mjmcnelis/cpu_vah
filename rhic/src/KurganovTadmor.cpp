@@ -57,16 +57,9 @@ const precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict_
 	precision uk1[8];									// fluid velocity of neighbor cells along n [k-1, k+1]
 
 	// for flux terms
-	// precision vxi[4];									// vx of neighbor cells along x [i-2, i-1, i+1, i+2]
-	// precision vyj[4];									// vy of neighbor cells along y [j-2, j-1, j+1, j+2]
-	// precision vnk[4];									// vn of neighbor cells along n [k-2, k-1, k+1, k+2]
-
-	precision uxi[4];									// ux of neighbor cells along x [i-2, i-1, i+1, i+2]
-	precision uti[4];									// ut of neighbor cells along x [i-2, i-1, i+1, i+2]
-	precision uyj[4];									// uy of neighbor cells along y [j-2, j-1, j+1, j+2]
-	precision utj[4];									// ut of neighbor cells along y [j-2, j-1, j+1, j+2]
-	precision unk[4];									// un of neighbor cells along n [k-2, k-1, k+1, k+2]
-	precision utk[4];									// ut of neighbor cells along n [k-2, k-1, k+1, k+2]
+	precision vxi[4];									// vx of neighbor cells along x [i-2, i-1, i+1, i+2]
+	precision vyj[4];									// vy of neighbor cells along y [j-2, j-1, j+1, j+2]
+	precision vnk[4];									// vn of neighbor cells along n [k-2, k-1, k+1, k+2]
 
 	precision  Hx_plus[NUMBER_CONSERVED_VARIABLES];		// Hx_{i + 1/2}
 	precision Hx_minus[NUMBER_CONSERVED_VARIABLES];		// Hx_{i - 1/2}
@@ -111,8 +104,28 @@ const precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict_
 
 				ql[4] = q->pl[s];
 
+				int a = 5;					// counter
+
 			#if (PT_MATCHING == 1)
-				ql[5] = q->pt[s];		
+				ql[a] = q->pt[s];	a++;		
+			#endif
+			#ifdef PIMUNU
+				ql[a] = q->pitt[s]; a++;
+				ql[a] = q->pitx[s]; a++;
+				ql[a] = q->pity[s]; a++;
+				ql[a] = q->pitn[s]; a++;
+				ql[a] = q->pixx[s]; a++;
+				ql[a] = q->pixy[s]; a++;
+				ql[a] = q->pixn[s]; a++;
+				ql[a] = q->piyy[s]; a++;
+				ql[a] = q->piyn[s]; a++;
+				ql[a] = q->pinn[s]; a++;
+			#endif
+			#ifdef WTZMU
+				ql[a] = q->WtTz[s]; a++;
+				ql[a] = q->WxTz[s]; a++;
+				ql[a] = q->WyTz[s]; a++;
+				ql[a] = q->WnTz[s]; 
 			#endif
 
 				precision e_s = e[s];
@@ -133,30 +146,19 @@ const precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict_
 				get_primary_neighbor_cells(e, e1, sim, sip, sjm, sjp, skm, skp);
 			#endif
 
-				get_u_neighbor_cells(u->ut, u->ux, u->uy, u->un, ui1, uj1, uk1, sim, sip, sjm, sjp, skm, skp);
-
-
-				// get spatial fluid velocity of neighbor cells
-				flux_u_neighbor_cells(u->ut, u->ux, u->uy, u->un, uti, utj, utk, uxi, uyj, unk, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
-
-				//get_v_neighbor_cells(u->ut, u->ux, u->uy, u->un, vxi, vyj, vnk, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
-
-
-
+				// fluid velocity of neighbor cells
+				get_u_neighbor_cells(u->ut, u->ux, u->uy, u->un, ui1, uj1, uk1, sim, sip, sjm, sjp, skm, skp);				
+				get_v_neighbor_cells(u->ut, u->ux, u->uy, u->un, vxi, vyj, vnk, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
 
 				// get conserved variables of neighbor cells
 				get_q_neighbor_cells(q->ttt, qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
 				get_q_neighbor_cells(q->ttx, qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
 				get_q_neighbor_cells(q->tty, qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
 				get_q_neighbor_cells(q->ttn, qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
-
 				get_q_neighbor_cells(q->pl,  qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
-
 			#if (PT_MATCHING == 1)
 				get_q_neighbor_cells(q->pt,  qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
 			#endif
-
-
 			#ifdef PIMUNU
 				get_q_neighbor_cells(q->pitt, qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
 				get_q_neighbor_cells(q->pitx, qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
@@ -181,48 +183,12 @@ const precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict_
 				source_terms(S, ql, e_s, t, qi1, qj1, qk1, e1, ui1, uj1, uk1, ut, ux, uy, un, ut_p, ux_p, uy_p, un_p, dt, dx, dy, dn, etabar);
 
 
-				// new algorithm 7/9
-				flux_terms_new(Hx_plus, Hx_minus, ql, qi1, qi2, uxi, uti, ux, ut);
-				flux_terms_new(Hy_plus, Hy_minus, ql, qj1, qj2, uyj, utj, uy, ut);
-				flux_terms_new(Hn_plus, Hn_minus, ql, qk1, qk2, unk, utk, un, ut);
+				// compute the flux terms
+				flux_terms(Hx_plus, Hx_minus, ql, qi1, qi2, vxi, ux/ut);
+				flux_terms(Hy_plus, Hy_minus, ql, qj1, qj2, vyj, uy/ut);
+				flux_terms(Hn_plus, Hn_minus, ql, qk1, qk2, vnk, un/ut);
 
 				
-
-
-				// compute the flux terms Hx_plus, Hx_minus
-				// intermediate version 7/8
-				/*
-				flux_terms(Hx_plus,  ql, qi1, qi2, uxi, uti, ux, ut, &right_half_cell_extrapolation_forward, &left_half_cell_extrapolation_forward);
-				flux_terms(Hx_minus, ql, qi1, qi2, uxi, uti, ux, ut, &right_half_cell_extrapolation_backward, &left_half_cell_extrapolation_backward);
-
-
-				// compute the flux terms Hy_plus, Hy_minus
-				flux_terms(Hy_plus,  ql, qj1, qj2, uyj, utj, uy, ut, &right_half_cell_extrapolation_forward, &left_half_cell_extrapolation_forward);
-				flux_terms(Hy_minus, ql, qj1, qj2, uyj, utj, uy, ut, &right_half_cell_extrapolation_backward, &left_half_cell_extrapolation_backward);
-
-
-				// compute the flux terms Hn_plus, Hn_minus
-				flux_terms(Hn_plus,  ql, qk1, qk2, unk, utk, un, ut, &right_half_cell_extrapolation_forward, &left_half_cell_extrapolation_forward);
-				flux_terms(Hn_minus, ql, qk1, qk2, unk, utk, un, ut, &right_half_cell_extrapolation_backward, &left_half_cell_extrapolation_backward);
-				*/
-
-				/*
-				// old KT algorithm
-				// compute the flux terms Hx_plus, Hx_minus
-				flux_terms(Hx_plus,  ql, qi1, qi2, vxi, ux, ut, &right_half_cell_extrapolation_forward, &left_half_cell_extrapolation_forward);
-				flux_terms(Hx_minus, ql, qi1, qi2, vxi, ux, ut, &right_half_cell_extrapolation_backward, &left_half_cell_extrapolation_backward);
-
-
-				// compute the flux terms Hy_plus, Hy_minus
-				flux_terms(Hy_plus,  ql, qj1, qj2, vyj, uy, ut, &right_half_cell_extrapolation_forward, &left_half_cell_extrapolation_forward);
-				flux_terms(Hy_minus, ql, qj1, qj2, vyj, uy, ut, &right_half_cell_extrapolation_backward, &left_half_cell_extrapolation_backward);
-
-
-				// compute the flux terms Hn_plus, Hn_minus
-				flux_terms(Hn_plus,  ql, qk1, qk2, vnk, un, ut, &right_half_cell_extrapolation_forward, &left_half_cell_extrapolation_forward);
-				flux_terms(Hn_minus, ql, qk1, qk2, vnk, un, ut, &right_half_cell_extrapolation_backward, &left_half_cell_extrapolation_backward);
-				*/
-
 				// add euler step
 				for(int n = 0; n < NUMBER_CONSERVED_VARIABLES; n++)
 				{
@@ -238,27 +204,28 @@ const precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict_
 
 				Q->pl[s]  = ql[4];
 
-			#if (PT_MATCHING == 1)
-				Q->pt[s] = ql[5];
-			#endif
+				a = 5;				// reset counter
 
+			#if (PT_MATCHING == 1)
+				Q->pt[s] = ql[a];	a++;
+			#endif
 			#ifdef PIMUNU
-				Q->pitt[s] = ql[5];
-				Q->pitx[s] = ql[6];
-				Q->pity[s] = ql[7];
-				Q->pitn[s] = ql[8];
-				Q->pixx[s] = ql[9];
-				Q->pixy[s] = ql[10];
-				Q->pixn[s] = ql[11];
-				Q->piyy[s] = ql[12];
-				Q->piyn[s] = ql[13];
-				Q->pinn[s] = ql[14];
+				Q->pitt[s] = ql[a];	a++;
+				Q->pitx[s] = ql[a];	a++;
+				Q->pity[s] = ql[a];	a++;
+				Q->pitn[s] = ql[a];	a++;
+				Q->pixx[s] = ql[a];	a++;
+				Q->pixy[s] = ql[a];	a++;
+				Q->pixn[s] = ql[a]; a++;
+				Q->piyy[s] = ql[a]; a++;
+				Q->piyn[s] = ql[a]; a++;
+				Q->pinn[s] = ql[a]; a++;
 			#endif
 			#ifdef WTZMU
-				Q->WtTz[s] = ql[15];
-				Q->WxTz[s] = ql[16];
-				Q->WyTz[s] = ql[17];
-				Q->WnTz[s] = ql[18];
+				Q->WtTz[s] = ql[a]; a++;
+				Q->WxTz[s] = ql[a]; a++;
+				Q->WyTz[s] = ql[a]; a++;
+				Q->WnTz[s] = ql[a];
 			#endif
 			}
 		}

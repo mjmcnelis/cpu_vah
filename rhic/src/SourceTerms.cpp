@@ -32,7 +32,6 @@ using namespace std;
 #define SIGMA_4 0.022
 
 
-
 inline precision bulkViscosityToEntropyDensity(precision T)   // need some hydro parameters here
 {
 	precision x = T / 1.01355;
@@ -51,32 +50,27 @@ inline precision bulkViscosityToEntropyDensity(precision T)   // need some hydro
 	}
 }
 
+// inline precision sign(precision x)
+// {
+// 	if(x < 0.0) return -1.0;
+// 	else return 1.0;
+// }
 
-inline precision sign(precision x)
-{
-	if(x < 0.0) return -1.0;
-	else return 1.0;
-}
+// inline precision minmod(precision x, precision y)
+// {
+// 	return (sign(x) + sign(y)) * fmin(fabs(x), fabs(y)) / 2.0;
+// }
 
-
-inline precision minmod(precision x, precision y)
-{
-	return (sign(x) + sign(y)) * fmin(fabs(x), fabs(y)) / 2.0;
-}
-
-
-inline precision minmod3(precision x, precision y, precision z)
-{
-   return minmod(x, minmod(y, z));
-}
-
+// inline precision minmod3(precision x, precision y, precision z)
+// {
+//    return minmod(x, minmod(y, z));
+// }
 
 inline precision spatial_derivative(precision qm, precision q, precision qp)
 {
 	//return minmod3(THETA * (q - qm), (qp - qm) / 2.0, THETA * (qp - q));
 	return (qp - qm) / 2.0;
 }
-
 
 
 
@@ -94,15 +88,49 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision ttx = q[1];
 	precision tty = q[2];
 	precision ttn = q[3];
-
 	precision pl  = q[4];
 
+	int a = 5;
+
 #if (PT_MATCHING == 1)
-	precision pt  = q[5];
+	precision pt  = q[a];	a++;
 #else
 	precision pt  = 0.5 * (e - pl);
 #endif
-
+#ifdef PIMUNU
+	precision pitt = q[a];	a++;
+	precision pitx = q[a];	a++;
+	precision pity = q[a];	a++;
+	precision pitn = q[a];	a++;
+	precision pixx = q[a];	a++;
+	precision pixy = q[a];	a++;
+	precision pixn = q[a];	a++;
+	precision piyy = q[a];	a++;
+	precision piyn = q[a];	a++;
+	precision pinn = q[a];	a++;
+#else
+	precision pitt = 0.0;	
+	precision pitx = 0.0;
+	precision pity = 0.0;
+	precision pitn = 0.0;
+	precision pixx = 0.0;
+	precision pixy = 0.0;
+	precision pixn = 0.0;
+	precision piyy = 0.0;
+	precision piyn = 0.0;
+	precision pinn = 0.0;
+#endif
+#ifdef WTZMU
+	precision WtTz = q[a];	a++;
+	precision WxTz = q[a];	a++;
+	precision WyTz = q[a];	a++;
+	precision WnTz = q[a];	
+#else
+	precision WtTz = 0.0;
+	precision WxTz = 0.0;
+	precision WyTz = 0.0;
+	precision WnTz = 0.0;
+#endif
 
 
 	// primary variable derivatives
@@ -152,6 +180,215 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision dpt_dy = 0.5 * (de_dy - dpl_dy);
 	precision dpt_dn = 0.5 * (de_dn - dpl_dn);
 #endif
+#ifdef PIMUNU
+	n += 2;
+
+	precision pitt_sim = qi1[n];		// pitt [i-1, i+1]
+	precision pitt_sip = qi1[n + 1];
+	precision pitt_sjm = qj1[n];		// pitt [j-1, j+1]
+	precision pitt_sjp = qj1[n + 1];
+	precision pitt_skm = qk1[n];		// pitt [k-1, k+1]
+	precision pitt_skp = qk1[n + 1];
+
+	precision dpitt_dx = spatial_derivative(pitt_sim, pitt, pitt_sip) / dx;
+	precision dpitt_dy = spatial_derivative(pitt_sjm, pitt, pitt_sjp) / dy;
+	precision dpitt_dn = spatial_derivative(pitt_skm, pitt, pitt_skp) / dn;
+
+	n += 2;
+
+	precision pitx_sim = qi1[n];		// pitx [i-1, i+1]
+	precision pitx_sip = qi1[n + 1];
+	precision pitx_sjm = qj1[n];		// pitx [j-1, j+1]
+	precision pitx_sjp = qj1[n + 1];
+	precision pitx_skm = qk1[n];		// pitx [k-1, k+1]
+	precision pitx_skp = qk1[n + 1];
+
+	precision dpitx_dx = spatial_derivative(pitx_sim, pitx, pitx_sip) / dx;
+	precision dpitx_dy = spatial_derivative(pitx_sjm, pitx, pitx_sjp) / dy;
+	precision dpitx_dn = spatial_derivative(pitx_skm, pitx, pitx_skp) / dn;
+
+	n += 2;
+
+	precision pity_sim = qi1[n];		// pity [i-1, i+1]
+	precision pity_sip = qi1[n + 1];
+	precision pity_sjm = qj1[n];		// pity [j-1, j+1]
+	precision pity_sjp = qj1[n + 1];
+	precision pity_skm = qk1[n];		// pity [k-1, k+1]
+	precision pity_skp = qk1[n + 1];
+
+	precision dpity_dx = spatial_derivative(pity_sim, pity, pity_sip) / dx;
+	precision dpity_dy = spatial_derivative(pity_sjm, pity, pity_sjp) / dy;
+	precision dpity_dn = spatial_derivative(pity_skm, pity, pity_skp) / dn;
+
+	n += 2;
+
+	precision pitn_sim = qi1[n];		// pitn [i-1, i+1]
+	precision pitn_sip = qi1[n + 1];
+	precision pitn_sjm = qj1[n];		// pitn [j-1, j+1]
+	precision pitn_sjp = qj1[n + 1];
+	precision pitn_skm = qk1[n];		// pitn [k-1, k+1]
+	precision pitn_skp = qk1[n + 1];
+
+	precision dpitn_dx = spatial_derivative(pitn_sim, pitn, pitn_sip) / dx;
+	precision dpitn_dy = spatial_derivative(pitn_sjm, pitn, pitn_sjp) / dy;
+	precision dpitn_dn = spatial_derivative(pitn_skm, pitn, pitn_skp) / dn;
+
+	n += 2;
+
+	precision pixx_sim = qi1[n];		// pixx [i-1, i+1]
+	precision pixx_sip = qi1[n + 1];
+
+	precision dpixx_dx = spatial_derivative(pixx_sim, pixx, pixx_sip) / dx;
+
+	n += 2;
+
+	precision pixy_sim = qi1[n];		// pixy [i-1, i+1]
+	precision pixy_sip = qi1[n + 1];
+	precision pixy_sjm = qj1[n];		// pixy [j-1, j+1]
+	precision pixy_sjp = qj1[n + 1];
+
+	precision dpixy_dx = spatial_derivative(pixy_sim, pixy, pixy_sip) / dx;
+	precision dpixy_dy = spatial_derivative(pixy_sjm, pixy, pixy_sjp) / dy;
+
+	n += 2;
+
+	precision pixn_sim = qi1[n];		// pixn [i-1, i+1]
+	precision pixn_sip = qi1[n + 1];
+	precision pixn_skm = qk1[n];		// pixn [k-1, k+1]
+	precision pixn_skp = qk1[n + 1];
+
+	precision dpixn_dx = spatial_derivative(pixn_sim, pixn, pixn_sip) / dx;
+	precision dpixn_dn = spatial_derivative(pixn_skm, pixn, pixn_skp) / dn;	
+
+	n += 2;
+
+	precision piyy_sjm = qj1[n];		// piyy [j-1, j+1]
+	precision piyy_sjp = qj1[n + 1];
+
+	precision dpiyy_dy = spatial_derivative(piyy_sjm, piyy, piyy_sjp) / dy;
+
+	n += 2;
+
+	precision piyn_sjm = qj1[n];		// piyn [j-1, j+1]
+	precision piyn_sjp = qj1[n + 1];
+	precision piyn_skm = qk1[n];		// piyn [k-1, k+1]
+	precision piyn_skp = qk1[n + 1];
+
+	precision dpiyn_dy = spatial_derivative(piyn_sjm, piyn, piyn_sjp) / dy;
+	precision dpiyn_dn = spatial_derivative(piyn_skm, piyn, piyn_skp) / dn;	
+
+	n += 2;
+
+	precision pinn_skm = qk1[n];		// pinn [k-1, k+1]
+	precision pinn_skp = qk1[n + 1];
+
+	precision dpinn_dn = spatial_derivative(pinn_skm, pinn, pinn_skp) / dn;	
+#else
+	precision dpitt_dx = 0.0;
+	precision dpitt_dy = 0.0;
+	precision dpitt_dn = 0.0;
+
+	precision dpitx_dx = 0.0;
+	precision dpitx_dy = 0.0;
+	precision dpitx_dn = 0.0;
+
+	precision dpity_dx = 0.0;
+	precision dpity_dy = 0.0;
+	precision dpity_dn = 0.0;
+
+	precision dpitn_dx = 0.0;
+	precision dpitn_dy = 0.0;
+	precision dpitn_dn = 0.0;
+
+	precision dpixx_dx = 0.0;
+
+	precision dpixy_dx = 0.0;
+	precision dpixy_dy = 0.0;
+
+	precision dpixn_dx = 0.0;
+	precision dpixn_dn = 0.0;
+
+	precision dpiyy_dy = 0.0;
+
+	precision dpiyn_dy = 0.0;
+	precision dpiyn_dn = 0.0;
+
+	precision dpinn_dn = 0.0;
+#endif
+#ifdef WTZMU
+	n += 2;
+
+	precision WtTz_sim = qi1[n];		// WtTz [i-1, i+1]
+	precision WtTz_sip = qi1[n + 1];
+	precision WtTz_sjm = qj1[n];		// WtTz [j-1, j+1]
+	precision WtTz_sjp = qj1[n + 1];
+	precision WtTz_skm = qk1[n];		// WtTz [k-1, k+1]
+	precision WtTz_skp = qk1[n + 1];
+
+	precision dWtTz_dx = spatial_derivative(WtTz_sim, WtTz, WtTz_sip) / dx;
+	precision dWtTz_dy = spatial_derivative(WtTz_sjm, WtTz, WtTz_sjp) / dy;
+	precision dWtTz_dn = spatial_derivative(WtTz_skm, WtTz, WtTz_skp) / dn;
+
+	n += 2;
+
+	precision WxTz_sim = qi1[n];		// WxTz [i-1, i+1]
+	precision WxTz_sip = qi1[n + 1];
+	precision WxTz_sjm = qj1[n];		// WxTz [j-1, j+1]
+	precision WxTz_sjp = qj1[n + 1];
+	precision WxTz_skm = qk1[n];		// WxTz [k-1, k+1]
+	precision WxTz_skp = qk1[n + 1];
+
+	precision dWxTz_dx = spatial_derivative(WxTz_sim, WxTz, WxTz_sip) / dx;
+	precision dWxTz_dy = spatial_derivative(WxTz_sjm, WxTz, WxTz_sjp) / dy;
+	precision dWxTz_dn = spatial_derivative(WxTz_skm, WxTz, WxTz_skp) / dn;
+
+	n += 2;
+
+	precision WyTz_sim = qi1[n];		// WyTz [i-1, i+1]
+	precision WyTz_sip = qi1[n + 1];
+	precision WyTz_sjm = qj1[n];		// WyTz [j-1, j+1]
+	precision WyTz_sjp = qj1[n + 1];
+	precision WyTz_skm = qk1[n];		// WyTz [k-1, k+1]
+	precision WyTz_skp = qk1[n + 1];
+
+	precision dWyTz_dx = spatial_derivative(WyTz_sim, WyTz, WyTz_sip) / dx;
+	precision dWyTz_dy = spatial_derivative(WyTz_sjm, WyTz, WyTz_sjp) / dy;
+	precision dWyTz_dn = spatial_derivative(WyTz_skm, WyTz, WyTz_skp) / dn;
+
+	n += 2;
+
+	precision WnTz_sim = qi1[n];		// WnTz [i-1, i+1]
+	precision WnTz_sip = qi1[n + 1];
+	precision WnTz_sjm = qj1[n];		// WnTz [j-1, j+1]
+	precision WnTz_sjp = qj1[n + 1];
+	precision WnTz_skm = qk1[n];		// WnTz [k-1, k+1]
+	precision WnTz_skp = qk1[n + 1];
+
+	precision dWnTz_dx = spatial_derivative(WnTz_sim, WnTz, WnTz_sip) / dx;
+	precision dWnTz_dy = spatial_derivative(WnTz_sjm, WnTz, WnTz_sjp) / dy;
+	precision dWnTz_dn = spatial_derivative(WnTz_skm, WnTz, WnTz_skp) / dn;
+#else
+	precision dWtTz_dx = 0.0;
+	precision dWtTz_dy = 0.0;
+	precision dWtTz_dn = 0.0;
+
+	precision dWxTz_dx = 0.0;
+	precision dWxTz_dy = 0.0;
+	precision dWxTz_dn = 0.0;
+
+	precision dWyTz_dx = 0.0;
+	precision dWyTz_dy = 0.0;
+	precision dWyTz_dn = 0.0;
+
+	precision dWnTz_dx = 0.0;
+	precision dWnTz_dy = 0.0;
+	precision dWnTz_dn = 0.0;
+#endif
+
+	// also need to check for missing conservation law terms (was in x, y)
+
+	
+
 
 	// fluid velocity derivatives
 	precision ut_sim = ui1[0];		// ut [i-1, i+1]
@@ -306,11 +543,114 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision dLnn_dn = (dpl_dn - dpt_dn) * zn2  +  2.0 * dp * zn * dzn_dn;
 
 
+
+
+	// W^munu components and derivatives
+#ifdef WTZMU
+	precision Wtt = 2.0 * WtTz * zt;
+	precision Wtx = WxTz * zt;
+	precision Wty = WyTz * zt;
+	precision Wtn = WtTz * zn  +  WnTz * zt;
+	
+	precision Wxn = WxTz * zn;
+	precision Wyn = WyTz * zn;
+	precision Wnn = 2.0 * WnTz * zn;
+
+	precision dWtt_dx = 2.0 * (dWtTz_dx * zt  +  WtTz * dzt_dx);
+	precision dWtt_dy = 2.0 * (dWtTz_dy * zt  +  WtTz * dzt_dy);
+	precision dWtt_dn = 2.0 * (dWtTz_dn * zt  +  WtTz * dzt_dn);
+
+	precision dWtx_dx = dWxTz_dx * zt  +  WxTz * dzt_dx;
+	precision dWtx_dy = dWxTz_dy * zt  +  WxTz * dzt_dy;
+	precision dWtx_dn = dWxTz_dn * zt  +  WxTz * dzt_dn;
+
+	precision dWty_dx = dWyTz_dx * zt  +  WyTz * dzt_dx;
+	precision dWty_dy = dWyTz_dy * zt  +  WyTz * dzt_dy;
+	precision dWty_dn = dWyTz_dn * zt  +  WyTz * dzt_dn;
+
+	precision dWtn_dx = dWtTz_dx * zn  +  WtTz * dzn_dx  +  dWnTz_dx * zt  +  WnTz * dzt_dx;
+	precision dWtn_dy = dWtTz_dy * zn  +  WtTz * dzn_dy  +  dWnTz_dy * zt  +  WnTz * dzt_dy;
+	precision dWtn_dn = dWtTz_dn * zn  +  WtTz * dzn_dn  +  dWnTz_dn * zt  +  WnTz * dzt_dn;
+
+	precision dWxn_dx = dWxTz_dx * zn  +  WxTz * dzn_dx;
+	precision dWxn_dn = dWxTz_dn * zn  +  WxTz * dzn_dn;
+
+	precision dWyn_dy = dWyTz_dy * zn  +  WyTz * dzn_dy;
+	precision dWyn_dn = dWyTz_dn * zn  +  WyTz * dzn_dn;
+
+	precision dWnn_dn = 2.0 * (dWnTz_dn * zn  +  WnTz * dzn_dn);
+#else
+	precision Wtt = 0.0;
+	precision Wtx = 0.0;
+	precision Wty = 0.0;
+	precision Wtn = 0.0;
+
+	precision Wxn = 0.0;
+	precision Wyn = 0.0;
+	precision Wnn = 0.0;
+
+	precision dWtt_dx = 0.0;
+	precision dWtt_dy = 0.0;
+	precision dWtt_dn = 0.0;
+
+	precision dWtx_dx = 0.0;
+	precision dWtx_dy = 0.0;
+	precision dWtx_dn = 0.0;
+
+	precision dWty_dx = 0.0;
+	precision dWty_dy = 0.0;
+	precision dWty_dn = 0.0;
+
+	precision dWtn_dx = 0.0;
+	precision dWtn_dy = 0.0;
+	precision dWtn_dn = 0.0;
+
+	precision dWxn_dx = 0.0;
+	precision dWxn_dn = 0.0;
+
+	precision dWyn_dy = 0.0;
+	precision dWyn_dn = 0.0;
+
+	precision dWnn_dn = 0.0;
+#endif
+
+
+
+
 	// conservation laws
-	S[0] = - (ttt / t  +  t * tnn)  +  div_v * (Ltt - pt)  +  vx * (dLtt_dx - dpt_dx)  +  vy * (dLtt_dy - dpt_dy)  +  vn * (dLtt_dn - dpt_dn)  - dLtn_dn;
-	S[1] = - ttx / t  -  dpt_dx  -  0 * 0.5 * (vx * dLtn_dn  -  Ltn * dvx_dn);
-	S[2] = - tty / t  -  dpt_dy  -  0 * 0.5 * (vy * dLtn_dn  -  Ltn * dvy_dn);
-	S[3] = - 3.0 * ttn / t  -  dpt_dn / t2  +  div_v * Ltn  +  vx * dLtn_dx  +  vy * dLtn_dy  +  vn * dLtn_dn  -  dLnn_dn;
+
+
+	//S[0] = - (ttt / t  +  t * tnn)  +  div_v * (Ltt - pt)  +  vx * (dLtt_dx - dpt_dx)  +  vy * (dLtt_dy - dpt_dy)  +  vn * (dLtt_dn - dpt_dn)  - dLtn_dn;
+	//S[1] = - ttx / t  -  dpt_dx  -  0.5 * (vx * dLtn_dn  -  Ltn * dvx_dn);
+	//S[2] = - tty / t  -  dpt_dy  -  0.5 * (vy * dLtn_dn  -  Ltn * dvy_dn);
+
+
+	S[0] =	- (ttt / t  +  t * tnn)  +  div_v * (Ltt  +  Wtt  +  pitt  -  pt)  
+			+  vx * (dLtt_dx  +  dWtt_dx  +  dpitt_dx  -  dpt_dx)  -  dWtx_dx  -  dpitx_dx
+			+  vy * (dLtt_dy  +  dWtt_dy  +  dpitt_dy  -  dpt_dy)  -  dWty_dy  -  dpity_dy 
+			+  vn * (dLtt_dn  +  dWtt_dn  +  dpitt_dn  -  dpt_dn)  -  dWtn_dn  -  dpitn_dn  -  dLtn_dn;
+
+
+	S[1] =	- ttx / t  -  dpt_dx  +  div_v * (Wtx  +  pitx)
+			+  vx * (dWtx_dx  +  dpitx_dx)  -  dpixx_dx
+			+  vy * (dWtx_dy  +  dpitx_dy)  -  dpixy_dy
+			+  vn * (dWtx_dn  +  dpitx_dn)  -  dpixn_dn  -  dWxn_dn
+			-  0.5 * (vx * dLtn_dn  -  Ltn * dvx_dn);	// go over this line again
+
+
+	S[2] =	- tty / t  -  dpt_dy  +  div_v * (Wty  +  pity)  
+			+  vx * (dWty_dx  +  dpity_dx)  -  dpixy_dx
+			+  vy * (dWty_dy  +  dpity_dy)  -  dpiyy_dy 
+			+  vn * (dWty_dn  +  dpity_dn)  -  dpiyn_dn  -  dWyn_dn 
+			-  0.5 * (vy * dLtn_dn  -  Ltn * dvy_dn);  // go over this line again
+
+
+	S[3] =	- 3.0 * ttn / t  -  dpt_dn / t2  +  div_v * (Ltn  +  Wtn  +  pitn)  
+			+  vx * (dLtn_dx  +  dWtn_dx  +  dpitn_dx)  -  dWxn_dx  -  dpixn_dx
+			+  vy * (dLtn_dy  +  dWtn_dy  +  dpitn_dy)  -  dWyn_dy  -  dpiyn_dy
+			+  vn * (dLtn_dn  +  dWtn_dn  +  dpitn_dn)  -  dWnn_dn  -  dpinn_dn  -  dLnn_dn;
+
+
 
 
 	// pl relaxation equation
