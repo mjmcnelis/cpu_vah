@@ -8,8 +8,9 @@
 
 inline precision sign(precision x)
 {
-	if(x < 0.0) return -1.0;
-	else return 1.0;
+	if(x > 0.0) return 1.0;
+	else if(x < 0.0) return -1.0;
+	else return 0.0; 
 }
 
 inline precision minmod(precision x, precision y)
@@ -85,7 +86,7 @@ void flux_terms(precision * const __restrict__ Hp, precision * const __restrict_
 		precision FRm = F   -  0.5 * (q  * dv   +  v  * dq);	// F^{+}_{i-1/2}	(R = -, m = i - 1/2)	Eq. (65)
 		precision FLm = Fm  +  0.5 * (qm * dvm  +  vm * dqm);	// F^{-}_{i-1/2}	(L = -, m = i - 1/2)	Eq. (66)
 
-		// alternative formula 
+		// alternative formula (seems noisier overall but works better along x-axis)
 		// precision FRp = qRp * vRp;
 		// precision FLp = qLp * vLp;
 		// precision FRm = qRm * vRm;

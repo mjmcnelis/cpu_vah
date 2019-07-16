@@ -390,7 +390,8 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	
 
 
-	// fluid velocity derivatives
+	// fluid velocity 
+	//:::::::::::::::::::::::::::::::::::::::::::::
 	precision ut_sim = ui1[0];		// ut [i-1, i+1]
 	precision ut_sip = ui1[1];
 	precision ux_sim = ui1[2];		// ux [i-1, i+1]
@@ -399,11 +400,6 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision uy_sip = ui1[5];
 	precision un_sim = ui1[6];		// un [i-1, i+1]
 	precision un_sip = ui1[7];
-
-	precision dut_dx = spatial_derivative(ut_sim, ut, ut_sip) / dx;
-	precision dux_dx = spatial_derivative(ux_sim, ux, ux_sip) / dx;
-	precision duy_dx = spatial_derivative(uy_sim, uy, uy_sip) / dx;
-	precision dun_dx = spatial_derivative(un_sim, un, un_sip) / dx;
 
 	precision ut_sjm = uj1[0];		// ut [j-1, j+1]
 	precision ut_sjp = uj1[1];
@@ -414,11 +410,6 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision un_sjm = uj1[6];		// un [j-1, j+1]
 	precision un_sjp = uj1[7];
 
-	precision dut_dy = spatial_derivative(ut_sjm, ut, ut_sjp) / dy;
-	precision dux_dy = spatial_derivative(ux_sjm, ux, ux_sjp) / dy;
-	precision duy_dy = spatial_derivative(uy_sjm, uy, uy_sjp) / dy;
-	precision dun_dy = spatial_derivative(un_sjm, un, un_sjp) / dy;
-
 	precision ut_skm = uk1[0];		// ut [k-1, k+1]
 	precision ut_skp = uk1[1];
 	precision ux_skm = uk1[2];		// ux [k-1, k+1]
@@ -428,20 +419,50 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision un_skm = uk1[6];		// un [k-1, k+1]
 	precision un_skp = uk1[7];
 
+	// spatial derivatives
+	precision dut_dx = spatial_derivative(ut_sim, ut, ut_sip) / dx;
+	precision dut_dy = spatial_derivative(ut_sjm, ut, ut_sjp) / dy;
 	precision dut_dn = spatial_derivative(ut_skm, ut, ut_skp) / dn;
+
+	precision dux_dx = spatial_derivative(ux_sim, ux, ux_sip) / dx;
+	precision dux_dy = spatial_derivative(ux_sjm, ux, ux_sjp) / dy;
 	precision dux_dn = spatial_derivative(ux_skm, ux, ux_skp) / dn;
+
+	precision duy_dx = spatial_derivative(uy_sim, uy, uy_sip) / dx;
+	precision duy_dy = spatial_derivative(uy_sjm, uy, uy_sjp) / dy;
 	precision duy_dn = spatial_derivative(uy_skm, uy, uy_skp) / dn;
+
+	precision dun_dx = spatial_derivative(un_sim, un, un_sip) / dx;
+	precision dun_dy = spatial_derivative(un_sjm, un, un_sjp) / dy;
 	precision dun_dn = spatial_derivative(un_skm, un, un_skp) / dn;
 
+	// time derivatives
+	precision dut_dt = (ut - ut_p) / dt;
+	precision dux_dt = (ux - ux_p) / dt;
+	precision duy_dt = (uy - uy_p) / dt;
+	precision dun_dt = (un - un_p) / dt;
 
-	// spatial velocity components
+	// radial velocity derivatives
+	precision duT2_dt = ux * dux_dt  +  uy * duy_dt;
+	precision duT2_dx = ux * dux_dx  +  uy * duy_dx;
+	precision duT2_dy = ux * dux_dy  +  uy * duy_dy;
+	precision duT2_dn = ux * dux_dn  +  uy * duy_dn;
+
+	precision utperp  = sqrt(1.0  +  ux * ux  +  uy * uy);
+	precision utperp2 = utperp * utperp;
+
+	// scalar expansion rate
+	precision theta = dut_dt  +  dux_dx  +  duy_dy  +  dun_dn  +  ut / t;
+	//:::::::::::::::::::::::::::::::::::::::::::::
+
+
+
+	// spatial velocity 
+	//:::::::::::::::::::::::::::::::::::::::::::::
 	precision vx = ux / ut;
 	precision vy = uy / ut;
 	precision vn = un / ut;
 
-	// divergence of v
-	//precision div_v = (dux_dx  +  duy_dy  +  dun_dn  -  vx * dut_dx  -  vy * dut_dy  -  vn * dut_dn) / ut;
-	
 	precision vx_sim = ux_sim / ut_sim;
 	precision vx_sip = ux_sip / ut_sip;
 
@@ -451,34 +472,30 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision vn_skm = un_skm / ut_skm;
 	precision vn_skp = un_skp / ut_skp;
 
+	// spatial derivatives
 	precision dvx_dx = spatial_derivative(vx_sim, vx, vx_sip) / dx;
 	precision dvy_dy = spatial_derivative(vy_sjm, vy, vy_sjp) / dy;
 	precision dvn_dn = spatial_derivative(vn_skm, vn, vn_skp) / dn;
 
+	// divergence of v
 	precision div_v = dvx_dx + dvy_dy + dvn_dn;
+	//precision div_v = (dux_dx  +  duy_dy  +  dun_dn  -  vx * dut_dx  -  vy * dut_dy  -  vn * dut_dn) / ut;
 
-
-	// spatial velocity derivatives (move in if/else later)
+	// other spatial velocity derivatives (move in if/else later)
 	precision dvx_dn = (dux_dn  -  vx * dut_dn) / ut;
 	precision dvy_dn = (duy_dn  -  vy * dut_dn) / ut;
+	//:::::::::::::::::::::::::::::::::::::::::::::
 
 
-	// time derivatives of u
-	precision dut_dt = (ut - ut_p) / dt;
-	precision dux_dt = (ux - ux_p) / dt;
-	precision duy_dt = (uy - uy_p) / dt;
-	precision dun_dt = (un - un_p) / dt;
 
 	
-	// radial velocity derivatives
-	precision duT2_dx = ux * dux_dx  +  uy * duy_dx;
-	precision duT2_dy = ux * dux_dy  +  uy * duy_dy;
-	precision duT2_dn = ux * dux_dn  +  uy * duy_dn;
 
-	precision utperp  = sqrt(1.0  +  ux * ux  +  uy * uy);
-	precision utperp2 = utperp * utperp;
+
+
+
 
 	// longitudinal basis vector
+	//:::::::::::::::::::::::::::::::::::::::::::::
 	precision zt = t * un / utperp;
 	precision zn = ut / t / utperp;
 
@@ -486,22 +503,38 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision ztzn = zt * zn;
 	precision zn2  = zn * zn;
 
-	// longitudinal vector derivatives
+	// spatial derivatives
+	precision dzt_dt = t * (dun_dt  -  un * duT2_dt / utperp2) / utperp  +  zt / t;
 	precision dzt_dx = t * (dun_dx  -  un * duT2_dx / utperp2) / utperp;
 	precision dzt_dy = t * (dun_dy  -  un * duT2_dy / utperp2) / utperp;
 	precision dzt_dn = t * (dun_dn  -  un * duT2_dn / utperp2) / utperp;
 
+	precision dzn_dt = (dut_dt  -  ut * duT2_dt / utperp2) / (t * utperp)  -  zn / t;
 	precision dzn_dx = (dut_dx  -  ut * duT2_dx / utperp2) / (t * utperp);
 	precision dzn_dy = (dut_dy  -  ut * duT2_dy / utperp2) / (t * utperp);
 	precision dzn_dn = (dut_dn  -  ut * duT2_dn / utperp2) / (t * utperp);
 
-	// scalar expansion rate
-	precision theta = dut_dt  +  dux_dx  +  duy_dy  +  dun_dn  +  ut / t;
+	// covariant time derivatives
+	precision D_zt = ut * dzt_dt  +  ux * dzt_dx  +  uy * dzt_dy  +  un * dzt_dn  +  t * un * zn;
+	precision D_zn = ut * dzn_dt  +  ux * dzn_dx  +  uy * dzn_dy  +  un * dzn_dn  +  (ut * zn  +  un * zt) / t;
+	//:::::::::::::::::::::::::::::::::::::::::::::
+
+
+
+	// covariant longitudinal derivatives of u
+	precision Dz_ut = - zt * dut_dt  -  zn * dut_dn  -  t * zn * un; 
+	precision Dz_ux = - zt * dux_dt  -  zn * dux_dn; 
+	precision Dz_uy = - zt * duy_dt  -  zn * duy_dn; 
+	precision Dz_un = - zt * dun_dt  -  zn * dun_dn  -  (ut * zn  +  un * zt) / t; 
+
 
 	// longitudinal and transverse expansion rates
 	precision thetaL = - zt2 * dut_dt  +  t2 * zn2 * dun_dn  +  ztzn * (t2 * dun_dt  -  dut_dn)  +  t * zn2 * ut;
 	precision thetaT = theta - thetaL;
+	
 
+
+	
 
 	// relaxation times
 	precision peq = equilibriumPressure(e);
@@ -523,7 +556,10 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision zeta_TT = 2.0 * (aniso.I_202 - pt);
 #endif
 
+
+
 	// L^munu components and derivatives
+	//:::::::::::::::::::::::::::::::::::::::::::::
 	precision dp  = pl - pt;
 
 	precision Ltt = dp * zt2;
@@ -541,7 +577,7 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision dLtn_dn = (dpl_dn - dpt_dn) * ztzn  +  dp * (dzt_dn * zn  +  dzn_dn * zt);
 
 	precision dLnn_dn = (dpl_dn - dpt_dn) * zn2  +  2.0 * dp * zn * dzn_dn;
-
+	//:::::::::::::::::::::::::::::::::::::::::::::
 
 
 
@@ -616,6 +652,14 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 
 
+	// 2nd order gradients
+	//:::::::::::::::::::::::::::::::::::::::::::::
+	precision WTzmu_D_zmu = WtTz * D_zt  -  t2 * WnTz * D_zn;
+
+	precision WTzmu_Dz_umu = WtTz * Dz_ut  -  WxTz * Dz_ux  -  WyTz * Dz_uy  -  t2 * WnTz * Dz_un;
+	//:::::::::::::::::::::::::::::::::::::::::::::
+
+
 
 	// conservation laws
 
@@ -654,13 +698,16 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 
 	// pl relaxation equation
-	precision dpl = - dp * taupiInv / 1.5  +  zeta_LL * thetaL  +  zeta_TL * thetaT;
-	S[4] = dpl / ut  +  div_v * pl;
+	precision dpl = - dp * taupiInv / 1.5  +  zeta_LL * thetaL  +  zeta_TL * thetaT  -  2.0 * WTzmu_D_zmu;
+	S[4] =	dpl / ut  +  div_v * pl;
 
+
+	a = 5;		// reset index
 
 #if (PT_MATCHING == 1)
-	precision dpt =  dp * taupiInv / 3.0  +  zeta_LT * thetaL  +  zeta_TT * thetaT;
-	S[5] = dpt / ut  +  div_v * pt;
+	precision dpt =	dp * taupiInv / 3.0  +  zeta_LT * thetaL  +  zeta_TT * thetaT  +  WTzmu_D_zmu;
+	S[a] = dpt / ut  +  div_v * pt;
+	a++;
 #endif
 
 }
