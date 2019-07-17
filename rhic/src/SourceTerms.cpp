@@ -515,13 +515,18 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision dzn_dy = (dut_dy  -  ut * duT2_dy / utperp2) / (t * utperp);
 	precision dzn_dn = (dut_dn  -  ut * duT2_dn / utperp2) / (t * utperp);
 
-	// covariant time derivatives
-	precision D_zt = ut * dzt_dt  +  ux * dzt_dx  +  uy * dzt_dy  +  un * dzt_dn  +  t * un * zn;
-	precision D_zn = ut * dzn_dt  +  ux * dzn_dx  +  uy * dzn_dy  +  un * dzn_dn  +  (ut * zn  +  un * zt) / t;
+
+
+	// longitudinal and transverse expansion rates: thetaL = z_\mu Dz u^\mu, thetaT = NablaT_\mu u^\mu
+	//:::::::::::::::::::::::::::::::::::::::::::::
+	precision thetaL = - zt2 * dut_dt  +  t2 * zn2 * dun_dn  +  ztzn * (t2 * dun_dt  -  dut_dn)  +  t * zn2 * ut;
+	precision thetaT = theta - thetaL;
+	precision thetaT_over2 = thetaT / 2.0;
 	//:::::::::::::::::::::::::::::::::::::::::::::
 
+	
 
-
+#if (NUMBER_OF_RESIDUAL_CURRENTS != 0)
 	// transverse projection tensor
 	//:::::::::::::::::::::::::::::::::::::::::::::
 	precision Xitt = 1.0  -  ut2  +  zt2;
@@ -538,11 +543,9 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 
 
-	// longitudinal and transverse expansion rates: thetaL = z_\mu Dz u^\mu, thetaT = NablaT_\mu u^\mu
-	//:::::::::::::::::::::::::::::::::::::::::::::
-	precision thetaL = - zt2 * dut_dt  +  t2 * zn2 * dun_dn  +  ztzn * (t2 * dun_dt  -  dut_dn)  +  t * zn2 * ut;
-	precision thetaT = theta - thetaL;
-	precision thetaT_over2 = thetaT / 2.0;
+	// covariant time derivatives
+	precision D_zt = ut * dzt_dt  +  ux * dzt_dx  +  uy * dzt_dy  +  un * dzt_dn  +  t * un * zn;
+	precision D_zn = ut * dzn_dt  +  ux * dzn_dx  +  uy * dzn_dy  +  un * dzn_dn  +  (ut * zn  +  un * zt) / t;
 	//:::::::::::::::::::::::::::::::::::::::::::::
 
 
@@ -571,15 +574,14 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	//:::::::::::::::::::::::::::::::::::::::::::::
 
 
+
 	// transverse shear stress tensor: \sigmaT^{\mu\nu} (explicit expressions very cumbersome and bug prone...is there a better way?)
 	//:::::::::::::::::::::::::::::::::::::::::::::
 	precision dut_dx_minus_dux_dt 	= dut_dx  -  dux_dt;
 	precision dut_dy_minus_duy_dt 	= dut_dy  -  duy_dt;
 	precision dut_dn_minus_t2dun_dt = dut_dn  -  t2 * dun_dt;
-
 	precision dux_dy_plus_duy_dx 	= dux_dy  +  duy_dx;
 	precision dux_dn_plus_t2dun_dx 	= dux_dn  +  t2 * dun_dx;
-
 	precision duy_dn_plus_t2dun_dy 	= duy_dn  +  t2 * dun_dy;
 
 
@@ -665,6 +667,31 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 					-  	Xixn * (Xixn * dux_dx  +  Xiyn * dux_dy_plus_duy_dx	  +  Xinn * dux_dn_plus_t2dun_dx)  
 					-  	Xiyn * (Xiyn * duy_dy  +  Xinn * duy_dn_plus_t2dun_dy)
 					-  	Xinn * (Xinn * (t2 * dun_dn  +  tut / 2.) +  thetaT_over2);
+#else
+	precision D_zt = 0.0;
+	precision D_zn = 0.0;
+
+	precision Dz_ut = 0.0; 
+	precision Dz_ux = 0.0; 
+	precision Dz_uy = 0.0; 
+	precision Dz_un = 0.0; 
+
+	precision znu_NablaTt_unu = 0.0;
+	precision znu_NablaTx_unu = 0.0;
+	precision znu_NablaTy_unu = 0.0;
+	precision znu_NablaTn_unu = 0.0;		
+
+	precision sTtt = 0.0;
+	precision sTtx = 0.0;
+	precision sTty = 0.0;
+	precision sTtn = 0.0;
+	precision sTxx = 0.0;
+	precision sTxy = 0.0;
+	precision sTxn = 0.0;
+	precision sTyy = 0.0;
+	precision sTyn = 0.0;
+	precision sTnn = 0.0;
+#endif
 					
 
 
@@ -819,6 +846,8 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 #ifdef PIMUNU
 	// compute 2nd order terms
+	precision pimunu_sTmunu =	pitt * sTtt  +  pixx * sTxx  +  piyy * sTyy  +  t2 * t2 * pinn * sTnn  
+							 +  2.0 * (pixy * sTxy  -  pitx * sTtx  -  pity * sTty  +  t2 * (pixn * sTxn  +  piyn * sTyn  -  pitn * sTtn));
 #else
 	// set 2nd order terms to zero 
 #endif
