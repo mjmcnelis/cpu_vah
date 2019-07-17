@@ -79,8 +79,10 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision t2 = t * t;		// useful expressions
 	precision t3 = t2 * t;
 
-	precision ut2 = ut * ut;
-	precision un2 = un * un;
+	precision tut  = t * ut;
+	precision ut2  = ut * ut;
+	precision un2  = un * un;
+	precision utun = ut * un;
 
 
 	// conserved variables
@@ -488,12 +490,6 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 
 
-	
-
-
-
-
-
 	// longitudinal basis vector
 	//:::::::::::::::::::::::::::::::::::::::::::::
 	precision zt = t * un / utperp;
@@ -502,6 +498,11 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision zt2  = zt * zt;
 	precision ztzn = zt * zn;
 	precision zn2  = zn * zn;
+
+	precision t2zn = t2 * zn;
+
+	precision unzn = un * zn;
+	precision unzt_minus_utzn = un * zt  -  ut * zn;
 
 	// spatial derivatives
 	precision dzt_dt = t * (dun_dt  -  un * duT2_dt / utperp2) / utperp  +  zt / t;
@@ -521,24 +522,155 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 
 
-	// covariant longitudinal derivatives of u
+	// transverse projection tensor
+	//:::::::::::::::::::::::::::::::::::::::::::::
+	precision Xitt = 1.0  -  ut2  +  zt2;
+	precision Xitx = - ut * ux;
+	precision Xity = - ut * uy;
+	precision Xitn = - utun  +  ztzn;
+	precision Xixx = - 1.0  -  ux * ux;
+	precision Xixy = - ux * uy;
+	precision Xixn = - ux * un;
+	precision Xiyy = - 1.0  -  uy * uy;
+	precision Xiyn = - uy * un;
+	precision Xinn = - 1.0 / t2  -  un2  + zn2;  
+	//:::::::::::::::::::::::::::::::::::::::::::::
+
+
+
+	// longitudinal and transverse expansion rates: thetaL = z_\mu Dz u^\mu, thetaT = NablaT_\mu u^\mu
+	//:::::::::::::::::::::::::::::::::::::::::::::
+	precision thetaL = - zt2 * dut_dt  +  t2 * zn2 * dun_dn  +  ztzn * (t2 * dun_dt  -  dut_dn)  +  t * zn2 * ut;
+	precision thetaT = theta - thetaL;
+	precision thetaT_over2 = thetaT / 2.0;
+	//:::::::::::::::::::::::::::::::::::::::::::::
+
+
+
+	// longitudinal covariant derivative of u: Dz u^\mu
+	//:::::::::::::::::::::::::::::::::::::::::::::
 	precision Dz_ut = - zt * dut_dt  -  zn * dut_dn  -  t * zn * un; 
 	precision Dz_ux = - zt * dux_dt  -  zn * dux_dn; 
 	precision Dz_uy = - zt * duy_dt  -  zn * duy_dn; 
 	precision Dz_un = - zt * dun_dt  -  zn * dun_dn  -  (ut * zn  +  un * zt) / t; 
+	//:::::::::::::::::::::::::::::::::::::::::::::
 
 
-	// longitudinal and transverse expansion rates
-	precision thetaL = - zt2 * dut_dt  +  t2 * zn2 * dun_dn  +  ztzn * (t2 * dun_dt  -  dut_dn)  +  t * zn2 * ut;
-	precision thetaT = theta - thetaL;
+
+	// transverse derivatives of u contracted in longitudinal direction: z_\nu NablaT^\mu u^\nu
+	//:::::::::::::::::::::::::::::::::::::::::::::
+	precision znu_dt_unu = zt * dut_dt  -  t2zn * dun_dt;
+	precision znu_dx_unu = zt * dut_dx  -  t2zn * dun_dx;
+	precision znu_dy_unu = zt * dut_dy  -  t2zn * dun_dy;
+	precision znu_dn_unu = zt * dut_dn  -  t2zn * dun_dn;
+
+	precision znu_NablaTt_unu = Xitt * (znu_dt_unu  - t * unzn)  +  Xitx * znu_dx_unu  +  Xity * znu_dy_unu  +  Xitn * (znu_dn_unu  +  t * unzt_minus_utzn);
+	precision znu_NablaTx_unu = Xitx * (znu_dt_unu  - t * unzn)  +  Xixx * znu_dx_unu  +  Xixy * znu_dy_unu  +  Xixn * (znu_dn_unu  +  t * unzt_minus_utzn);
+	precision znu_NablaTy_unu = Xity * (znu_dt_unu  - t * unzn)  +  Xixy * znu_dx_unu  +  Xiyy * znu_dy_unu  +  Xiyn * (znu_dn_unu  +  t * unzt_minus_utzn);
+	precision znu_NablaTn_unu = Xitn * (znu_dt_unu  - t * unzn)  +  Xixn * znu_dx_unu  +  Xiyn * znu_dy_unu  +  Xinn * (znu_dn_unu  +  t * unzt_minus_utzn);
+	//:::::::::::::::::::::::::::::::::::::::::::::
+
+
+	// transverse shear stress tensor: \sigmaT^{\mu\nu} (explicit expressions very cumbersome and bug prone...is there a better way?)
+	//:::::::::::::::::::::::::::::::::::::::::::::
+	precision dut_dx_minus_dux_dt 	= dut_dx  -  dux_dt;
+	precision dut_dy_minus_duy_dt 	= dut_dy  -  duy_dt;
+	precision dut_dn_minus_t2dun_dt = dut_dn  -  t2 * dun_dt;
+
+	precision dux_dy_plus_duy_dx 	= dux_dy  +  duy_dx;
+	precision dux_dn_plus_t2dun_dx 	= dux_dn  +  t2 * dun_dx;
+
+	precision duy_dn_plus_t2dun_dy 	= duy_dn  +  t2 * dun_dy;
+
+
+	precision sTtt =	Xitt * (Xitt * dut_dt  +  Xitx * dut_dx_minus_dux_dt  +  Xity * dut_dy_minus_duy_dt  +  Xitn * dut_dn_minus_t2dun_dt - thetaT_over2 + Xinn*tut/2.)
+					-  	Xitx * (Xitx * dux_dx  +  Xity * dux_dy_plus_duy_dx	  +  Xitn * dux_dn_plus_t2dun_dx)  
+					-  	Xity * (Xity * duy_dy  +  Xitn * duy_dn_plus_t2dun_dy)
+					-  	Xitn * (Xitn * (t2 * dun_dn  +  tut));
 	
 
+	precision sTtx = 	Xitx * (Xitt * dut_dt  -  Xixx * dux_dx  -  thetaT_over2  +  Xinn * tut / 2.)  -  Xity * Xixy * duy_dy  -  Xitn * Xixn * (t2 * dun_dn  +  tut)
+					+	0.5 * (		(Xitx * Xitx  +  Xixx * Xitt) * dut_dx_minus_dux_dt
+								+	(Xity * Xitx  +  Xixy * Xitt) * dut_dy_minus_duy_dt
+								+	(Xitn * Xitx  +  Xixn * Xitt) * dut_dn_minus_t2dun_dt	
+								-	(Xity * Xixx  +  Xixy * Xitx) * dux_dy_plus_duy_dx
+								-	(Xitn * Xixx  +  Xixn * Xitx) * dux_dn_plus_t2dun_dx
+								-	(Xitn * Xixy  +  Xixn * Xity) * duy_dn_plus_t2dun_dy	);
 
-	
+
+	precision sTty = 	Xity * (Xitt * dut_dt  -  Xixy * dux_dx  -  thetaT_over2  +  Xinn * tut / 2.)  -  Xity * Xiyy * duy_dy  -  Xitn * Xiyn * (t2 * dun_dn  +  tut)
+					+	0.5 * (		(Xitx * Xity  +  Xixy * Xitt) * dut_dx_minus_dux_dt
+								+	(Xity * Xity  +  Xiyy * Xitt) * dut_dy_minus_duy_dt
+								+	(Xitn * Xity  +  Xiyn * Xitt) * dut_dn_minus_t2dun_dt	
+								-	(Xity * Xixy  +  Xiyy * Xitx) * dux_dy_plus_duy_dx
+								-	(Xitn * Xixy  +  Xiyn * Xitx) * dux_dn_plus_t2dun_dx
+								-	(Xitn * Xiyy  +  Xiyn * Xity) * duy_dn_plus_t2dun_dy	);
+
+
+	precision sTtn = 	Xitn * (Xitt * dut_dt  -  Xixn * dux_dx  -  thetaT_over2  +  Xinn * tut / 2.)  -  Xity * Xiyn * duy_dy  -  Xitn * Xinn * (t2 * dun_dn  +  tut)
+					+	0.5 * (		(Xitx * Xitn  +  Xixn * Xitt) * dut_dx_minus_dux_dt
+								+	(Xity * Xitn  +  Xiyn * Xitt) * dut_dy_minus_duy_dt
+								+	(Xitn * Xitn  +  Xinn * Xitt) * dut_dn_minus_t2dun_dt	
+								-	(Xity * Xixn  +  Xiyn * Xitx) * dux_dy_plus_duy_dx
+								-	(Xitn * Xixn  +  Xinn * Xitx) * dux_dn_plus_t2dun_dx
+								-	(Xitn * Xiyn  +  Xinn * Xity) * duy_dn_plus_t2dun_dy	);
+
+				
+	precision sTxx =	Xitx * (Xitx * dut_dt  +  Xixx * dut_dx_minus_dux_dt  +  Xixy * dut_dy_minus_duy_dt   +  Xixn * dut_dn_minus_t2dun_dt)  
+					-  	Xixx * (Xixx * dux_dx  +  Xixy * dux_dy_plus_duy_dx	  +  Xixn * dux_dn_plus_t2dun_dx  +  thetaT_over2  -  Xinn * tut / 2.)  
+					-  	Xixy * (Xixy * duy_dy  +  Xixn * duy_dn_plus_t2dun_dy)
+					-  	Xixn * (Xixn * (t2 * dun_dn  +  tut));
+
+
+
+	precision sTxy =	- Xixy * (Xixx * dux_dx  +  Xiyy * duy_dy  +  thetaT_over2  -  Xinn * tut / 2.)  +  Xitx * Xity * dut_dt  -  Xixn * Xiyn * (t2 * dun_dn  +  tut)
+
+					+	0.5 * (		(Xixx * Xity  +  Xixy * Xitx) * dut_dx_minus_dux_dt
+								+	(Xixy * Xity  +  Xiyy * Xitx) * dut_dy_minus_duy_dt
+								+	(Xixn * Xity  +  Xiyn * Xitx) * dut_dn_minus_t2dun_dt	
+								-	(Xixy * Xixy  +  Xiyy * Xixx) * dux_dy_plus_duy_dx
+								-	(Xixn * Xixy  +  Xiyn * Xixx) * dux_dn_plus_t2dun_dx
+								-	(Xixn * Xiyy  +  Xiyn * Xixy) * duy_dn_plus_t2dun_dy	);
+
+
+	precision sTxn =	- Xixn * (Xixx * dux_dx  +  Xiyn * duy_dy  +  thetaT_over2  -  Xinn * tut / 2.)  +  Xitx * Xitn * dut_dt  -  Xixn * Xinn * (t2 * dun_dn  +  tut)
+
+					+	0.5 * (		(Xixx * Xitn  +  Xixn * Xitx) * dut_dx_minus_dux_dt
+								+	(Xixy * Xitn  +  Xiyn * Xitx) * dut_dy_minus_duy_dt
+								+	(Xixn * Xitn  +  Xinn * Xitx) * dut_dn_minus_t2dun_dt	
+								-	(Xixy * Xixn  +  Xiyn * Xixx) * dux_dy_plus_duy_dx
+								-	(Xixn * Xixn  +  Xinn * Xixx) * dux_dn_plus_t2dun_dx
+								-	(Xixn * Xiyn  +  Xinn * Xixy) * duy_dn_plus_t2dun_dy	);
+
+
+	precision sTyy =	Xity * (Xity * dut_dt  +  Xixy * dut_dx_minus_dux_dt  +  Xiyy * dut_dy_minus_duy_dt   +  Xiyn * dut_dn_minus_t2dun_dt)  
+					-  	Xixy * (Xixy * dux_dx  +  Xiyy * dux_dy_plus_duy_dx	  +  Xiyn * dux_dn_plus_t2dun_dx)  
+					-  	Xiyy * (Xiyy * duy_dy  +  Xiyn * duy_dn_plus_t2dun_dy +  thetaT_over2  -  Xinn * tut / 2.)
+					-  	Xiyn * (Xiyn * (t2 * dun_dn  +  tut));
+
+
+	precision sTyn =	- Xiyn * (Xixy * dux_dx  +  Xiyy * duy_dy  +  thetaT_over2  -  Xinn * tut / 2.)  +  Xity * Xitn * dut_dt  -  Xiyn * Xinn * (t2 * dun_dn  +  tut)
+
+					+	0.5 * (		(Xixy * Xitn  +  Xixn * Xity) * dut_dx_minus_dux_dt
+								+	(Xiyy * Xitn  +  Xiyn * Xity) * dut_dy_minus_duy_dt
+								+	(Xiyn * Xitn  +  Xinn * Xity) * dut_dn_minus_t2dun_dt	
+
+								-	(Xiyy * Xixn  +  Xiyn * Xixy) * dux_dy_plus_duy_dx
+								-	(Xiyn * Xixn  +  Xinn * Xixy) * dux_dn_plus_t2dun_dx
+
+								-	(Xiyn * Xiyn  +  Xinn * Xiyy) * duy_dn_plus_t2dun_dy	);
+
+
+	precision sTnn =	Xitn * (Xitn * dut_dt  +  Xixn * dut_dx_minus_dux_dt  +  Xiyn * dut_dy_minus_duy_dt   +  Xinn * dut_dn_minus_t2dun_dt)  
+					-  	Xixn * (Xixn * dux_dx  +  Xiyn * dux_dy_plus_duy_dx	  +  Xinn * dux_dn_plus_t2dun_dx)  
+					-  	Xiyn * (Xiyn * duy_dy  +  Xinn * duy_dn_plus_t2dun_dy)
+					-  	Xinn * (Xinn * (t2 * dun_dn  +  tut / 2.) +  thetaT_over2);
+					
+
 
 	// relaxation times
-	precision peq = equilibriumPressure(e);
-	precision T   = effectiveTemperature(e);
+	precision p = equilibriumPressure(e);
+	precision T = effectiveTemperature(e);
 
 	precision taupiInv = 0.2 * T / etabar;
 
@@ -550,24 +682,34 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision zeta_LL = aniso.I_240  -  3.0 * pl;
 	precision zeta_TL = aniso.I_221  -  pl;
 
+	precision lambda_WuL = 1.0;	
+	precision lambda_WTL = 1.0;
+	
+	
+
 	// pt coefficients
 #if (PT_MATCHING == 1)
 	precision zeta_LT = aniso.I_221  -  pt;
 	precision zeta_TT = 2.0 * (aniso.I_202 - pt);
+	precision lambda_WuT = 1.0;
+	precision lambda_WTT = 1.0;
 #endif
 
 
 
-	// L^munu components and derivatives
+	// L^munu components
 	//:::::::::::::::::::::::::::::::::::::::::::::
 	precision dp  = pl - pt;
 
 	precision Ltt = dp * zt2;
 	precision Ltn = dp * ztzn;
-	//precision Lnn = dp * zn2;
-
 	precision tnn = (e + pt) * un2  +  pt / t2  +  dp * zn2;
+	//:::::::::::::::::::::::::::::::::::::::::::::
 
+
+
+	// L^munu derivatives in conservation laws
+	//:::::::::::::::::::::::::::::::::::::::::::::
 	precision dLtt_dx = (dpl_dx - dpt_dx) * zt2  +  2.0 * dp * zt * dzt_dx;
 	precision dLtt_dy = (dpl_dy - dpt_dy) * zt2  +  2.0 * dp * zt * dzt_dy;
 	precision dLtt_dn = (dpl_dn - dpt_dn) * zt2  +  2.0 * dp * zt * dzt_dn;
@@ -581,8 +723,10 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 
 
-	// W^munu components and derivatives
+	 
 #ifdef WTZMU
+	// W^munu components
+	//:::::::::::::::::::::::::::::::::::::::::::::
 	precision Wtt = 2.0 * WtTz * zt;
 	precision Wtx = WxTz * zt;
 	precision Wty = WyTz * zt;
@@ -591,7 +735,12 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision Wxn = WxTz * zn;
 	precision Wyn = WyTz * zn;
 	precision Wnn = 2.0 * WnTz * zn;
+	//:::::::::::::::::::::::::::::::::::::::::::::
 
+
+
+	// W^munu derivatives in conservation laws
+	//:::::::::::::::::::::::::::::::::::::::::::::
 	precision dWtt_dx = 2.0 * (dWtTz_dx * zt  +  WtTz * dzt_dx);
 	precision dWtt_dy = 2.0 * (dWtTz_dy * zt  +  WtTz * dzt_dy);
 	precision dWtt_dn = 2.0 * (dWtTz_dn * zt  +  WtTz * dzt_dn);
@@ -615,6 +764,18 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision dWyn_dn = dWyTz_dn * zn  +  WyTz * dzn_dn;
 
 	precision dWnn_dn = 2.0 * (dWnTz_dn * zn  +  WnTz * dzn_dn);
+	//:::::::::::::::::::::::::::::::::::::::::::::
+
+
+
+	// 2nd order gradient terms in relaxation equations (pl, pt)
+	//:::::::::::::::::::::::::::::::::::::::::::::
+	precision WTzmu_D_zmu  = WtTz * D_zt  -  t2 * WnTz * D_zn;
+
+	precision WTzmu_Dz_umu = WtTz * Dz_ut  -  WxTz * Dz_ux  -  WyTz * Dz_uy  -  t2 * WnTz * Dz_un;
+	
+	precision WTzmu_znu_NablaTmu_unu = WtTz * znu_NablaTt_unu  -  WxTz * znu_NablaTx_unu  -  WyTz * znu_NablaTy_unu  -  t2 * WnTz * znu_NablaTt_unu;
+	//:::::::::::::::::::::::::::::::::::::::::::::
 #else
 	precision Wtt = 0.0;
 	precision Wtx = 0.0;
@@ -648,15 +809,22 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision dWyn_dn = 0.0;
 
 	precision dWnn_dn = 0.0;
+
+
+	precision WTzmu_D_zmu  = 0.0;
+	precision WTzmu_Dz_umu = 0.0;
+	precision WTzmu_znu_NablaTmu_unu = 0.0;
 #endif
 
 
+#ifdef PIMUNU
+	// compute 2nd order terms
+#else
+	// set 2nd order terms to zero 
+#endif
 
-	// 2nd order gradients
-	//:::::::::::::::::::::::::::::::::::::::::::::
-	precision WTzmu_D_zmu = WtTz * D_zt  -  t2 * WnTz * D_zn;
 
-	precision WTzmu_Dz_umu = WtTz * Dz_ut  -  WxTz * Dz_ux  -  WyTz * Dz_uy  -  t2 * WnTz * Dz_un;
+	
 	//:::::::::::::::::::::::::::::::::::::::::::::
 
 
