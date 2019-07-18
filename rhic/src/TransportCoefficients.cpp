@@ -7,7 +7,6 @@
 #include "../include/TransportCoefficients.h"
 #include "../include/DynamicalVariables.h"
 #include "../include/EquationOfState.h"
-#include "../include/Hypergeometric.h"
 
 
 double de_error  = 1.e-7;
@@ -15,42 +14,28 @@ double dpl_error = 1.e-7;
 double dpt_error = 1.e-7;
 
 
-inline precision hyper(precision z)
-{
-	precision sqrtz = sqrt(fabs(z));
 
-	if(z > delta)
-	{
-		return atan(sqrtz) / sqrtz;
-	}
-	else
-	{
-		return atanh(sqrtz) / sqrtz;
-	}
-}
+// void test_kinetic_formulas(precision e, precision pl, precision pt, precision z, precision t, precision aL2, precision Lambda4)
+// {
+// 	precision prefactor = EOS_FACTOR * Lambda4 / 2.0;
 
+// 	precision e_a  = prefactor * t_200(z, t) * aL2;
+// 	precision pl_a = prefactor * t_220(z, t) * aL2;
+// 	precision pt_a = prefactor * t_201(z, t) / 2.0;
 
-void test_kinetic_formulas(precision e, precision pl, precision pt, precision z, precision t, precision aL2, precision Lambda4)
-{
-	precision prefactor = EOS_FACTOR * Lambda4 / 2.0;
+// 	precision de  = fabs((e  - e_a)  / e);
+// 	precision dpl = fabs((pl - pl_a) / pl);
+// 	precision dpt = fabs((pt - pt_a) / pt);
 
-	precision e_a  = prefactor * t_200(z, t) * aL2;
-	precision pl_a = prefactor * t_220(z, t) * aL2;
-	precision pt_a = prefactor * t_201(z, t) / 2.0;
+// 	if(de > de_error || dpl > dpl_error || dpt > dpt_error)
+// 	{
+// 		de_error  = fmax(de,  de_error);
+// 		dpl_error = fmax(dpl, dpl_error);
+// 		dpt_error = fmax(dpt, dpt_error);
 
-	precision de  = fabs((e  - e_a)  / e);
-	precision dpl = fabs((pl - pl_a) / pl);
-	precision dpt = fabs((pt - pt_a) / pt);
-
-	if(de > de_error || dpl > dpl_error || dpt > dpt_error)
-	{
-		de_error  = fmax(de,  de_error);
-		dpl_error = fmax(dpl, dpl_error);
-		dpt_error = fmax(dpt, dpt_error);
-
-		printf("Transport coefficients error: |dF| = (%.6g, %.6g, %.6g)\n", de_error, dpl_error, dpt_error);
-	}
-}
+// 		printf("Transport coefficients error: |dF| = (%.6g, %.6g, %.6g)\n", de_error, dpl_error, dpt_error);
+// 	}
+// }
 
 
 transport_coefficients::transport_coefficients()
@@ -63,6 +48,121 @@ transport_coefficients::~transport_coefficients()
 {
 
 }
+
+void transport_coefficients::compute_hypergeometric_functions(precision z)
+{	
+	precision z2 = z  * z;
+	precision z3 = z2 * z;
+
+	if(z > delta)
+	{
+		precision sqrtz = sqrt(z);
+		precision t = atan(sqrtz) / sqrtz;
+
+		t_200 = 1.  +  (1. + z) * t;
+
+		//t_220 = (-1.0  +  (1.0 + z) * t) / z;
+
+		//t_201 = (1.0  +  (z - 1.0) * t) / z;
+
+		t_240 = (3.  +  2. * z  -  3. * (1. + z) * t) / z2;
+
+		t_221 = (-3.  +  (3. + z) * t) / z2;
+
+
+	#ifdef WTZMU
+		t_441 = (-15.  -  13. * z  +  3. * (1. + z) * (5. + z) * t) / (4. * z3);
+
+		t_421 = (3.  +  z  +  (1. + z) * (z - 3.) * t) / (4. * z2);
+	#endif
+
+
+	#if (PT_MATCHING == 1)
+		t_202 = (3.  +  z  +  (z - 3.) * (1. + z) * t) / (z2 * (1. + z));
+	#ifdef WTZMU
+		t_422 = (15.  +  z +  (z * (z - 6.) - 15.)* t) / (4. * z3);
+	#endif
+	#endif
+
+
+	}
+	else if(z < -delta && z > -1.0)
+	{
+		precision sqrtmz = sqrt(-z);
+		precision t = atanh(sqrtmz) / sqrtmz;
+
+		t_200 = 1.  +  (1. + z) * t;
+
+		//t_220 = (-1.0  +  (1.0 + z) * t) / z;
+
+		//t_201 = (1.0  +  (z - 1.0) * t) / z;
+
+		t_240 = (3.  +  2. * z  -  3. * (1. + z) * t) / z2;
+
+		t_221 = (-3.  +  (3. + z) * t) / z2;
+
+
+	#ifdef WTZMU
+		t_441 = (-15.  -  13. * z  +  3. * (1. + z) * (5. + z) * t) / (4. * z3);
+
+		t_421 = (3.  +  z  +  (1. + z) * (z - 3.) * t) / (4. * z2);
+	#endif
+
+
+	#if (PT_MATCHING == 1)
+		t_202 = (3.  +  z  +  (z - 3.) * (1. + z) * t) / (z2 * (1. + z));
+	#ifdef WTZMU
+		t_422 = (15.  +  z +  (z * (z - 6.) - 15.)* t) / (4. * z3);
+	#endif
+	#endif
+
+
+	}
+	else if(fabs(z) <= delta)
+	{
+		precision z4 = z3 * z;
+		precision z5 = z4 * z;
+		precision z6 = z5 * z;
+
+
+		t_200 = 2. + 0.6666666666666667*z - 0.1333333333333333*z2 + 0.05714285714285716*z3 - 0.031746031746031744*z4 + 0.020202020202020193*z5 - 0.013986013986013984*z6;
+
+		//t_220 = 0.6666666666666667 - 0.1333333333333333*z + 0.05714285714285716*z2 - 0.031746031746031744*z3 + 0.020202020202020193*z4 - 0.013986013986013984*z5 + 0.010256410256410262*z6;
+
+		//t_201 = 1.3333333333333333 - 0.5333333333333333*z + 0.34285714285714286*z2 - 0.25396825396825395*z3 + 0.20202020202020202*z4 - 0.16783216783216784*z5 + 0.14358974358974358*z6;
+
+		t_240 = 0.4 - 0.17142857142857149*z + 0.09523809523809523*z2 - 0.06060606060606058*z3 + 0.04195804195804195*z4 - 0.030769230769230785*z5 + 0.023529411764705882*z6;
+
+		t_221 = 0.2666666666666668 - 0.22857142857142854*z + 0.19047619047619047*z2 - 0.1616161616161616*z3 + 0.13986013986013987*z4 - 0.12307692307692308*z5 + 0.10980392156862744*z6;
+
+
+	#ifdef WTZMU
+		t_441 = 0.1142857142857145 - 0.07619047619047613*z + 0.051948051948051896*z2 - 0.037296037296037254*z3 + 
+   0.027972027972028003*z4 - 0.021719457013574667*z5 + 0.017337461300309585*z6;
+
+   		t_421 = 0.2666666666666666 - 0.0761904761904762*z + 0.0380952380952381*z2 - 0.023088023088023088*z3 + 0.015540015540015537*z4 - 
+   0.011188811188811189*z5 + 0.00844645550527904*z6;
+	#endif
+
+
+	#if (PT_MATCHING == 1)
+		t_202 = 1.0666666666666664 + z*(-1.3714285714285712 + z*(1.5238095238095237 + z*(-1.616161616161616 +
+            z*(1.6783216783216781 + z*(-1.7230769230769227 + z*(1.756862745098039 + z*(-1.7832817337461297 + 1.8045112781954886*z)))))));
+	#ifdef WTZMU
+		t_422 = 0.15238095238095234 - 0.15238095238095234*z + 0.13852813852813856*z2 - 0.12432012432012436*z3 + 0.11188811188811187*z4 - 
+   0.1013574660633484*z5 + 0.09246646026831787*z6;
+   	#endif
+	#endif
+
+
+	}
+	else
+	{
+		printf("Error: z = %lf is out of bounds\n", z);
+		exit(-1);
+	}
+}
+
 
 
 void transport_coefficients::compute_transport_coefficients(precision e, precision pl, precision pt)
@@ -113,7 +213,7 @@ void transport_coefficients::compute_transport_coefficients(precision e, precisi
 			//exit(-1);
 			z = max(-0.99999999, min(z, 1.e-8));
 		}
-		aL = 1.0 / sqrt(1.0 + z);
+		aL  = 1.0 / sqrt(1.0 + z);
 		aL2 = 1.0 / (1.0 + z);
 	}
 	else
@@ -151,24 +251,62 @@ void transport_coefficients::compute_transport_coefficients(precision e, precisi
 
  //   	aL = max(0.001, min(aL, 20.0));
 
-	precision t = hyper(z);
+
+	// compute the t_nlq functions
+
+
+	compute_hypergeometric_functions(z);
 
 
 	//compute_aniso_functions()
 
-	precision Lambda4 = 2.0 * e / (aL2 * EOS_FACTOR * t_200(z, t));
+	precision Lambda4 = 2.0 * e / (aL2 * EOS_FACTOR * t_200);
+	precision Lambda2 = sqrt(Lambda4);
 	//precision Lambda  = pow(Lambda4, 0.25);
 
 	//test_kinetic_formulas(e, pl, pt, z, t, aL2, Lambda4);
 
 	precision prefactor = EOS_FACTOR * Lambda4 / 2.0;
 
-	I_240 = prefactor * t_240(z, t) * aL2;
-	I_221 = prefactor * t_221(z, t) / 2.0;
 
-#if (PT_MATCHING == 1)
-	I_202 = prefactor * t_202(z, t) / 8.0 / aL2;
+	// pl anisotropic functions
+	precision I_240 = prefactor * t_240 * aL2;
+	precision I_221 = prefactor * t_221 / 2.0;
+#ifdef WTZMU
+	precision I_441 = prefactor * t_441 * Lambda2 * aL2 * 10.0;
+	precision I_421 = prefactor * t_421 * Lambda2 * aL2 * 10.0;	
 #endif
+
+	// pt anisotropic functions 
+#if (PT_MATCHING == 1)
+	precision I_202 = prefactor * t_202 / 8.0 / aL2;	
+#ifdef WTZMU
+	precision I_422 = prefactor * t_422 * Lambda2 * 2.5;
+#endif
+#endif
+
+
+
+	// pl transport coefficients
+	zeta_LL = I_240  -  3.0 * pl;
+	zeta_TL = I_221  -  pl;
+#ifdef WTZMU
+	lambda_WuL = I_441 / I_421;
+	lambda_WTL = 1.0 - lambda_WuL;
+#endif
+
+
+	// pt transport coefficients
+#if (PT_MATCHING == 1)
+	zeta_LT = I_221  -  pt;
+	zeta_TT = 2.0 * (I_202 - pt);
+#ifdef WTZMU
+	precision lambda_WTT = 2.0 * I_422 / I_421;
+	precision lambda_WuT = lambda_WTT - 1.0;
+#endif
+#endif
+
+
 
 #else
 	// nonconformal formula

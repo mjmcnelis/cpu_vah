@@ -6,7 +6,6 @@
 #include "../include/Precision.h"
 #include "../include/DynamicalVariables.h"
 #include "../include/EquationofState.h"
-#include "../include/Hypergeometric.h"
 
 const double hbarc = 0.197326938;
 
@@ -254,15 +253,15 @@ void output_bjorken_test(const precision * const e, const precision * const pl, 
 {
 	FILE * energy;
 	FILE * plptratio;
-	FILE * temperature;
-	FILE * aLplot;
-	FILE * Lambdaplot;
+	// FILE * temperature;
+	// FILE * aLplot;
+	// FILE * Lambdaplot;
 
 	energy      = fopen("output/eratio.dat", "a");
 	plptratio   = fopen("output/plptratio.dat", "a");
-	temperature = fopen("output/T.dat", "a");
-	aLplot      = fopen("output/aL.dat", "a");
-	Lambdaplot	= fopen("output/Lambda.dat", "a");
+	// temperature = fopen("output/T.dat", "a");
+	// aLplot      = fopen("output/aL.dat", "a");
+	// Lambdaplot	= fopen("output/Lambda.dat", "a");
 
 	int s = center_index(nx, ny, nz, nx + 4, ny + 4, nz + 4);
 
@@ -270,29 +269,29 @@ void output_bjorken_test(const precision * const e, const precision * const pl, 
 	precision pl_s = pl[s];
 	precision pt_s = 0.5 * (e_s - pl_s);
 
-	precision T = effectiveTemperature(e_s) * hbarc;
-	precision aL = compute_conformal_aL(pl_s, e_s);
+	//precision T = effectiveTemperature(e_s) * hbarc;
+	//precision aL = compute_conformal_aL(pl_s, e_s);
 
-	precision z = 1.0 / (aL * aL)  -  1.0;
+	//precision z = 1.0 / (aL * aL)  -  1.0;
 
-	precision hype = 1.0;
+	//precision hype = 1.0;
 
-	if(z > delta) hype = atan(sqrt(z)) /sqrt(z);
-	else if(z < - delta && z > -1.0) hype = atanh(sqrt(-z)) / sqrt(-z);
+	//if(z > delta) hype = atan(sqrt(z)) /sqrt(z);
+	//else if(z < - delta && z > -1.0) hype = atanh(sqrt(-z)) / sqrt(-z);
 
-	precision Lambda = pow(2.0 * e_s / (aL * aL * EOS_FACTOR * t_200(z, hype)), 0.25) * hbarc;
+	//precision Lambda = pow(2.0 * e_s / (aL * aL * EOS_FACTOR * t_200(z, hype)), 0.25) * hbarc;
 
 	fprintf(energy, "%.3f\t%.8f\n", t, e_s);
 	fprintf(plptratio, "%.3f\t%.8f\n", t, pl_s / pt_s);
-	fprintf(temperature, "%.3f\t%.8f\n", t, T);
-	fprintf(aLplot, "%.3f\t%.8f\n", t, aL);
-	fprintf(Lambdaplot, "%.3f\t%.8f\n", t, Lambda);
+	// fprintf(temperature, "%.3f\t%.8f\n", t, T);
+	// fprintf(aLplot, "%.3f\t%.8f\n", t, aL);
+	// fprintf(Lambdaplot, "%.3f\t%.8f\n", t, Lambda);
 
 	fclose(energy);
 	fclose(plptratio);
-	fclose(temperature);
-	fclose(aLplot);
-	fclose(Lambdaplot);
+	// fclose(temperature);
+	// fclose(aLplot);
+	// fclose(Lambdaplot);
 }
 
 

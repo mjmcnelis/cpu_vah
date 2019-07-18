@@ -85,6 +85,12 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 
 				// regulate transverse shear stress
 			#ifdef PIMUNU
+
+
+				// IDEA
+				// - can reproject all the components (before or after regulating? probably after)
+
+
 				precision pitt = q->pitt[s];
 				precision pitx = q->pitx[s];
 				precision pity = q->pity[s];

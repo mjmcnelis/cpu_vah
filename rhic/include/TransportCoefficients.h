@@ -7,6 +7,7 @@
 
 using namespace std;
 
+const precision delta = 0.01;
 
 class transport_coefficients
 {
@@ -20,15 +21,48 @@ class transport_coefficients
 		// waste as little time opening and reading the files
 
 	public:
-		precision I_240;		// make a list of all the functions I need
-		precision I_221;
+
+		// pl coefficients
+		precision zeta_LL;
+		precision zeta_TL;
+	#ifdef WTZMU
+		precision lambda_WuL;
+		precision lambda_WTL;
+	#endif
+
+		// pt coefficients
 
 	#if (PT_MATCHING == 1)
-		precision I_202;
+		precision zeta_LT;
+		precision zeta_TT;
+	#ifdef WTZMU
+		precision lambda_WuT;
+		precision lambda_WTT;
 	#endif
+	#endif
+	
+		precision t_200;
+		precision t_240;
+		precision t_221;
+
+	#ifdef WTZMU
+		precision t_441;
+		precision t_421;
+	#endif
+
+	#if (PT_MATCHING == 1)
+		precision t_202;
+	#ifdef WTZMU
+		precision t_422;
+	#endif
+	#endif
+		
+		
 
 		transport_coefficients();
 		~transport_coefficients();
+
+		void compute_hypergeometric_functions(precision z);
 
 		// gauss-laguerre data
 		//void load_roots_and_weights();
