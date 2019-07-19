@@ -84,6 +84,7 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision un2  = un * un;
 	precision utun = ut * un;
 
+	precision p = equilibriumPressure(e);
 
 	// conserved variables
 	precision ttt = q[0];
@@ -139,8 +140,10 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 #if (PT_MATCHING == 0)
 	precision e_sim = e1[0];	// e [i-1, i+1]
 	precision e_sip = e1[1];
+
 	precision e_sjm = e1[2];	// e [j-1, j+1]
 	precision e_sjp = e1[3];
+	
 	precision e_skm = e1[4];	// e [k-1, k+1]
 	precision e_skp = e1[5];
 
@@ -154,8 +157,10 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 	precision pl_sim = qi1[n];		// pl [i-1, i+1]	(sim = i-1)
 	precision pl_sip = qi1[n + 1];	//				  	(sip = i+1)
+
 	precision pl_sjm = qj1[n];		// pl [j-1, j+1]	(sjm = j-1)
 	precision pl_sjp = qj1[n + 1];  //				 	(sjp = j+1)
+
 	precision pl_skm = qk1[n];		// pl [k-1, k+1]  	(skm = k-1)
 	precision pl_skp = qk1[n + 1];	//					(skp = k+1)
 
@@ -169,8 +174,10 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 	precision pt_sim = qi1[n];		// pt [i-1, i+1]
 	precision pt_sip = qi1[n + 1];
+
 	precision pt_sjm = qj1[n];		// pt [j-1, j+1]
 	precision pt_sjp = qj1[n + 1];
+
 	precision pt_skm = qk1[n];		// pt [k-1, k+1]
 	precision pt_skp = qk1[n + 1];
 
@@ -187,8 +194,10 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 	precision pitt_sim = qi1[n];		// pitt [i-1, i+1]
 	precision pitt_sip = qi1[n + 1];
+
 	precision pitt_sjm = qj1[n];		// pitt [j-1, j+1]
 	precision pitt_sjp = qj1[n + 1];
+
 	precision pitt_skm = qk1[n];		// pitt [k-1, k+1]
 	precision pitt_skp = qk1[n + 1];
 
@@ -200,8 +209,10 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 	precision pitx_sim = qi1[n];		// pitx [i-1, i+1]
 	precision pitx_sip = qi1[n + 1];
+
 	precision pitx_sjm = qj1[n];		// pitx [j-1, j+1]
 	precision pitx_sjp = qj1[n + 1];
+
 	precision pitx_skm = qk1[n];		// pitx [k-1, k+1]
 	precision pitx_skp = qk1[n + 1];
 
@@ -213,8 +224,10 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 	precision pity_sim = qi1[n];		// pity [i-1, i+1]
 	precision pity_sip = qi1[n + 1];
+
 	precision pity_sjm = qj1[n];		// pity [j-1, j+1]
 	precision pity_sjp = qj1[n + 1];
+
 	precision pity_skm = qk1[n];		// pity [k-1, k+1]
 	precision pity_skp = qk1[n + 1];
 
@@ -226,8 +239,10 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 	precision pitn_sim = qi1[n];		// pitn [i-1, i+1]
 	precision pitn_sip = qi1[n + 1];
+
 	precision pitn_sjm = qj1[n];		// pitn [j-1, j+1]
 	precision pitn_sjp = qj1[n + 1];
+
 	precision pitn_skm = qk1[n];		// pitn [k-1, k+1]
 	precision pitn_skp = qk1[n + 1];
 
@@ -246,6 +261,7 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 	precision pixy_sim = qi1[n];		// pixy [i-1, i+1]
 	precision pixy_sip = qi1[n + 1];
+
 	precision pixy_sjm = qj1[n];		// pixy [j-1, j+1]
 	precision pixy_sjp = qj1[n + 1];
 
@@ -256,6 +272,7 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 	precision pixn_sim = qi1[n];		// pixn [i-1, i+1]
 	precision pixn_sip = qi1[n + 1];
+
 	precision pixn_skm = qk1[n];		// pixn [k-1, k+1]
 	precision pixn_skp = qk1[n + 1];
 
@@ -273,6 +290,7 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 	precision piyn_sjm = qj1[n];		// piyn [j-1, j+1]
 	precision piyn_sjp = qj1[n + 1];
+
 	precision piyn_skm = qk1[n];		// piyn [k-1, k+1]
 	precision piyn_skp = qk1[n + 1];
 
@@ -322,8 +340,10 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 	precision WtTz_sim = qi1[n];		// WtTz [i-1, i+1]
 	precision WtTz_sip = qi1[n + 1];
+
 	precision WtTz_sjm = qj1[n];		// WtTz [j-1, j+1]
 	precision WtTz_sjp = qj1[n + 1];
+
 	precision WtTz_skm = qk1[n];		// WtTz [k-1, k+1]
 	precision WtTz_skp = qk1[n + 1];
 
@@ -335,8 +355,10 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 	precision WxTz_sim = qi1[n];		// WxTz [i-1, i+1]
 	precision WxTz_sip = qi1[n + 1];
+
 	precision WxTz_sjm = qj1[n];		// WxTz [j-1, j+1]
 	precision WxTz_sjp = qj1[n + 1];
+
 	precision WxTz_skm = qk1[n];		// WxTz [k-1, k+1]
 	precision WxTz_skp = qk1[n + 1];
 
@@ -348,8 +370,10 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 	precision WyTz_sim = qi1[n];		// WyTz [i-1, i+1]
 	precision WyTz_sip = qi1[n + 1];
+
 	precision WyTz_sjm = qj1[n];		// WyTz [j-1, j+1]
 	precision WyTz_sjp = qj1[n + 1];
+
 	precision WyTz_skm = qk1[n];		// WyTz [k-1, k+1]
 	precision WyTz_skp = qk1[n + 1];
 
@@ -361,8 +385,10 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 	precision WnTz_sim = qi1[n];		// WnTz [i-1, i+1]
 	precision WnTz_sip = qi1[n + 1];
+
 	precision WnTz_sjm = qj1[n];		// WnTz [j-1, j+1]
 	precision WnTz_sjp = qj1[n + 1];
+
 	precision WnTz_skm = qk1[n];		// WnTz [k-1, k+1]
 	precision WnTz_skp = qk1[n + 1];
 
@@ -490,7 +516,7 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 
 
-	// longitudinal basis vector
+	// longitudinal basis vector (move up?)
 	//:::::::::::::::::::::::::::::::::::::::::::::
 	precision zt = t * un / utperp;
 	precision zn = ut / t / utperp;
@@ -686,10 +712,16 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 
 	// relaxation times
-	precision p = equilibriumPressure(e);
-	precision T = effectiveTemperature(e);
+#ifdef CONFORMAL_EOS
+	precision T = powf(e / EOS_FACTOR, 0.25);
 
 	precision taupiInv = 0.2 * T / etabar;
+	precision taubulkInv = 0.0;
+#else
+	precision taupiInv = 1.0;	// fill later
+	precision taubulkInv = 1.0;
+#endif
+
 
 	// anisotropic transport coefficients
 	transport_coefficients aniso;
@@ -703,23 +735,50 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision lambda_WuL = aniso.lambda_WuL;
 	precision lambda_WTL = aniso.lambda_WTL;
 #endif
-
-
+#ifdef PIMUNU
+	precision lambda_piL = aniso.lambda_piL;
+#endif
+	
 	// pt coefficients
 #if (PT_MATCHING == 1)
 	precision zeta_LT = aniso.zeta_LT;
 	precision zeta_TT = aniso.zeta_TT;
 #ifdef WTZMU
-	precision lambda_WuT = 1.0;
-	precision lambda_WTT = 1.0;
+	precision lambda_WuT = aniso.lambda_WuT;
+	precision lambda_WTT = aniso.lambda_WTT;
+#endif
+#ifdef PIMUNU
+	lambda_piTW	= aniso.lambda_piTW;
 #endif
 #endif
-
 
 	// WTz coefficients
-// #ifdef WTZMU
-// 	precision tauW = 1.0
-// #endif
+#ifdef WTZMU
+	precision eta_uW = aniso.eta_uW;
+	precision eta_Tw = aniso.eta_Tw;
+	precision tau_zW = aniso.tau_zW;
+	precision delta_WW = aniso.delta_WW;
+	precision lambda_WuW = aniso.lambda_WuW;
+	precision lambda_WTW = aniso.lambda_WTW;
+#ifdef PIMUNU
+	precision lambda_piuW = aniso.lambda_piuW;
+	precision lambda_piTW = aniso.lambda_piTW;
+#endif
+#endif
+
+	// piT coefficients
+#ifdef PIMUNU
+	precision eta_T;
+	precision delta_pipi;
+	precision tau_pipi;
+	precision lambda_pipi;
+#ifdef WTZMU
+	precision lambda_Wupi;
+	precision lambda_WTpi;
+#endif
+#endif
+
+
 
 	// L^munu components and derivatives
 	//:::::::::::::::::::::::::::::::::::::::::::::
@@ -972,14 +1031,34 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 #endif
 
 #ifdef PIMUNU
+	precision dpitt = - pitt * taupiInv  +  Itt_pi_pro  +  Ptt_pi  -  Gtt_pi;	// imagine it look like this 
+	precision dpitx = - pitx * taupiInv  +  Itx_pi_pro  +  Ptx_pi;
+	precision dpity = - pity * taupiInv  +  Ity_pi_pro  +  Pty_pi;
+	precision dpitn = - pitn * taupiInv  +  Itn_pi_pro  +  Ptn_pi  -  Gtn_pi;
+	precision dpixx = - pixx * taupiInv  +  Ixx_pi_pro  +  Pxx_pi;
+	precision dpixy = - pixy * taupiInv  +  Ixy_pi_pro  +  Pxy_pi;
+	precision dpixn = - pixn * taupiInv  +  Ixn_pi_pro  +  Pxn_pi;
+	precision dpiyy = - piyy * taupiInv  +  Iyy_pi_pro  +  Pyy_pi;
+	precision dpiyn = - piyn * taupiInv  +  Iyn_pi_pro  +  Pyn_pi;
+	precision dpinn = - pinn * taupiInv  +  Inn_pi_pro  +  Pnn_pi  -  Gnn_pi; 
 
+	S[a] = dpitt / ut  +  div_v * pitt;		a++;
+	S[a] = dpitx / ut  +  div_v * pitx;		a++;
+	S[a] = dpity / ut  +  div_v * pity;		a++;
+	S[a] = dpitn / ut  +  div_v * pitn;		a++;
+	S[a] = dpixx / ut  +  div_v * pixx;		a++;
+	S[a] = dpixy / ut  +  div_v * pixy;		a++;
+	S[a] = dpixn / ut  +  div_v * pixn;		a++;
+	S[a] = dpiyy / ut  +  div_v * piyy;		a++;
+	S[a] = dpiyn / ut  +  div_v * piyn;		a++;
+	S[a] = dpinn / ut  +  div_v * pinn;		a++;
 #endif
 
 #ifdef WTZMU
-	precision dWtTz = - WtTz * taupiInv  +  It_pro  +  Pt_W  -  Gt_W;	
-	precision dWxTz = - WxTz * taupiInv  +  Ix_pro  +  Px_W;
-	precision dWyTz = - WyTz * taupiInv  +  Iy_pro  +  Py_W;
-	precision dWnYz = - WnTz * taupiInv  +  In_pro  +  Pn_W  -  Gn_W;
+	precision dWtTz = - WtTz * taupiInv  +  It_W_pro  +  Pt_W  -  Gt_W;	
+	precision dWxTz = - WxTz * taupiInv  +  Ix_W_pro  +  Px_W;
+	precision dWyTz = - WyTz * taupiInv  +  Iy_W_pro  +  Py_W;
+	precision dWnYz = - WnTz * taupiInv  +  In_W_pro  +  Pn_W  -  Gn_W;
 
 	S[a] = dWtTz / ut  +  div_v * WtTz;		a++;
 	S[a] = dWxTz / ut  +  div_v * WxTz;		a++;

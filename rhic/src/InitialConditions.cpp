@@ -299,7 +299,7 @@ void set_ideal_gubser_energy_density_and_flow_profile(int nx, int ny, int nz, do
 			// temperature profile
 			double T = (T0_hat / t) * pow(2.0 * q * t, 2./3.) / pow(1.0  +  2.0 * q2 * (t2 + r2)  +  q4 * (t2 - r2) * (t2 - r2), 1./3.);
 
-			double e_s = max(E_MIN, equilibriumEnergyDensity(T));
+			double e_s = fmax(E_MIN, equilibriumEnergyDensity(T));
 
 			double ux = sinh(kappa) * x / r;
 			double uy = sinh(kappa) * y / r;

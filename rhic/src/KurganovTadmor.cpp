@@ -95,8 +95,6 @@ const precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict_
 				int skp  = s + stride_z;
 				int skpp = s + 2*stride_z;
 
-				int r = 0;
-
 				ql[0] = q->ttt[s];			// conserved variables of cell s
 				ql[1] = q->ttx[s];
 				ql[2] = q->tty[s];
@@ -149,6 +147,8 @@ const precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict_
 				// fluid velocity of neighbor cells
 				get_u_neighbor_cells(u->ut, u->ux, u->uy, u->un, ui1, uj1, uk1, sim, sip, sjm, sjp, skm, skp);				
 				get_v_neighbor_cells(u->ut, u->ux, u->uy, u->un, vxi, vyj, vnk, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
+
+				int r = 0;
 
 				// get conserved variables of neighbor cells
 				get_q_neighbor_cells(q->ttt, qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
