@@ -34,9 +34,7 @@ int central_index(int nx, int ny, int nz, int ncx, int ncy, int ncz)
 
 inline void print_hydro_center(double t, double e, double peq, double pl, double pt, double T)
 {
-	double pt_check = 0.5 * (e - pl);
-
-	printf("t = %.3f fm/c\t\te = %.3f GeV/fm^3\tpeq = %.3f GeV/fm^3\tpl = %.3f GeV/fm^3\tpt = %.3f GeV/fm^3\tpt_check = %.3f GeV/fm^3\tT = %.3f GeV\n", t, e, peq, pl, pt, pt_check, T);
+	printf("t = %.3f fm/c\t\te = %.3f GeV/fm^3\tpeq = %.3f GeV/fm^3\tpl = %.3f GeV/fm^3\tpt = %.3f GeV/fm^3\tT = %.3f GeV\n", t, e, peq, pl, pt, T);
 }
 
 

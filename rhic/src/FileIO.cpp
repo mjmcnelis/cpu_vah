@@ -305,6 +305,14 @@ void output_dynamical_variables(double t, int nx, int ny, int nz, double dx, dou
 	if(initialConditionType == 2 || initialConditionType == 3)
 	{
 		output_gubser_test(e, q->pl, u->ux, u->uy, t, nx, ny, nz, dx, dy, dz);
+
+	#ifdef WTZMU
+		output(q->WtTz, t, "WtTz", nx, ny, nz, dx, dy, dz);
+		output(q->WxTz, t, "WxTz", nx, ny, nz, dx, dy, dz);
+		output(q->WyTz, t, "WyTz", nx, ny, nz, dx, dy, dz);
+		output(q->WnTz, t, "WnTz", nx, ny, nz, dx, dy, dz);
+	#endif
+		
 		return;
 	}
 

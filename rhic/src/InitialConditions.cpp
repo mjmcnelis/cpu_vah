@@ -137,7 +137,7 @@ void set_equilibrium_initial_condition(int nx, int ny, int nz)
 		  		q->piyn[s] = 0.0;
 		  		q->pinn[s] = 0.0;
 			#endif
-			#ifdef W_TZ_MU
+			#ifdef WTZMU
 		  		q->WtTz[s] = 0.0;
 		  		q->WxTz[s] = 0.0;
 		  		q->WyTz[s] = 0.0;
@@ -478,7 +478,7 @@ void set_aniso_gubser_energy_density_and_flow_profile(int nx, int ny, int nz, do
 		  		q->piyn[s] = 0.0;
 		  		q->pinn[s] = 0.0;
 			#endif
-			#ifdef W_TZ_MU
+			#ifdef WTZMU
 		  		q->WtTz[s] = 0.0;
 		  		q->WxTz[s] = 0.0;
 		  		q->WyTz[s] = 0.0;

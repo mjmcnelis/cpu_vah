@@ -49,7 +49,7 @@ class transport_coefficients
 		// WTz coefficients
 	#ifdef WTZMU
 		precision eta_uW;
-		precision eta_Tw;
+		precision eta_TW;
 		precision tau_zW;
 		precision delta_WW;
 		precision lambda_WuW;
