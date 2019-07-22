@@ -19,9 +19,9 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 
 void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __restrict__ q, precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict__ u, int nx, int ny, int nz)
 {
-	precision eps = 1.e-8;	// is there a more effective way to regulate pl, pt? 
+	precision eps = 1.e-8;	// is there a more effective way to regulate pl, pt?
 
-	precision xi0 = 0.1;		// regulation parameters (maybe move these in hydro parameters?)
+	//precision xi0 = 0.1;		// regulation parameters (maybe move these in hydro parameters?)
 	precision rho_max = 1.0;
 
 	precision t2 = t * t;
@@ -48,7 +48,7 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 					q->pt[s] = peq  -  1./3. * (pl - pt_s);
 				#endif
 			#endif
-				
+
 				if(pl < eps)
 				{
 					printf("Regulation: pl = %lf is regulated to %lf", pl, eps);
@@ -93,7 +93,7 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 				precision Xixn = - ux * un;
 				precision Xiyy = - 1.0  -  uy * uy;
 				precision Xiyn = - uy * un;
-				precision Xinn = - 1.0 / t2  -  un * un  + zn * zn;
+				precision Xinn = - 1.0 / t2  -  un * un  +  zn * zn;
 			#endif
 
 
@@ -165,15 +165,15 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 				precision rho_pi = pi_mag / rho_max / T_aniso_mag;
 
 				precision factor_pi;
-				if(rho_pi > 1.e-5) 
+				if(rho_pi > 1.e-5)
 				{
 					factor_pi = tanh(rho_pi) / rho_pi;
 				}
 				else
 				{
 					factor_pi = 1.0  -  rho_pi * rho_pi / 3.;
-				} 
-					
+				}
+
 				// Xi^{\mu\nu}_{\alpha\beta} (can invoke some symmetries)
 				// precision Xitt_tt =  0.5 * Xitt * Xitt;
 				// precision Xitt_tx = -0.5 * Xitt * Xitx;
@@ -191,16 +191,16 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 				// precision Xinn_nn = 0.5 * t4 * Xinn * Xinn;
 
 
-				precision pitt_pro = factor_pi * (Xitt_tt * pitt  +  Xitt_xx * pixx  +  Xitt_yy * piyy  +  Xitt_nn * pinn  +  2.0 * (Xitt_tx * pitx  +  Xitt_ty * pity  +  Xitt_tn * pitn  +  Xitt_xy * pixy  +  Xitt_xn * pixn  +  Xitt_yn * piyn)); 
-				precision pitx_pro = factor_pi * (Xitx_tt * pitt  +  Xitx_xx * pixx  +  Xitx_yy * piyy  +  Xitx_nn * pinn  +  2.0 * (Xitx_tx * pitx  +  Xitx_ty * pity  +  Xitx_tn * pitn  +  Xitx_xy * pixy  +  Xitx_xn * pixn  +  Xitx_yn * piyn)); 
-				precision pity_pro = factor_pi * (Xity_tt * pitt  +  Xity_xx * pixx  +  Xity_yy * piyy  +  Xity_nn * pinn  +  2.0 * (Xity_tx * pitx  +  Xity_ty * pity  +  Xity_tn * pitn  +  Xity_xy * pixy  +  Xity_xn * pixn  +  Xity_yn * piyn)); 
-				precision pitn_pro = factor_pi * (Xitn_tt * pitt  +  Xitn_xx * pixx  +  Xitn_yy * piyy  +  Xitn_nn * pinn  +  2.0 * (Xitn_tx * pitx  +  Xitn_ty * pity  +  Xitn_tn * pitn  +  Xitn_xy * pixy  +  Xitn_xn * pixn  +  Xitn_yn * piyn)); 
-				precision pixx_pro = factor_pi * (Xixx_tt * pitt  +  Xixx_xx * pixx  +  Xixx_yy * piyy  +  Xixx_nn * pinn  +  2.0 * (Xixx_tx * pitx  +  Xixx_ty * pity  +  Xixx_tn * pitn  +  Xixx_xy * pixy  +  Xixx_xn * pixn  +  Xixx_yn * piyn)); 
-				precision pixy_pro = factor_pi * (Xixy_tt * pitt  +  Xixy_xx * pixx  +  Xixy_yy * piyy  +  Xixy_nn * pinn  +  2.0 * (Xixy_tx * pitx  +  Xixy_ty * pity  +  Xixy_tn * pitn  +  Xixy_xy * pixy  +  Xixy_xn * pixn  +  Xixy_yn * piyn)); 
-				precision pixn_pro = factor_pi * (Xixn_tt * pitt  +  Xixn_xx * pixx  +  Xixn_yy * piyy  +  Xixn_nn * pinn  +  2.0 * (Xixn_tx * pitx  +  Xixn_ty * pity  +  Xixn_tn * pitn  +  Xixn_xy * pixy  +  Xixn_xn * pixn  +  Xixn_yn * piyn)); 
-				precision piyy_pro = factor_pi * (Xiyy_tt * pitt  +  Xiyy_xx * pixx  +  Xiyy_yy * piyy  +  Xiyy_nn * pinn  +  2.0 * (Xiyy_tx * pitx  +  Xiyy_ty * pity  +  Xiyy_tn * pitn  +  Xiyy_xy * pixy  +  Xiyy_xn * pixn  +  Xiyy_yn * piyn)); 
-				precision piyn_pro = factor_pi * (Xiyn_tt * pitt  +  Xiyn_xx * pixx  +  Xiyn_yy * piyy  +  Xiyn_nn * pinn  +  2.0 * (Xiyn_tx * pitx  +  Xiyn_ty * pity  +  Xiyn_tn * pitn  +  Xiyn_xy * pixy  +  Xiyn_xn * pixn  +  Xiyn_yn * piyn)); 
-				precision pinn_pro = factor_pi * (Xinn_tt * pitt  +  Xinn_xx * pixx  +  Xinn_yy * piyy  +  Xinn_nn * pinn  +  2.0 * (Xinn_tx * pitx  +  Xinn_ty * pity  +  Xinn_tn * pitn  +  Xinn_xy * pixy  +  Xinn_xn * pixn  +  Xinn_yn * piyn)); 
+				precision pitt_pro = factor_pi * (Xitt_tt * pitt  +  Xitt_xx * pixx  +  Xitt_yy * piyy  +  Xitt_nn * pinn  +  2.0 * (Xitt_tx * pitx  +  Xitt_ty * pity  +  Xitt_tn * pitn  +  Xitt_xy * pixy  +  Xitt_xn * pixn  +  Xitt_yn * piyn));
+				precision pitx_pro = factor_pi * (Xitx_tt * pitt  +  Xitx_xx * pixx  +  Xitx_yy * piyy  +  Xitx_nn * pinn  +  2.0 * (Xitx_tx * pitx  +  Xitx_ty * pity  +  Xitx_tn * pitn  +  Xitx_xy * pixy  +  Xitx_xn * pixn  +  Xitx_yn * piyn));
+				precision pity_pro = factor_pi * (Xity_tt * pitt  +  Xity_xx * pixx  +  Xity_yy * piyy  +  Xity_nn * pinn  +  2.0 * (Xity_tx * pitx  +  Xity_ty * pity  +  Xity_tn * pitn  +  Xity_xy * pixy  +  Xity_xn * pixn  +  Xity_yn * piyn));
+				precision pitn_pro = factor_pi * (Xitn_tt * pitt  +  Xitn_xx * pixx  +  Xitn_yy * piyy  +  Xitn_nn * pinn  +  2.0 * (Xitn_tx * pitx  +  Xitn_ty * pity  +  Xitn_tn * pitn  +  Xitn_xy * pixy  +  Xitn_xn * pixn  +  Xitn_yn * piyn));
+				precision pixx_pro = factor_pi * (Xixx_tt * pitt  +  Xixx_xx * pixx  +  Xixx_yy * piyy  +  Xixx_nn * pinn  +  2.0 * (Xixx_tx * pitx  +  Xixx_ty * pity  +  Xixx_tn * pitn  +  Xixx_xy * pixy  +  Xixx_xn * pixn  +  Xixx_yn * piyn));
+				precision pixy_pro = factor_pi * (Xixy_tt * pitt  +  Xixy_xx * pixx  +  Xixy_yy * piyy  +  Xixy_nn * pinn  +  2.0 * (Xixy_tx * pitx  +  Xixy_ty * pity  +  Xixy_tn * pitn  +  Xixy_xy * pixy  +  Xixy_xn * pixn  +  Xixy_yn * piyn));
+				precision pixn_pro = factor_pi * (Xixn_tt * pitt  +  Xixn_xx * pixx  +  Xixn_yy * piyy  +  Xixn_nn * pinn  +  2.0 * (Xixn_tx * pitx  +  Xixn_ty * pity  +  Xixn_tn * pitn  +  Xixn_xy * pixy  +  Xixn_xn * pixn  +  Xixn_yn * piyn));
+				precision piyy_pro = factor_pi * (Xiyy_tt * pitt  +  Xiyy_xx * pixx  +  Xiyy_yy * piyy  +  Xiyy_nn * pinn  +  2.0 * (Xiyy_tx * pitx  +  Xiyy_ty * pity  +  Xiyy_tn * pitn  +  Xiyy_xy * pixy  +  Xiyy_xn * pixn  +  Xiyy_yn * piyn));
+				precision piyn_pro = factor_pi * (Xiyn_tt * pitt  +  Xiyn_xx * pixx  +  Xiyn_yy * piyy  +  Xiyn_nn * pinn  +  2.0 * (Xiyn_tx * pitx  +  Xiyn_ty * pity  +  Xiyn_tn * pitn  +  Xiyn_xy * pixy  +  Xiyn_xn * pixn  +  Xiyn_yn * piyn));
+				precision pinn_pro = factor_pi * (Xinn_tt * pitt  +  Xinn_xx * pixx  +  Xinn_yy * piyy  +  Xinn_nn * pinn  +  2.0 * (Xinn_tx * pitx  +  Xinn_ty * pity  +  Xinn_tn * pitn  +  Xinn_xy * pixy  +  Xinn_xn * pixn  +  Xinn_yn * piyn));
 
 				q->pitt[s] = pitt_pro;
 				q->pitx[s] = pitx_pro;
@@ -222,49 +222,17 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 				precision WyTz = q->WyTz[s];
 				precision WnTz = q->WnTz[s];
 
-				// old regulation scheme
-				/*
-				// sqrt(2.W.W), W.u and W.z
-				precision W_mag = sqrt(2.0 * fabs(WtTz * WtTz  -  WxTz * WxTz  -  WyTz * WyTz  -  t2 * WnTz * WnTz));
-
-				precision Wu = WtTz * ut  -  WxTz * ux  -  WyTz * uy  -  WnTz * t2un;
-				precision Wz = WtTz * zt  -  WnTz * t2zn;
-
-				precision denom_W = xi0 * rho_max * W_mag;
-
-				precision b0 = W_mag / rho_max / T_aniso_mag;
-				precision b1 = fabs(Wu / denom_W);
-				precision b2 = fabs(Wz / denom_W);
-
-				// compute the rho factor
-				precision rho_W = fmax(b0, fmax(b1, b2));
-
-				precision factor_W;
-				if(rho_W > 1.e-5) factor_W = tanh(rho_W) / rho_W;
-				else factor_W = 1.0  -  rho_W * rho_W / 3.;
-
-
-				// regulate
-				q->WtTz[s] *= factor_W;
-				q->WxTz[s] *= factor_W;
-				q->WyTz[s] *= factor_W;
-				q->WnTz[s] *= factor_W;
-				*/
-
-				// new regulation scheme
-
-				// sqrt(2.W.W), W.u and W.z
 				precision W_mag = sqrt(2.0 * fabs(WtTz * WtTz  -  WxTz * WxTz  -  WyTz * WyTz  -  t2 * WnTz * WnTz));
 
 				precision rho_W = W_mag / rho_max / T_aniso_mag;
 
 				precision factor_W;
-				if(rho_W > 1.e-5) 
+				if(rho_W > 1.e-5)
 				{
 					factor_W = tanh(rho_W) / rho_W;
 				}
 				else
-				{ 
+				{
 					factor_W = 1.0  -  rho_W * rho_W / 3.;	// 2nd-order expansion
 				}
 
