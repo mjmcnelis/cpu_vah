@@ -8,12 +8,12 @@
 -------------------------------------------------------
 | Date created	| 10/12/15
 -------------------------------------------------------
-| Last edited	| 6/21/19
+| Last edited	| 7/23/19
 -------------------------------------------------------
 | Version     	| 2.0
 -------------------------------------------------------
-| Description 	| A viscous anisotropic hydrodynamic   
-|				| simulation of a heavy-ion collision  
+| Description 	| A viscous anisotropic hydrodynamic
+|				| simulation of a heavy-ion collision
 -------------------------------------------------------
  */
 

@@ -10,7 +10,7 @@ inline precision sign(precision x)
 {
 	if(x > 0.0) return 1.0;
 	else if(x < 0.0) return -1.0;
-	else return 0.0; 
+	else return 0.0;
 }
 
 inline precision minmod(precision x, precision y)
@@ -32,19 +32,19 @@ precision approximate_derivative(precision qm, precision q, precision qp)
 
 void flux_terms(precision * const __restrict__ Hp, precision * const __restrict__ Hm, const precision * const __restrict__ q_data, const precision * const __restrict__ q1_data, const precision * const __restrict__ q2_data, const precision * const __restrict__ v_data, precision v)
 {
-	// neigbhor spatial velocities
+	// neighbor spatial velocities
 	precision vmm = v_data[0];
 	precision vm  = v_data[1];
 	precision vp  = v_data[2];
 	precision vpp = v_data[3];
-	
-	precision dvp = approximate_derivative(v, vp, vpp);	
+
+	precision dvp = approximate_derivative(v, vp, vpp);
 	precision dv  = approximate_derivative(vm, v, vp);
 	precision dvm = approximate_derivative(vmm, vm, v);
 
 	// extrapolated spatial velocities
-	precision vRp = vp  -  0.5 * dvp;	// q^{+}_{i+1/2}	
-	precision vLp = v   +  0.5 * dv;	// q^{-}_{i+1/2}	
+	precision vRp = vp  -  0.5 * dvp;	// q^{+}_{i+1/2}
+	precision vLp = v   +  0.5 * dv;	// q^{-}_{i+1/2}
 	precision vRm = v   -  0.5 * dv;	// q^{+}_{i-1/2}
 	precision vLm = vm  +  0.5 * dvm;	// q^{-}_{i-1/2}
 
@@ -77,7 +77,7 @@ void flux_terms(precision * const __restrict__ Hp, precision * const __restrict_
 
 		// neighbor fluxes
 		precision Fm  = qm * vm;
-		precision F   = q  * v;      
+		precision F   = q  * v;
 		precision Fp  = qp * vp;
 
 		// extrapolated fluxes (chain rule)

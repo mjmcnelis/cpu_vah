@@ -133,7 +133,7 @@ double_transverse_projection::double_transverse_projection(transverse_projection
 	Xitn_xx = Xitx * Xixn  -  0.5 * Xitn * Xixx;
 	Xitn_xy = 0.5 * (Xity * Xixn  +  Xitx * Xiyn  -  Xitn * Xixy);
 	Xitn_xn = 0.5 * Xitx * Xinn;
-	Xitn_yy = Xity * Xiyn  -  0.5 * Xitn * Xiyy;  
+	Xitn_yy = Xity * Xiyn  -  0.5 * Xitn * Xiyy;
 	Xitn_yn = 0.5 * Xity * Xinn;
 	Xitn_nn = 0.5 * Xitn * Xinn;
 
@@ -168,7 +168,7 @@ double_transverse_projection::double_transverse_projection(transverse_projection
 
 double_transverse_projection::~double_transverse_projection()
 {
-	
+
 }
 
 
@@ -216,7 +216,7 @@ void double_transverse_projection::test_double_transverse_projector(precision ut
 	precision Ayn = canonical(generator);
 	precision Ann = canonical(generator);
 
-	double_transverse_project_tensor(Att, Atx, Aty, Atn, Axx, Axy, Axn, Ayy, Ayn, Ann); 
+	double_transverse_project_tensor(Att, Atx, Aty, Atn, Axx, Axy, Axn, Ayy, Ayn, Ann);
 
 	precision Au0 = fabs(Att * ut  -  Atx * ux  -  Aty * uy  -  t2 * Atn * un);
 	precision Au1 = fabs(Atx * ut  -  Axx * ux  -  Axy * uy  -  t2 * Axn * un);
@@ -230,8 +230,8 @@ void double_transverse_projection::test_double_transverse_projector(precision ut
 
 	precision trA = fabs(Att  -  Axx  -  Ayy  -  t2 * Ann);
 
-	precision Au = fmax(Au0, fmax(Au1, fmax(Au2, Au3)));    
-	precision Az = fmax(Az0, fmax(Az1, fmax(Az2, Az3))); 
+	precision Au = fmax(Au0, fmax(Au1, fmax(Au2, Au3)));
+	precision Az = fmax(Az0, fmax(Az1, fmax(Az2, Az3)));
 
     precision eps = 1.e-14;
 

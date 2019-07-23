@@ -25,7 +25,8 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 
 void set_inferred_variables(const CONSERVED_VARIABLES * const __restrict__ q, precision * const __restrict__ e, FLUID_VELOCITY * const __restrict__ u, precision t, int nx, int ny, int nz)
 {
-	// loop over the physical grid points
+	precision t2 = t * t;
+
 	for(int k = 2; k < nz + 2; k++)
 	{
 		for(int j = 2; j < ny + 2; j++)
@@ -68,15 +69,13 @@ void set_inferred_variables(const CONSERVED_VARIABLES * const __restrict__ q, pr
 				precision WnTz = 0.0;
 			#endif
 
-				precision kt = ttt - pitt;				// [fm^-4]
-				precision kx = ttx - pitx;				// [fm^-4]
-				precision ky = tty - pity;				// [fm^-4]
-				precision kn = ttn - pitn;				// [fm^-5]
+				precision kt = ttt  -  pitt;			// [fm^-4]
+				precision kx = ttx  -  pitx;			// [fm^-4]
+				precision ky = tty  -  pity;			// [fm^-4]
+				precision kn = ttn  -  pitn;			// [fm^-5]
 
 				precision A = kn / (kt + pl);		  	// [fm^-1] (check these formulas)
-				precision B = WtTz / (t * (kt + pl));		// [fm^-1]
-
-				precision t2 = t * t;
+				precision B = WtTz / (t * (kt + pl));	// [fm^-1]
 
 				precision t2A2 = t2 * A * A;
 				precision t2B2 = t2 * B * B;
