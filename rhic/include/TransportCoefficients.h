@@ -80,7 +80,7 @@ class transport_coefficients
 		precision t_240;
 		precision t_221;
 
-	#if (PT_MATCHING == 1)
+	#if (PT_MATCHING == 1 || PIMUNU_COMPONENTS != 0)
 		precision t_202;
 	#endif
 

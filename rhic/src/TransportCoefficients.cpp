@@ -68,7 +68,7 @@ void transport_coefficients::compute_hypergeometric_functions(precision z)
 		t_221 = (-3.  +  (3. + z) * t) / z2;
 
 
-	#if (PT_MATCHING == 1)
+	#if (PT_MATCHING == 1 || PIMUNU_COMPONENTS != 0)
 		t_202 = (3.  +  z  +  (z - 3.) * (1. + z) * t) / (z2 * (1. + z));
 	#endif
 
@@ -102,7 +102,7 @@ void transport_coefficients::compute_hypergeometric_functions(precision z)
 		t_221 = (-3.  +  (3. + z) * t) / z2;
 
 
-	#if (PT_MATCHING == 1)
+	#if (PT_MATCHING == 1 || PIMUNU_COMPONENTS != 0)
 		t_202 = (3.  +  z  +  (z - 3.) * (1. + z) * t) / (z2 * (1. + z));
 	#endif
 
@@ -138,7 +138,7 @@ void transport_coefficients::compute_hypergeometric_functions(precision z)
 		t_221 = 0.2666666666666668 - 0.22857142857142854*z + 0.19047619047619047*z2 - 0.1616161616161616*z3 + 0.13986013986013987*z4 - 0.12307692307692308*z5 + 0.10980392156862744*z6;
 
 
-	#if (PT_MATCHING == 1)
+	#if (PT_MATCHING == 1 || PIMUNU_COMPONENTS != 0)
 		t_202 = 1.0666666666666664 - 1.3714285714285712*z + 1.5238095238095237*z2 - 1.616161616161616*z3 + 1.6783216783216781*z4 - 1.7230769230769227*z5 + 1.756862745098039*z6;
 	#endif
 
@@ -264,7 +264,7 @@ void transport_coefficients::compute_transport_coefficients(precision e, precisi
 	precision I_240 = prefactor * t_240 * aL2;
 	precision I_221 = prefactor * t_221 / 2.0;
 
-#if (PT_MATCHING == 1)
+#if (PT_MATCHING == 1 || PIMUNU_COMPONENTS != 0)
 	precision I_202 = prefactor * t_202 / (8.0 * aL2);	
 #endif
 
@@ -280,11 +280,11 @@ void transport_coefficients::compute_transport_coefficients(precision e, precisi
 
 
 	// pl transport coefficients
-	zeta_LL 	= I_240  -  3.0 * pl;
+	zeta_LL 	= I_240  -  3. * pl;
 	zeta_TL 	= I_221  -  pl;
 #ifdef WTZMU
 	lambda_WuL 	= I_441 / I_421;
-	lambda_WTL 	= 1.0  -  lambda_WuL;
+	lambda_WTL 	= 1.  -  lambda_WuL;
 #endif
 #ifdef PIMUNU
 	lambda_piL	= I_422 / I_402;
@@ -294,13 +294,13 @@ void transport_coefficients::compute_transport_coefficients(precision e, precisi
 	// pt transport coefficients
 #if (PT_MATCHING == 1)
 	zeta_LT 	= I_221  -  pt;
-	zeta_TT 	= 2.0 * (I_202 - pt);
+	zeta_TT 	= 2. * (I_202 - pt);
 #ifdef WTZMU
-	lambda_WTT	= 2.0 * I_422 / I_421;
-	lambda_WuT	= lambda_WTT  -  1.0;
+	lambda_WTT	= 2. * I_422 / I_421;
+	lambda_WuT	= lambda_WTT  -  1.;
 #endif
 #ifdef PIMUNU
-	lambda_piTW	= 1.0  -  3.0 * I_403 / I_402;
+	lambda_piTW	= 1.  -  3. * I_403 / I_402;
 #endif
 #endif
 
@@ -310,12 +310,12 @@ void transport_coefficients::compute_transport_coefficients(precision e, precisi
 	eta_uW 		= 0.5 * (pl - I_221);
 	eta_TW 		= 0.5 * (pt - I_221);
 	tau_zW 	 	= pl - pt;
-	lambda_WTW	= 2.0 * I_422 / I_421  -  1.0;
-	lambda_WuW	= 2.0  -  I_441 / I_421;
+	lambda_WTW	= 2. * I_422 / I_421  -  1.;
+	lambda_WuW	= 2.  -  I_441 / I_421;
 	delta_WW 	= lambda_WTW  -  0.5;
 #ifdef PIMUNU
 	lambda_piuW = I_422 / I_402;
-	lambda_piTW = lambda_piuW  -  1.0;
+	lambda_piTW = lambda_piuW  -  1.;
 #endif
 #endif
 
@@ -323,12 +323,12 @@ void transport_coefficients::compute_transport_coefficients(precision e, precisi
 	// piT transport coefficients
 #ifdef PIMUNU
 	eta_T 		= pt  -  I_202;
-	tau_pipi 	= 2.0  -  4.0 * I_403 / I_402;
-	delta_pipi	= (3.0 * tau_pipi  + 2.0) / 4.0;
-	lambda_pipi = I_422 / I_402  -  1.0;
+	tau_pipi 	= 2.  -  4. * I_403 / I_402;
+	delta_pipi	= (3. * tau_pipi  + 2.) / 4.;
+	lambda_pipi = I_422 / I_402  -  1.;
 #ifdef WTZMU
-	lambda_Wupi = lambda_WTW  -  1.0;
-	lambda_WTpi = lamnda_WuW  +  2.0;
+	lambda_Wupi = lambda_WTW  -  1.;
+	lambda_WTpi = lamnda_WuW  +  2.;
 #endif
 #endif
 

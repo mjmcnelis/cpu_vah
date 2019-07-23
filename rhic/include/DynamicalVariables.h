@@ -7,8 +7,8 @@
 
 #define NUMBER_OF_CONSERVATION_LAWS 4
 
-//#define PIMUNU
-#define WTZMU		
+#define PIMUNU
+//#define WTZMU		
 
 #ifdef PIMUNU
 	#define PIMUNU_COMPONENTS 10

@@ -10,7 +10,7 @@
 
 using namespace std;
 
-#define TEST_TMUNU 1		// 1 for test
+#define TEST_TMUNU 0		// 1 for test
 
 double ttt_error = 1.e-13;
 double ttx_error = 1.e-13;

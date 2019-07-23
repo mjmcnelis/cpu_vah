@@ -87,6 +87,7 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision ut2  = ut * ut;
 	precision un2  = un * un;
 	precision utun = ut * un;
+	precision tun  = t  * un;
 
 	precision unzn = un * zn;
 
@@ -527,7 +528,7 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 	// longitudinal and transverse expansion rates: thetaL = z_\mu Dz u^\mu, thetaT = NablaT_\mu u^\mu
 	precision thetaL = - zt2 * dut_dt  +  t2 * zn2 * dun_dn  +  ztzn * (t2 * dun_dt  -  dut_dn)  +  t * zn2 * ut;
-	precision thetaT = theta - thetaL;
+	precision thetaT = theta  -  thetaL;
 
 
 #if (NUMBER_OF_RESIDUAL_CURRENTS != 0)
@@ -567,7 +568,7 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision sTtt = dut_dt;
 	precision sTtx = 0.5 * (dux_dt  -  dut_dx);
 	precision sTty = 0.5 * (duy_dt  -  dut_dy);
-	precision sTtn = 0.5 * (dun_dt  +  un / t  -  (dut_dn  +  t * un) / t2);
+	precision sTtn = 0.5 * (dun_dt  +  un / t  -  (dut_dn  +  tun) / t2);  // I don't see anything wrong here...
 	precision sTxx = - dux_dx;
 	precision sTxy = - 0.5 * (dux_dy  +  duy_dx);
 	precision sTxn = - 0.5 * (dun_dx  +  dux_dn / t2);
@@ -635,10 +636,17 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 	// piT coefficients
 #ifdef PIMUNU
-	precision eta_T = aniso.eta_T;
-	precision delta_pipi = aniso.delta_pipi;
-	precision tau_pipi = aniso.tau_pipi;
-	precision lambda_pipi = aniso.lambda_pipi;
+	// precision eta_T = aniso.eta_T;
+	// precision delta_pipi = aniso.delta_pipi;
+	// precision tau_pipi = aniso.tau_pipi;
+	// precision lambda_pipi = aniso.lambda_pipi;
+
+	precision eta_T = aniso.eta_T;					// temporary
+	precision delta_pipi = 0.0;
+	precision tau_pipi = 0.0;
+	precision lambda_pipi = 0.0;
+
+
 #ifdef WTZMU
 	precision lambda_Wupi = aniso.lambda_Wupi;
 	precision lambda_WTpi = aniso.lambda_WTpi;
@@ -780,18 +788,18 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 
 	// Christofel terms (G_W^\mu  =  u^\alpha . \Gamma^\mu_{\alpha\beta} . WTz^\mu)
-	precision Gt_W = t * un * WnTz;
+	precision Gt_W = tun * WnTz;
 	precision Gn_W = (ut * WnTz  +  un * WtTz) / t;
 
 
 	// product rule terms (P_W^\mu  =  - u^\mu . Wtz^\nu . a_\nu  +  z^\mu . Wtz^\nu . Dz_\nu)
-	precision Wtz_a  = WtTz * at  -  WxTz * ax  -  WyTz * ay  -  t2 * WnTz * an;
-	precision Wtz_Dz = WtTz * D_zt  -  t2 * WnTz * D_zn;
+	precision WTza  = WtTz * at  -  WxTz * ax  -  WyTz * ay  -  t2 * WnTz * an;
+	precision WTzDz = WtTz * D_zt  -  t2 * WnTz * D_zn;
 
-	precision Pt_W = - ut * Wtz_a  +  zt * Wtz_Dz;
-	precision Px_W = - ux * Wtz_a;
-	precision Py_W = - uy * Wtz_a;
-	precision Pn_W = - un * Wtz_a  +  zn * Wtz_Dz;
+	precision Pt_W = - ut * WTza  +  zt * WTzDz;
+	precision Px_W = - ux * WTza;
+	precision Py_W = - uy * WTza;
+	precision Pn_W = - un * WTza  +  zn * WTzDz;
 
 #else
 	precision Wtt = 0.0;
@@ -837,7 +845,7 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 
 #ifdef PIMUNU
-	precision pi_sT = pitt * sTtt  +  pixx * sTxx  +  piyy * sTyy  +  t4 * pinn * sTnn  +  2.0 * (pixy * sTxy  -  pitx * sTtx  -  pity * sTty  +  t2 * (pixn * sTxn  +  piyn * sTyn  -  pitn * sTtn));
+	precision pi_sT = pitt * sTtt  +  pixx * sTxx  +  piyy * sTyy  +  t4 * pinn * sTnn  +  2. * (pixy * sTxy  -  pitx * sTtx  -  pity * sTty  +  t2 * (pixn * sTxn  +  piyn * sTyn  -  pitn * sTtn));
 
 	precision Iplpi = lambda_piL * pi_sT;
 
@@ -846,22 +854,23 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 #endif
 
 	// pi_T gradient terms (8 tensors)
-	// note:	tensors are symmetric but (2, 4, 5, 7, 8) are
-	//			not double transverse projected until the end
+	// note: tensors are symmetric but (2, 4, 5, 7, 8) are
+	//		 not double transverse projected until the end
 
 	// 2 . \eta_T . \sigma_T^{\mu\nu}
-	precision Itt_pi1 = 2.0 * eta_T * sTtt;
-	precision Itx_pi1 = 2.0 * eta_T * sTtx;
-	precision Ity_pi1 = 2.0 * eta_T * sTty;
-	precision Itn_pi1 = 2.0 * eta_T * sTtn;
-	precision Ixx_pi1 = 2.0 * eta_T * sTxx;
-	precision Ixy_pi1 = 2.0 * eta_T * sTxy;
-	precision Ixn_pi1 = 2.0 * eta_T * sTxn;
-	precision Iyy_pi1 = 2.0 * eta_T * sTyy;
-	precision Iyn_pi1 = 2.0 * eta_T * sTyn;
-	precision Inn_pi1 = 2.0 * eta_T * sTnn;
+	precision Itt_pi1 = 2. * eta_T * sTtt;
+	precision Itx_pi1 = 2. * eta_T * sTtx;
+	precision Ity_pi1 = 2. * eta_T * sTty;
+	precision Itn_pi1 = 2. * eta_T * sTtn;
+	precision Ixx_pi1 = 2. * eta_T * sTxx;
+	precision Ixy_pi1 = 2. * eta_T * sTxy;
+	precision Ixn_pi1 = 2. * eta_T * sTxn;
+	precision Iyy_pi1 = 2. * eta_T * sTyy;
+	precision Iyn_pi1 = 2. * eta_T * sTyn;
+	precision Inn_pi1 = 2. * eta_T * sTnn;
 
 	// 2 . WTz^{(\mu} . \dot{z}^{\nu)}
+#ifdef WTZMU
 	precision Itt_pi2 = 2.0 * WtTz * D_zt;
 	precision Itx_pi2 = WxTz * D_zt;
 	precision Ity_pi2 = WyTz * D_zt;
@@ -869,10 +878,19 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision Ixn_pi2 = WxTz * D_zn;
 	precision Iyn_pi2 = WyTz * D_zn;
 	precision Inn_pi2 = 2.0 * WnTz * D_zn;
+#else
+	precision Itt_pi2 = 0.0;
+	precision Itx_pi2 = 0.0;
+	precision Ity_pi2 = 0.0;
+	precision Itn_pi2 = 0.0;
+	precision Ixn_pi2 = 0.0;
+	precision Iyn_pi2 = 0.0;
+	precision Inn_pi2 = 0.0;
+#endif
 
 	// \delta^\pi_\pi . pi_T^{\mu\nu} . \theta_T
 	precision Itt_pi3 = delta_pipi * pitt * thetaT;
-	precision Itx_pi3 = delta_pipi * pitx * thetaT;
+	precision Itx_pi3 = delta_pipi * pitx * thetaT;		// don't see anything wrong here
 	precision Ity_pi3 = delta_pipi * pity * thetaT;
 	precision Itn_pi3 = delta_pipi * pitn * thetaT;
 	precision Ixx_pi3 = delta_pipi * pixx * thetaT;
@@ -906,7 +924,7 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision Iyn_pi5 = 0.0;
 	precision Inn_pi5 = 0.0;
 
-	// \lambda^\pi_\pi . \pi_T^{\mu\nu} . \theta_L
+	// \lambda^\pi_\pi . \pi_T^{\mu\nu} . \theta_L		
 	precision Itt_pi6 = lambda_pipi * pitt * thetaL;
 	precision Itx_pi6 = lambda_pipi * pitx * thetaL;
 	precision Ity_pi6 = lambda_pipi * pity * thetaL;
@@ -973,14 +991,46 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision Ixx_pi = Ixx_pi1  		    -  Ixx_pi3  -  Ixx_pi4  +  Ixx_pi5  +  Ixx_pi6  -  Ixx_pi7  +  Ixx_pi8;
 	precision Ixy_pi = Ixy_pi1  			-  Ixy_pi3  -  Ixy_pi4  +  Ixy_pi5  +  Ixy_pi6  -  Ixy_pi7  +  Ixy_pi8;
 	precision Ixn_pi = Ixn_pi1  -  Ixn_pi2  -  Ixn_pi3  -  Ixn_pi4  +  Ixn_pi5  +  Ixn_pi6  -  Ixn_pi7  +  Ixn_pi8;
-	precision Iyy_pi = Iyy_pi1  -  Iyy_pi2  -  Iyy_pi3  -  Iyy_pi4  +  Iyy_pi5  +  Iyy_pi6  -  Iyy_pi7  +  Iyy_pi8;
+	precision Iyy_pi = Iyy_pi1              -  Iyy_pi3  -  Iyy_pi4  +  Iyy_pi5  +  Iyy_pi6  -  Iyy_pi7  +  Iyy_pi8;
 	precision Iyn_pi = Iyn_pi1  -  Iyn_pi2  -  Iyn_pi3  -  Iyn_pi4  +  Iyn_pi5  +  Iyn_pi6  -  Iyn_pi7  +  Iyn_pi8;
 	precision Inn_pi = Inn_pi1  -  Inn_pi2  -  Inn_pi3  -  Inn_pi4  +  Inn_pi5  +  Inn_pi6  -  Inn_pi7  +  Inn_pi8;
 
 	Xi_2.double_transverse_project_tensor(Itt_pi, Itx_pi, Ity_pi, Itn_pi, Ixx_pi, Ixy_pi, Ixn_pi, Iyy_pi, Iyn_pi, Inn_pi);
 
 
-	// still need to work out product rule and Christofel terms
+	// Christofel terms: G_\pi^{\mu\nu} = 2 . u^\alpha . \Gamma^{(\mu}_{\alpha\beta} . \pi_T^{\beta\nu)}
+	precision Gtt_pi = 2. * tun * pitn;
+	precision Gtx_pi = tun * pixn;
+	precision Gty_pi = tun * piyn;
+	precision Gtn_pi = tun * pinn  +  (ut * pitn  +  un * pitt) / t;
+	precision Gxn_pi = (ut * pixn  +  un * pitx) / t;
+	precision Gyn_pi = (ut * piyn  +  un * pity) / t;
+	precision Gnn_pi = 2. * (ut * pinn  +  un * pitn) / t;		// fixed factor of 2 bug on 7/23
+
+	// pi_T^{\mu\alpha} . a_\alpha
+	precision piat = pitt * at  -  pitx * ax  -  pity * ay  -  t2 * pitn * an;
+	precision piax = pitx * at  -  pixx * ax  -  pixy * ay  -  t2 * pixn * an;
+	precision piay = pity * at  -  pixy * ax  -  piyy * ay  -  t2 * piyn * an;
+	precision pian = pitn * at  -  pixn * ax  -  piyn * ay  -  t2 * pinn * an;
+
+	// pi_T^{\mu\alpha} . \dot{z}_\alpha
+	precision piDzt = pitt * D_zt  -  t2 * pitn * D_zn;
+	precision piDzx = pitx * D_zt  -  t2 * pixn * D_zn;
+	precision piDzy = pity * D_zt  -  t2 * piyn * D_zn;
+	precision piDzn = pitn * D_zt  -  t2 * pinn * D_zn;
+
+
+	// Product rule terms: P^{\mu\nu} = 2.(- u^{(\mu} . \pi_{\nu)\alpha} . a_\alpha  +  z^{(\mu} . \pi_{\nu)\alpha} . \dot{z}_\alpha)
+	precision Ptt_pi = 2. * (- ut * piat  +  zt * piDzt);
+	precision Ptx_pi = - ut * piax  -  ux * piat  +  zt * piDzx;
+	precision Pty_pi = - ut * piay  -  uy * piat  +  zt * piDzy;
+	precision Ptn_pi = - ut * pian  -  un * piat  +  zt * piDzn  +  zn * piDzt;
+	precision Pxx_pi = - 2. * ux * piax;
+	precision Pxy_pi = - ux * piay  -  uy * piax;
+	precision Pxn_pi = - ux * pian  -  un * piax  +  zn * piDzx;
+	precision Pyy_pi = - 2. * uy * piay;
+	precision Pyn_pi = - uy * pian  -  un * piay  +  zn * piDzy;
+	precision Pnn_pi = 2. * (- un * pian  +  zn * piDzn);
 
 #else
 	precision Iplpi = 0.0;
@@ -1036,21 +1086,21 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 	// piT relaxation equation
 #ifdef PIMUNU
-	precision dpitt = - pitt * taupiInv  +  Itt_pi_pro  +  Ptt_pi  -  Gtt_pi;
-	precision dpitx = - pitx * taupiInv  +  Itx_pi_pro  +  Ptx_pi;
-	precision dpity = - pity * taupiInv  +  Ity_pi_pro  +  Pty_pi;
-	precision dpitn = - pitn * taupiInv  +  Itn_pi_pro  +  Ptn_pi  -  Gtn_pi;
-	precision dpixx = - pixx * taupiInv  +  Ixx_pi_pro  +  Pxx_pi;
-	precision dpixy = - pixy * taupiInv  +  Ixy_pi_pro  +  Pxy_pi;
-	precision dpixn = - pixn * taupiInv  +  Ixn_pi_pro  +  Pxn_pi;
-	precision dpiyy = - piyy * taupiInv  +  Iyy_pi_pro  +  Pyy_pi;
-	precision dpiyn = - piyn * taupiInv  +  Iyn_pi_pro  +  Pyn_pi;
-	precision dpinn = - pinn * taupiInv  +  Inn_pi_pro  +  Pnn_pi  -  Gnn_pi;
+	precision dpitt = - pitt * taupiInv  +  Itt_pi  +  Ptt_pi  -  Gtt_pi;
+	precision dpitx = - pitx * taupiInv  +  Itx_pi  +  Ptx_pi  -  Gtx_pi;
+	precision dpity = - pity * taupiInv  +  Ity_pi  +  Pty_pi  -  Gty_pi;
+	precision dpitn = - pitn * taupiInv  +  Itn_pi  +  Ptn_pi  -  Gtn_pi;
+	precision dpixx = - pixx * taupiInv  +  Ixx_pi  +  Pxx_pi;
+	precision dpixy = - pixy * taupiInv  +  Ixy_pi  +  Pxy_pi;
+	precision dpixn = - pixn * taupiInv  +  Ixn_pi  +  Pxn_pi  -  Gxn_pi;
+	precision dpiyy = - piyy * taupiInv  +  Iyy_pi  +  Pyy_pi;
+	precision dpiyn = - piyn * taupiInv  +  Iyn_pi  +  Pyn_pi  -  Gyn_pi;
+	precision dpinn = - pinn * taupiInv  +  Inn_pi  +  Pnn_pi  -  Gnn_pi;
 
 	S[a] = dpitt / ut  +  div_v * pitt;		a++;
 	S[a] = dpitx / ut  +  div_v * pitx;		a++;
 	S[a] = dpity / ut  +  div_v * pity;		a++;
-	S[a] = dpitn / ut  +  div_v * pitn;		a++;
+	S[a] = dpitn / ut  +  div_v * pitn;		a++;	// looks fine
 	S[a] = dpixx / ut  +  div_v * pixx;		a++;
 	S[a] = dpixy / ut  +  div_v * pixy;		a++;
 	S[a] = dpixn / ut  +  div_v * pixn;		a++;
