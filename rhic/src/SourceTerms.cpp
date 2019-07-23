@@ -837,9 +837,120 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 
 #ifdef PIMUNU
-	precision pisT = pitt * sTtt  +  pixx * sTxx  +  piyy * sTyy  +  t2 * t2 * pinn * sTnn  +  2.0 * (pixy * sTxy  -  pitx * sTtx  -  pity * sTty  +  t2 * (pixn * sTxn  +  piyn * sTyn  -  pitn * sTtn));
+	precision pi_sT = pitt * sTtt  +  pixx * sTxx  +  piyy * sTyy  +  t4 * pinn * sTnn  +  2.0 * (pixy * sTxy  -  pitx * sTtx  -  pity * sTty  +  t2 * (pixn * sTxn  +  piyn * sTyn  -  pitn * sTtn));
+
+	precision Iplpi = lambda_piL * pi_sT;
+
+#if (PT_MATCHING == 1)
+	precision Iptpi = lambda_piT * pi_sT;
+#endif
+
+	precision Itt_pi1 = 2.0 * eta_T * sTtt;
+	precision Itx_pi1 = 2.0 * eta_T * sTtx;
+	precision Ity_pi1 = 2.0 * eta_T * sTty;
+	precision Itn_pi1 = 2.0 * eta_T * sTtn;
+	precision Ixx_pi1 = 2.0 * eta_T * sTxx;
+	precision Ixy_pi1 = 2.0 * eta_T * sTxy;
+	precision Ixn_pi1 = 2.0 * eta_T * sTxn;
+	precision Iyy_pi1 = 2.0 * eta_T * sTyy;
+	precision Iyn_pi1 = 2.0 * eta_T * sTyn;
+	precision Inn_pi1 = 2.0 * eta_T * sTnn;
+
+	precision Itt_pi2 = 2.0 * WtTz * D_zt;
+	precision Itx_pi2 = WxTz * D_zt;
+	precision Ity_pi2 = WyTz * D_zt;
+	precision Itn_pi2 = WtTz * D_zn  +  WnTz * D_zt;
+	precision Ixn_pi2 = WxTz * D_zn;
+	precision Iyn_pi2 = WyTz * D_zn;
+	precision Inn_pi2 = 2.0 * WnTz * D_zn;
+
+	precision Itt_pi3 = delta_pipi * pitt * thetaT;
+	precision Itx_pi3 = delta_pipi * pitx * thetaT;
+	precision Ity_pi3 = delta_pipi * pity * thetaT;
+	precision Itn_pi3 = delta_pipi * pitn * thetaT;
+	precision Ixx_pi3 = delta_pipi * pixx * thetaT;
+	precision Ixy_pi3 = delta_pipi * pixy * thetaT;
+	precision Ixn_pi3 = delta_pipi * pixn * thetaT;
+	precision Iyy_pi3 = delta_pipi * piyy * thetaT;
+	precision Iyn_pi3 = delta_pipi * piyn * thetaT;
+	precision Inn_pi3 = delta_pipi * pinn * thetaT;
+
+	// not sure exactly (probably symmetrize the contraction like in I_pi2)
+	precision Itt_pi4 = 0.0;
+	precision Itx_pi4 = 0.0;
+	precision Ity_pi4 = 0.0;	// this one requires more thinking 
+	precision Itn_pi4 = 0.0;
+	precision Ixx_pi4 = 0.0;
+	precision Ixy_pi4 = 0.0;
+	precision Ixn_pi4 = 0.0;
+	precision Iyy_pi4 = 0.0;
+	precision Iyn_pi4 = 0.0;
+	precision Inn_pi4 = 0.0;
+
+	// ignore the vorticity term for now 
+	precision Itt_pi5 = 0.0;
+	precision Itx_pi5 = 0.0;
+	precision Ity_pi5 = 0.0;
+	precision Itn_pi5 = 0.0;
+	precision Ixx_pi5 = 0.0;
+	precision Ixy_pi5 = 0.0;
+	precision Ixn_pi5 = 0.0;
+	precision Iyy_pi5 = 0.0;
+	precision Iyn_pi5 = 0.0;
+	precision Inn_pi5 = 0.0;
+
+	precision Itt_pi6 = lambda_pipi * pitt * thetaL;
+	precision Itx_pi6 = lambda_pipi * pitx * thetaL;
+	precision Ity_pi6 = lambda_pipi * pity * thetaL;
+	precision Itn_pi6 = lambda_pipi * pitn * thetaL;
+	precision Ixx_pi6 = lambda_pipi * pixx * thetaL;
+	precision Ixy_pi6 = lambda_pipi * pixy * thetaL;
+	precision Ixn_pi6 = lambda_pipi * pixn * thetaL;
+	precision Iyy_pi6 = lambda_pipi * piyy * thetaL;
+	precision Iyn_pi6 = lambda_pipi * piyn * thetaL;
+	precision Inn_pi6 = lambda_pipi * pinn * thetaL;
+
+	precision Itt_pi7 = lambda_Wupi * WtTz * Dz_ut;
+	precision Itx_pi7 = 0.5 * lambda_Wupi * (WtTz * Dz_ux  +  WxTz * Dz_ut);
+	precision Ity_pi7 = 0.5 * lambda_Wupi * (WtTz * Dz_uy  +  WyTz * Dz_ut);
+	precision Itn_pi7 = 0.5 * lambda_Wupi * (WtTz * Dz_un  +  WnTz * Dz_ut);
+	precision Ixx_pi7 = lambda_Wupi * WxTz * Dz_ux;
+	precision Ixy_pi7 = 0.5 * lambda_Wupi * (WxTz * Dz_uy  +  WyTz * Dz_ux);
+	precision Ixn_pi7 = 0.5 * lambda_Wupi * (WxTz * Dz_un  +  WnTz * Dz_ux);
+	precision Iyy_pi7 = lambda_Wupi * WyTz * Dz_uy;
+	precision Iyn_pi7 = 0.5 * lambda_Wupi * (WyTz * Dz_un  +  WnTz * Dz_uy);
+	precision Inn_pi7 = lambda_Wupi * WnTz * Dz_un;
+
+	precision Itt_pi8 = lamnda_WTpi * WtTz * z_NabTt_u;
+	precision Itx_pi8 = 0.5 * lamnda_WTpi * (WtTz * z_NabTx_u  +  WxTz * z_NabTt_u);
+	precision Ity_pi8 = 0.5 * lamnda_WTpi * (WtTz * z_NabTy_u  +  WyTz * z_NabTt_u);
+	precision Itn_pi8 = 0.5 * lamnda_WTpi * (WtTz * z_NabTn_u  +  WnTz * z_NabTt_u);
+	precision Ixx_pi8 = lamnda_WTpi * WxTz * Dz_ux;
+	precision Ixy_pi8 = 0.5 * lamnda_WTpi * (WxTz * z_NabTy_u  +  WyTz * z_NabTx_u);
+	precision Ixn_pi8 = 0.5 * lamnda_WTpi * (WxTz * z_NabTn_u  +  WnTz * z_NabTx_u);
+	precision Iyy_pi8 = lamnda_WTpi * WyTz * z_NabTy_u;
+	precision Iyn_pi8 = 0.5 * lamnda_WTpi * (WyTz * z_NabTn_u  +  WnTz * z_NabTy_u);
+	precision Inn_pi8 = lamnda_WTpi * WnTz * z_NabTn_u;
+
+	precision Itt_pi = Itt_pi1  -  Itt_pi2  -  Itt_pi3  -  Itt_pi4  +  Itt_pi5  +  Itt_pi6  -  Itt_pi7  +  Itt_pi8;
+	precision Itx_pi = Itx_pi1  -  Itx_pi2  -  Itx_pi3  -  Itx_pi4  +  Itx_pi5  +  Itx_pi6  -  Itx_pi7  +  Itx_pi8;
+	precision Ity_pi = Ity_pi1  -  Ity_pi2  -  Ity_pi3  -  Ity_pi4  +  Ity_pi5  +  Ity_pi6  -  Ity_pi7  +  Ity_pi8;
+	precision Itn_pi = Itn_pi1  -  Itn_pi2  -  Itn_pi3  -  Itn_pi4  +  Itn_pi5  +  Itn_pi6  -  Itn_pi7  +  Itn_pi8;
+	precision Ixx_pi = Ixx_pi1  		    -  Ixx_pi3  -  Ixx_pi4  +  Ixx_pi5  +  Ixx_pi6  -  Ixx_pi7  +  Ixx_pi8;
+	precision Ixy_pi = Ixy_pi1  			-  Ixy_pi3  -  Ixy_pi4  +  Ixy_pi5  +  Ixy_pi6  -  Ixy_pi7  +  Ixy_pi8;
+	precision Ixn_pi = Ixn_pi1  -  Ixn_pi2  -  Ixn_pi3  -  Ixn_pi4  +  Ixn_pi5  +  Ixn_pi6  -  Ixn_pi7  +  Ixn_pi8;
+	precision Iyy_pi = Iyy_pi1  -  Iyy_pi2  -  Iyy_pi3  -  Iyy_pi4  +  Iyy_pi5  +  Iyy_pi6  -  Iyy_pi7  +  Iyy_pi8;
+	precision Iyn_pi = Iyn_pi1  -  Iyn_pi2  -  Iyn_pi3  -  Iyn_pi4  +  Iyn_pi5  +  Iyn_pi6  -  Iyn_pi7  +  Iyn_pi8;
+	precision Inn_pi = Inn_pi1  -  Inn_pi2  -  Inn_pi3  -  Inn_pi4  +  Inn_pi5  +  Inn_pi6  -  Inn_pi7  +  Inn_pi8;
+
+	Xi_2.double_transverse_project_tensor(Itt_pi, Itx_pi, Ity_pi, Itn_pi, Ixx_pi, Ixy_pi, Ixn_pi, Iyy_pi, Iyn_pi, Inn_pi);
+
 #else
-	precision pisT = 0.0;
+	precision Iplpi = 0.0;
+
+#if (PT_MATCHING == 1)
+	precision Iptpi = 0.0;
+#endif
 
 #endif
 
@@ -881,14 +992,14 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 
 	// pl relaxation equation
-	precision dpl = - dp * taupiInv / 1.5  +  zeta_LL * thetaL  +  zeta_TL * thetaT  +  IplW;
+	precision dpl = - dp * taupiInv / 1.5  +  zeta_LL * thetaL  +  zeta_TL * thetaT  +  IplW  -  Iplpi;
 	S[4] =	dpl / ut  +  div_v * pl;
 
 
 	a = 5;		// reset index
 
 #if (PT_MATCHING == 1)
-	precision dpt =	dp * taupiInv / 3.0  +  zeta_LT * thetaL  +  zeta_TT * thetaT  +  IptW;
+	precision dpt =	dp * taupiInv / 3.0  +  zeta_LT * thetaL  +  zeta_TT * thetaT  +  IptW  +  Iptpi;
 	S[a] = dpt / ut  +  div_v * pt;		a++;
 #endif
 
