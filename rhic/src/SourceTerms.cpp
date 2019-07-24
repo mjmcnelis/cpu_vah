@@ -620,40 +620,6 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 #endif
 #endif
 
-	// WTz coefficients
-#ifdef WTZMU
-	precision eta_uW = aniso.eta_uW;
-	precision eta_TW = aniso.eta_TW;
-	precision tau_zW = aniso.tau_zW;
-	precision delta_WW = aniso.delta_WW;
-	precision lambda_WuW = aniso.lambda_WuW;
-	precision lambda_WTW = aniso.lambda_WTW;
-#ifdef PIMUNU
-	precision lambda_piuW = aniso.lambda_piuW;
-	precision lambda_piTW = aniso.lambda_piTW;
-#endif
-#endif
-
-	// piT coefficients
-#ifdef PIMUNU
-	// precision eta_T = aniso.eta_T;
-	// precision delta_pipi = aniso.delta_pipi;
-	// precision tau_pipi = aniso.tau_pipi;
-	// precision lambda_pipi = aniso.lambda_pipi;
-
-	precision eta_T = aniso.eta_T;					// temporary
-	precision delta_pipi = 0.0;
-	precision tau_pipi = 0.0;
-	precision lambda_pipi = 0.0;
-
-
-#ifdef WTZMU
-	precision lambda_Wupi = aniso.lambda_Wupi;
-	precision lambda_WTpi = aniso.lambda_WTpi;
-#endif
-#endif
-
-
 	// L^munu components and derivatives
 	precision dp  = pl - pt;
 
@@ -674,18 +640,18 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 #ifdef WTZMU
 	// W^munu components
-	precision Wtt = 2.0 * WtTz * zt;
+	precision Wtt = 2. * WtTz * zt;
 	precision Wtx = WxTz * zt;
 	precision Wty = WyTz * zt;
 	precision Wtn = WtTz * zn  +  WnTz * zt;
 	precision Wxn = WxTz * zn;
 	precision Wyn = WyTz * zn;
-	precision Wnn = 2.0 * WnTz * zn;
+	precision Wnn = 2. * WnTz * zn;
 
 	// W^munu derivatives in conservation laws
-	precision dWtt_dx = 2.0 * (dWtTz_dx * zt  +  WtTz * dzt_dx);
-	precision dWtt_dy = 2.0 * (dWtTz_dy * zt  +  WtTz * dzt_dy);
-	precision dWtt_dn = 2.0 * (dWtTz_dn * zt  +  WtTz * dzt_dn);
+	precision dWtt_dx = 2. * (dWtTz_dx * zt  +  WtTz * dzt_dx);
+	precision dWtt_dy = 2. * (dWtTz_dy * zt  +  WtTz * dzt_dy);
+	precision dWtt_dn = 2. * (dWtTz_dn * zt  +  WtTz * dzt_dn);
 
 	precision dWtx_dx = dWxTz_dx * zt  +  WxTz * dzt_dx;
 	precision dWtx_dy = dWxTz_dy * zt  +  WxTz * dzt_dy;
@@ -705,8 +671,20 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision dWyn_dy = dWyTz_dy * zn  +  WyTz * dzn_dy;
 	precision dWyn_dn = dWyTz_dn * zn  +  WyTz * dzn_dn;
 
-	precision dWnn_dn = 2.0 * (dWnTz_dn * zn  +  WnTz * dzn_dn);
+	precision dWnn_dn = 2. * (dWnTz_dn * zn  +  WnTz * dzn_dn);
 
+
+	// transport coefficients
+	precision eta_uW = aniso.eta_uW;
+	precision eta_TW = aniso.eta_TW;
+	precision tau_zW = aniso.tau_zW;
+	precision delta_WW = aniso.delta_WW;
+	precision lambda_WuW = aniso.lambda_WuW;
+	precision lambda_WTW = aniso.lambda_WTW;
+#ifdef PIMUNU
+	precision lambda_piuW = aniso.lambda_piuW;
+	precision lambda_piTW = aniso.lambda_piTW;
+#endif
 
 	// 2nd order gradient terms in dpl and dpt
 	precision WTz_D_z = WtTz * D_zt  -  t2 * WnTz * D_zn;
@@ -718,6 +696,7 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 #if (PT_MATCHING == 1)
 	precision IptW = WTz_D_z  +  lambda_WuT * WTz_Dz_u  -  lambda_WTT * WTz_z_NabT_u;
 #endif
+
 
 	// gradient terms in dWTz (some are unprojected)
 	precision It_W1 = 2.0 * eta_uW * Dz_ut;
@@ -845,6 +824,21 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 
 #ifdef PIMUNU
+	// transport coefficients
+	// precision eta_T = aniso.eta_T;
+	// precision delta_pipi = aniso.delta_pipi;
+	// precision tau_pipi = aniso.tau_pipi;
+	// precision lambda_pipi = aniso.lambda_pipi;
+	precision eta_T = aniso.eta_T;				// temporary
+	precision delta_pipi = aniso.delta_pipi;
+	precision tau_pipi = 0.0;
+	precision lambda_pipi = aniso.lambda_pipi;
+
+#ifdef WTZMU
+	precision lambda_Wupi = aniso.lambda_Wupi;
+	precision lambda_WTpi = aniso.lambda_WTpi;
+#endif
+
 	precision pi_sT = pitt * sTtt  +  pixx * sTxx  +  piyy * sTyy  +  t4 * pinn * sTnn  +  2. * (pixy * sTxy  -  pitx * sTtx  -  pity * sTty  +  t2 * (pixn * sTxn  +  piyn * sTyn  -  pitn * sTtn));
 
 	precision Iplpi = lambda_piL * pi_sT;
@@ -924,7 +918,7 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision Iyn_pi5 = 0.0;
 	precision Inn_pi5 = 0.0;
 
-	// \lambda^\pi_\pi . \pi_T^{\mu\nu} . \theta_L		
+	// \lambda^\pi_\pi . \pi_T^{\mu\nu} . \theta_L
 	precision Itt_pi6 = lambda_pipi * pitt * thetaL;
 	precision Itx_pi6 = lambda_pipi * pitx * thetaL;
 	precision Ity_pi6 = lambda_pipi * pity * thetaL;
@@ -1027,7 +1021,7 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision Ptn_pi = - ut * pian  -  un * piat  +  zt * piDzn  +  zn * piDzt;
 	precision Pxx_pi = - 2. * ux * piax;
 	precision Pxy_pi = - ux * piay  -  uy * piax;
-	precision Pxn_pi = - ux * pian  -  un * piax  +  zn * piDzx;
+	precision Pxn_pi = - ux * pian  -  un * piax  +  zn * piDzx;	// don't see anything wrong with this
 	precision Pyy_pi = - 2. * uy * piay;
 	precision Pyn_pi = - uy * pian  -  un * piay  +  zn * piDzy;
 	precision Pnn_pi = 2. * (- un * pian  +  zn * piDzn);
@@ -1089,7 +1083,7 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision dpitt = - pitt * taupiInv  +  Itt_pi  +  Ptt_pi  -  Gtt_pi;
 	precision dpitx = - pitx * taupiInv  +  Itx_pi  +  Ptx_pi  -  Gtx_pi;
 	precision dpity = - pity * taupiInv  +  Ity_pi  +  Pty_pi  -  Gty_pi;
-	precision dpitn = - pitn * taupiInv  +  Itn_pi  +  Ptn_pi  -  Gtn_pi;
+	precision dpitn = - pitn * taupiInv  +  Itn_pi  +  Ptn_pi  -  Gtn_pi;	// looks fine (unless signs?)
 	precision dpixx = - pixx * taupiInv  +  Ixx_pi  +  Pxx_pi;
 	precision dpixy = - pixy * taupiInv  +  Ixy_pi  +  Pxy_pi;
 	precision dpixn = - pixn * taupiInv  +  Ixn_pi  +  Pxn_pi  -  Gxn_pi;

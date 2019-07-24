@@ -9,7 +9,7 @@
 // replaced powf with pow (7/2/19)
 // it didn't change anything
 
-precision equilibriumPressure(precision e) 
+precision equilibriumPressure(precision e)
 {
 #ifndef CONFORMAL_EOS
     // Equation of state from the Wuppertal-Budapest collaboration
@@ -55,7 +55,7 @@ precision equilibriumPressure(precision e)
 	double b11 = 5.928138360995685e-11;
 	double b12 = 3.2581066229887368e-18;
 	precision b = (precision)fma(b12,e12,fma(b11,e11,fma(b10,e10,fma(b9,e9,fma(b8,e8,fma(b7,e7,fma(b6,e6,fma(b5,e5,fma(b4,e4,fma(b3,e3,fma(b2,e2,fma(b1,e1,b0))))))))))));
-    
+
     return a/b;
 
 #else

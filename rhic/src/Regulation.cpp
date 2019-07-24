@@ -7,12 +7,12 @@
 #include "../include/DynamicalVariables.h"
 using namespace std;
 
-#define REGULATION_SCHEME 1		// 0 = no residual shear stress regulation 
-								// 1 = old regulation scheme 
+#define REGULATION_SCHEME 1		// 0 = no residual shear stress regulation
+								// 1 = old regulation scheme
 								// 2 = new regulation scheme
 
 #define TEST_PIMUNU 0			// 1 = test piT orthogonality and tracelessness
-#define TEST_WTZMU 0			// 1 = test WTz orthogonality 
+#define TEST_WTZMU 0			// 1 = test WTz orthogonality
 
 precision piu_error = 1.e-13;
 precision piz_error = 1.e-13;
@@ -35,25 +35,25 @@ void test_pimunu_properties(precision pitt, precision pitx, precision pity, prec
 	precision piu2 = fabs(pity * ut  -  pixy * ux  -  piyy * uy  -  t2 * piyn * un);
 	precision piu3 = fabs(pitn * ut  -  pixn * ux  -  piyn * uy  -  t2 * pinn * un);
 
-	precision piz0 = fabs(zt * pitt  -  t2 * zn * pitn);
-	precision piz1 = fabs(zt * pitx  -  t2 * zn * pixn);
-	precision piz2 = fabs(zt * pity  -  t2 * zn * piyn);
-	precision piz3 = fabs(zt * pitn  -  t2 * zn * pinn);
+	precision piz0 = fabs(pitt * zt  -  t2 * pitn * zn);
+	precision piz1 = fabs(pitx * zt  -  t2 * pixn * zn);
+	precision piz2 = fabs(pity * zt  -  t2 * piyn * zn);
+	precision piz3 = fabs(pitn * zt  -  t2 * pinn * zn);
 
 	precision piu = fmax(piu0, fmax(piu1, fmax(piu2, piu3)));
 	precision piz = fmax(piz0, fmax(piz1, fmax(piz2, piz3)));
 
-    if(piu > piu_error) 
+    if(piu > piu_error)
     {
     	piu_error = piu;
     	printf("test_pimunu_properties error: piT is not orthogonal to u (%.6g)\n", piu);
     }
-    if(piz > piz_error)  
+    if(piz > piz_error)
     {
     	piz_error = piz;
     	printf("test_pimunu_properties error: piT is not orthogonal to z (%.6g)\n", piz);
     }
-    if(trpi > trpi_error) 
+    if(trpi > trpi_error)
     {
     	trpi_error = trpi;
     	printf("test_pimunu_properties error: piT is not traceless (%.6g)\n", trpi);
@@ -66,12 +66,12 @@ void test_WTzmu_properties(precision WtTz, precision WxTz, precision WyTz, preci
 	precision WTzu = fabs(WtTz * ut  -  WxTz * ux  -  WyTz * uy  -  t2 * WnTz * un);
 	precision WTzz = fabs(WtTz * zt  -  t2 * WnTz * zn);
 
-    if(WTzu > WTzu_error) 
+    if(WTzu > WTzu_error)
     {
     	WTzu_error = WTzu;
     	printf("test_WTzmu_properties error: WTz is not orthogonal to u (%.6g)\n", WTzu);
     }
-    if(WTzz > WTzz_error)  
+    if(WTzz > WTzz_error)
     {
     	WTzz_error = WTzz;
     	printf("test_pimunu_properties error: WTz is not orthogonal to z (%.6g)\n", WTzz);
@@ -201,7 +201,7 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 				precision factor_pi;
 				if(rho_pi > 1.e-5) factor_pi = tanh(rho_pi) / rho_pi;
 				else factor_pi = 1.0  -  rho_pi * rho_pi / 3.;
-				
+
 				q->pitt[s] = factor_pi * pitt;
 				q->pitx[s] = factor_pi * pitx;
 				q->pity[s] = factor_pi * pity;
@@ -255,8 +255,8 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 
 				precision factor_W;
 				if(rho_W > 1.e-5) factor_W = tanh(rho_W) / rho_W;
-				else factor_W = 1.0  -  rho_W * rho_W / 3.;	// 2nd-order expansion				
-				
+				else factor_W = 1.0  -  rho_W * rho_W / 3.;	// 2nd-order expansion
+
 				q->WtTz[s] = factor_W * WtTz;
 				q->WxTz[s] = factor_W * WxTz;
 				q->WyTz[s] = factor_W * WyTz;
