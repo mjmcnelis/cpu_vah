@@ -81,16 +81,16 @@ void flux_terms(precision * const __restrict__ Hp, precision * const __restrict_
 		precision Fp  = qp * vp;
 
 		// extrapolated fluxes (chain rule)
-		// precision FRp = Fp  -  0.5 * (qp * dvp  +  vp * dqp);	// F^{+}_{i+1/2}	(R = +, p = i + 1/2)	Eq. (63)
-		// precision FLp = F   +  0.5 * (q  * dv   +  v  * dq);	// F^{-}_{i+1/2}	(L = -, p = i + 1/2)	Eq. (64)
-		// precision FRm = F   -  0.5 * (q  * dv   +  v  * dq);	// F^{+}_{i-1/2}	(R = -, m = i - 1/2)	Eq. (65)
-		// precision FLm = Fm  +  0.5 * (qm * dvm  +  vm * dqm);	// F^{-}_{i-1/2}	(L = -, m = i - 1/2)	Eq. (66)
+		precision FRp = Fp  -  0.5 * (qp * dvp  +  vp * dqp);	// F^{+}_{i+1/2}	(R = +, p = i + 1/2)	Eq. (63)
+		precision FLp = F   +  0.5 * (q  * dv   +  v  * dq);	// F^{-}_{i+1/2}	(L = -, p = i + 1/2)	Eq. (64)
+		precision FRm = F   -  0.5 * (q  * dv   +  v  * dq);	// F^{+}_{i-1/2}	(R = -, m = i - 1/2)	Eq. (65)
+		precision FLm = Fm  +  0.5 * (qm * dvm  +  vm * dqm);	// F^{-}_{i-1/2}	(L = -, m = i - 1/2)	Eq. (66)
 
 		// alternative formula (seems noisier overall but works better along x-axis)
-		precision FRp = qRp * vRp;
-		precision FLp = qLp * vLp;
-		precision FRm = qRm * vRm;
-		precision FLm = qLm * vLm;
+		// precision FRp = qRp * vRp;
+		// precision FLp = qLp * vLp;
+		// precision FRm = qRm * vRm;
+		// precision FLm = qLm * vLm;
 
 		// Hp, Hm from Eq.(61)
 		Hp[n] = (FRp  +  FLp  -  ap * (qRp - qLp)) / 2.0;

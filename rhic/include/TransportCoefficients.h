@@ -25,25 +25,17 @@ class transport_coefficients
 		// pl coefficients
 		precision zeta_LL;
 		precision zeta_TL;
-	#ifdef WTZMU
 		precision lambda_WuL;
 		precision lambda_WTL;
-	#endif
-	#ifdef PIMUNU
 		precision lambda_piL;
-	#endif
 
 		// pt coefficients
 	#if (PT_MATCHING == 1)
 		precision zeta_LT;
 		precision zeta_TT;
-	#ifdef WTZMU
 		precision lambda_WuT;
 		precision lambda_WTT;
-	#endif
-	#ifdef PIMUNU
 		precision lambda_piT;
-	#endif
 	#endif
 
 		// WTz coefficients
@@ -54,10 +46,8 @@ class transport_coefficients
 		precision delta_WW;
 		precision lambda_WuW;
 		precision lambda_WTW;
-	#ifdef PIMUNU
 		precision lambda_piuW;
 		precision lambda_piTW;
-	#endif
 	#endif
 
 		// piT coefficients
@@ -66,10 +56,8 @@ class transport_coefficients
 		precision delta_pipi;
 		precision tau_pipi;
 		precision lambda_pipi;
-	#ifdef WTZMU
 		precision lambda_Wupi;
 		precision lambda_WTpi;
-	#endif
 	#endif
 	
 		// hypergeometric functions needed

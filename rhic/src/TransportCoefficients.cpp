@@ -253,14 +253,12 @@ void transport_coefficients::compute_transport_coefficients(precision e, precisi
 
 	compute_hypergeometric_functions(z);
 
-
 	precision Lambda4 = 2.0 * e / (aL2 * EOS_FACTOR * t_200);
 	precision Lambda2 = sqrt(Lambda4);
 
 	precision prefactor = EOS_FACTOR * Lambda4 / 2.0;
 
 	// anisotropic functions
-	//::::::::::::::::::::::::::::::::::::::::::::::::::
 	precision I_240 = prefactor * t_240 * aL2;
 	precision I_221 = prefactor * t_221 / 2.0;
 
@@ -276,62 +274,73 @@ void transport_coefficients::compute_transport_coefficients(precision e, precisi
 	precision I_422 = prefactor * t_422 * Lambda2 * 2.5;
 	precision I_403 = prefactor * t_403 * Lambda2 * 5.0 / (12.0 * aL2);
 #endif
-	//::::::::::::::::::::::::::::::::::::::::::::::::::
 
 
-	// pl transport coefficients
-	zeta_LL 	= I_240  -  3. * pl;
-	zeta_TL 	= I_221  -  pl;
+	// pl transport coefficients (verified pimunu coefficient same as v1)
+	zeta_LL = I_240  -  3. * pl;
+	zeta_TL = I_221 - pl;
 #ifdef WTZMU
-	lambda_WuL 	= I_441 / I_421;
-	lambda_WTL 	= 1.  -  lambda_WuL;
+	lambda_WuL = I_441 / I_421;
+	lambda_WTL = 1. - lambda_WuL;
+#else
+	lambda_WuL = 0;
+	lambda_WTL = 0;
 #endif
 #ifdef PIMUNU
-	lambda_piL	= I_422 / I_402;
+	lambda_piL = I_422 / I_402;
+#else
+	lamnda_piL = 0;
 #endif
 		
-	
 	// pt transport coefficients
 #if (PT_MATCHING == 1)
-	zeta_LT 	= I_221  -  pt;
-	zeta_TT 	= 2. * (I_202 - pt);
+	zeta_LT = I_221  -  pt;
+	zeta_TT = 2. * (I_202 - pt);
 #ifdef WTZMU
-	lambda_WTT	= 2. * I_422 / I_421;
-	lambda_WuT	= lambda_WTT  -  1.;
+	lambda_WTT = 2. * I_422 / I_421;
+	lambda_WuT = lambda_WTT  -  1.;
+#else
+	lambda_WTT = 0;
+	lambda_WuT = 0;
 #endif
 #ifdef PIMUNU
-	lambda_piTW	= 1.  -  3. * I_403 / I_402;
+	lambda_piT = 1.  -  3. * I_403 / I_402;
+#else
+	lambda_piT = 0;
 #endif
 #endif
-
 
 	// WTz transport coefficients
 #ifdef WTZMU
-	eta_uW 		= 0.5 * (pl - I_221);
-	eta_TW 		= 0.5 * (pt - I_221);
-	tau_zW 	 	= pl - pt;
-	lambda_WTW	= 2. * I_422 / I_421  -  1.;
-	lambda_WuW	= 2.  -  I_441 / I_421;
-	delta_WW 	= lambda_WTW  -  0.5;
+	eta_uW = 0.5 * (pl - I_221);
+	eta_TW = 0.5 * (pt - I_221);
+	tau_zW = pl - pt;
+	lambda_WTW = 2. * I_422 / I_421  -  1.;
+	lambda_WuW = 2.  -  I_441 / I_421;
+	delta_WW = lambda_WTW  -  0.5;
 #ifdef PIMUNU
 	lambda_piuW = I_422 / I_402;
 	lambda_piTW = lambda_piuW  -  1.;
+#else
+	lambda_piuW = 0;
+	lambda_piTW = 0;
 #endif
 #endif
 
-
-	// piT transport coefficients
+	// piT transport coefficients (validated 1st four are same as v1)
 #ifdef PIMUNU
 	eta_T 		= pt  -  I_202;
 	tau_pipi 	= 2.  -  4. * I_403 / I_402;
-	delta_pipi	= (3. * tau_pipi  + 2.) / 4.;
+	delta_pipi	= (3. * tau_pipi  + 2.) / 4.;	
 	lambda_pipi = I_422 / I_402  -  1.;
 #ifdef WTZMU
 	lambda_Wupi = lambda_WTW  -  1.;
 	lambda_WTpi = lamnda_WuW  +  2.;
+#else
+	lambda_Wupi = 0;
+	lambda_WTpi = 0;
 #endif
 #endif
-
 
 	//test_kinetic_solution(e, pl, pt, z, aL2, prefactor);
 

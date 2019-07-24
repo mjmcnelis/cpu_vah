@@ -7,12 +7,13 @@
 #include "../include/DynamicalVariables.h"
 using namespace std;
 
-#define REGULATION_SCHEME 1		// 0 = no residual shear stress regulation
-								// 1 = old regulation scheme
-								// 2 = new regulation scheme
+#define REGULATE_RESIDUAL_CURRENTS 1	// 1 = regulate residual shear stress
 
-#define TEST_PIMUNU 0			// 1 = test piT orthogonality and tracelessness
-#define TEST_WTZMU 0			// 1 = test WTz orthogonality
+#define TEST_PIMUNU 0					// 1 = test piT orthogonality and tracelessness
+#define TEST_WTZMU 0					// 1 = test WTz orthogonality
+
+#define XI0 	0.5						// regulation parameters
+#define RHO_MAX 2.0
 
 precision piu_error = 1.e-13;
 precision piz_error = 1.e-13;
@@ -82,8 +83,9 @@ void test_WTzmu_properties(precision WtTz, precision WxTz, precision WyTz, preci
 void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __restrict__ q, precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict__ u, int nx, int ny, int nz)
 {
 	precision eps = 1.e-7;		// is there a more effective way to regulate pl, pt?
-	precision xi0 = 0.1;
-	precision rho_max = 1.0;
+
+	precision xi0 = XI0;
+	precision rho_max = RHO_MAX;
 
 	precision t2 = t * t;
 	precision t4 = t2 * t2;
@@ -114,9 +116,9 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 				}
 			#endif
 
-			// #if (REGULATION_SCHEME == 0)
-			// 	continue;
-			// #endif
+			#if (REGULATE_RESIDUAL_CURRENTS == 0)
+				continue;
+			#endif
 
 			#if (NUMBER_OF_RESIDUAL_CURRENTS != 0)
 				precision ut = u->ut[s];
@@ -133,8 +135,6 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 			#endif
 
 				precision T_aniso_mag = sqrt(e_s * e_s  +  pl * pl  +  2.0 * pt * pt);
-
-				transverse_projection Xi(ut, ux, uy, un, zt, zn, t2);
 			#endif
 
 			#ifdef PIMUNU
@@ -153,10 +153,6 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 				test_pimunu_properties(pitt, pitx, pity, pitn, pixx, pixy, pixn, piyy, piyn, pinn, ut, ux, uy, un, zt, zn, t2);
 			#endif
 
-				precision rho_pi;
-
-			// old regulation scheme: regulate all components the same factor (either if too viscous, not orthogonal or not traceless)
-			#if (REGULATION_SCHEME == 1)
 				precision pi_mag = sqrt(fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2.0 * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
 
 				precision trpi = fabs(pitt  -  pixx  -  piyy -  t2 * pinn);
@@ -164,12 +160,12 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 				precision piu0 = fabs(pitt * ut  -  pitx * ux  -  pity * uy  -  t2 * pitn * un);
 				precision piu1 = fabs(pitx * ut  -  pixx * ux  -  pixy * uy  -  t2 * pixn * un);
 				precision piu2 = fabs(pity * ut  -  pixy * ux  -  piyy * uy  -  t2 * piyn * un);
-				precision piu3 = fabs(pitn * ut  -  pixn * ux  -  piyn * uy  -  t2 * pinn * un);
+				precision piu3 = fabs(pitn * ut  -  pixn * ux  -  piyn * uy  -  t2 * pinn * un) * t;
 
 				precision piz0 = fabs(zt * pitt  -  t2 * zn * pitn);
 				precision piz1 = fabs(zt * pitx  -  t2 * zn * pixn);
 				precision piz2 = fabs(zt * pity  -  t2 * zn * piyn);
-				precision piz3 = fabs(zt * pitn  -  t2 * zn * pinn);	// dimensions of piu3, piz3 aren't consistent with the others...
+				precision piz3 = fabs(zt * pitn  -  t2 * zn * pinn) * t;	
 
 				precision denom_pi = xi0 * rho_max * pi_mag;
 
@@ -184,19 +180,7 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 				precision a8 = piz2 / denom_pi;
 				precision a9 = piz3 / denom_pi;
 
-				rho_pi = fmax(a0, fmax(a1, fmax(a2, fmax(a3, fmax(a4, fmax(a5, fmax(a6, fmax(a7, fmax(a8, a9)))))))));
-
-			// new regulation scheme: reproject and regulate pi components to enforce tracelessness / orthogonality
-			#elif (REGULATION_SCHEME == 2)
-
-				double_transverse_projection Xi2(Xi, t2, t4);
-
-				Xi2.double_transverse_project_tensor(pitt, pitx, pity, pitn, pixx, pixy, pixn, piyy, piyn, pinn);
-
-				precision pi_mag = sqrt(fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2.0 * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
-
-				rho_pi = pi_mag / (rho_max * T_aniso_mag);
-			#endif
+				precision rho_pi = fmax(a0, fmax(a1, fmax(a2, fmax(a3, fmax(a4, fmax(a5, fmax(a6, fmax(a7, fmax(a8, a9)))))))));
 
 				precision factor_pi;
 				if(rho_pi > 1.e-5) factor_pi = tanh(rho_pi) / rho_pi;
@@ -225,11 +209,6 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 				test_WTzmu_properties(WtTz, WxTz, WyTz, WnTz, ut, ux, uy, un, zt, zn, t2);
 			#endif
 
-				precision rho_W;
-
-			// old regulation scheme: regulate all components the same factor (either if too viscous or not orthogonal)
-			#if (REGULATION_SCHEME == 1)
-
 				precision WTz_mag = sqrt(fabs(WtTz * WtTz  -  WxTz * WxTz  -  WyTz * WyTz  -  t2 * WnTz * WnTz));
 
 				precision WTzu = fabs(WtTz * ut  -  WxTz * ux  -  WyTz * uy  -  t2 * WnTz * un);
@@ -241,17 +220,7 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 				precision b1 = WTzu / denom_W;
 				precision b2 = WTzz / denom_W;
 
-				rho_W = fmax(b0, fmax(b1, b2));
-
-			// new regulation scheme: reproject and regulate WTz components to enforce orthogonality
-			#elif (REGULATION_SCHEME == 2)
-
-				Xi.transverse_project_vector(WtTz, WxTz, WyTz, WnTz);
-
-				precision WTz_mag = sqrt(2.0 * fabs(WtTz * WtTz  -  WxTz * WxTz  -  WyTz * WyTz  -  t2 * WnTz * WnTz));
-
-				rho_W = WTz_mag / (rho_max * T_aniso_mag);
-			#endif
+				precision rho_W = fmax(b0, fmax(b1, b2));
 
 				precision factor_W;
 				if(rho_W > 1.e-5) factor_W = tanh(rho_W) / rho_W;

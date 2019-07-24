@@ -35,8 +35,7 @@ double dpl_drho(double e, double pl, double rho, double etas)
 	aniso.compute_transport_coefficients(e, pl, (e - pl)/2.);
 
 	precision zeta_LL = aniso.zeta_LL;
-
-	//return - taupiInv * (pl - e/3.)  -  (pl + aniso.I_240) * tanh(rho);
+	
 	return - taupiInv * (pl - e/3.)  -  (4.0 * pl + zeta_LL) * tanh(rho);
 }
 
