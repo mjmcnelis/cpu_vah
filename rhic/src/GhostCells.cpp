@@ -1,7 +1,8 @@
-
+#include <iostream>
 #include "../include/GhostCells.h"
 #include "../include/Precision.h"
 #include "../include/DynamicalVariables.h"
+using namespace std;
 
 
 inline int linear_column_index(int i, int j, int k, int nx, int ny)
@@ -13,9 +14,7 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 void ghost_cell_BC(CONSERVED_VARIABLES * const __restrict__ q, precision * const __restrict__ e, FLUID_VELOCITY * const __restrict__ u, int s, int sBC)
 {
 	// s = ghost cell index	 |	sBC = physical cell at boundary index
-
-	// set the ghost cells
-	e[s] = e[sBC];			
+	e[s] = e[sBC];			// set the ghost cells		
 
 	u->ut[s] = u->ut[sBC];
 	u->ux[s] = u->ux[sBC];
@@ -26,13 +25,11 @@ void ghost_cell_BC(CONSERVED_VARIABLES * const __restrict__ q, precision * const
 	q->ttx[s] = q->ttx[sBC];
 	q->tty[s] = q->tty[sBC];
 	q->ttn[s] = q->ttn[sBC];
-
 	q->pl[s] = q->pl[sBC];
 
 #if (PT_MATCHING == 1)
 	q->pt[s] = q->pt[sBC];
 #endif
-
 #ifdef PIMUNU
 	q->pitt[s] = q->pitt[sBC];
 	q->pitx[s] = q->pitx[sBC];
@@ -52,7 +49,6 @@ void ghost_cell_BC(CONSERVED_VARIABLES * const __restrict__ q, precision * const
 	q->WnTz[s] = q->WnTz[sBC];
 #endif
 }
-
 
 
 void set_ghost_cells(CONSERVED_VARIABLES * const __restrict__ q, precision * const __restrict__ e, FLUID_VELOCITY * const __restrict__ u, int nx, int ny, int nz)
@@ -100,7 +96,7 @@ void set_ghost_cells(CONSERVED_VARIABLES * const __restrict__ q, precision * con
 				ghost_cell_BC(q, e, u, s, sBC);
 			}
 		}
-
+		
 		for(int j = 2; j < ny + 2; j++)
 		{
 			for(int k = 0; k <= 1; k++)				// set left ghost cells (z)

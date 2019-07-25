@@ -27,16 +27,16 @@ transverse_projection::transverse_projection(precision ut_in, precision ux_in, p
 
 	t2 = t2_in;
 
-	Xitt = 1.0  -  ut * ut  +  zt * zt;
+	Xitt = 1.  -  ut * ut  +  zt * zt;
 	Xitx = - ut * ux;
 	Xity = - ut * uy;
 	Xitn = - ut * un  +  zt * zn;
-	Xixx = - 1.0  -  ux * ux;
+	Xixx = - 1.  -  ux * ux;
 	Xixy = - ux * uy;
 	Xixn = - ux * un;
-	Xiyy = - 1.0  -  uy * uy;
+	Xiyy = - 1.  -  uy * uy;
 	Xiyn = - uy * un;
-	Xinn = - 1.0 / t2  -  un * un  +  zn * zn;
+	Xinn = - 1. / t2  -  un * un  +  zn * zn;
 }
 
 

@@ -3,17 +3,14 @@
 #include <math.h>
 #include <cmath>
 #include "../include/Precision.h"
-#include "../include/Projections.h"
 #include "../include/DynamicalVariables.h"
 using namespace std;
 
-#define REGULATE_RESIDUAL_CURRENTS 1	// 1 = regulate residual shear stress
+#define TEST_PIMUNU 0					// 1 to test piT orthogonality and tracelessness
+#define TEST_WTZMU 0					// 1 to test WTz orthogonality
 
-#define TEST_PIMUNU 0					// 1 = test piT orthogonality and tracelessness
-#define TEST_WTZMU 0					// 1 = test WTz orthogonality
-
-#define XI0 	0.5						// regulation parameters
-#define RHO_MAX 2.0
+#define XI0 	0.1						// regulation parameters
+#define RHO_MAX 5.0
 
 precision piu_error = 1.e-13;
 precision piz_error = 1.e-13;
@@ -116,25 +113,21 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 				}
 			#endif
 
-			#if (REGULATE_RESIDUAL_CURRENTS == 0)
-				continue;
-			#endif
-
 			#if (NUMBER_OF_RESIDUAL_CURRENTS != 0)
 				precision ut = u->ut[s];
 				precision ux = u->ux[s];
 				precision uy = u->uy[s];
 				precision un = u->un[s];
 
-				precision utperp = sqrt(1.0  +  ux * ux  +  uy * uy);
+				precision utperp = sqrt(1.  +  ux * ux  +  uy * uy);
 				precision zt = t * un / utperp;
 				precision zn = ut / t / utperp;
 
 			#ifdef CONFORMAL_EOS
-				precision pt = 0.5 * (e_s - pl);
+				precision pt = (e_s - pl) / 2.;
 			#endif
 
-				precision T_aniso_mag = sqrt(e_s * e_s  +  pl * pl  +  2.0 * pt * pt);
+				precision T_aniso_mag = sqrt(e_s * e_s  +  pl * pl  +  2. * pt * pt);
 			#endif
 
 			#ifdef PIMUNU
@@ -153,19 +146,19 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 				test_pimunu_properties(pitt, pitx, pity, pitn, pixx, pixy, pixn, piyy, piyn, pinn, ut, ux, uy, un, zt, zn, t2);
 			#endif
 
-				precision pi_mag = sqrt(fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2.0 * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
+				precision pi_mag = sqrt(fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
 
-				precision trpi = fabs(pitt  -  pixx  -  piyy -  t2 * pinn);
+				precision trpi = fabs(pitt  -  pixx  -  piyy  -  t2 * pinn);
 
-				precision piu0 = fabs(pitt * ut  -  pitx * ux  -  pity * uy  -  t2 * pitn * un);
-				precision piu1 = fabs(pitx * ut  -  pixx * ux  -  pixy * uy  -  t2 * pixn * un);
-				precision piu2 = fabs(pity * ut  -  pixy * ux  -  piyy * uy  -  t2 * piyn * un);
-				precision piu3 = fabs(pitn * ut  -  pixn * ux  -  piyn * uy  -  t2 * pinn * un) * t;
+				precision piu0 = fabs(pitt * ut  -  pitx * ux  -  pity * uy  -  t2 * pitn * un) / ut;
+				precision piu1 = fabs(pitx * ut  -  pixx * ux  -  pixy * uy  -  t2 * pixn * un) / ut;
+				precision piu2 = fabs(pity * ut  -  pixy * ux  -  piyy * uy  -  t2 * piyn * un) / ut;
+				precision piu3 = fabs(pitn * ut  -  pixn * ux  -  piyn * uy  -  t2 * pinn * un) * t / ut;
 
-				precision piz0 = fabs(zt * pitt  -  t2 * zn * pitn);
-				precision piz1 = fabs(zt * pitx  -  t2 * zn * pixn);
-				precision piz2 = fabs(zt * pity  -  t2 * zn * piyn);
-				precision piz3 = fabs(zt * pitn  -  t2 * zn * pinn) * t;	
+				precision piz0 = fabs(zt * pitt  -  t2 * zn * pitn) / (t * zn);
+				precision piz1 = fabs(zt * pitx  -  t2 * zn * pixn) / (t * zn);
+				precision piz2 = fabs(zt * pity  -  t2 * zn * piyn) / (t * zn);
+				precision piz3 = fabs(zt * pitn  -  t2 * zn * pinn) / zn;	
 
 				precision denom_pi = xi0 * rho_max * pi_mag;
 
@@ -184,18 +177,18 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 
 				precision factor_pi;
 				if(rho_pi > 1.e-5) factor_pi = tanh(rho_pi) / rho_pi;
-				else factor_pi = 1.0  -  rho_pi * rho_pi / 3.;
+				else factor_pi = 1.  -  rho_pi * rho_pi / 3.;
 
-				q->pitt[s] = factor_pi * pitt;
-				q->pitx[s] = factor_pi * pitx;
-				q->pity[s] = factor_pi * pity;
-				q->pitn[s] = factor_pi * pitn;
-				q->pixx[s] = factor_pi * pixx;
-				q->pixy[s] = factor_pi * pixy;
-				q->pixn[s] = factor_pi * pixn;
-				q->piyy[s] = factor_pi * piyy;
-				q->piyn[s] = factor_pi * piyn;
-				q->pinn[s] = factor_pi * pinn;
+				q->pitt[s] *= factor_pi;
+				q->pitx[s] *= factor_pi;
+				q->pity[s] *= factor_pi;
+				q->pitn[s] *= factor_pi;
+				q->pixx[s] *= factor_pi;
+				q->pixy[s] *= factor_pi;
+				q->pixn[s] *= factor_pi;
+				q->piyy[s] *= factor_pi;
+				q->piyn[s] *= factor_pi;
+				q->pinn[s] *= factor_pi;
 			#endif
 
 			// reproject and regulate WTz components to ensure orthogonality to u, z (does the order matter?)
@@ -224,12 +217,12 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 
 				precision factor_W;
 				if(rho_W > 1.e-5) factor_W = tanh(rho_W) / rho_W;
-				else factor_W = 1.0  -  rho_W * rho_W / 3.;	// 2nd-order expansion
+				else factor_W = 1.  -  rho_W * rho_W / 3.;	// 2nd-order expansion
 
-				q->WtTz[s] = factor_W * WtTz;
-				q->WxTz[s] = factor_W * WxTz;
-				q->WyTz[s] = factor_W * WyTz;
-				q->WnTz[s] = factor_W * WnTz;
+				q->WtTz[s] *= factor_W;
+				q->WxTz[s] *= factor_W;
+				q->WyTz[s] *= factor_W;
+				q->WnTz[s] *= factor_W;
 			#endif
 			}
 		}

@@ -86,7 +86,7 @@ void transport_coefficients::compute_hypergeometric_functions(precision z)
 	#endif
 
 	}
-	else if(z < -delta && z > -1.0)
+	else if(z < -delta && z > -1.)
 	{
 		precision sqrtmz = sqrt(-z);
 		precision t = atanh(sqrtmz) / sqrtmz;
@@ -213,8 +213,8 @@ void transport_coefficients::compute_transport_coefficients(precision e, precisi
 			//exit(-1);
 			z = fmax(-0.99999999, fmin(z, 1.e-8));
 		}
-		aL  = 1.0 / sqrt(1.0 + z);
-		aL2 = 1.0 / (1.0 + z);
+		aL  = 1. / sqrt(1. + z);
+		aL2 = 1. / (1. + z);
 	}
 	else
 	{
@@ -238,7 +238,7 @@ void transport_coefficients::compute_transport_coefficients(precision e, precisi
 
 		aL2 = aL * aL;
 
-		z = 1.0 / aL2  -  1.0;
+		z = 1. / aL2  -  1.;
 	}
 	// rational polynomial fit of aL as a function of pl / e
 	// precision aL = (5.6098342562962155e-24 + 1.0056714201158781e-17*x + 8.574287549260127e-13*x2 + 8.639689853874967e-9*x3 + 0.000014337184308704522*x4 +
@@ -253,26 +253,26 @@ void transport_coefficients::compute_transport_coefficients(precision e, precisi
 
 	compute_hypergeometric_functions(z);
 
-	precision Lambda4 = 2.0 * e / (aL2 * EOS_FACTOR * t_200);
+	precision Lambda4 = 2. * e / (aL2 * EOS_FACTOR * t_200);
 	precision Lambda2 = sqrt(Lambda4);
 
-	precision prefactor = EOS_FACTOR * Lambda4 / 2.0;
+	precision prefactor = EOS_FACTOR * Lambda4 / 2.;
 
 	// anisotropic functions
 	precision I_240 = prefactor * t_240 * aL2;
-	precision I_221 = prefactor * t_221 / 2.0;
+	precision I_221 = prefactor * t_221 / 2.;
 
 #if (PT_MATCHING == 1 || PIMUNU_COMPONENTS != 0)
-	precision I_202 = prefactor * t_202 / (8.0 * aL2);	
+	precision I_202 = prefactor * t_202 / (8. * aL2);	
 #endif
 
 #if (NUMBER_OF_RESIDUAL_CURRENTS != 0)
-	precision I_421 = prefactor * t_421 * Lambda2 * aL2 * 10.0;	
+	precision I_421 = prefactor * t_421 * Lambda2 * aL2 * 10.;	
 	precision I_402 = prefactor * t_402 * Lambda2 * 2.5;
 
-	precision I_441 = prefactor * t_441 * Lambda2 * aL2 * 10.0;
+	precision I_441 = prefactor * t_441 * Lambda2 * aL2 * 10.;
 	precision I_422 = prefactor * t_422 * Lambda2 * 2.5;
-	precision I_403 = prefactor * t_403 * Lambda2 * 5.0 / (12.0 * aL2);
+	precision I_403 = prefactor * t_403 * Lambda2 * 5. / (12. * aL2);
 #endif
 
 

@@ -149,43 +149,150 @@ void output_aL(const precision * const e, const precision * const pl, double t, 
 }
 
 
+void output_shear_validity(const precision * const pitt, const precision * const pitx, const precision * const pity, const precision * const pitn, const precision * const pixx, const precision * const pixy, const precision * const pixn, const precision * const piyy, const precision * const piyn, const precision * const pinn, const precision * const e, const precision * const pl, const precision * const ut, const precision * const ux, const precision * const uy, const precision * const un, double t, int nx, int ny, int nz, double dx, double dy, double dz)
+{
+	FILE * RpiInverse;
+	FILE * piu_ortho0;
+	FILE * piu_ortho1;
+	FILE * piu_ortho2;
+	//FILE * piu_ortho3;	// commented ones are zero for 2+1d (expected)
+	//FILE * piz_ortho0;
+	//FILE * piz_ortho1;
+	//FILE * piz_ortho2;
+	//FILE * piz_ortho3;
+
+	char fname1[255];
+	char fname2[255];
+	char fname3[255];
+	char fname4[255];
+	//char fname5[255];
+	//char fname6[255];
+	//char fname7[255];
+	//char fname8[255];
+	//char fname9[255];
+
+	sprintf(fname1, "output/RpiInv1_%.3f.dat", t);
+	sprintf(fname2, "output/piu_ortho0_%.3f.dat", t);
+	sprintf(fname3, "output/piu_ortho1_%.3f.dat", t);
+	sprintf(fname4, "output/piu_ortho2_%.3f.dat", t);
+	//sprintf(fname5, "output/piu_ortho3_%.3f.dat", t);
+	//sprintf(fname6, "output/piz_ortho0_%.3f.dat", t);
+	//sprintf(fname7, "output/piz_ortho1_%.3f.dat", t);
+	//sprintf(fname8, "output/piz_ortho2_%.3f.dat", t);
+	//sprintf(fname9, "output/piz_ortho3_%.3f.dat", t);
+
+	RpiInverse = fopen(fname1, "w");
+	piu_ortho0 = fopen(fname2, "w");
+	piu_ortho1 = fopen(fname3, "w");
+	piu_ortho2 = fopen(fname4, "w");
+	//piu_ortho3 = fopen(fname5, "w");
+	//piz_ortho0 = fopen(fname6, "w");
+	//piz_ortho1 = fopen(fname7, "w");
+	//piz_ortho2 = fopen(fname8, "w");
+	//piz_ortho3 = fopen(fname9, "w");
+
+	precision t2 = t * t;
+	precision t4 = t2 * t2;
+
+	for(int k = 2; k < nz + 2; k++)
+	{
+		double z = (k - 2.0 - (nz - 1.0)/2.0) * dz;
+
+		for(int j = 2; j < ny + 2; j++)
+		{
+			double y = (j - 2.0 - (ny - 1.0)/2.0) * dy;
+
+			for(int i = 2; i < nx + 2; i++)
+			{
+				double x = (i - 2.0 - (nx - 1.0)/2.0) * dx;
+
+				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
+
+				precision pitt_s = pitt[s];
+				precision pitx_s = pitx[s];
+				precision pity_s = pity[s];
+				precision pitn_s = pitn[s];
+				precision pixx_s = pixx[s];
+				precision pixy_s = pixy[s];
+				precision pixn_s = pixn[s];
+				precision piyy_s = piyy[s];
+				precision piyn_s = piyn[s];
+				precision pinn_s = pinn[s];
+
+				precision ut_s = ut[s];
+				precision ux_s = ux[s];
+				precision uy_s = uy[s];
+				precision un_s = un[s];
+
+				//precision utperp_s = sqrt(1.  +  ux_s * ux_s  +  uy_s * uy_s);
+				//precision zt_s = t * un_s / utperp_s;
+				//precision zn_s = ut_s / t / utperp_s;
+
+				precision e_s = e[s];
+				precision pl_s = pl[s];
+				precision pt_s = 0.5 * (e_s - pl_s);
+
+				precision T_aniso_mag = sqrt(e_s * e_s  +  pl_s * pl_s  +  2. * pt_s * pt_s);
+
+				precision pi_mag = sqrt(fabs(pitt_s * pitt_s  +  pixx_s * pixx_s  +  piyy_s * piyy_s  +  t4 * pinn_s * pinn_s  -  2. * (pitx_s * pitx_s  +  pity_s * pity_s  -  pixy_s * pixy_s  +  t2 * (pitn_s * pitn_s  -  pixn_s * pixn_s  -  piyn_s * piyn_s))));
+
+				precision piu0 = fabs(pitt_s * ut_s  -  pitx_s * ux_s  -  pity_s * uy_s  -  t * t * pitn_s * un_s);
+				precision piu1 = fabs(pitx_s * ut_s  -  pixx_s * ux_s  -  pixy_s * uy_s  -  t * t * pixn_s * un_s);
+				precision piu2 = fabs(pity_s * ut_s  -  pixy_s * ux_s  -  piyy_s * uy_s  -  t * t * piyn_s * un_s);
+				//precision piu3 = fabs(pitn_s * ut_s  -  pixn_s * ux_s  -  piyn_s * uy_s  -  t * t * pinn_s * un_s) * t;
+
+				//precision piz0 = fabs(zt_s * pitt_s  -  t * t * zn_s * pitn_s);
+				//precision piz1 = fabs(zt_s * pitx_s  -  t * t * zn_s * pixn_s);
+				//precision piz2 = fabs(zt_s * pity_s  -  t * t * zn_s * piyn_s);
+				//precision piz3 = fabs(zt_s * pitn_s  -  t * t * zn_s * pinn_s) * t;	
+
+				fprintf(RpiInverse, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, pi_mag / pt_s);
+
+				fprintf(piu_ortho0, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, piu0 / (ut_s * pi_mag));
+				fprintf(piu_ortho1, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, piu1 / (ut_s * pi_mag));
+				fprintf(piu_ortho2, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, piu2 / (ut_s * pi_mag));
+				//fprintf(piu_ortho3, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, piu3 / pi_mag);
+
+				//fprintf(piz_ortho0, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, piz0 / pi_mag);
+				//fprintf(piz_ortho1, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, piz1 / pi_mag);
+				//fprintf(piz_ortho2, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, piz2 / pi_mag);
+				//fprintf(piz_ortho3, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, piz3 / pi_mag);
+			}
+		}
+	}
+	fclose(RpiInverse);
+	fclose(piu_ortho0);
+	fclose(piu_ortho1);
+	fclose(piu_ortho2);
+	//fclose(piu_ortho3);
+	//fclose(piz_ortho0);
+	//fclose(piz_ortho1);
+	//fclose(piz_ortho2);
+	//fclose(piz_ortho3);
+}
+
+
 void output_gubser_test(const precision * const e, const precision * const pl, const precision * const ux, const precision * const uy, double t, int nx, int ny, int nz, double dx, double dy, double dz)
 {
 	FILE * energy;
 	FILE * plptratio;
-	// FILE * temperature;
-	// FILE * aLplot;
-	// FILE * Lambdaplot;
 	FILE * uxplot;
-	//FILE * uyplot;
 	FILE * urplot;
 
 	char fname1[255];
 	char fname2[255];
-	// char fname3[255];
-	// char fname4[255];
-	// char fname5[255];
-	char fname6[255];
-	//char fname7[255];
-	char fname8[255];
+	char fname3[255];
+	char fname4[255];
 
 	sprintf(fname1, "output/e_%.3f.dat", t);
 	sprintf(fname2, "output/plpt_%.3f.dat", t);
-	// sprintf(fname3, "output/T_%.3f.dat", t);
-	// sprintf(fname4, "output/aL_%.3f.dat", t);
-	// sprintf(fname5, "output/Lambda_%.3f.dat", t);
-	sprintf(fname6, "output/ux_%.3f.dat", t);
-	//sprintf(fname7, "output/uy_%.3f.dat", t);
-	sprintf(fname8, "output/ur_%.3f.dat", t);
+	sprintf(fname3, "output/ux_%.3f.dat", t);
+	sprintf(fname4, "output/ur_%.3f.dat", t);
 
 	energy      = fopen(fname1, "w");
 	plptratio   = fopen(fname2, "w");
-	// temperature = fopen(fname3, "w");
-	// aLplot      = fopen(fname4, "w");
-	// Lambdaplot  = fopen(fname5, "w");
-	uxplot      = fopen(fname6, "w");
-	//uyplot      = fopen(fname7, "w");
-	urplot      = fopen(fname8, "w");
+	uxplot      = fopen(fname3, "w");
+	urplot      = fopen(fname4, "w");
 
 	for(int k = 2; k < nz + 2; k++)
 	{
@@ -209,42 +316,16 @@ void output_gubser_test(const precision * const e, const precision * const pl, c
 				precision pl_s = pl[s];
 				precision pt_s = 0.5 * (e_s - pl_s);
 
-				// precision T = effectiveTemperature(e_s) * hbarc;
-				// precision aL = compute_conformal_aL(pl_s, e_s);
-
-				// precision xi = 1.0 / (aL * aL)  -  1.0;
-
-				// precision hype = 1.0;
-
-				// if(xi > delta)
-				// {
-				// 	hype = atan(sqrt(xi)) /sqrt(xi);
-				// }
-				// else if(xi < - delta && xi > -1.0)
-				// {
-				// 	hype = atanh(sqrt(-xi)) / sqrt(-xi);
-				// }
-
-				// precision Lambda = pow(2.0 * e_s / (aL * aL * EOS_FACTOR * t_200(xi, hype)), 0.25) * hbarc;
-
-				fprintf(energy, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, e_s);
-				fprintf(plptratio, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, pl_s / pt_s);
-				// fprintf(temperature, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, T);
-				// fprintf(aLplot, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, aL);
-				// fprintf(Lambdaplot, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, Lambda);
-				fprintf(uxplot, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, ux_s);
-				//fprintf(uyplot, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, uy_s);
-				fprintf(urplot, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, ur);
+				fprintf(energy, 	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, e_s);
+				fprintf(plptratio,	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, pl_s / pt_s);
+				fprintf(uxplot, 	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, ux_s);
+				fprintf(urplot, 	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, ur);
 			}
 		}
 	}
 	fclose(energy);
 	fclose(plptratio);
-	// fclose(temperature);
-	// fclose(aLplot);
-	// fclose(Lambdaplot);
 	fclose(uxplot);
-	//fclose(uyplot);
 	fclose(urplot);
 }
 
@@ -306,11 +387,8 @@ void output_dynamical_variables(double t, int nx, int ny, int nz, double dx, dou
 	{
 		output_gubser_test(e, q->pl, u->ux, u->uy, t, nx, ny, nz, dx, dy, dz);
 
-	#ifdef WTZMU
-		output(q->WtTz, t, "WtTz", nx, ny, nz, dx, dy, dz);
-		output(q->WxTz, t, "WxTz", nx, ny, nz, dx, dy, dz);
-		output(q->WyTz, t, "WyTz", nx, ny, nz, dx, dy, dz);
-		output(q->WnTz, t, "WnTz", nx, ny, nz, dx, dy, dz);
+	#ifdef PIMUNU
+		output_shear_validity(q->pitt, q->pitx, q->pity, q->pitn, q->pixx, q->pixy, q->pixn, q->piyy, q->piyn, q->pinn, e, q->pl, u->ut, u->ux, u->uy, u->un, t, nx, ny, nz, dx, dy, dz);
 	#endif
 		
 		return;

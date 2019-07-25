@@ -48,34 +48,30 @@ inline precision bulkViscosityToEntropyDensity(precision T)   // need some hydro
 
 inline precision central_derivative(const precision * const __restrict__ f, int n, precision dx)
 {
-	return (f[n + 1] - f[n]) / (2.0 * dx);		// f[n] = fm  |	 f[n+1] = fp
+	return (f[n + 1] - f[n]) / (2. * dx);		// f[n] = fm  |	 f[n+1] = fp
 }
 
 
 void source_terms(precision * const __restrict__ S, const precision * const __restrict__ q, precision e, precision t, const precision * const __restrict__ qi1, const precision * const __restrict__ qj1, const precision * const __restrict__ qk1, const precision * const __restrict__ e1, const precision * const __restrict__ ui1, const precision * const __restrict__ uj1, const precision * const __restrict__ uk1, precision ut, precision ux, precision uy, precision un, precision ut_p, precision ux_p, precision uy_p, precision un_p, precision dt, precision dx, precision dy, precision dn, precision etabar)
 {
-	precision utperp  = sqrt(1.0  +  ux * ux  +  uy * uy);
-
+	precision utperp  = sqrt(1.  +  ux * ux  +  uy * uy);
 	precision zt = t * un / utperp;		// longitudinal basis vector
 	precision zn = ut / t / utperp;
 
 	precision t2 = t * t;				// useful expressions
 	precision t4 = t2 * t2;
-
 	precision zt2  = zt * zt;
 	precision ztzn = zt * zn;
 	precision zn2  = zn * zn;
 	precision t2zn = t2 * zn;
-
 	precision ut2  = ut * ut;
 	precision un2  = un * un;
 	precision utun = ut * un;
 	precision tun  = t  * un;
-
 	precision unzn = un * zn;
-
 	precision utperp2 = utperp * utperp;
 
+	precision T = effectiveTemperature(e);
 	precision p = equilibriumPressure(e);
 
 	// conserved variables
@@ -85,12 +81,12 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision ttn = q[3];
 	precision pl  = q[4];
 
-	int a = 5;
+	int a = 5;	// counter
 
 #if (PT_MATCHING == 1)
 	precision pt  = q[a];	a++;
 #else
-	precision pt  = 0.5 * (e - pl);
+	precision pt  = (e - pl) / 2.;
 #endif
 #ifdef PIMUNU
 	precision pitt = q[a];	a++;
@@ -104,7 +100,7 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision piyn = q[a];	a++;
 	precision pinn = q[a];	a++;
 #else
-	precision pitt = 0.0, pitx = 0.0, pity = 0.0, pitn = 0.0, pixx = 0.0, pixy = 0.0, pixn = 0.0, piyy = 0.0, piyn = 0.0, pinn = 0.0;
+	precision pitt = 0, pitx = 0, pity = 0, pitn = 0, pixx = 0, pixy = 0, pixn = 0, piyy = 0, piyn = 0, pinn = 0;
 #endif
 #ifdef WTZMU
 	precision WtTz = q[a];	a++;
@@ -112,34 +108,32 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision WyTz = q[a];	a++;
 	precision WnTz = q[a];
 #else
-	precision WtTz = 0.0, WxTz = 0.0, WyTz = 0.0, WnTz = 0.0;
+	precision WtTz = 0, WxTz = 0, WyTz = 0, WnTz = 0;
 #endif
 
 
 // relaxation times and transport coefficients
 //-------------------------------------------------
 #ifdef CONFORMAL_EOS
-	precision T = powf(e / EOS_FACTOR, 0.25);
-
 	precision taupiInv = T / (5. * etabar);
-	precision taubulkInv = 0.0;
+	precision taubulkInv = 0;
 #else
-	precision taupiInv = 1.0;	// fill in quasiparticle later
-	precision taubulkInv = 1.0;
+	precision taupiInv = 1.;	// fill in quasiparticle later
+	precision taubulkInv = 1.;
 #endif
 
 	// anisotropic transport coefficients
 	transport_coefficients aniso;
 	aniso.compute_transport_coefficients(e, pl, pt);
 
-	// pl coefficients
+	// pl transport coefficients
 	precision zeta_LL = aniso.zeta_LL;
 	precision zeta_TL = aniso.zeta_TL;
 	precision lambda_WuL = aniso.lambda_WuL;
 	precision lambda_WTL = aniso.lambda_WTL;
 	precision lambda_piL = aniso.lambda_piL;
 
-	// pt coefficients
+	// pt transport coefficients
 #if (PT_MATCHING == 1)
 	precision zeta_LT = aniso.zeta_LT;
 	precision zeta_TT = aniso.zeta_TT;
@@ -147,93 +141,77 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision lambda_WTT = aniso.lambda_WTT;
 	precision lambda_piT = aniso.lambda_piT;
 #endif
-//-------------------------------------------------
 
 	// primary variable derivatives
 #if (PT_MATCHING == 0)
-	precision de_dx = (e1[1] - e1[0]) / (2.0 * dx);
-	precision de_dy = (e1[3] - e1[2]) / (2.0 * dy);
-	precision de_dn = (e1[5] - e1[4]) / (2.0 * dn);
+	precision de_dx = (e1[1] - e1[0]) / (2. * dx);
+	precision de_dy = (e1[3] - e1[2]) / (2. * dy);
+	precision de_dn = (e1[5] - e1[4]) / (2. * dn);
 #endif
 	// pl derivatives
 	int n = 8;
 	precision dpl_dx = central_derivative(qi1, n, dx);
 	precision dpl_dy = central_derivative(qj1, n, dy);
-	precision dpl_dn = central_derivative(qk1, n, dn);
+	precision dpl_dn = central_derivative(qk1, n, dn);		n += 2;
 
 #if (PT_MATCHING == 1)	// pt derivatives
-	n += 2;
 	precision dpt_dx = central_derivative(qi1, n, dx);
 	precision dpt_dy = central_derivative(qj1, n, dy);
-	precision dpt_dn = central_derivative(qk1, n, dn);
+	precision dpt_dn = central_derivative(qk1, n, dn);		n += 2;
 #else
-	precision dpt_dx = 0.5 * (de_dx  -  dpl_dx);
-	precision dpt_dy = 0.5 * (de_dy  -  dpl_dy);
-	precision dpt_dn = 0.5 * (de_dn  -  dpl_dn);
+	precision dpt_dx = (de_dx  -  dpl_dx) / 2.;
+	precision dpt_dy = (de_dy  -  dpl_dy) / 2.;
+	precision dpt_dn = (de_dn  -  dpl_dn) / 2.;
 #endif
 	
 #ifdef PIMUNU	// pimunu derivatives
-	n += 2;
 	precision dpitt_dx = central_derivative(qi1, n, dx);
 	precision dpitt_dy = central_derivative(qj1, n, dy);
-	precision dpitt_dn = central_derivative(qk1, n, dn);
+	precision dpitt_dn = central_derivative(qk1, n, dn);	n += 2;
 
-	n += 2;
 	precision dpitx_dx = central_derivative(qi1, n, dx);
 	precision dpitx_dy = central_derivative(qj1, n, dy);
-	precision dpitx_dn = central_derivative(qk1, n, dn);
+	precision dpitx_dn = central_derivative(qk1, n, dn);	n += 2;
 
-	n += 2;
 	precision dpity_dx = central_derivative(qi1, n, dx);
 	precision dpity_dy = central_derivative(qj1, n, dy);
-	precision dpity_dn = central_derivative(qk1, n, dn);
+	precision dpity_dn = central_derivative(qk1, n, dn);	n += 2;
 
-	n += 2;
 	precision dpitn_dx = central_derivative(qi1, n, dx);
 	precision dpitn_dy = central_derivative(qj1, n, dy);
-	precision dpitn_dn = central_derivative(qk1, n, dn);
+	precision dpitn_dn = central_derivative(qk1, n, dn);	n += 2;
 
-	n += 2;
-	precision dpixx_dx = central_derivative(qi1, n, dx);
+	precision dpixx_dx = central_derivative(qi1, n, dx);	n += 2;
 
-	n += 2;
-	precision dpixy_dx = central_derivative(qi1, n, dx);
-	precision dpixy_dy = central_derivative(qj1, n, dy);
+	precision dpixy_dx = central_derivative(qi1, n, dx);	
+	precision dpixy_dy = central_derivative(qj1, n, dy);	n += 2;
 
-	n += 2;
 	precision dpixn_dx = central_derivative(qi1, n, dx);
-	precision dpixn_dn = central_derivative(qk1, n, dn);
+	precision dpixn_dn = central_derivative(qk1, n, dn);	n += 2;
 
-	n += 2;
-	precision dpiyy_dy = central_derivative(qj1, n, dy);
+	precision dpiyy_dy = central_derivative(qj1, n, dy);	n += 2;
 
-	n += 2;
 	precision dpiyn_dy = central_derivative(qj1, n, dy);
-	precision dpiyn_dn = central_derivative(qk1, n, dn);
+	precision dpiyn_dn = central_derivative(qk1, n, dn);	n += 2;
 
-	n += 2;
-	precision dpinn_dn = central_derivative(qk1, n, dn);
+	precision dpinn_dn = central_derivative(qk1, n, dn);	n += 2;
 
 #else
 	precision dpitt_dx = 0, dpitt_dy = 0, dpitt_dn = 0, dpitx_dx = 0, dpitx_dy = 0, dpitx_dn = 0, dpity_dx = 0, dpity_dy = 0, dpity_dn = 0, dpitn_dx = 0, dpitn_dy = 0, dpitn_dn = 0, dpixx_dx = 0, dpixy_dx = 0, dpixy_dy = 0, dpixn_dx = 0, dpixn_dn = 0, dpiyy_dy = 0, dpiyn_dy = 0, dpiyn_dn = 0, dpinn_dn = 0;
 #endif
 #ifdef WTZMU
-	n += 2;
 	precision dWtTz_dx = central_derivative(qi1, n, dx);
 	precision dWtTz_dy = central_derivative(qj1, n, dy);
-	precision dWtTz_dn = central_derivative(qk1, n, dn);
+	precision dWtTz_dn = central_derivative(qk1, n, dn);	n += 2;
 
-	n += 2;
 	precision dWxTz_dx = central_derivative(qi1, n, dx);
 	precision dWxTz_dy = central_derivative(qj1, n, dy);
-	precision dWxTz_dn = central_derivative(qk1, n, dn);
+	precision dWxTz_dn = central_derivative(qk1, n, dn);	n += 2;
 
-	n += 2;
 	precision dWyTz_dx = central_derivative(qi1, n, dx);
 	precision dWyTz_dy = central_derivative(qj1, n, dy);
-	precision dWyTz_dn = central_derivative(qk1, n, dn);
+	precision dWyTz_dn = central_derivative(qk1, n, dn);	n += 2;
 
-	n += 2;
 	precision dWnTz_dx = central_derivative(qi1, n, dx);
 	precision dWnTz_dy = central_derivative(qj1, n, dy);
 	precision dWnTz_dn = central_derivative(qk1, n, dn);
@@ -243,27 +221,23 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 #endif
 
 	// fluid velocity derivatives
-	precision dut_dt = (ut - ut_p) / dt;
-	precision dux_dt = (ux - ux_p) / dt;
-	precision duy_dt = (uy - uy_p) / dt;
-	precision dun_dt = (un - un_p) / dt;
-
 	n = 0;
+	precision dut_dt = (ut - ut_p) / dt;
 	precision dut_dx = central_derivative(ui1, n, dx);
 	precision dut_dy = central_derivative(uj1, n, dy);
-	precision dut_dn = central_derivative(uk1, n, dn);
+	precision dut_dn = central_derivative(uk1, n, dn);	n += 2;
 
-	n += 2;
+	precision dux_dt = (ux - ux_p) / dt;
 	precision dux_dx = central_derivative(ui1, n, dx);
 	precision dux_dy = central_derivative(uj1, n, dy);
-	precision dux_dn = central_derivative(uk1, n, dn);
+	precision dux_dn = central_derivative(uk1, n, dn);	n += 2;
 
-	n += 2;
+	precision duy_dt = (uy - uy_p) / dt;
 	precision duy_dx = central_derivative(ui1, n, dx);
 	precision duy_dy = central_derivative(uj1, n, dy);
-	precision duy_dn = central_derivative(uk1, n, dn);
+	precision duy_dn = central_derivative(uk1, n, dn);	n += 2;
 
-	n += 2;
+	precision dun_dt = (un - un_p) / dt;
 	precision dun_dx = central_derivative(ui1, n, dx);
 	precision dun_dy = central_derivative(uj1, n, dy);
 	precision dun_dn = central_derivative(uk1, n, dn);
@@ -275,44 +249,26 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision duT2_dn = ux * dux_dn  +  uy * duy_dn;
 
 	// scalar, longitudinal and transverse expansion rates: theta = D_\mu u^\mu, thetaL = z_\mu Dz u^\mu, thetaT = NablaT_\mu u^\mu
-	//precision theta = dut_dt  +  dux_dx  +  duy_dy  +  dun_dn  +  ut / t;
-	precision dtut_dt = (t * ut  -  (t - dt) * ut_p) / (t * dt);  // product rule sub for dut_dt  +  ut / t
-
-	precision theta = dtut_dt  +  dux_dx  +  duy_dy  +  dun_dn;
-
+	precision theta = dut_dt  +  dux_dx  +  duy_dy  +  dun_dn  +  ut / t;
 	precision thetaL = - zt2 * dut_dt  +  t2 * zn2 * dun_dn  +  ztzn * (t2 * dun_dt  -  dut_dn)  +  t * zn2 * ut;
-
 	precision thetaT = theta  -  thetaL;
 
-	// spatial velocity
+	// spatial velocity, derivatives and divergence 
 	precision vx = ux / ut;
 	precision vy = uy / ut;
 	precision vn = un / ut;
 
-	precision vx_sim = ui1[2] / ui1[0];
-	precision vx_sip = ui1[3] / ui1[1];
+	precision dvx_dx = (dux_dx  -  vx * dut_dx) / ut;
+	precision dvy_dy = (duy_dy  -  vy * dut_dy) / ut;
+	precision dvn_dn = (dun_dn  -  vn * dut_dn) / ut;
 
-	precision vy_sjm = uj1[4] / uj1[0];
-	precision vy_sjp = uj1[5] / uj1[1];
-
-	precision vn_skm = uk1[6] / uk1[0];
-	precision vn_skp = uk1[7] / uk1[1];
-
-	// spatial derivatives
-	precision dvx_dx = (vx_sip  -  vx_sim) / (2.0 * dx);
-	precision dvy_dy = (vy_sjp  -  vy_sjm) / (2.0 * dy);
-	precision dvn_dn = (vn_skp  -  vn_skm) / (2.0 * dn);
-
-	// divergence of v
-	precision div_v = dvx_dx + dvy_dy + dvn_dn;
-	//precision div_v = (dux_dx  +  duy_dy  +  dun_dn  -  vx * dut_dx  -  vy * dut_dy  -  vn * dut_dn) / ut;
-
+	precision div_v = dvx_dx  +  dvy_dy  +  dvn_dn;
+	
 	// other spatial velocity derivatives (get rid of chain rule later)
 	precision dvx_dn = (dux_dn  -  vx * dut_dn) / ut;
 	precision dvy_dn = (duy_dn  -  vy * dut_dn) / ut;
 	
-
-	// longitudinal vector: spatial derivatives
+	// longitudinal vector derivatives
 	precision dzt_dt = t * (dun_dt  -  un * duT2_dt / utperp2) / utperp  +  zt / t;
 	precision dzt_dx = t * (dun_dx  -  un * duT2_dx / utperp2) / utperp;
 	precision dzt_dy = t * (dun_dy  -  un * duT2_dy / utperp2) / utperp;
@@ -379,16 +335,15 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision Ltn = dp * ztzn;
 	precision Lnn = dp * zn2;
 
-	precision dLtt_dx = (dpl_dx - dpt_dx) * zt2  +  2.0 * dp * zt * dzt_dx;
-	precision dLtt_dy = (dpl_dy - dpt_dy) * zt2  +  2.0 * dp * zt * dzt_dy;
-	precision dLtt_dn = (dpl_dn - dpt_dn) * zt2  +  2.0 * dp * zt * dzt_dn;
+	precision dLtt_dx = (dpl_dx - dpt_dx) * zt2  +  2. * dp * zt * dzt_dx;
+	precision dLtt_dy = (dpl_dy - dpt_dy) * zt2  +  2. * dp * zt * dzt_dy;
+	precision dLtt_dn = (dpl_dn - dpt_dn) * zt2  +  2. * dp * zt * dzt_dn;
 
 	precision dLtn_dx = (dpl_dx - dpt_dx) * ztzn  +  dp * (dzt_dx * zn  +  dzn_dx * zt);
 	precision dLtn_dy = (dpl_dy - dpt_dy) * ztzn  +  dp * (dzt_dy * zn  +  dzn_dy * zt);
 	precision dLtn_dn = (dpl_dn - dpt_dn) * ztzn  +  dp * (dzt_dn * zn  +  dzn_dn * zt);
 
-	precision dLnn_dn = (dpl_dn - dpt_dn) * zn2  +  2.0 * dp * zn * dzn_dn;
-
+	precision dLnn_dn = (dpl_dn - dpt_dn) * zn2  +  2. * dp * zn * dzn_dn;
 
 #ifdef PIMUNU
 	// piT transport coefficients
@@ -399,13 +354,9 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision lambda_Wupi = aniso.lambda_Wupi;
 	precision lambda_WTpi = aniso.lambda_WTpi;
 
-	// seems fine 
 	precision pi_sT = pitt * sTtt  +  pixx * sTxx  +  piyy * sTyy  +  t4 * pinn * sTnn  +  2. * (pixy * sTxy  -  pitx * sTtx  -  pity * sTty  +  t2 * (pixn * sTxn  +  piyn * sTyn  -  pitn * sTtn));
 
-	// pi_T gradient terms (8 tensors)
-	// note: tensors are symmetric but (2, 4, 5, 7, 8) are
-	//		 not double transverse projected until the end
-	// also: checked all the terms, just found 1 bug
+	// pi_T gradient terms (tensors are symmetric but (2,4,5,7,8) not double transverse projected until end
 
 	// 2 . \eta_T . \sigma_T^{\mu\nu}
 	precision Itt_pi1 = 2. * eta_T * sTtt;
@@ -728,8 +679,7 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision dpl = - dp * taupiInv / 1.5  +  zeta_LL * thetaL  +  zeta_TL * thetaT  +  IplW  -  lambda_piL * pi_sT;
 	S[4] =	dpl / ut  +  div_v * pl;
 
-	a = 5;		// reset index
-
+	a = 5;		// reset counter
 	// pt relaxation equation
 #if (PT_MATCHING == 1)
 	precision dpt =	dp * taupiInv / 3.  +  zeta_LT * thetaL  +  zeta_TT * thetaT  +  IptW  +  lambda_piT * pi_sT;

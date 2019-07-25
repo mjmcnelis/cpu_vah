@@ -64,7 +64,7 @@ void set_initial_conserved_variables(double t, int nx, int ny, int nz)
 				precision uy = u->uy[s];
 				precision un = u->un[s];
 
-				precision utperp = sqrt(1.0  +  ux * ux  +  uy * uy);
+				precision utperp = sqrt(1.  +  ux * ux  +  uy * uy);
 
 				// z^mu components
 				precision zt = t * un / utperp;
@@ -77,10 +77,7 @@ void set_initial_conserved_variables(double t, int nx, int ny, int nz)
 				precision pity = q->pity[s];
 				precision pitn = q->pitn[s];
 			#else
-				precision pitt = 0.0;
-				precision pitx = 0.0;
-				precision pity = 0.0;
-				precision pitn = 0.0;
+				precision pitt = 0, pitx = 0, pity = 0, pitn = 0;
 			#endif
 			#ifdef WTZMU
 				precision WtTz = q->WtTz[s];
@@ -88,17 +85,14 @@ void set_initial_conserved_variables(double t, int nx, int ny, int nz)
 				precision WyTz = q->WyTz[s];
 				precision WnTz = q->WnTz[s];
 			#else
-				precision WtTz = 0.0;
-				precision WxTz = 0.0;
-				precision WyTz = 0.0;
-				precision WnTz = 0.0;
+				precision WtTz = 0, WxTz = 0, WyTz = 0, WnTz = 0;
 			#endif
 
 				// initialize the time components of Tmunu
-				q->ttt[s] = (e_s + pt) * ut * ut  -   pt  +  (pl - pt) * zt * zt  +  2.0 * WtTz * zt  +  pitt;
+				q->ttt[s] = (e_s + pt) * ut * ut  -   pt  +  (pl - pt) * zt * zt  +  2. * WtTz * zt  +  pitt;
 				q->ttx[s] = (e_s + pt) * ut * ux  +  WxTz * zt  +  pitx;
 				q->tty[s] = (e_s + pt) * ut * uy  +  WyTz * zt  +  pity;
-				q->ttn[s] = (e_s + pt) * ut * un  +  (pl - pt) * zt * zn  +  (WtTz * zn  +  WnTz * zt)  +  pitn;
+				q->ttn[s] = (e_s + pt) * ut * un  +  (pl - pt) * zt * zn  +  WtTz * zn  +  WnTz * zt  +  pitn;
 			}
 		}
 	}
@@ -126,22 +120,22 @@ void set_equilibrium_initial_condition(int nx, int ny, int nz)
 			#endif
 
 			#ifdef PIMUNU
-		  		q->pitt[s] = 0.0;
-		  		q->pitx[s] = 0.0;
-		  		q->pity[s] = 0.0;
-		  		q->pitn[s] = 0.0;
-		  		q->pixx[s] = 0.0;
-		  		q->pixy[s] = 0.0;
-		  		q->pixn[s] = 0.0;
-		  		q->piyy[s] = 0.0;
-		  		q->piyn[s] = 0.0;
-		  		q->pinn[s] = 0.0;
+		  		q->pitt[s] = 0;
+		  		q->pitx[s] = 0;
+		  		q->pity[s] = 0;
+		  		q->pitn[s] = 0;
+		  		q->pixx[s] = 0;
+		  		q->pixy[s] = 0;
+		  		q->pixn[s] = 0;
+		  		q->piyy[s] = 0;
+		  		q->piyn[s] = 0;
+		  		q->pinn[s] = 0;
 			#endif
 			#ifdef WTZMU
-		  		q->WtTz[s] = 0.0;
-		  		q->WxTz[s] = 0.0;
-		  		q->WyTz[s] = 0.0;
-		  		q->WnTz[s] = 0.0;
+		  		q->WtTz[s] = 0;
+		  		q->WxTz[s] = 0;
+		  		q->WyTz[s] = 0;
+		  		q->WnTz[s] = 0;
 			#endif
 			}
 		}
@@ -168,16 +162,16 @@ void set_Bjorken_energy_density_and_flow_profile(int nx, int ny, int nz, void * 
 
 				e[s] = e0;
 
-				u->ut[s] = 1.0;
-				u->ux[s] = 0.0;
-				u->uy[s] = 0.0;
-				u->un[s] = 0.0;
+				u->ut[s] = 1.;
+				u->ux[s] = 0;
+				u->uy[s] = 0;
+				u->un[s] = 0;
 
 				// also initialize up = u
-				up->ut[s] = 1.0;
-				up->ux[s] = 0.0;
-				up->uy[s] = 0.0;
-				up->un[s] = 0.0;
+				up->ut[s] = 1.;
+				up->ux[s] = 0;
+				up->uy[s] = 0;
+				up->un[s] = 0;
 			}
 		}
 	}
@@ -195,7 +189,7 @@ void longitudinal_Energy_Density_Profile(double * const __restrict__ eL, int nz,
 	// profile along eta direction is a smooth plateu that exponentially decays when |eta| > etaFlat
 	for(int k = 0; k < nz; k++)
 	{
-		double eta = (k - (nz - 1.0)/2.0) * dz;				// physical eta points
+		double eta = (k - (nz - 1.)/2.) * dz;				// physical eta points
 		double etaScaled = fabs(eta)  -  0.5 * etaFlat;
 
 		eL[k] = exp(- 0.5 * etaScaled * etaScaled / etaVariance * THETA_FUNCTION(etaScaled));
@@ -426,11 +420,11 @@ void set_aniso_gubser_energy_density_and_flow_profile(int nx, int ny, int nz, do
 			// evaluate anisotropic profile
 			double e_s  = gsl_spline_eval(e_hat_spline,  rho, accel) / (t * t * t * t);
 			double pl_s = gsl_spline_eval(pl_hat_spline, rho, accel) / (t * t * t * t);
-			double pt_s = 0.5 * (e_s - pl_s);
+			double pt_s = (e_s - pl_s) / 2.;
 
 
-			double kappa   = atanh(2.0 * q0 * q0 * t * r / (1.0  +  q0 * q0 * (t * t  +  r * r)));
-			double kappa_p = atanh(2.0 * q0 * q0 * (t - dt) * r / (1.0  +  q0 * q0 * ((t - dt) * (t - dt)  +  r * r)));
+			double kappa   = atanh(2. * q0 * q0 * t * r / (1.  +  q0 * q0 * (t * t  +  r * r)));
+			double kappa_p = atanh(2. * q0 * q0 * (t - dt) * r / (1.  +  q0 * q0 * ((t - dt) * (t - dt)  +  r * r)));
 
 			if(std::isnan(kappa) || std::isnan(kappa_p))
 			{
@@ -445,14 +439,14 @@ void set_aniso_gubser_energy_density_and_flow_profile(int nx, int ny, int nz, do
 			double ux_p = sinh(kappa_p) * x / r;
 			double uy_p = sinh(kappa_p) * y / r;
 
-			if(std::isnan(ux)) ux = 0.0;		// remove 0/0 nan
-			if(std::isnan(uy)) uy = 0.0;
+			if(std::isnan(ux)) ux = 0;		// remove 0/0 nan
+			if(std::isnan(uy)) uy = 0;
 
-			if(std::isnan(ux_p)) ux_p = 0.0;
-			if(std::isnan(uy_p)) uy_p = 0.0;
+			if(std::isnan(ux_p)) ux_p = 0;
+			if(std::isnan(uy_p)) uy_p = 0;
 
-			double ut   = sqrt(1.0  +  ux * ux  +  uy * uy);
-			double ut_p = sqrt(1.0  +  ux_p * ux_p  +  uy_p * uy_p);
+			double ut   = sqrt(1.  +  ux * ux  +  uy * uy);
+			double ut_p = sqrt(1.  +  ux_p * ux_p  +  uy_p * uy_p);
 
 			for(int k = 2; k < nz + 2; k++)
 			{
@@ -467,33 +461,33 @@ void set_aniso_gubser_energy_density_and_flow_profile(int nx, int ny, int nz, do
 			#endif
 
 			#ifdef PIMUNU
-		  		q->pitt[s] = 0.0;
-		  		q->pitx[s] = 0.0;
-		  		q->pity[s] = 0.0;
-		  		q->pitn[s] = 0.0;
-		  		q->pixx[s] = 0.0;
-		  		q->pixy[s] = 0.0;
-		  		q->pixn[s] = 0.0;
-		  		q->piyy[s] = 0.0;
-		  		q->piyn[s] = 0.0;
-		  		q->pinn[s] = 0.0;
+		  		q->pitt[s] = 0;
+		  		q->pitx[s] = 0;
+		  		q->pity[s] = 0;
+		  		q->pitn[s] = 0;
+		  		q->pixx[s] = 0;
+		  		q->pixy[s] = 0;
+		  		q->pixn[s] = 0;
+		  		q->piyy[s] = 0;
+		  		q->piyn[s] = 0;
+		  		q->pinn[s] = 0;
 			#endif
 			#ifdef WTZMU
-		  		q->WtTz[s] = 0.0;
-		  		q->WxTz[s] = 0.0;
-		  		q->WyTz[s] = 0.0;
-		  		q->WnTz[s] = 0.0;
+		  		q->WtTz[s] = 0;
+		  		q->WxTz[s] = 0;
+		  		q->WyTz[s] = 0;
+		  		q->WnTz[s] = 0;
 			#endif
 
 				u->ut[s] = ut;
 				u->ux[s] = ux;
 				u->uy[s] = uy;
-				u->un[s] = 0.0;
+				u->un[s] = 0;
 
 				up->ut[s] = ut_p;
 				up->ux[s] = ux_p;
 				up->uy[s] = uy_p;
-				up->un[s] = 0.0;
+				up->un[s] = 0;
 			}
 		}
 	}
