@@ -214,7 +214,7 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 				precision WTzu = fabs(WtTz * ut  -  WxTz * ux  -  WyTz * uy  -  t2 * WnTz * un);
 				precision WTzz = fabs(WtTz * zt  -  t2 * WnTz * zn);
 
-				precision denom_W = xi0 * rho_max * W_mag;
+				precision denom_W = xi0 * rho_max * WTz_mag;
 
 				precision b0 = WTz_mag / (rho_max * T_aniso_mag);
 				precision b1 = WTzu / denom_W;

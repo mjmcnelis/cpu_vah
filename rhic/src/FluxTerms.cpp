@@ -38,8 +38,8 @@ void flux_terms(precision * const __restrict__ Hp, precision * const __restrict_
 	precision vp  = v_data[2];
 	precision vpp = v_data[3];
 
-	precision dvp = approximate_derivative(v, vp, vpp);
-	precision dv  = approximate_derivative(vm, v, vp);
+	precision dvp = approximate_derivative(v,   vp, vpp);
+	precision dv  = approximate_derivative(vm,  v,  vp);
 	precision dvm = approximate_derivative(vmm, vm, v);
 
 	// extrapolated spatial velocities

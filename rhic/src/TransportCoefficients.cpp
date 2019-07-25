@@ -335,7 +335,7 @@ void transport_coefficients::compute_transport_coefficients(precision e, precisi
 	lambda_pipi = I_422 / I_402  -  1.;
 #ifdef WTZMU
 	lambda_Wupi = lambda_WTW  -  1.;
-	lambda_WTpi = lamnda_WuW  +  2.;
+	lambda_WTpi = lambda_WuW  +  2.;
 #else
 	lambda_Wupi = 0;
 	lambda_WTpi = 0;
