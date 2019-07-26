@@ -149,7 +149,7 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 				precision zt = t * un / utperp;
 				precision zn = ut / t / utperp;
 
-				transverse_projection Xi(ut, ux, uy, un, zt, zn, t2);
+				//transverse_projection Xi(ut, ux, uy, un, zt, zn, t2);
 
 			#ifdef CONFORMAL_EOS
 				precision pt = (e_s - pl) / 2.;
@@ -170,7 +170,7 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 				precision piyn = q->piyn[s];
 				precision pinn = q->pinn[s];
 
-				precision pi_mag_1 = sqrt(fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
+				precision pi_mag = sqrt(fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
 
 				precision trpi = fabs(pitt  -  pixx  -  piyy  -  t2 * pinn);
 
@@ -184,12 +184,12 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 				precision piz2 = fabs(zt * pity  -  t2 * zn * piyn) / (t * zn);
 				precision piz3 = fabs(zt * pitn  -  t2 * zn * pinn) / zn;
 
-				double_transverse_projection Xi_2(Xi, t2, t4);
-				Xi_2.double_transverse_project_tensor(pitt, pitx, pity, pitn, pixx, pixy, pixn, piyy, piyn, pinn);
+				//double_transverse_projection Xi_2(Xi, t2, t4);
+				//Xi_2.double_transverse_project_tensor(pitt, pitx, pity, pitn, pixx, pixy, pixn, piyy, piyn, pinn);
 
-				precision pi_mag_2 = sqrt(fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
+				//precision pi_mag_2 = sqrt(fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
 
-				precision pi_mag = fmax(pi_mag_1, pi_mag_2);
+				//precision pi_mag = fmax(pi_mag_1, pi_mag_2);
 
 				precision denom_pi = xi0 * rho_max * pi_mag;
 
@@ -211,10 +211,8 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 				else factor_pi = 1.  -  rho_pi * rho_pi / 3.;
 
 			#if (TEST_PIMUNU == 1)
-				test_pimunu_properties(trpi, piu0, piu1, piu2, piu3, piz0, piz1, piz2, piz3, pi_mag_1, t);
+				test_pimunu_properties(trpi, piu0, piu1, piu2, piu3, piz0, piz1, piz2, piz3, pi_mag, t);
 			#endif
-
-
 
 				q->pitt[s] = factor_pi * pitt;
 				q->pitx[s] = factor_pi * pitx;
@@ -256,7 +254,7 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 				if(rho_W > 1.e-5) factor_W = tanh(rho_W) / rho_W;
 				else factor_W = 1.  -  rho_W * rho_W / 3.;	// 2nd-order expansion
 
-				Xi.transverse_project_vector(WtTz, WxTz, WyTz, WnTz);
+				//Xi.transverse_project_vector(WtTz, WxTz, WyTz, WnTz);
 
 				q->WtTz[s] = factor_W * WtTz;
 				q->WxTz[s] = factor_W * WxTz;

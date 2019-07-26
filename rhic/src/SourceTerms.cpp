@@ -54,6 +54,10 @@ inline precision central_derivative(const precision * const __restrict__ f, int 
 
 void source_terms(precision * const __restrict__ S, const precision * const __restrict__ q, precision e, precision t, const precision * const __restrict__ qi1, const precision * const __restrict__ qj1, const precision * const __restrict__ qk1, const precision * const __restrict__ e1, const precision * const __restrict__ ui1, const precision * const __restrict__ uj1, const precision * const __restrict__ uk1, precision ut, precision ux, precision uy, precision un, precision ut_p, precision ux_p, precision uy_p, precision un_p, precision dt, precision dx, precision dy, precision dn, precision etabar)
 {
+	precision vx = ux / ut;				// spatial velocity
+	precision vy = uy / ut;
+	precision vn = un / ut;
+
 	precision utperp  = sqrt(1.  +  ux * ux  +  uy * uy);
 	precision zt = t * un / utperp;		// longitudinal basis vector
 	precision zn = ut / t / utperp;
@@ -110,6 +114,18 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 #else
 	precision WtTz = 0, WxTz = 0, WyTz = 0, WnTz = 0;
 #endif
+	// use unprojected components in conservation laws?
+	// precision pitt_un = pitt;
+	// precision pitx_un = pitx;
+	// precision pity_un = pity;
+	// precision pitn_un = pitn;
+	// precision pixx_un = pixx;
+	// precision pixy_un = pixy;
+	// precision pixn_un = pixn;
+	// precision piyy_un = piyy;
+	// precision piyn_un = piyn;
+	// precision pinn_un = pinn;
+
 
 
 // relaxation times and transport coefficients
@@ -221,12 +237,13 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 #endif
 
 	// fluid velocity derivatives
-	n = 0;
-	precision dut_dt = (ut - ut_p) / dt;
-	precision dut_dx = central_derivative(ui1, n, dx);
-	precision dut_dy = central_derivative(uj1, n, dy);
-	precision dut_dn = central_derivative(uk1, n, dn);	n += 2;
+	// n = 0;
+	// precision dut_dt = (ut - ut_p) / dt;
+	// precision dut_dx = central_derivative(ui1, n, dx);
+	// precision dut_dy = central_derivative(uj1, n, dy);
+	// precision dut_dn = central_derivative(uk1, n, dn);	n += 2;
 
+	n = 2;
 	precision dux_dt = (ux - ux_p) / dt;
 	precision dux_dx = central_derivative(ui1, n, dx);
 	precision dux_dy = central_derivative(uj1, n, dy);
@@ -242,6 +259,13 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision dun_dy = central_derivative(uj1, n, dy);
 	precision dun_dn = central_derivative(uk1, n, dn);
 
+
+	// use chain rule for ut derivatives
+	precision dut_dt = vx * dux_dt  +  vy * duy_dt  +  t2 * vn * dun_dt  +  t * vn * un;
+	precision dut_dx = vx * dux_dx  +  vy * duy_dx  +  t2 * vn * dun_dx;
+	precision dut_dy = vx * dux_dy  +  vy * duy_dy  +  t2 * vn * dun_dy;
+	precision dut_dn = vx * dux_dn  +  vy * duy_dn  +  t2 * vn * dun_dn;
+
 	// radial velocity derivatives
 	precision duT2_dt = ux * dux_dt  +  uy * duy_dt;
 	precision duT2_dx = ux * dux_dx  +  uy * duy_dx;
@@ -253,11 +277,7 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision thetaL = - zt2 * dut_dt  +  t2 * zn2 * dun_dn  +  ztzn * (t2 * dun_dt  -  dut_dn)  +  t * zn2 * ut;
 	precision thetaT = theta  -  thetaL;
 
-	// spatial velocity, derivatives and divergence 
-	precision vx = ux / ut;
-	precision vy = uy / ut;
-	precision vn = un / ut;
-
+	// spatial velocity derivatives and divergence 
 	precision dvx_dx = (dux_dx  -  vx * dut_dx) / ut;
 	precision dvy_dy = (duy_dy  -  vy * dut_dy) / ut;
 	precision dvn_dn = (dun_dn  -  vn * dut_dn) / ut;
@@ -658,11 +678,20 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 			+  vy * (dLtt_dy  +  dWtt_dy  +  dpitt_dy  -  dpt_dy)  -  dWty_dy  -  dpity_dy
 			+  vn * (dLtt_dn  +  dWtt_dn  +  dpitt_dn  -  dpt_dn)  -  dWtn_dn  -  dpitn_dn  -  dLtn_dn;
 
+
+
+
 	S[1] =	- ttx / t  -  dpt_dx  +  div_v * (Wtx  +  pitx)
 			+  vx * (dWtx_dx  +  dpitx_dx)  -  dpixx_dx
+
 			+  vy * (dWtx_dy  +  dpitx_dy)  -  dpixy_dy
+
 			+  vn * (dWtx_dn  +  dpitx_dn)  -  dpixn_dn  -  dWxn_dn
 			-  0.5 * (vx * dLtn_dn  -  Ltn * dvx_dn);	// go over this line again	
+
+
+
+
 
 	S[2] =	- tty / t  -  dpt_dy  +  div_v * (Wty  +  pity)
 			+  vx * (dWty_dx  +  dpity_dx)  -  dpixy_dx

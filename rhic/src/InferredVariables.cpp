@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <iostream>
 #include <math.h>
 #include <cmath>
 #include "../include/InferredVariables.h"
@@ -23,15 +24,22 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 	return i  +  nx * (j  +  ny * k);
 }
 
+// maybe need more quantitative way of checking convergence of iterations
+// maybe regulate individual rows of pimunu 
+// here maybe: I don't need to reproject pimunu b/c already "fixed" velocity solution (just use "old method")
+
 void set_inferred_variables(const CONSERVED_VARIABLES * const __restrict__ q, precision * const __restrict__ e, FLUID_VELOCITY * const __restrict__ u, precision t, int nx, int ny, int nz)
 {
 	precision t2 = t * t;
 	precision t4 = t2 * t2;
 
-	int N_iterations = 1;
-#if (NUMBER_OF_RESIDUAL_CURRENTS != 0)
-	N_iterations = 2;
-#endif
+ 	int N_iterations = 1;
+// #if (NUMBER_OF_RESIDUAL_CURRENTS != 0)
+// 	N_iterations = 1;
+// #endif
+
+	// precision de_error = 1.e-10;
+	// precision du_error = 1.e-10;
 
 	for(int k = 2; k < nz + 2; k++)
 	{
@@ -73,6 +81,7 @@ void set_inferred_variables(const CONSERVED_VARIABLES * const __restrict__ q, pr
 			#endif
 
 				precision e_s, ut_s, ux_s, uy_s, un_s;
+				//precision e_prev, ut_prev;
 
 				// reiterate solution after reprojecting piT and WTz
 				for(int r = 0; r < N_iterations; r++)
@@ -168,22 +177,44 @@ void set_inferred_variables(const CONSERVED_VARIABLES * const __restrict__ q, pr
 				#endif
 
 					// reproject the residual shear stress
-				#if (NUMBER_OF_RESIDUAL_CURRENTS != 0)
-					utperp_s = sqrt(1.  +  ux_s * ux_s  +  uy_s * uy_s);
-					zt_s = t * un_s / utperp_s;
-					zn_s = ut_s / (t * utperp_s);
+				// #if (NUMBER_OF_RESIDUAL_CURRENTS != 0)
+				// 	utperp_s = sqrt(1.  +  ux_s * ux_s  +  uy_s * uy_s);
+				// 	zt_s = t * un_s / utperp_s;
+				// 	zn_s = ut_s / (t * utperp_s);
 
-					transverse_projection Xi(ut_s, ux_s, uy_s, un_s, zt_s, zn_s, t2);
+				// 	transverse_projection Xi(ut_s, ux_s, uy_s, un_s, zt_s, zn_s, t2);
 
-				#ifdef PIMUNU
-					double_transverse_projection Xi_2(Xi, t2, t4);
-					Xi_2.double_transverse_project_tensor(pitt, pitx, pity, pitn, pixx, pixy, pixn, piyy, piyn, pinn);
-				#endif
-				#ifdef WTZMU
-					Xi.transverse_project_vector(WtTz, WxTz, WyTz, WnTz);
-				#endif
-				#endif
-				}
+				// #ifdef PIMUNU
+				// 	double_transverse_projection Xi_2(Xi, t2, t4);
+				// 	Xi_2.double_transverse_project_tensor(pitt, pitx, pity, pitn, pixx, pixy, pixn, piyy, piyn, pinn);
+				// #endif
+				// #ifdef WTZMU
+				// 	Xi.transverse_project_vector(WtTz, WxTz, WyTz, WnTz);
+				// #endif
+				// #endif
+
+				// 	// check convergence 
+				// 	if(r > 0)
+				// 	{
+				// 		precision de = fabs(e_s - e_prev) / e_prev;
+				// 		precision du = fabs(ut_s - ut_prev) / ut_prev;
+
+				// 		if(de < de_error && du < du_error)
+				// 		{
+				// 			//printf("Iteration converged: (de, du) = (%.3g, %.3g)\n", de, du);
+				// 			break;
+				// 		}
+				// 		// if(r == N_iterations - 1)
+				// 		// {
+				// 		// 	printf("Iteration error: (de, du) = (%.3g, %.3g)\n", de, du);
+				// 		// }
+				// 	}
+
+				// 	e_prev = e_s;
+				// 	ut_prev = ut_s;
+
+
+				}	// iterate solutions after reprojecting residual shear stress
 
 				// get solution for primary variables
 				e[s]     = e_s;
