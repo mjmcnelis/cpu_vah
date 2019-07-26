@@ -167,7 +167,7 @@ void set_inferred_variables(const CONSERVED_VARIABLES * const __restrict__ q, pr
 					}
 				#endif
 
-					// reproject the residual shear stress 
+					// reproject the residual shear stress
 				#if (NUMBER_OF_RESIDUAL_CURRENTS != 0)
 					utperp_s = sqrt(1.  +  ux_s * ux_s  +  uy_s * uy_s);
 					zt_s = t * un_s / utperp_s;
@@ -176,7 +176,7 @@ void set_inferred_variables(const CONSERVED_VARIABLES * const __restrict__ q, pr
 					transverse_projection Xi(ut_s, ux_s, uy_s, un_s, zt_s, zn_s, t2);
 
 				#ifdef PIMUNU
-					double_transverse_projection Xi_2(Xi, t2, t4);		
+					double_transverse_projection Xi_2(Xi, t2, t4);
 					Xi_2.double_transverse_project_tensor(pitt, pitx, pity, pitn, pixx, pixy, pixn, piyy, piyn, pinn);
 				#endif
 				#ifdef WTZMU

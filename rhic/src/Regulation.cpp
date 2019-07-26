@@ -7,11 +7,11 @@
 #include "../include/Projections.h"
 using namespace std;
 
-#define TEST_PIMUNU 1					// 1 to test piT orthogonality and tracelessness
+#define TEST_PIMUNU 0					// 1 to test piT orthogonality and tracelessness
 #define TEST_WTZMU 0					// 1 to test WTz orthogonality
 
 #define XI0 	0.1						// regulation parameters
-#define RHO_MAX 1.0
+#define RHO_MAX 5.0
 
 precision piu_error = 1.e-13;
 precision piz_error = 1.e-13;
@@ -25,7 +25,7 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 	return i  +  nx * (j  +  ny * k);
 }
 
-void test_pimunu_properties(precision trpi, precision piu0, precision piu1, precision  piu2, precision  piu3, precision piz0, precision piz1, precision piz2, precision piz3, precision  pi_mag, precision t)
+void test_pimunu_properties(precision trpi, precision piu0, precision piu1, precision  piu2, precision  piu3, precision piz0, precision piz1, precision piz2, precision piz3, precision pi_mag, precision t)
 {
 	trpi /= pi_mag;
 
@@ -36,17 +36,17 @@ void test_pimunu_properties(precision trpi, precision piu0, precision piu1, prec
 
 	if(piu > error)
     {
-    	printf("test_pimunu_properties error: piT is not orthogonal to u (%.6g)\n", piu);
+    	printf("test_pimunu_properties error: piT is not orthogonal to u %.6g\n", piu);
     }
     if(piz > error)
     {
-    	printf("test_pimunu_properties error: piT is not orthogonal to z (%.6g)\n", piz);
+    	printf("test_pimunu_properties error: piT is not orthogonal to z %.6g\n", piz);
     }
     if(trpi > error)
     {
-    	printf("test_pimunu_properties error:       piT is not traceless (%.6g)\n", trpi);
+    	printf("test_pimunu_properties error:       piT is not traceless %.6g\n", trpi);
     }
-	
+
 }
 
 /*
@@ -170,7 +170,7 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 				precision piyn = q->piyn[s];
 				precision pinn = q->pinn[s];
 
-				precision pi_mag = sqrt(fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
+				precision pi_mag_1 = sqrt(fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
 
 				precision trpi = fabs(pitt  -  pixx  -  piyy  -  t2 * pinn);
 
@@ -182,7 +182,14 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 				precision piz0 = fabs(zt * pitt  -  t2 * zn * pitn) / (t * zn);
 				precision piz1 = fabs(zt * pitx  -  t2 * zn * pixn) / (t * zn);
 				precision piz2 = fabs(zt * pity  -  t2 * zn * piyn) / (t * zn);
-				precision piz3 = fabs(zt * pitn  -  t2 * zn * pinn) / zn;	
+				precision piz3 = fabs(zt * pitn  -  t2 * zn * pinn) / zn;
+
+				double_transverse_projection Xi_2(Xi, t2, t4);
+				Xi_2.double_transverse_project_tensor(pitt, pitx, pity, pitn, pixx, pixy, pixn, piyy, piyn, pinn);
+
+				precision pi_mag_2 = sqrt(fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
+
+				precision pi_mag = fmax(pi_mag_1, pi_mag_2);
 
 				precision denom_pi = xi0 * rho_max * pi_mag;
 
@@ -204,11 +211,10 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 				else factor_pi = 1.  -  rho_pi * rho_pi / 3.;
 
 			#if (TEST_PIMUNU == 1)
-				test_pimunu_properties(trpi, piu0, piu1, piu2, piu3, piz0, piz1, piz2, piz3, pi_mag, t);
+				test_pimunu_properties(trpi, piu0, piu1, piu2, piu3, piz0, piz1, piz2, piz3, pi_mag_1, t);
 			#endif
 
-				double_transverse_projection Xi_2(Xi, t2, t4);		
-				Xi_2.double_transverse_project_tensor(pitt, pitx, pity, pitn, pixx, pixy, pixn, piyy, piyn, pinn);
+
 
 				q->pitt[s] = factor_pi * pitt;
 				q->pitx[s] = factor_pi * pitx;
