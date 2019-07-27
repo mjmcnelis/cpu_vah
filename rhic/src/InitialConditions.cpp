@@ -1,17 +1,9 @@
-/*
- * InitialConditions.c
- *
- *  Created on: Oct 23, 2015
- *      Author: bazow
- */
-
 #include <stdlib.h> //TEMP
 #include <stdio.h> // for printf
 #include <math.h> // for math functions
 #include <cmath>
 #include <iostream>
 #include <algorithm>    // for max
-
 #include "../include/DynamicalVariables.h"
 #include "../include/InitialConditions.h"
 #include "../include/Precision.h"
@@ -20,11 +12,9 @@
 #include "../include/MCGlauber.h"
 #include "../include/AnisoGubser.h"
 #include "../include/EquationOfState.h"
-
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_spline.h>
 #include <gsl/gsl_interp.h>
-
 using namespace std;
 
 #define THETA_FUNCTION(X) ((double)X < (double)0 ? (double)0 : (double)1)

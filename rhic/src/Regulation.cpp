@@ -27,63 +27,24 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 
 void test_pimunu_properties(precision trpi, precision piu0, precision piu1, precision  piu2, precision  piu3, precision piz0, precision piz1, precision piz2, precision piz3, precision pi_mag, precision t)
 {
-	trpi /= pi_mag;
-
-	precision piu = fmax(piu0, fmax(piu1, fmax(piu2, piu3))) / pi_mag;
-	precision piz = fmax(piz0, fmax(piz1, fmax(piz2, piz3))) / pi_mag;
-
-	precision error = 0.005;
-
-	if(piu > error)
-    {
-    	printf("test_pimunu_properties error: piT is not orthogonal to u %.6g\n", piu);
-    }
-    if(piz > error)
-    {
-    	printf("test_pimunu_properties error: piT is not orthogonal to z %.6g\n", piz);
-    }
-    if(trpi > error)
-    {
-    	printf("test_pimunu_properties error:       piT is not traceless %.6g\n", trpi);
-    }
-
-}
-
-/*
-void test_pimunu_properties(precision pitt, precision pitx, precision pity, precision pitn, precision pixx, precision pixy, precision pixn, precision piyy, precision piyn, precision pinn, precision ut, precision ux, precision uy, precision un, precision zt, precision zn, precision t, precision t2)
-{
-	precision trpi = fabs(pitt  -  pixx  -  piyy  -  t2 * pinn);
-
-	precision piu0 = fabs(pitt * ut  -  pitx * ux  -  pity * uy  -  t2 * pitn * un) / ut;
-	precision piu1 = fabs(pitx * ut  -  pixx * ux  -  pixy * uy  -  t2 * pixn * un) / ut;
-	precision piu2 = fabs(pity * ut  -  pixy * ux  -  piyy * uy  -  t2 * piyn * un) / ut;
-	precision piu3 = fabs(pitn * ut  -  pixn * ux  -  piyn * uy  -  t2 * pinn * un) * t / ut;
-
-	precision piz0 = fabs(pitt * zt  -  t2 * pitn * zn) / (t * zn);
-	precision piz1 = fabs(pitx * zt  -  t2 * pixn * zn) / (t * zn);
-	precision piz2 = fabs(pity * zt  -  t2 * piyn * zn) / (t * zn);
-	precision piz3 = fabs(pitn * zt  -  t2 * pinn * zn) / zn;
-
 	precision piu = fmax(piu0, fmax(piu1, fmax(piu2, piu3)));
 	precision piz = fmax(piz0, fmax(piz1, fmax(piz2, piz3)));
+	precision error = 0.005;
 
-    if(piu > piu_error)
+	if(piu / pi_mag > error)
     {
-    	piu_error = piu;
-    	printf("test_pimunu_properties error: piT is not orthogonal to u (%.6g)\n", piu);
+    	printf("test_pimunu_properties error: piT is not orthogonal to u %.6g\n", piu / pi_mag);
     }
-    if(piz > piz_error)
+    if(piz / pi_mag > error)
     {
-    	piz_error = piz;
-    	printf("test_pimunu_properties error: piT is not orthogonal to z (%.6g)\n", piz);
+    	printf("test_pimunu_properties error: piT is not orthogonal to z %.6g\n", piz / pi_mag);
     }
-    if(trpi > trpi_error)
+    if(trpi / pi_mag > error)
     {
-    	trpi_error = trpi;
-    	printf("test_pimunu_properties error: piT is not traceless (%.6g)\n", trpi);
+    	printf("test_pimunu_properties error:       piT is not traceless %.6g\n", trpi / pi_mag);
     }
 }
-*/
+
 
 void test_WTzmu_properties(precision WtTz, precision WxTz, precision WyTz, precision WnTz, precision ut, precision ux, precision uy, precision un, precision zt, precision zn, precision t2)
 {
@@ -129,7 +90,6 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 					q->pl[s] = eps;
 					pl = eps;
 				}
-
 			#if (PT_MATCHING == 1)
 				precision pt  = q->pt[s];
 				if(pt < eps)
@@ -138,7 +98,6 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 					pt = eps;
 				}
 			#endif
-
 			#if (NUMBER_OF_RESIDUAL_CURRENTS != 0)
 				precision ut = u->ut[s];
 				precision ux = u->ux[s];
@@ -148,16 +107,11 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 				precision utperp = sqrt(1.  +  ux * ux  +  uy * uy);
 				precision zt = t * un / utperp;
 				precision zn = ut / t / utperp;
-
-				//transverse_projection Xi(ut, ux, uy, un, zt, zn, t2);
-
 			#ifdef CONFORMAL_EOS
 				precision pt = (e_s - pl) / 2.;
 			#endif
-
 				precision T_aniso_mag = sqrt(e_s * e_s  +  pl * pl  +  2. * pt * pt);
 			#endif
-
 			#ifdef PIMUNU
 				precision pitt = q->pitt[s];
 				precision pitx = q->pitx[s];
@@ -184,13 +138,6 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 				precision piz2 = fabs(zt * pity  -  t2 * zn * piyn) / (t * zn);
 				precision piz3 = fabs(zt * pitn  -  t2 * zn * pinn) / zn;
 
-				//double_transverse_projection Xi_2(Xi, t2, t4);
-				//Xi_2.double_transverse_project_tensor(pitt, pitx, pity, pitn, pixx, pixy, pixn, piyy, piyn, pinn);
-
-				//precision pi_mag_2 = sqrt(fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
-
-				//precision pi_mag = fmax(pi_mag_1, pi_mag_2);
-
 				precision denom_pi = xi0 * rho_max * pi_mag;
 
 				precision a0 = pi_mag / (rho_max * T_aniso_mag);
@@ -209,11 +156,9 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 				precision factor_pi;
 				if(rho_pi > 1.e-5) factor_pi = tanh(rho_pi) / rho_pi;
 				else factor_pi = 1.  -  rho_pi * rho_pi / 3.;
-
 			#if (TEST_PIMUNU == 1)
 				test_pimunu_properties(trpi, piu0, piu1, piu2, piu3, piz0, piz1, piz2, piz3, pi_mag, t);
 			#endif
-
 				q->pitt[s] = factor_pi * pitt;
 				q->pitx[s] = factor_pi * pitx;
 				q->pity[s] = factor_pi * pity;
@@ -225,18 +170,14 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 				q->piyn[s] = factor_pi * piyn;
 				q->pinn[s] = factor_pi * pinn;
 			#endif
-
-			// reproject and regulate WTz components to ensure orthogonality to u, z (does the order matter?)
 			#ifdef WTZMU
 				precision WtTz = q->WtTz[s];
 				precision WxTz = q->WxTz[s];
 				precision WyTz = q->WyTz[s];
 				precision WnTz = q->WnTz[s];
-
 			#if (TEST_WTZMU == 1)
 				test_WTzmu_properties(WtTz, WxTz, WyTz, WnTz, ut, ux, uy, un, zt, zn, t2);
 			#endif
-
 				precision WTz_mag = sqrt(fabs(WtTz * WtTz  -  WxTz * WxTz  -  WyTz * WyTz  -  t2 * WnTz * WnTz));
 
 				precision WTzu = fabs(WtTz * ut  -  WxTz * ux  -  WyTz * uy  -  t2 * WnTz * un);
@@ -253,8 +194,6 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 				precision factor_W;
 				if(rho_W > 1.e-5) factor_W = tanh(rho_W) / rho_W;
 				else factor_W = 1.  -  rho_W * rho_W / 3.;	// 2nd-order expansion
-
-				//Xi.transverse_project_vector(WtTz, WxTz, WyTz, WnTz);
 
 				q->WtTz[s] = factor_W * WtTz;
 				q->WxTz[s] = factor_W * WxTz;

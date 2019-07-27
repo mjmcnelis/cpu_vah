@@ -53,13 +53,10 @@ void allocate_memory(int len)
 	q->ttx = (precision *)calloc(len, bytes);
 	q->tty = (precision *)calloc(len, bytes);
 	q->ttn = (precision *)calloc(len, bytes);
-
 	q->pl  = (precision *)calloc(len, bytes);
-
 #if (PT_MATCHING == 1)
 	q->pt  = (precision *)calloc(len, bytes);
 #endif
-
 #ifdef PIMUNU
 	q->pitt = (precision *)calloc(len, bytes);
 	q->pitx = (precision *)calloc(len, bytes);
@@ -85,13 +82,10 @@ void allocate_memory(int len)
 	qS->ttx = (precision *)calloc(len, bytes);
 	qS->tty = (precision *)calloc(len, bytes);
 	qS->ttn = (precision *)calloc(len, bytes);
-
 	qS->pl  = (precision *)calloc(len, bytes);
-
 #if (PT_MATCHING == 1)
 	qS->pt  = (precision *)calloc(len, bytes);
 #endif
-
 #ifdef PIMUNU
 	qS->pitt = (precision *)calloc(len, bytes);
 	qS->pitx = (precision *)calloc(len, bytes);
@@ -117,13 +111,10 @@ void allocate_memory(int len)
 	Q->ttx = (precision *)calloc(len, bytes);
 	Q->tty = (precision *)calloc(len, bytes);
 	Q->ttn = (precision *)calloc(len, bytes);
-
 	Q->pl  = (precision *)calloc(len, bytes);
-
 #if (PT_MATCHING == 1)
 	Q->pt  = (precision *)calloc(len, bytes);
 #endif
-
 #ifdef PIMUNU
 	Q->pitt = (precision *)calloc(len, bytes);
 	Q->pitx = (precision *)calloc(len, bytes);
@@ -185,11 +176,9 @@ void free_conserved_variables(CONSERVED_VARIABLES * q)
 	free(q->tty);
 	free(q->ttn);
 	free(q->pl);
-
 #if (PT_MATCHING == 1)
 	free(q->pt);
 #endif
-
 #ifdef PIMUNU
 	free(q->pitt);
 	free(q->pitx);

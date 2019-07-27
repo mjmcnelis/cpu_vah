@@ -1,14 +1,6 @@
-/*
- * InitialConditionParameters.c
- *
- *  Created on: Oct 23, 2015
- *      Author: bazow
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include "../include/Parameters.h"
-
 
 void getIntegerProperty(config_t * cfg, const char * propName, int * propValue)
 {
@@ -24,7 +16,6 @@ void getDoubleProperty(config_t * cfg, const char * propName, double * propValue
 
 void loadLatticeParameters(config_t *cfg, void * params)
 {
-	// read the file
 	char fname[255];
 	sprintf(fname, "parameters/lattice.properties");
 
@@ -34,28 +25,18 @@ void loadLatticeParameters(config_t *cfg, void * params)
 		exit(-1);
 	}
 
-	int numLatticePointsX;
-	int numLatticePointsY;
-	int numLatticePointsRapidity;
-	int numProperTimePoints;
-
-	double latticeSpacingX;
-	double latticeSpacingY;
-	double latticeSpacingRapidity;
-	double latticeSpacingProperTime;
-
+	int numLatticePointsX, numLatticePointsY, numLatticePointsRapidity, numProperTimePoints;
+	double latticeSpacingX, latticeSpacingY, latticeSpacingRapidity, latticeSpacingProperTime;
 
 	// get the lattice parameters
-	getIntegerProperty(cfg, "numLatticePointsX", &numLatticePointsX);
-	getIntegerProperty(cfg, "numLatticePointsY", &numLatticePointsY);
+	getIntegerProperty(cfg, "numLatticePointsX", 		&numLatticePointsX);
+	getIntegerProperty(cfg, "numLatticePointsY", 		&numLatticePointsY);
 	getIntegerProperty(cfg, "numLatticePointsRapidity", &numLatticePointsRapidity);
-	getIntegerProperty(cfg, "numProperTimePoints", &numProperTimePoints);
-
-	getDoubleProperty(cfg, "latticeSpacingX", &latticeSpacingX);
-	getDoubleProperty(cfg, "latticeSpacingY", &latticeSpacingY);
-	getDoubleProperty(cfg, "latticeSpacingRapidity", &latticeSpacingRapidity);
-	getDoubleProperty(cfg, "latticeSpacingProperTime", &latticeSpacingProperTime);
-
+	getIntegerProperty(cfg, "numProperTimePoints", 		&numProperTimePoints);
+	getDoubleProperty(cfg,  "latticeSpacingX", 			&latticeSpacingX);
+	getDoubleProperty(cfg,  "latticeSpacingY", 			&latticeSpacingY);
+	getDoubleProperty(cfg,  "latticeSpacingRapidity", 	&latticeSpacingRapidity);
+	getDoubleProperty(cfg,  "latticeSpacingProperTime", &latticeSpacingProperTime);
 
 	// printf("\nLattice parameters:");
 	// printf("\n-------------------\n");
@@ -69,25 +50,20 @@ void loadLatticeParameters(config_t *cfg, void * params)
 	// printf("latticeSpacingProperTime = %.3f\n", latticeSpacingProperTime);
 	// printf("\n");
 
-
-	// set the lattice struct
 	struct LatticeParameters * lattice = (struct LatticeParameters *) params;
-
-	lattice->numLatticePointsX = numLatticePointsX;
-	lattice->numLatticePointsY = numLatticePointsY;
-	lattice->numLatticePointsRapidity = numLatticePointsRapidity;
-	lattice->numProperTimePoints = numProperTimePoints;
-
-	lattice->latticeSpacingX = latticeSpacingX;
-	lattice->latticeSpacingY = latticeSpacingY;
-	lattice->latticeSpacingRapidity = latticeSpacingRapidity;
-	lattice->latticeSpacingProperTime = latticeSpacingProperTime;
+	lattice->numLatticePointsX 			= numLatticePointsX;
+	lattice->numLatticePointsY 			= numLatticePointsY;
+	lattice->numLatticePointsRapidity	= numLatticePointsRapidity;
+	lattice->numProperTimePoints 		= numProperTimePoints;
+	lattice->latticeSpacingX 			= latticeSpacingX;
+	lattice->latticeSpacingY 			= latticeSpacingY;
+	lattice->latticeSpacingRapidity 	= latticeSpacingRapidity;
+	lattice->latticeSpacingProperTime 	= latticeSpacingProperTime;
 }
 
 
 void loadInitialConditionParameters(config_t *cfg, void * params)
 {
-	// read the file
 	char fname[255];
 	sprintf(fname, "parameters/ic.properties");
 
@@ -97,28 +73,18 @@ void loadInitialConditionParameters(config_t *cfg, void * params)
 		exit(-1);
 	}
 
-	int initialConditionType;
-	int numberOfNucleonsPerNuclei;
-
-	double initialCentralTemperatureGeV;
-	double scatteringCrossSectionNN;
-	double impactParameter;
-	double fractionOfBinaryCollisions;
-	double rapidityVariance;
-	double rapidityMean;
-
+	int initialConditionType, numberOfNucleonsPerNuclei;
+	double initialCentralTemperatureGeV, scatteringCrossSectionNN, impactParameter, fractionOfBinaryCollisions, rapidityVariance, rapidityMean;
 
 	// get initial condition parameters
-	getIntegerProperty(cfg, "initialConditionType", &initialConditionType);
-	getIntegerProperty(cfg, "numberOfNucleonsPerNuclei", &numberOfNucleonsPerNuclei);
-
-	getDoubleProperty(cfg, "initialCentralTemperatureGeV", &initialCentralTemperatureGeV);
-	getDoubleProperty(cfg, "scatteringCrossSectionNN", &scatteringCrossSectionNN);
-	getDoubleProperty(cfg, "impactParameter", &impactParameter);
-	getDoubleProperty(cfg, "fractionOfBinaryCollisions", &fractionOfBinaryCollisions);
-	getDoubleProperty(cfg, "rapidityVariance", &rapidityVariance);
-	getDoubleProperty(cfg, "rapidityMean", &rapidityMean);
-
+	getIntegerProperty(cfg, "initialConditionType", 		&initialConditionType);
+	getIntegerProperty(cfg, "numberOfNucleonsPerNuclei", 	&numberOfNucleonsPerNuclei);
+	getDoubleProperty(cfg, 	"initialCentralTemperatureGeV",	&initialCentralTemperatureGeV);
+	getDoubleProperty(cfg, 	"scatteringCrossSectionNN", 	&scatteringCrossSectionNN);
+	getDoubleProperty(cfg, 	"impactParameter", 				&impactParameter);
+	getDoubleProperty(cfg,	"fractionOfBinaryCollisions", 	&fractionOfBinaryCollisions);
+	getDoubleProperty(cfg, 	"rapidityVariance", 			&rapidityVariance);
+	getDoubleProperty(cfg, 	"rapidityMean", 				&rapidityMean);
 
 	// printf("Initial condition parameters:");
 	// printf("\n-----------------------------\n");
@@ -132,27 +98,20 @@ void loadInitialConditionParameters(config_t *cfg, void * params)
 	// printf("rapidityMean                 = %.2f\n", rapidityMean);
 	// printf("\n");
 
-
-	// this is a pointer so the address values are set (still not sure how params works...)
-
-	// set the initial condition struct
 	struct InitialConditionParameters * initCond = (struct InitialConditionParameters *) params;
-
-	initCond->initialConditionType = initialConditionType;
-	initCond->numberOfNucleonsPerNuclei = numberOfNucleonsPerNuclei;
-
-	initCond->initialCentralTemperatureGeV = initialCentralTemperatureGeV;
-	initCond->scatteringCrossSectionNN = scatteringCrossSectionNN;
-	initCond->impactParameter = impactParameter;
-	initCond->fractionOfBinaryCollisions = fractionOfBinaryCollisions;
-	initCond->rapidityVariance = rapidityVariance;
-	initCond->rapidityMean = rapidityMean;
+	initCond->initialConditionType 			= initialConditionType;
+	initCond->numberOfNucleonsPerNuclei 	= numberOfNucleonsPerNuclei;
+	initCond->initialCentralTemperatureGeV 	= initialCentralTemperatureGeV;
+	initCond->scatteringCrossSectionNN 		= scatteringCrossSectionNN;
+	initCond->impactParameter 				= impactParameter;
+	initCond->fractionOfBinaryCollisions 	= fractionOfBinaryCollisions;
+	initCond->rapidityVariance 				= rapidityVariance;
+	initCond->rapidityMean 					= rapidityMean;
 }
 
 
 void loadHydroParameters(config_t *cfg, void * params)
 {
-	// read the file
 	char fname[255];
 	sprintf(fname, "parameters/hydro.properties");
 
@@ -162,14 +121,12 @@ void loadHydroParameters(config_t *cfg, void * params)
 		exit(-1);
 	}
 
-	double tau_initial;
-	double shear_viscosity;
-	double freezeoutTemperatureGeV;
+	double tau_initial, shear_viscosity, freezeoutTemperatureGeV;
 
 	// get hydro parameters
-	getDoubleProperty(cfg, "tau_initial", &tau_initial);
-	getDoubleProperty(cfg, "shear_viscosity", &shear_viscosity);
-	getDoubleProperty(cfg, "freezeoutTemperatureGeV", &freezeoutTemperatureGeV);
+	getDoubleProperty(cfg, "tau_initial", 				&tau_initial);
+	getDoubleProperty(cfg, "shear_viscosity", 			&shear_viscosity);
+	getDoubleProperty(cfg, "freezeoutTemperatureGeV",	&freezeoutTemperatureGeV);
 
 	// printf("Hydro parameters:");
 	// printf("\n-----------------\n");
@@ -178,10 +135,8 @@ void loadHydroParameters(config_t *cfg, void * params)
 	// printf("freezeoutTemperatureGeV = %.3f\n", freezeoutTemperatureGeV);
 	// printf("\n");
 
-
 	// set hydro struct
 	struct HydroParameters * hydro = (struct HydroParameters *) params;
-
 	hydro->tau_initial             = tau_initial;
 	hydro->shear_viscosity         = shear_viscosity;
 	hydro->freezeoutTemperatureGeV = freezeoutTemperatureGeV;

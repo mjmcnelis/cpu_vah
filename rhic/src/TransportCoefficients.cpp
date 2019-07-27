@@ -27,10 +27,10 @@ transport_coefficients::~transport_coefficients()
 
 
 void transport_coefficients::test_kinetic_solution(precision e, precision pl, precision pt, precision aL2, precision prefactor)
-{	
+{
 	precision e_a  = prefactor * t_200 * aL2;
 	precision pl_a = prefactor * t_220 * aL2;
-	precision pt_a = prefactor * t_201 / 2.0;
+	precision pt_a = prefactor * t_201 / 2.;
 
 	precision de  = fabs((e  - e_a)  / e);
 	precision dpl = fabs((pl - pl_a) / pl);
@@ -48,7 +48,7 @@ void transport_coefficients::test_kinetic_solution(precision e, precision pl, pr
 
 
 void transport_coefficients::compute_hypergeometric_functions(precision z)
-{	
+{
 	precision z2 = z  * z;
 	precision z3 = z2 * z;
 
@@ -58,33 +58,20 @@ void transport_coefficients::compute_hypergeometric_functions(precision z)
 		precision t = atan(sqrtz) / sqrtz;
 
 		t_200 = 1.  +  (1. + z) * t;
-
 		t_220 = (-1.  +  (1. + z) * t) / z;
-
 		t_201 = (1.  +  (z - 1.) * t) / z;
-
 		t_240 = (3.  +  2. * z  -  3. * (1. + z) * t) / z2;
-
 		t_221 = (-3.  +  (3. + z) * t) / z2;
-
-
 	#if (PT_MATCHING == 1 || PIMUNU_COMPONENTS != 0)
 		t_202 = (3.  +  z  +  (z - 3.) * (1. + z) * t) / (z2 * (1. + z));
 	#endif
-
-
 	#if (NUMBER_OF_RESIDUAL_CURRENTS != 0)
 		t_421 = (3.  +  z  +  (1. + z) * (z - 3.) * t) / (4. * z2);
-
 		t_402 = (3. * (z - 1.)  +  (z * (3.*z - 2.) + 3.) * t) / (4. * z2);
-
 		t_441 = (-15.  -  13. * z  +  3. * (1. + z) * (5. + z) * t) / (4. * z3);
-
 		t_422 = (15.  +  z +  (z * (z - 6.) - 15.)* t) / (4. * z3);
-
 		t_403 = ((z - 3.) * (5. + 3.*z)  +  3. * (1. + z) * (z * (z - 2.) + 5.) * t) / (4. * z3 * (1. + z));
 	#endif
-
 	}
 	else if(z < -delta && z > -1.)
 	{
@@ -92,40 +79,26 @@ void transport_coefficients::compute_hypergeometric_functions(precision z)
 		precision t = atanh(sqrtmz) / sqrtmz;
 
 		t_200 = 1.  +  (1. + z) * t;
-
 		t_220 = (-1.  +  (1. + z) * t) / z;
-
 		t_201 = (1.  +  (z - 1.) * t) / z;
-
 		t_240 = (3.  +  2. * z  -  3. * (1. + z) * t) / z2;
-
 		t_221 = (-3.  +  (3. + z) * t) / z2;
-
-
 	#if (PT_MATCHING == 1 || PIMUNU_COMPONENTS != 0)
 		t_202 = (3.  +  z  +  (z - 3.) * (1. + z) * t) / (z2 * (1. + z));
 	#endif
-
-
 	#if (NUMBER_OF_RESIDUAL_CURRENTS != 0)
 		t_421 = (3.  +  z  +  (1. + z) * (z - 3.) * t) / (4. * z2);
-
 		t_402 = (3. * (z - 1.)  +  (z * (3.*z - 2.) + 3.) * t) / (4. * z2);
-
 		t_441 = (-15.  -  13. * z  +  3. * (1. + z) * (5. + z) * t) / (4. * z3);
-
 		t_422 = (15.  +  z +  (z * (z - 6.) - 15.)* t) / (4. * z3);
-
 		t_403 = ((z - 3.) * (5. + 3.*z)  +  3. * (1. + z) * (z * (z - 2.) + 5.) * t) / (4. * z3 * (1. + z));
 	#endif
-
 	}
 	else if(fabs(z) <= delta)
 	{
 		precision z4 = z3 * z;
 		precision z5 = z4 * z;
 		precision z6 = z5 * z;
-
 
 		t_200 = 2. + 0.6666666666666667*z - 0.1333333333333333*z2 + 0.05714285714285716*z3 - 0.031746031746031744*z4 + 0.020202020202020193*z5 - 0.013986013986013984*z6;
 
@@ -137,11 +110,9 @@ void transport_coefficients::compute_hypergeometric_functions(precision z)
 
 		t_221 = 0.2666666666666668 - 0.22857142857142854*z + 0.19047619047619047*z2 - 0.1616161616161616*z3 + 0.13986013986013987*z4 - 0.12307692307692308*z5 + 0.10980392156862744*z6;
 
-
 	#if (PT_MATCHING == 1 || PIMUNU_COMPONENTS != 0)
 		t_202 = 1.0666666666666664 - 1.3714285714285712*z + 1.5238095238095237*z2 - 1.616161616161616*z3 + 1.6783216783216781*z4 - 1.7230769230769227*z5 + 1.756862745098039*z6;
 	#endif
-
 
 	#if (NUMBER_OF_RESIDUAL_CURRENTS != 0)
    		t_421 = 0.2666666666666666 - 0.0761904761904762*z + 0.0380952380952381*z2 - 0.023088023088023088*z3 + 0.015540015540015537*z4 - 0.011188811188811189*z5 + 0.00844645550527904*z6;
@@ -154,7 +125,6 @@ void transport_coefficients::compute_hypergeometric_functions(precision z)
 
    		t_403 = 0.9142857142857144 - 1.2190476190476192*z + 1.3852813852813852*z2 - 1.4918414918414917*z3 + 1.5664335664335665*z4 - 1.6217194570135747*z5 + 1.6643962848297214*z6;
 	#endif
- 
 	}
 	else
 	{
@@ -164,12 +134,10 @@ void transport_coefficients::compute_hypergeometric_functions(precision z)
 }
 
 
-
 void transport_coefficients::compute_transport_coefficients(precision e, precision pl, precision pt)
 {
-
 #ifdef CONFORMAL_EOS
-	precision x   = pl / e;		
+	precision x   = pl / e;
 	precision x2  = x   * x;
 	precision x3  = x2  * x;
 	precision x4  = x3  * x;
@@ -261,22 +229,18 @@ void transport_coefficients::compute_transport_coefficients(precision e, precisi
 	// anisotropic functions
 	precision I_240 = prefactor * t_240 * aL2;
 	precision I_221 = prefactor * t_221 / 2.;
-
 #if (PT_MATCHING == 1 || PIMUNU_COMPONENTS != 0)
-	precision I_202 = prefactor * t_202 / (8. * aL2);	
+	precision I_202 = prefactor * t_202 / (8. * aL2);
 #endif
-
 #if (NUMBER_OF_RESIDUAL_CURRENTS != 0)
-	precision I_421 = prefactor * t_421 * Lambda2 * aL2 * 10.;	
+	precision I_421 = prefactor * t_421 * Lambda2 * aL2 * 10.;
 	precision I_402 = prefactor * t_402 * Lambda2 * 2.5;
-
 	precision I_441 = prefactor * t_441 * Lambda2 * aL2 * 10.;
 	precision I_422 = prefactor * t_422 * Lambda2 * 2.5;
 	precision I_403 = prefactor * t_403 * Lambda2 * 5. / (12. * aL2);
 #endif
 
-
-	// pl transport coefficients (verified pimunu coefficient same as v1)
+	// pl transport coefficients
 	zeta_LL = I_240  -  3. * pl;
 	zeta_TL = I_221 - pl;
 #ifdef WTZMU
@@ -291,7 +255,6 @@ void transport_coefficients::compute_transport_coefficients(precision e, precisi
 #else
 	lamnda_piL = 0;
 #endif
-		
 	// pt transport coefficients
 #if (PT_MATCHING == 1)
 	zeta_LT = I_221  -  pt;
@@ -309,7 +272,6 @@ void transport_coefficients::compute_transport_coefficients(precision e, precisi
 	lambda_piT = 0;
 #endif
 #endif
-
 	// WTz transport coefficients
 #ifdef WTZMU
 	eta_uW = 0.5 * (pl - I_221);
@@ -326,12 +288,11 @@ void transport_coefficients::compute_transport_coefficients(precision e, precisi
 	lambda_piTW = 0;
 #endif
 #endif
-
 	// piT transport coefficients (validated 1st four are same as v1)
 #ifdef PIMUNU
 	eta_T 		= pt  -  I_202;
 	tau_pipi 	= 2.  -  4. * I_403 / I_402;
-	delta_pipi	= (3. * tau_pipi  + 2.) / 4.;	
+	delta_pipi	= (3. * tau_pipi  + 2.) / 4.;
 	lambda_pipi = I_422 / I_402  -  1.;
 #ifdef WTZMU
 	lambda_Wupi = lambda_WTW  -  1.;
@@ -343,7 +304,6 @@ void transport_coefficients::compute_transport_coefficients(precision e, precisi
 #endif
 
 	//test_kinetic_solution(e, pl, pt, z, aL2, prefactor);
-
 
 #else
 	// nonconformal formula

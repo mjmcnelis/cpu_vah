@@ -17,14 +17,8 @@ double canonical(default_random_engine & generator)
 
 transverse_projection::transverse_projection(precision ut_in, precision ux_in, precision uy_in, precision un_in, precision zt_in, precision zn_in, precision t2_in)
 {
-	ut = ut_in;
-	ux = ux_in;
-	uy = uy_in;
-	un = un_in;
-
-	zt = zt_in;
-	zn = zn_in;
-
+	ut = ut_in;		ux = ux_in;		uy = uy_in;		un = un_in;
+	zt = zt_in;		zn = zn_in;
 	t2 = t2_in;
 
 	Xitt = 1.  -  ut * ut  +  zt * zt;

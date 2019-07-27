@@ -14,9 +14,9 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 void ghost_cell_BC(CONSERVED_VARIABLES * const __restrict__ q, precision * const __restrict__ e, FLUID_VELOCITY * const __restrict__ u, int s, int sBC)
 {
 	// s = ghost cell index	 |	sBC = physical cell at boundary index
-	e[s] = e[sBC];			// set the ghost cells		
+	e[s] = e[sBC];
 
-	u->ut[s] = u->ut[sBC];
+	u->ut[s] = u->ut[sBC];		// set the ghost cells
 	u->ux[s] = u->ux[sBC];
 	u->uy[s] = u->uy[sBC];
 	u->un[s] = u->un[sBC];
@@ -26,7 +26,6 @@ void ghost_cell_BC(CONSERVED_VARIABLES * const __restrict__ q, precision * const
 	q->tty[s] = q->tty[sBC];
 	q->ttn[s] = q->ttn[sBC];
 	q->pl[s] = q->pl[sBC];
-
 #if (PT_MATCHING == 1)
 	q->pt[s] = q->pt[sBC];
 #endif
@@ -53,8 +52,7 @@ void ghost_cell_BC(CONSERVED_VARIABLES * const __restrict__ q, precision * const
 
 void set_ghost_cells(CONSERVED_VARIABLES * const __restrict__ q, precision * const __restrict__ e, FLUID_VELOCITY * const __restrict__ u, int nx, int ny, int nz)
 {
-	//int s;	// ghost cell index
-	//int sBC;	// physical boundary index
+	// s = ghost cell index	 |	sBC = physical cell at boundary index
 
 	// loop over the physical (y,z) lattice points
 	for(int j = 2; j < ny + 2; j++)
@@ -96,7 +94,7 @@ void set_ghost_cells(CONSERVED_VARIABLES * const __restrict__ q, precision * con
 				ghost_cell_BC(q, e, u, s, sBC);
 			}
 		}
-		
+
 		for(int j = 2; j < ny + 2; j++)
 		{
 			for(int k = 0; k <= 1; k++)				// set left ghost cells (z)
