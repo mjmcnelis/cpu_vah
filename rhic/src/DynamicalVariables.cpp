@@ -27,25 +27,21 @@ void allocate_memory(int len)
 
 	// fluid velocity at current time step
 	u = (FLUID_VELOCITY *)calloc(1, sizeof(FLUID_VELOCITY));
-	u->ut = (precision *)calloc(len, bytes);
 	u->ux = (precision *)calloc(len, bytes);
 	u->uy = (precision *)calloc(len, bytes);
 	u->un = (precision *)calloc(len, bytes);
 
 	// fluid velocity at previous time step
 	up = (FLUID_VELOCITY *)calloc(1, sizeof(FLUID_VELOCITY));
-	up->ut = (precision *)calloc(len, bytes);
 	up->ux = (precision *)calloc(len, bytes);
 	up->uy = (precision *)calloc(len, bytes);
 	up->un = (precision *)calloc(len, bytes);
 
 	// fluid velocity at intermediate time step
 	uS = (FLUID_VELOCITY *)calloc(1, sizeof(FLUID_VELOCITY));
-	uS->ut = (precision *)calloc(len, bytes);
 	uS->ux = (precision *)calloc(len, bytes);
 	uS->uy = (precision *)calloc(len, bytes);
 	uS->un = (precision *)calloc(len, bytes);
-
 
 	// conserved variables at current time step
 	q = (CONSERVED_VARIABLES *)calloc(1, sizeof(CONSERVED_VARIABLES));
@@ -161,7 +157,6 @@ void swap_fluid_velocity(FLUID_VELOCITY **arr1, FLUID_VELOCITY **arr2)
 
 void free_fluid_velocity(FLUID_VELOCITY * u)
 {
-	free(u->ut);
 	free(u->ux);
 	free(u->uy);
 	free(u->un);

@@ -138,8 +138,7 @@ void run_hydro(void * latticeParams, void * initCondParams, void * hydroParams)
 			}
 		}
 
-		// evolve one time step
-		runge_kutta2(t, dt, nx, ny, nz, dx, dy, dz, etabar);
+		evolve_hydro_one_time_step(t, dt, nx, ny, nz, dx, dy, dz, etabar);
 
 		steps += 1.0;
 		t += dt;

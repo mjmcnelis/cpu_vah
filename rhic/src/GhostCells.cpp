@@ -16,8 +16,7 @@ void ghost_cell_BC(CONSERVED_VARIABLES * const __restrict__ q, precision * const
 	// s = ghost cell index	 |	sBC = physical cell at boundary index
 	e[s] = e[sBC];
 
-	u->ut[s] = u->ut[sBC];		// set the ghost cells
-	u->ux[s] = u->ux[sBC];
+	u->ux[s] = u->ux[sBC];		// set the ghost cells
 	u->uy[s] = u->uy[sBC];
 	u->un[s] = u->un[sBC];
 

@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <math.h>
 #include "../include/Precision.h"
 #include "../include/DynamicalVariables.h"
 #include "../include/GhostCells.h"
@@ -17,6 +18,8 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 void euler_step(precision t, const CONSERVED_VARIABLES * const __restrict__ q, CONSERVED_VARIABLES * const __restrict__ Q,
 const precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict__ u, const FLUID_VELOCITY * const __restrict__ up, int nx, int ny, int nz, precision dt, precision dx, precision dy, precision dn, precision etabar)
 {
+	precision t2 = t * t;
+
 	int stride_y = nx + 4;							// strides for neighbor cells along x, y, n (stride_x = 1)
 	int stride_z = (nx + 4) * (ny + 4);				// stride formulas based from linear_column_index()
 
@@ -35,9 +38,9 @@ const precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict_
 	precision qj2[2 * NUMBER_CONSERVED_VARIABLES];	// conserved variables of neighbor cells along y [j-2, j+2]
 	precision qk2[2 * NUMBER_CONSERVED_VARIABLES];	// conserved variables of neighbor cells along n [k-2, k+2]
 
-	precision ui1[8];								// fluid velocity of neighbor cells along x [i-1, i+1]
-	precision uj1[8];								// fluid velocity of neighbor cells along y [j-1, j+1]
-	precision uk1[8];								// fluid velocity of neighbor cells along n [k-1, k+1]
+	precision ui1[6];								// fluid velocity of neighbor cells along x [i-1, i+1]
+	precision uj1[6];								// fluid velocity of neighbor cells along y [j-1, j+1]
+	precision uk1[6];								// fluid velocity of neighbor cells along n [k-1, k+1]
 
 	precision vxi[4];								// vx of neighbor cells along x [i-2, i-1, i+1, i+2]
 	precision vyj[4];								// vy of neighbor cells along y [j-2, j-1, j+1, j+2]
@@ -110,13 +113,12 @@ const precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict_
 
 				precision e_s = e[s];
 
-				precision ut = u->ut[s];	// current fluid velocity
 				precision ux = u->ux[s];
 				precision uy = u->uy[s];
 				precision un = u->un[s];
+				precision ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t2 * un * un);
 
-				precision ut_p = up->ut[s];	// previous fluid velocity
-				precision ux_p = up->ux[s];
+				precision ux_p = up->ux[s];	// previous fluid velocity
 				precision uy_p = up->uy[s];
 				precision un_p = up->un[s];
 
@@ -127,8 +129,8 @@ const precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict_
 			#endif
 
 				// fluid velocity of neighbor cells
-				get_u_neighbor_cells(u->ut, u->ux, u->uy, u->un, ui1, uj1, uk1, sim, sip, sjm, sjp, skm, skp);
-				get_v_neighbor_cells(u->ut, u->ux, u->uy, u->un, vxi, vyj, vnk, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
+				get_u_neighbor_cells(u->ux, u->uy, u->un, ui1, uj1, uk1, sim, sip, sjm, sjp, skm, skp);
+				get_v_neighbor_cells(u->ux, u->uy, u->un, vxi, vyj, vnk, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp, t2);
 
 				int r = 0;
 
@@ -161,7 +163,7 @@ const precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict_
 			#endif
 
 				// compute the external source terms (S)
-				source_terms(S, ql, e_s, t, qi1, qj1, qk1, e1, ui1, uj1, uk1, ut, ux, uy, un, ut_p, ux_p, uy_p, un_p, dt, dx, dy, dn, etabar);
+				source_terms(S, ql, e_s, t, qi1, qj1, qk1, e1, ui1, uj1, uk1, ux, uy, un, ux_p, uy_p, un_p, dt, dx, dy, dn, etabar);
 
 				// compute the flux terms
 				flux_terms(Hx_plus, Hx_minus, ql, qi1, qi2, vxi, ux/ut);
@@ -182,7 +184,6 @@ const precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict_
 				Q->pl[s]  = ql[4];
 
 				a = 5;	// reset counter
-
 			#if (PT_MATCHING == 1)
 				Q->pt[s] = ql[a];	a++;
 			#endif
@@ -210,9 +211,9 @@ const precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict_
 }
 
 
-void convex_combination(const CONSERVED_VARIABLES * const __restrict__ q, CONSERVED_VARIABLES * const __restrict__ Q, int nx, int ny, int nz)
+void runge_kutta2(const CONSERVED_VARIABLES * const __restrict__ q, CONSERVED_VARIABLES * const __restrict__ Q, int nx, int ny, int nz)
  {
- 	// rungeKutta2 update: (q + Q) / 2  -> store in Q
+ 	// runge kutta time evolution update: (q + Q) / 2  -> store in Q
 
 	for(int k = 2; k < nz + 2; k++)
 	{
@@ -256,7 +257,7 @@ void convex_combination(const CONSERVED_VARIABLES * const __restrict__ q, CONSER
 
 
 // main algorithm
-void runge_kutta2(precision t, precision dt, int nx, int ny, int nz, precision dx, precision dy, precision dz, precision etabar)
+void evolve_hydro_one_time_step(precision t, precision dt, int nx, int ny, int nz, precision dx, precision dy, precision dz, precision etabar)
 {
 	// first intermediate time step (compute qS = q + dt.(S - dHx/dx - dHy/dy - dHn/dn))
 	euler_step(t, q, qS, e, u, up, nx, ny, nz, dt, dx, dy, dz, etabar);
@@ -276,8 +277,8 @@ void runge_kutta2(precision t, precision dt, int nx, int ny, int nz, precision d
 	// second intermediate time step (compute Q = qS + dt.(S - dHx/dx - dHy/dy - dHn/dn))
 	euler_step(t, qS, Q, e, uS, u, nx, ny, nz, dt, dx, dy, dz, etabar);
 
-	// Runge-Kutta: (q + Q) / 2 -> Q
-	convex_combination(q, Q, nx, ny, nz);
+	// 2nd order runge kutta: (q + Q) / 2 -> Q
+	runge_kutta2(q, Q, nx, ny, nz);
 
 	// swap up and u
 	swap_fluid_velocity(&up, &u);

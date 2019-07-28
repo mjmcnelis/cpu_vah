@@ -52,8 +52,12 @@ inline precision central_derivative(const precision * const __restrict__ f, int 
 }
 
 
-void source_terms(precision * const __restrict__ S, const precision * const __restrict__ q, precision e, precision t, const precision * const __restrict__ qi1, const precision * const __restrict__ qj1, const precision * const __restrict__ qk1, const precision * const __restrict__ e1, const precision * const __restrict__ ui1, const precision * const __restrict__ uj1, const precision * const __restrict__ uk1, precision ut, precision ux, precision uy, precision un, precision ut_p, precision ux_p, precision uy_p, precision un_p, precision dt, precision dx, precision dy, precision dn, precision etabar)
+void source_terms(precision * const __restrict__ S, const precision * const __restrict__ q, precision e, precision t, const precision * const __restrict__ qi1, const precision * const __restrict__ qj1, const precision * const __restrict__ qk1, const precision * const __restrict__ e1, const precision * const __restrict__ ui1, const precision * const __restrict__ uj1, const precision * const __restrict__ uk1, precision ux, precision uy, precision un, precision ux_p, precision uy_p, precision un_p, precision dt, precision dx, precision dy, precision dn, precision etabar)
 {
+	precision t2 = t * t;
+	precision t4 = t2 * t2;
+
+	precision ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t2 * un * un);
 	precision vx = ux / ut;				// spatial velocity
 	precision vy = uy / ut;
 	precision vn = un / ut;
@@ -62,9 +66,7 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision zt = t * un / utperp;		// longitudinal basis vector
 	precision zn = ut / t / utperp;
 
-	precision t2 = t * t;				// useful expressions
-	precision t4 = t2 * t2;
-	precision zt2  = zt * zt;
+	precision zt2  = zt * zt;			// other useful expressions
 	precision ztzn = zt * zn;
 	precision zn2  = zn * zn;
 	precision t2zn = t2 * zn;
@@ -114,19 +116,6 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 #else
 	precision WtTz = 0, WxTz = 0, WyTz = 0, WnTz = 0;
 #endif
-	// use unprojected components in conservation laws?
-	// precision pitt_un = pitt;
-	// precision pitx_un = pitx;
-	// precision pity_un = pity;
-	// precision pitn_un = pitn;
-	// precision pixx_un = pixx;
-	// precision pixy_un = pixy;
-	// precision pixn_un = pixn;
-	// precision piyy_un = piyy;
-	// precision piyn_un = piyn;
-	// precision pinn_un = pinn;
-
-
 
 // relaxation times and transport coefficients
 //-------------------------------------------------
@@ -179,7 +168,7 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision dpt_dy = (de_dy  -  dpl_dy) / 2.;
 	precision dpt_dn = (de_dn  -  dpl_dn) / 2.;
 #endif
-	
+
 #ifdef PIMUNU	// pimunu derivatives
 	precision dpitt_dx = central_derivative(qi1, n, dx);
 	precision dpitt_dy = central_derivative(qj1, n, dy);
@@ -199,7 +188,7 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 	precision dpixx_dx = central_derivative(qi1, n, dx);	n += 2;
 
-	precision dpixy_dx = central_derivative(qi1, n, dx);	
+	precision dpixy_dx = central_derivative(qi1, n, dx);
 	precision dpixy_dy = central_derivative(qj1, n, dy);	n += 2;
 
 	precision dpixn_dx = central_derivative(qi1, n, dx);
@@ -237,13 +226,7 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 #endif
 
 	// fluid velocity derivatives
-	// n = 0;
-	// precision dut_dt = (ut - ut_p) / dt;
-	// precision dut_dx = central_derivative(ui1, n, dx);
-	// precision dut_dy = central_derivative(uj1, n, dy);
-	// precision dut_dn = central_derivative(uk1, n, dn);	n += 2;
-
-	n = 2;
+	n = 0;
 	precision dux_dt = (ux - ux_p) / dt;
 	precision dux_dx = central_derivative(ui1, n, dx);
 	precision dux_dy = central_derivative(uj1, n, dy);
@@ -277,17 +260,17 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision thetaL = - zt2 * dut_dt  +  t2 * zn2 * dun_dn  +  ztzn * (t2 * dun_dt  -  dut_dn)  +  t * zn2 * ut;
 	precision thetaT = theta  -  thetaL;
 
-	// spatial velocity derivatives and divergence 
+	// spatial velocity derivatives and divergence
 	precision dvx_dx = (dux_dx  -  vx * dut_dx) / ut;
 	precision dvy_dy = (duy_dy  -  vy * dut_dy) / ut;
 	precision dvn_dn = (dun_dn  -  vn * dut_dn) / ut;
 
 	precision div_v = dvx_dx  +  dvy_dy  +  dvn_dn;
-	
+
 	// other spatial velocity derivatives (get rid of chain rule later)
 	precision dvx_dn = (dux_dn  -  vx * dut_dn) / ut;
 	precision dvy_dn = (duy_dn  -  vy * dut_dn) / ut;
-	
+
 	// longitudinal vector derivatives
 	precision dzt_dt = t * (dun_dt  -  un * duT2_dt / utperp2) / utperp  +  zt / t;
 	precision dzt_dx = t * (dun_dx  -  un * duT2_dx / utperp2) / utperp;
@@ -304,7 +287,7 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	transverse_projection Xi(ut, ux, uy, un, zt, zn, t2);	// Xi^{\mu\nu}
 	double_transverse_projection Xi_2(Xi, t2, t4);			// Xi^{\mu\nu\alpha\beta}
 
-	// project residual shear stress that appear in source terms 
+	// project residual shear stress that appear in source terms
 #ifdef PIMUNU
 	Xi_2.double_transverse_project_tensor(pitt, pitx, pity, pitn, pixx, pixy, pixn, piyy, piyn, pinn);
 #endif
@@ -367,7 +350,7 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 #ifdef PIMUNU
 	// piT transport coefficients
-	precision eta_T = aniso.eta_T;				
+	precision eta_T = aniso.eta_T;
 	precision delta_pipi = aniso.delta_pipi;
 	precision tau_pipi = aniso.tau_pipi;
 	precision lambda_pipi = aniso.lambda_pipi;
@@ -405,7 +388,7 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 
 	// \delta^\pi_\pi . pi_T^{\mu\nu} . \theta_T
 	precision Itt_pi3 = delta_pipi * pitt * thetaT;
-	precision Itx_pi3 = delta_pipi * pitx * thetaT;		
+	precision Itx_pi3 = delta_pipi * pitx * thetaT;
 	precision Ity_pi3 = delta_pipi * pity * thetaT;
 	precision Itn_pi3 = delta_pipi * pitn * thetaT;
 	precision Ixx_pi3 = delta_pipi * pixx * thetaT;
@@ -415,7 +398,7 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision Iyn_pi3 = delta_pipi * piyn * thetaT;
 	precision Inn_pi3 = delta_pipi * pinn * thetaT;
 
-	// \tau^\pi_\pi . \pi_T^{\alpha (\mu} . \sigma_T^{\nu)}_\alpha   
+	// \tau^\pi_\pi . \pi_T^{\alpha (\mu} . \sigma_T^{\nu)}_\alpha
 	precision Itt_pi4 = tau_pipi * (pitt * sTtt  -  pitx * sTtx  -  pity * sTty  -  t2 * pitn * sTtn);
 	precision Itx_pi4 = tau_pipi * (pitt * sTtx  +  pitx * sTtt  -  pitx * sTxx  -  pixx * sTtx  -  pity * sTxy  -  pixy * sTty  -  t2 * (pitn * sTxn  +  pixn * sTtn)) / 2.;
 	precision Ity_pi4 = tau_pipi * (pitt * sTty  +  pity * sTtt  -  pitx * sTxy  -  pixy * sTtx  -  pity * sTyy  -  piyy * sTty  -  t2 * (pitn * sTyn  +  piyn * sTtn)) / 2.;
@@ -687,7 +670,7 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 			+  vy * (dWtx_dy  +  dpitx_dy)  -  dpixy_dy
 
 			+  vn * (dWtx_dn  +  dpitx_dn)  -  dpixn_dn  -  dWxn_dn
-			-  0.5 * (vx * dLtn_dn  -  Ltn * dvx_dn);	// go over this line again	
+			-  0.5 * (vx * dLtn_dn  -  Ltn * dvx_dn);	// go over this line again
 
 
 
@@ -720,7 +703,7 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	precision dpitt = - pitt * taupiInv  +  Itt_pi  +  Ptt_pi  -  Gtt_pi;
 	precision dpitx = - pitx * taupiInv  +  Itx_pi  +  Ptx_pi  -  Gtx_pi;
 	precision dpity = - pity * taupiInv  +  Ity_pi  +  Pty_pi  -  Gty_pi;
-	precision dpitn = - pitn * taupiInv  +  Itn_pi  +  Ptn_pi  -  Gtn_pi;	
+	precision dpitn = - pitn * taupiInv  +  Itn_pi  +  Ptn_pi  -  Gtn_pi;
 	precision dpixx = - pixx * taupiInv  +  Ixx_pi  +  Pxx_pi;
 	precision dpixy = - pixy * taupiInv  +  Ixy_pi  +  Pxy_pi;
 	precision dpixn = - pixn * taupiInv  +  Ixn_pi  +  Pxn_pi  -  Gxn_pi;
@@ -731,7 +714,7 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	S[a] = dpitt / ut  +  div_v * pitt;		a++;
 	S[a] = dpitx / ut  +  div_v * pitx;		a++;
 	S[a] = dpity / ut  +  div_v * pity;		a++;
-	S[a] = dpitn / ut  +  div_v * pitn;		a++;	
+	S[a] = dpitn / ut  +  div_v * pitn;		a++;
 	S[a] = dpixx / ut  +  div_v * pixx;		a++;
 	S[a] = dpixy / ut  +  div_v * pixy;		a++;
 	S[a] = dpixn / ut  +  div_v * pixn;		a++;
@@ -740,7 +723,7 @@ void source_terms(precision * const __restrict__ S, const precision * const __re
 	S[a] = dpinn / ut  +  div_v * pinn;		a++;
 #endif
 
-	// WTz relaxation equation 
+	// WTz relaxation equation
 #ifdef WTZMU
 	precision dWtTz = - WtTz * taupiInv  +  It_W  +  Pt_W  -  Gt_W;
 	precision dWxTz = - WxTz * taupiInv  +  Ix_W  +  Px_W;

@@ -149,7 +149,7 @@ void output_aL(const precision * const e, const precision * const pl, double t, 
 }
 
 
-void output_shear_validity(const precision * const pitt, const precision * const pitx, const precision * const pity, const precision * const pitn, const precision * const pixx, const precision * const pixy, const precision * const pixn, const precision * const piyy, const precision * const piyn, const precision * const pinn, const precision * const e, const precision * const pl, const precision * const ut, const precision * const ux, const precision * const uy, const precision * const un, double t, int nx, int ny, int nz, double dx, double dy, double dz)
+void output_shear_validity(const precision * const pitt, const precision * const pitx, const precision * const pity, const precision * const pitn, const precision * const pixx, const precision * const pixy, const precision * const pixn, const precision * const piyy, const precision * const piyn, const precision * const pinn, const precision * const e, const precision * const pl, const precision * const ux, const precision * const uy, const precision * const un, double t, int nx, int ny, int nz, double dx, double dy, double dz)
 {
 	FILE * RpiInverse;
 	FILE * piu_ortho0;
@@ -219,10 +219,10 @@ void output_shear_validity(const precision * const pitt, const precision * const
 				precision piyn_s = piyn[s];
 				precision pinn_s = pinn[s];
 
-				precision ut_s = ut[s];
 				precision ux_s = ux[s];
 				precision uy_s = uy[s];
 				precision un_s = un[s];
+				precision ut_s = sqrt(1.  +  ux_s * ux_s  +  uy_s * uy_s  +  t * t * un_s * un_s);
 
 				//precision utperp_s = sqrt(1.  +  ux_s * ux_s  +  uy_s * uy_s);
 				//precision zt_s = t * un_s / utperp_s;
@@ -244,7 +244,7 @@ void output_shear_validity(const precision * const pitt, const precision * const
 				//precision piz0 = fabs(zt_s * pitt_s  -  t * t * zn_s * pitn_s);
 				//precision piz1 = fabs(zt_s * pitx_s  -  t * t * zn_s * pixn_s);
 				//precision piz2 = fabs(zt_s * pity_s  -  t * t * zn_s * piyn_s);
-				//precision piz3 = fabs(zt_s * pitn_s  -  t * t * zn_s * pinn_s) * t;	
+				//precision piz3 = fabs(zt_s * pitn_s  -  t * t * zn_s * pinn_s) * t;
 
 				fprintf(RpiInverse, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, pi_mag / pt_s);
 
@@ -388,15 +388,14 @@ void output_dynamical_variables(double t, int nx, int ny, int nz, double dx, dou
 		output_gubser_test(e, q->pl, u->ux, u->uy, t, nx, ny, nz, dx, dy, dz);
 
 	#ifdef PIMUNU
-		output_shear_validity(q->pitt, q->pitx, q->pity, q->pitn, q->pixx, q->pixy, q->pixn, q->piyy, q->piyn, q->pinn, e, q->pl, u->ut, u->ux, u->uy, u->un, t, nx, ny, nz, dx, dy, dz);
+		output_shear_validity(q->pitt, q->pitx, q->pity, q->pitn, q->pixx, q->pixy, q->pixn, q->piyy, q->piyn, q->pinn, e, q->pl, u->ux, u->uy, u->un, t, nx, ny, nz, dx, dy, dz);
 	#endif
-		
+
 		return;
 	}
 
 	output(e, t, "e", nx, ny, nz, dx, dy, dz);
 
-	output(u->ut, t, "ut", nx, ny, nz, dx, dy, dz);
 	output(u->ux, t, "ux", nx, ny, nz, dx, dy, dz);
 	output(u->uy, t, "uy", nx, ny, nz, dx, dy, dz);
 	output(u->un, t, "un", nx, ny, nz, dx, dy, dz);
@@ -409,7 +408,6 @@ void output_dynamical_variables(double t, int nx, int ny, int nz, double dx, dou
 #if (PT_MATCHING == 1)
 	output(q->pt, t, "pt", nx, ny, nz, dx, dy, dz);
 #endif
-
 #ifdef PIMUNU
 	output(q->pitt, t, "pitt", nx, ny, nz, dx, dy, dz);
 	output(q->pitx, t, "pitx", nx, ny, nz, dx, dy, dz);

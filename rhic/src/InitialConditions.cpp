@@ -48,12 +48,10 @@ void set_initial_conserved_variables(double t, int nx, int ny, int nz)
 			#else
 				precision pt = 0.5 * (e_s - pl);
 			#endif
-
-				precision ut = u->ut[s];
 				precision ux = u->ux[s];
 				precision uy = u->uy[s];
 				precision un = u->un[s];
-
+				precision ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t * t * un * un);
 				precision utperp = sqrt(1.  +  ux * ux  +  uy * uy);
 
 				// z^mu components
@@ -91,7 +89,6 @@ void set_initial_conserved_variables(double t, int nx, int ny, int nz)
 // initialize viscous part of Tmunu to zero
 void set_equilibrium_initial_condition(int nx, int ny, int nz)
 {
-	// loop over physical grid points
 	for(int k = 2; k < nz + 2; k++)
 	{
 		for(int j = 2; j < ny + 2; j++)
@@ -104,11 +101,9 @@ void set_equilibrium_initial_condition(int nx, int ny, int nz)
 				precision p_s = equilibriumPressure(e_s);
 
 				q->pl[s] = p_s;		// set (pl, pt) to equilibium pressure
-
 			#if (PT_MATCHING == 1)
 				q->pt[s] = p_s;
 			#endif
-
 			#ifdef PIMUNU
 		  		q->pitt[s] = 0;
 		  		q->pitx[s] = 0;
@@ -141,7 +136,6 @@ void set_Bjorken_energy_density_and_flow_profile(int nx, int ny, int nz, void * 
 	double T0 = initCond->initialCentralTemperatureGeV;		// central temperature (GeV)
 	double e0 = equilibriumEnergyDensity(T0 / hbarc);		// energy density
 
-	// loop over physical grid points
 	for(int i = 2; i < nx + 2; i++)
 	{
 		for(int j = 2; j < ny + 2; j++)
@@ -151,14 +145,11 @@ void set_Bjorken_energy_density_and_flow_profile(int nx, int ny, int nz, void * 
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
 				e[s] = e0;
-
-				u->ut[s] = 1.;
 				u->ux[s] = 0;
 				u->uy[s] = 0;
 				u->un[s] = 0;
 
 				// also initialize up = u
-				up->ut[s] = 1.;
 				up->ux[s] = 0;
 				up->uy[s] = 0;
 				up->un[s] = 0;
@@ -212,7 +203,6 @@ void set_Glauber_energy_density_and_flow_profile(int nx, int ny, int nz, double 
 	}
 	longitudinal_Energy_Density_Profile(eL, nz, dz, initCondParams);
 
-	// loop over physical grid points
 	for(int k = 2; k < nz + 2; k++)
 	{
 		for(int j = 2; j < ny + 2; j++)
@@ -221,17 +211,15 @@ void set_Glauber_energy_density_and_flow_profile(int nx, int ny, int nz, double 
 			{
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
-				double e_s = max(E_MIN, e0 * eT[i - 2 + (j - 2) * nx] * eL[k - 2]);
+				precision e_s = max(E_MIN, e0 * eT[i - 2 + (j - 2) * nx] * eL[k - 2]);
 
-				e[s] = (precision) e_s;
+				e[s] = e_s;
 
 				// default initial flow to zero
-				u->ut[s] = 1.0;
 				u->ux[s] = 0.0;
 				u->uy[s] = 0.0;
 				u->un[s] = 0.0;
 
-				up->ut[s] = 1.0;
 				up->ux[s] = 0.0;
 				up->uy[s] = 0.0;
 				up->un[s] = 0.0;
@@ -297,24 +285,19 @@ void set_ideal_gubser_energy_density_and_flow_profile(int nx, int ny, int nz, do
 			if(std::isnan(ux_p)) ux_p = 0.0;	// remove x/r = 0/0 nan
 			if(std::isnan(uy_p)) uy_p = 0.0;	// remove y/r = 0/0 nan
 
-			double ut   = sqrt(1.0  +  ux * ux  +  uy * uy);
-			double ut_p = sqrt(1.0  +  ux_p * ux_p  +  uy_p * uy_p);
-
 			for(int k = 2; k < nz + 2; k++)
 			{
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
 				e[s] = (precision) e_s;
 
-				u->ut[s] = ut;
 				u->ux[s] = ux;
 				u->uy[s] = uy;
-				u->un[s] = 0.0;
+				u->un[s] = 0;
 
-				up->ut[s] = ut_p;
 				up->ux[s] = ux_p;
 				up->uy[s] = uy_p;
-				up->un[s] = 0.0;
+				up->un[s] = 0;
 			}
 		}
 	}
@@ -435,8 +418,6 @@ void set_aniso_gubser_energy_density_and_flow_profile(int nx, int ny, int nz, do
 			if(std::isnan(ux_p)) ux_p = 0;
 			if(std::isnan(uy_p)) uy_p = 0;
 
-			double ut   = sqrt(1.  +  ux * ux  +  uy * uy);
-			double ut_p = sqrt(1.  +  ux_p * ux_p  +  uy_p * uy_p);
 
 			for(int k = 2; k < nz + 2; k++)
 			{
@@ -445,11 +426,9 @@ void set_aniso_gubser_energy_density_and_flow_profile(int nx, int ny, int nz, do
 				e[s] = fmax(E_MIN, e_s);
 
 				q->pl[s] = pl_s;
-
 			#if (PT_MATCHING == 1)
 				q->pt[s] = pt_s;
 			#endif
-
 			#ifdef PIMUNU
 		  		q->pitt[s] = 0;
 		  		q->pitx[s] = 0;
@@ -469,12 +448,10 @@ void set_aniso_gubser_energy_density_and_flow_profile(int nx, int ny, int nz, do
 		  		q->WnTz[s] = 0;
 			#endif
 
-				u->ut[s] = ut;
 				u->ux[s] = ux;
 				u->uy[s] = uy;
 				u->un[s] = 0;
 
-				up->ut[s] = ut_p;
 				up->ux[s] = ux_p;
 				up->uy[s] = uy_p;
 				up->un[s] = 0;

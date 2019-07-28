@@ -8,7 +8,7 @@
 #define NUMBER_OF_CONSERVATION_LAWS 4
 
 #define PIMUNU
-//#define WTZMU		
+//#define WTZMU
 
 #ifdef PIMUNU
 	#define PIMUNU_COMPONENTS 10
@@ -41,11 +41,9 @@ typedef struct
 	precision * tty;
 	precision * ttn;
 	precision * pl;
-
 #if (PT_MATCHING == 1)
 	precision * pt;
 #endif
-
 #ifdef PIMUNU
 	precision * pitt;
 	precision * pitx;
@@ -68,7 +66,6 @@ typedef struct
 
 typedef struct
 {
-	precision * ut;
 	precision * ux;
 	precision * uy;
 	precision * un;

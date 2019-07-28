@@ -30,9 +30,9 @@ struct InitialConditionParameters
 {
 	int initialConditionType;
 
-	int numberOfNucleonsPerNuclei;			// this is an A = B collision 
+	int numberOfNucleonsPerNuclei;			// this is an A = B collision
 
-	double initialCentralTemperatureGeV;	// initial central temperature for a central A = B collision (b = 0)		
+	double initialCentralTemperatureGeV;	// initial central temperature for a central A = B collision (b = 0)
 	double scatteringCrossSectionNN;
 	double impactParameter;
 	double fractionOfBinaryCollisions;
@@ -57,7 +57,7 @@ void loadInitialConditionParameters(config_t *cfg, void * params);
 void loadHydroParameters(config_t *cfg, void * params);
 
 
-#endif 
+#endif
 
 
 

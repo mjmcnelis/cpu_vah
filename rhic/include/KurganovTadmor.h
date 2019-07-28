@@ -5,7 +5,7 @@
 #include "Precision.h"
 
 
-void runge_kutta2(precision t, precision dt, int nx, int ny, int nz, precision dx, precision dy, precision dz, precision etabar);
+void evolve_hydro_one_time_step(precision t, precision dt, int nx, int ny, int nz, precision dx, precision dy, precision dz, precision etabar);
 
 
 #endif

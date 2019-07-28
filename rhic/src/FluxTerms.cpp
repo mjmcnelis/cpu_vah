@@ -23,7 +23,6 @@ precision approximate_derivative(precision qm, precision q, precision qp)
 	return minmod(THETA * (q - qm), minmod((qp - qm) / 2., THETA * (qp - q)));
 }
 
-
 void flux_terms(precision * const __restrict__ Hp, precision * const __restrict__ Hm, const precision * const __restrict__ q_data, const precision * const __restrict__ q1_data, const precision * const __restrict__ q2_data, const precision * const __restrict__ v_data, precision v)
 {
 	// neighbor spatial velocities
@@ -76,8 +75,8 @@ void flux_terms(precision * const __restrict__ Hp, precision * const __restrict_
 
 		// extrapolated fluxes (chain rule)
 		precision FRp = Fp  -  (qp * dvp  +  vp * dqp) / 2.;	// F^{+}_{i+1/2}	Eq. (63)
-		precision FLp = F   +  (q  * dv   +  v  * dq) / 2.;		// F^{-}_{i+1/2}	Eq. (64)
-		precision FRm = F   -  (q  * dv   +  v  * dq) / 2.;		// F^{+}_{i-1/2}	Eq. (65)
+		precision FLp = F   +  (q  * dv   +  v  * dq)  / 2.;	// F^{-}_{i+1/2}	Eq. (64)
+		precision FRm = F   -  (q  * dv   +  v  * dq)  / 2.;	// F^{+}_{i-1/2}	Eq. (65)
 		precision FLm = Fm  +  (qm * dvm  +  vm * dqm) / 2.;	// F^{-}_{i-1/2}	Eq. (66)
 
 		// Hp, Hm from Eq.(61)

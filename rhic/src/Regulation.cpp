@@ -99,10 +99,10 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 				}
 			#endif
 			#if (NUMBER_OF_RESIDUAL_CURRENTS != 0)
-				precision ut = u->ut[s];
 				precision ux = u->ux[s];
 				precision uy = u->uy[s];
 				precision un = u->un[s];
+				precision ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t2 * un * un);
 
 				precision utperp = sqrt(1.  +  ux * ux  +  uy * uy);
 				precision zt = t * un / utperp;
