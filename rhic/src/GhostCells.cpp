@@ -11,45 +11,15 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 }
 
 
-void ghost_cell_BC(CONSERVED_VARIABLES * const __restrict__ q, precision * const __restrict__ e, FLUID_VELOCITY * const __restrict__ u, int s, int sBC)
+void ghost_cell_BC(conserved_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u, int s, int sBC)
 {
-	// s = ghost cell index	 |	sBC = physical cell at boundary index
-	e[s] = e[sBC];
-
-	u->ux[s] = u->ux[sBC];		// set the ghost cells
-	u->uy[s] = u->uy[sBC];
-	u->un[s] = u->un[sBC];
-
-	q->ttt[s] = q->ttt[sBC];
-	q->ttx[s] = q->ttx[sBC];
-	q->tty[s] = q->tty[sBC];
-	q->ttn[s] = q->ttn[sBC];
-	q->pl[s] = q->pl[sBC];
-#if (PT_MATCHING == 1)
-	q->pt[s] = q->pt[sBC];
-#endif
-#ifdef PIMUNU
-	q->pitt[s] = q->pitt[sBC];
-	q->pitx[s] = q->pitx[sBC];
-	q->pity[s] = q->pity[sBC];
-	q->pitn[s] = q->pitn[sBC];
-	q->pixx[s] = q->pixx[sBC];
-	q->pixy[s] = q->pixy[sBC];
-	q->pixn[s] = q->pixn[sBC];
-	q->piyy[s] = q->piyy[sBC];
-	q->piyn[s] = q->piyn[sBC];
-	q->pinn[s] = q->pinn[sBC];
-#endif
-#ifdef WTZMU
-	q->WtTz[s] = q->WtTz[sBC];
-	q->WxTz[s] = q->WxTz[sBC];
-	q->WyTz[s] = q->WyTz[sBC];
-	q->WnTz[s] = q->WnTz[sBC];
-#endif
+	e[s] = e[sBC];	// set the ghost cell boundary conditions
+	u[s] = u[sBC];
+	q[s] = q[sBC];
 }
 
 
-void set_ghost_cells(CONSERVED_VARIABLES * const __restrict__ q, precision * const __restrict__ e, FLUID_VELOCITY * const __restrict__ u, int nx, int ny, int nz)
+void set_ghost_cells(conserved_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u, int nx, int ny, int nz)
 {
 	// s = ghost cell index	 |	sBC = physical cell at boundary index
 

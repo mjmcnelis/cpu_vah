@@ -41,16 +41,16 @@ void set_initial_conserved_variables(double t, int nx, int ny, int nz)
 
 				precision e_s = e[s];
 
-				precision pl = q->pl[s];
+				precision pl = q[s].pl;
 
 			#if (PT_MATCHING == 1)
-				precision pt = q->pt[s];
+				precision pt = q[s].pt;
 			#else
 				precision pt = 0.5 * (e_s - pl);
 			#endif
-				precision ux = u->ux[s];
-				precision uy = u->uy[s];
-				precision un = u->un[s];
+				precision ux = u[s].ux;
+				precision uy = u[s].uy;
+				precision un = u[s].un;
 				precision ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t * t * un * un);
 				precision utperp = sqrt(1.  +  ux * ux  +  uy * uy);
 
@@ -60,27 +60,27 @@ void set_initial_conserved_variables(double t, int nx, int ny, int nz)
 
 				// only need the time components
 			#ifdef PIMUNU
-				precision pitt = q->pitt[s];
-				precision pitx = q->pitx[s];
-				precision pity = q->pity[s];
-				precision pitn = q->pitn[s];
+				precision pitt = q[s].pitt;
+				precision pitx = q[s].pitx;
+				precision pity = q[s].pity;
+				precision pitn = q[s].pitn;
 			#else
 				precision pitt = 0, pitx = 0, pity = 0, pitn = 0;
 			#endif
 			#ifdef WTZMU
-				precision WtTz = q->WtTz[s];
-				precision WxTz = q->WxTz[s];
-				precision WyTz = q->WyTz[s];
-				precision WnTz = q->WnTz[s];
+				precision WtTz = q[s].WtTz;
+				precision WxTz = q[s].WxTz;
+				precision WyTz = q[s].WyTz;
+				precision WnTz = q[s].WnTz;
 			#else
 				precision WtTz = 0, WxTz = 0, WyTz = 0, WnTz = 0;
 			#endif
 
 				// initialize the time components of Tmunu
-				q->ttt[s] = (e_s + pt) * ut * ut  -   pt  +  (pl - pt) * zt * zt  +  2. * WtTz * zt  +  pitt;
-				q->ttx[s] = (e_s + pt) * ut * ux  +  WxTz * zt  +  pitx;
-				q->tty[s] = (e_s + pt) * ut * uy  +  WyTz * zt  +  pity;
-				q->ttn[s] = (e_s + pt) * ut * un  +  (pl - pt) * zt * zn  +  WtTz * zn  +  WnTz * zt  +  pitn;
+				q[s].ttt = (e_s + pt) * ut * ut  -   pt  +  (pl - pt) * zt * zt  +  2. * WtTz * zt  +  pitt;
+				q[s].ttx = (e_s + pt) * ut * ux  +  WxTz * zt  +  pitx;
+				q[s].tty = (e_s + pt) * ut * uy  +  WyTz * zt  +  pity;
+				q[s].ttn = (e_s + pt) * ut * un  +  (pl - pt) * zt * zn  +  WtTz * zn  +  WnTz * zt  +  pitn;
 			}
 		}
 	}
@@ -100,27 +100,27 @@ void set_equilibrium_initial_condition(int nx, int ny, int nz)
 				precision e_s = e[s];
 				precision p_s = equilibriumPressure(e_s);
 
-				q->pl[s] = p_s;		// set (pl, pt) to equilibium pressure
+				q[s].pl = p_s;		// set (pl, pt) to equilibium pressure
 			#if (PT_MATCHING == 1)
-				q->pt[s] = p_s;
+				q[s].pt = p_s;
 			#endif
 			#ifdef PIMUNU
-		  		q->pitt[s] = 0;
-		  		q->pitx[s] = 0;
-		  		q->pity[s] = 0;
-		  		q->pitn[s] = 0;
-		  		q->pixx[s] = 0;
-		  		q->pixy[s] = 0;
-		  		q->pixn[s] = 0;
-		  		q->piyy[s] = 0;
-		  		q->piyn[s] = 0;
-		  		q->pinn[s] = 0;
+		  		q[s].pitt = 0;
+		  		q[s].pitx = 0;
+		  		q[s].pity = 0;
+		  		q[s].pitn = 0;
+		  		q[s].pixx = 0;
+		  		q[s].pixy = 0;
+		  		q[s].pixn = 0;
+		  		q[s].piyy = 0;
+		  		q[s].piyn = 0;
+		  		q[s].pinn = 0;
 			#endif
 			#ifdef WTZMU
-		  		q->WtTz[s] = 0;
-		  		q->WxTz[s] = 0;
-		  		q->WyTz[s] = 0;
-		  		q->WnTz[s] = 0;
+		  		q[s].WtTz = 0;
+		  		q[s].WxTz = 0;
+		  		q[s].WyTz = 0;
+		  		q[s].WnTz = 0;
 			#endif
 			}
 		}
@@ -145,14 +145,14 @@ void set_Bjorken_energy_density_and_flow_profile(int nx, int ny, int nz, void * 
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
 				e[s] = e0;
-				u->ux[s] = 0;
-				u->uy[s] = 0;
-				u->un[s] = 0;
+				u[s].ux = 0;
+				u[s].uy = 0;
+				u[s].un = 0;
 
 				// also initialize up = u
-				up->ux[s] = 0;
-				up->uy[s] = 0;
-				up->un[s] = 0;
+				up[s].ux = 0;
+				up[s].uy = 0;
+				up[s].un = 0;
 			}
 		}
 	}
@@ -216,13 +216,13 @@ void set_Glauber_energy_density_and_flow_profile(int nx, int ny, int nz, double 
 				e[s] = e_s;
 
 				// default initial flow to zero
-				u->ux[s] = 0.0;
-				u->uy[s] = 0.0;
-				u->un[s] = 0.0;
+				u[s].ux = 0.0;
+				u[s].uy = 0.0;
+				u[s].un = 0.0;
 
-				up->ux[s] = 0.0;
-				up->uy[s] = 0.0;
-				up->un[s] = 0.0;
+				up[s].ux = 0.0;
+				up[s].uy = 0.0;
+				up[s].un = 0.0;
 			}
 		}
 	}
@@ -291,13 +291,13 @@ void set_ideal_gubser_energy_density_and_flow_profile(int nx, int ny, int nz, do
 
 				e[s] = (precision) e_s;
 
-				u->ux[s] = ux;
-				u->uy[s] = uy;
-				u->un[s] = 0;
+				u[s].ux = ux;
+				u[s].uy = uy;
+				u[s].un = 0;
 
-				up->ux[s] = ux_p;
-				up->uy[s] = uy_p;
-				up->un[s] = 0;
+				up[s].ux = ux_p;
+				up[s].uy = uy_p;
+				up[s].un = 0;
 			}
 		}
 	}
@@ -425,36 +425,36 @@ void set_aniso_gubser_energy_density_and_flow_profile(int nx, int ny, int nz, do
 
 				e[s] = fmax(E_MIN, e_s);
 
-				q->pl[s] = pl_s;
+				q[s].pl = pl_s;
 			#if (PT_MATCHING == 1)
-				q->pt[s] = pt_s;
+				q[s].pt = pt_s;
 			#endif
 			#ifdef PIMUNU
-		  		q->pitt[s] = 0;
-		  		q->pitx[s] = 0;
-		  		q->pity[s] = 0;
-		  		q->pitn[s] = 0;
-		  		q->pixx[s] = 0;
-		  		q->pixy[s] = 0;
-		  		q->pixn[s] = 0;
-		  		q->piyy[s] = 0;
-		  		q->piyn[s] = 0;
-		  		q->pinn[s] = 0;
+		  		q[s].pitt = 0;
+		  		q[s].pitx = 0;
+		  		q[s].pity = 0;
+		  		q[s].pitn = 0;
+		  		q[s].pixx = 0;
+		  		q[s].pixy = 0;
+		  		q[s].pixn = 0;
+		  		q[s].piyy = 0;
+		  		q[s].piyn = 0;
+		  		q[s].pinn = 0;
 			#endif
 			#ifdef WTZMU
-		  		q->WtTz[s] = 0;
-		  		q->WxTz[s] = 0;
-		  		q->WyTz[s] = 0;
-		  		q->WnTz[s] = 0;
+		  		q[s].WtTz = 0;
+		  		q[s].WxTz = 0;
+		  		q[s].WyTz = 0;
+		  		q[s].WnTz = 0;
 			#endif
 
-				u->ux[s] = ux;
-				u->uy[s] = uy;
-				u->un[s] = 0;
+				u[s].ux = ux;
+				u[s].uy = uy;
+				u[s].un = 0;
 
-				up->ux[s] = ux_p;
-				up->uy[s] = uy_p;
-				up->un[s] = 0;
+				up[s].ux = ux_p;
+				up[s].uy = uy_p;
+				up[s].un = 0;
 			}
 		}
 	}

@@ -28,7 +28,7 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 // maybe regulate individual rows of pimunu
 // here maybe: I don't need to reproject pimunu b/c already "fixed" velocity solution (just use "old method")
 
-void set_inferred_variables(const CONSERVED_VARIABLES * const __restrict__ q, precision * const __restrict__ e, FLUID_VELOCITY * const __restrict__ u, precision t, int nx, int ny, int nz)
+void set_inferred_variables(const conserved_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u, precision t, int nx, int ny, int nz)
 {
 	precision t2 = t * t;
 	precision t4 = t2 * t2;
@@ -41,27 +41,27 @@ void set_inferred_variables(const CONSERVED_VARIABLES * const __restrict__ q, pr
 			{
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
-				precision ttt = q->ttt[s];
-				precision ttx = q->ttx[s];
-				precision tty = q->tty[s];
-				precision ttn = q->ttn[s];
-				precision pl  = q->pl[s];
+				precision ttt = q[s].ttt;
+				precision ttx = q[s].ttx;
+				precision tty = q[s].tty;
+				precision ttn = q[s].ttn;
+				precision pl  = q[s].pl;
 			#if (PT_MATCHING == 1)
-				precision pt  = q->pt[s];
+				precision pt  = q[s].pt;
 			#endif
 			#ifdef PIMUNU
-				precision pitt = q->pitt[s];
-				precision pitx = q->pitx[s];
-				precision pity = q->pity[s];
-				precision pitn = q->pitn[s];
+				precision pitt = q[s].pitt;
+				precision pitx = q[s].pitx;
+				precision pity = q[s].pity;
+				precision pitn = q[s].pitn;
 			#else
 				precision pitt = 0, pitx = 0, pity = 0, pitn = 0;
 			#endif
 			#ifdef WTZMU
-				precision WtTz = q->WtTz[s];
-				precision WxTz = q->WxTz[s];
-				precision WyTz = q->WyTz[s];
-				precision WnTz = q->WnTz[s];
+				precision WtTz = q[s].WtTz;
+				precision WxTz = q[s].WxTz;
+				precision WyTz = q[s].WyTz;
+				precision WnTz = q[s].WnTz;
 			#else
 				precision WtTz = 0, WxTz = 0, WyTz = 0, WnTz = 0;
 			#endif
@@ -145,9 +145,9 @@ void set_inferred_variables(const CONSERVED_VARIABLES * const __restrict__ q, pr
 			#endif
 
 				e[s]     = e_s;		// get solution for primary variables
-				u->ux[s] = ux_s;
-				u->uy[s] = uy_s;
-				u->un[s] = un_s;
+				u[s].ux = ux_s;
+				u[s].uy = uy_s;
+				u[s].un = un_s;
 			}
 		}
 	}

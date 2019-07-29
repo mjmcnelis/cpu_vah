@@ -95,8 +95,6 @@ void run_hydro(void * latticeParams, void * initCondParams, void * hydroParams)
 
 	// allocate memory for computational grid points
 	allocate_memory(ncx * ncy * ncz);
-	test_memory_time(nt, nx, ny, nz);
-
 
 	// fluid dynamic initialization
 	double t = t0;
@@ -123,10 +121,10 @@ void run_hydro(void * latticeParams, void * initCondParams, void * hydroParams)
 			precision ectr = e[sctr] * hbarc;
 			precision peqctr = equilibriumPressure(e[sctr]) * hbarc;
 			precision Tctr = effectiveTemperature(e[sctr]) * hbarc;
-			precision plctr = q->pl[sctr] * hbarc;
+			precision plctr = q[sctr].pl * hbarc;
 
 		#if (PT_MATCHING == 1)
-			precision ptctr = q->pt[sctr] * hbarc;
+			precision ptctr = q[sctr].pt * hbarc;
 		#else
 			precision ptctr = 0.5 * (ectr - plctr);
 		#endif

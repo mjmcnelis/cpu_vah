@@ -63,10 +63,10 @@ void flux_terms(precision * const __restrict__ Hp, precision * const __restrict_
 		precision dqm = approximate_derivative(qmm, qm, q);
 
 		// extrapolated conserved variables
-		precision qRp = qp  -  dqp / 2.;	// q^{+}_{i+1/2}
-		precision qLp = q   +  dq  / 2.;	// q^{-}_{i+1/2}
-		precision qRm = q   -  dq  / 2.;	// q^{+}_{i-1/2}
-		precision qLm = qm  +  dqm / 2.;	// q^{-}_{i-1/2}
+		precision qRp = qp  -  dqp / 2.;	// q^{+}_{i+1/2}	Eq. (63)
+		precision qLp = q   +  dq  / 2.;	// q^{-}_{i+1/2}	Eq. (64)
+		precision qRm = q   -  dq  / 2.;	// q^{+}_{i-1/2}	Eq. (65)
+		precision qLm = qm  +  dqm / 2.;	// q^{-}_{i-1/2}	Eq. (66)
 
 		// neighbor fluxes
 		precision Fm  = qm * vm;

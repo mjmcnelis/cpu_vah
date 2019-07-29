@@ -7,7 +7,7 @@
 
 
 // compute e, p, u^mu
-void set_inferred_variables(const CONSERVED_VARIABLES * const __restrict__ q, precision * const __restrict__ e, FLUID_VELOCITY * const __restrict__ u, precision t, int nx, int ny, int nz);
+void set_inferred_variables(const conserved_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u, precision t, int nx, int ny, int nz);
 
 
 #endif

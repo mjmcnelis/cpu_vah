@@ -64,7 +64,7 @@ void test_WTzmu_properties(precision WtTz, precision WxTz, precision WyTz, preci
 }
 
 
-void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __restrict__ q, precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict__ u, int nx, int ny, int nz)
+void regulate_dissipative_currents(precision t, conserved_variables * const __restrict__ q, precision * const __restrict__ e, const fluid_velocity * const __restrict__ u, int nx, int ny, int nz)
 {
 	precision eps = 1.e-7;		// is there a more effective way to regulate pl, pt?
 
@@ -83,25 +83,25 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
 				precision e_s = e[s];
-				precision pl  = q->pl[s];
+				precision pl  = q[s].pl;
 
 				if(pl < eps)
 				{
-					q->pl[s] = eps;
+					q[s].pl = eps;
 					pl = eps;
 				}
 			#if (PT_MATCHING == 1)
-				precision pt  = q->pt[s];
+				precision pt  = q[s].pt;
 				if(pt < eps)
 				{
-					q->pt[s] = eps;
+					q[s].pt = eps;
 					pt = eps;
 				}
 			#endif
 			#if (NUMBER_OF_RESIDUAL_CURRENTS != 0)
-				precision ux = u->ux[s];
-				precision uy = u->uy[s];
-				precision un = u->un[s];
+				precision ux = u[s].ux;
+				precision uy = u[s].uy;
+				precision un = u[s].un;
 				precision ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t2 * un * un);
 
 				precision utperp = sqrt(1.  +  ux * ux  +  uy * uy);
@@ -113,16 +113,16 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 				precision T_aniso_mag = sqrt(e_s * e_s  +  pl * pl  +  2. * pt * pt);
 			#endif
 			#ifdef PIMUNU
-				precision pitt = q->pitt[s];
-				precision pitx = q->pitx[s];
-				precision pity = q->pity[s];
-				precision pitn = q->pitn[s];
-				precision pixx = q->pixx[s];
-				precision pixy = q->pixy[s];
-				precision pixn = q->pixn[s];
-				precision piyy = q->piyy[s];
-				precision piyn = q->piyn[s];
-				precision pinn = q->pinn[s];
+				precision pitt = q[s].pitt;
+				precision pitx = q[s].pitx;
+				precision pity = q[s].pity;
+				precision pitn = q[s].pitn;
+				precision pixx = q[s].pixx;
+				precision pixy = q[s].pixy;
+				precision pixn = q[s].pixn;
+				precision piyy = q[s].piyy;
+				precision piyn = q[s].piyn;
+				precision pinn = q[s].pinn;
 
 				precision pi_mag = sqrt(fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
 
@@ -159,22 +159,22 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 			#if (TEST_PIMUNU == 1)
 				test_pimunu_properties(trpi, piu0, piu1, piu2, piu3, piz0, piz1, piz2, piz3, pi_mag, t);
 			#endif
-				q->pitt[s] = factor_pi * pitt;
-				q->pitx[s] = factor_pi * pitx;
-				q->pity[s] = factor_pi * pity;
-				q->pitn[s] = factor_pi * pitn;
-				q->pixx[s] = factor_pi * pixx;
-				q->pixy[s] = factor_pi * pixy;
-				q->pixn[s] = factor_pi * pixn;
-				q->piyy[s] = factor_pi * piyy;
-				q->piyn[s] = factor_pi * piyn;
-				q->pinn[s] = factor_pi * pinn;
+				q[s].pitt = factor_pi * pitt;
+				q[s].pitx = factor_pi * pitx;
+				q[s].pity = factor_pi * pity;
+				q[s].pitn = factor_pi * pitn;
+				q[s].pixx = factor_pi * pixx;
+				q[s].pixy = factor_pi * pixy;
+				q[s].pixn = factor_pi * pixn;
+				q[s].piyy = factor_pi * piyy;
+				q[s].piyn = factor_pi * piyn;
+				q[s].pinn = factor_pi * pinn;
 			#endif
 			#ifdef WTZMU
-				precision WtTz = q->WtTz[s];
-				precision WxTz = q->WxTz[s];
-				precision WyTz = q->WyTz[s];
-				precision WnTz = q->WnTz[s];
+				precision WtTz = q[s].WtTz;
+				precision WxTz = q[s].WxTz;
+				precision WyTz = q[s].WyTz;
+				precision WnTz = q[s].WnTz;
 			#if (TEST_WTZMU == 1)
 				test_WTzmu_properties(WtTz, WxTz, WyTz, WnTz, ut, ux, uy, un, zt, zn, t2);
 			#endif
@@ -195,10 +195,10 @@ void regulate_dissipative_currents(precision t, CONSERVED_VARIABLES * const __re
 				if(rho_W > 1.e-5) factor_W = tanh(rho_W) / rho_W;
 				else factor_W = 1.  -  rho_W * rho_W / 3.;	// 2nd-order expansion
 
-				q->WtTz[s] = factor_W * WtTz;
-				q->WxTz[s] = factor_W * WxTz;
-				q->WyTz[s] = factor_W * WyTz;
-				q->WnTz[s] = factor_W * WnTz;
+				q[s].WtTz = factor_W * WtTz;
+				q[s].WxTz = factor_W * WxTz;
+				q[s].WyTz = factor_W * WyTz;
+				q[s].WnTz = factor_W * WnTz;
 			#endif
 			}
 		}

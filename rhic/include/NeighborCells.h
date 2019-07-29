@@ -4,24 +4,24 @@
 
 #include "Precision.h"
 
-// get the neighbor cells of hydroydynamic variables along (x,y,n)
-// used to compute the source and flux terms in the euler step
+// get neighbor cells of hydroydynamic variables along (x,y,n)
+// to compute derivatives appearing in source and flux terms 
 
 
-// primary variables of neighbor cells (e)
+// primary variables (e)
 void get_primary_neighbor_cells(const precision * const __restrict__ E, precision * const __restrict__ e1, int sim, int sip, int sjm, int sjp, int skm, int skp);
 
 
-// fluid velocity of neighbor cells (ut, ux, uy, un)
-void get_u_neighbor_cells(const precision * const __restrict__ ux, const precision * const __restrict__ uy, const precision * const __restrict__ un, precision * const __restrict__ ui1, precision * const __restrict__ uj1, precision * const __restrict__ uk1, int sim, int sip, int sjm, int sjp, int skm, int skp);
+void get_fluid_velocity_neighbor_cells(	fluid_velocity u_simm, fluid_velocity u_sim, fluid_velocity u_sip, fluid_velocity u_sipp, 
+										fluid_velocity u_sjmm, fluid_velocity u_sjm, fluid_velocity u_sjp, fluid_velocity u_sjpp, 
+										fluid_velocity u_skmm, fluid_velocity u_skm, fluid_velocity u_skp, fluid_velocity u_skpp,
+										precision * const __restrict__ ui1, precision * const __restrict__ uj1, precision * const __restrict__ uk1,
+										precision * const __restrict__ vxi, precision * const __restrict__ vyj, precision * const __restrict__ vnk, precision t2);
 
-
-// spatial velocity of neighbor cells (vx, vy, vn)
-void get_v_neighbor_cells(const precision * const __restrict__ ux, const precision * const __restrict__ uy, const precision * const __restrict__ un, precision * const __restrict__ vxi, precision * const __restrict__ vyj, precision * const __restrict__ vnk, int simm, int sim, int sip, int sipp, int sjmm, int sjm, int sjp, int sjpp, int skmm, int skm, int skp, int skpp, precision t2);
-
-
-// conserved variables of neighbor cells (q)
-void get_q_neighbor_cells(const precision * const __restrict__ q, precision * const __restrict__ qi1, precision * const __restrict__ qj1, precision * const __restrict__ qk1, precision * const __restrict__ qi2, precision * const __restrict__ qj2, precision * const __restrict__ qk2, int * r, int simm, int sim, int sip, int sipp, int sjmm, int sjm, int sjp, int sjpp, int skmm, int skm, int skp, int skpp);
-
+void get_conserved_neighbor_cells(	conserved_variables q_simm, conserved_variables q_sim, conserved_variables q_sip, conserved_variables q_sipp, 
+									conserved_variables q_sjmm, conserved_variables q_sjm, conserved_variables q_sjp, conserved_variables q_sjpp, 
+									conserved_variables q_skmm, conserved_variables q_skm, conserved_variables q_skp, conserved_variables q_skpp, 
+									precision * const __restrict__ qi1, precision * const __restrict__ qj1, precision * const __restrict__ qk1, 
+									precision * const __restrict__ qi2, precision * const __restrict__ qj2, precision * const __restrict__ qk2);
 
 #endif

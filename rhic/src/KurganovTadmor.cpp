@@ -15,16 +15,15 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 }
 
 
-void euler_step(precision t, const CONSERVED_VARIABLES * const __restrict__ q, CONSERVED_VARIABLES * const __restrict__ Q,
-const precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict__ u, const FLUID_VELOCITY * const __restrict__ up, int nx, int ny, int nz, precision dt, precision dx, precision dy, precision dn, precision etabar)
+void euler_step(precision t, const conserved_variables * const __restrict__ q, conserved_variables * const __restrict__ Q,
+const precision * const __restrict__ e, const fluid_velocity * const __restrict__ u, const fluid_velocity * const __restrict__ up, int nx, int ny, int nz, precision dt, precision dx, precision dy, precision dn, precision etabar)
 {
 	precision t2 = t * t;
-
 	int stride_y = nx + 4;							// strides for neighbor cells along x, y, n (stride_x = 1)
 	int stride_z = (nx + 4) * (ny + 4);				// stride formulas based from linear_column_index()
 
-	precision ql[NUMBER_CONSERVED_VARIABLES];		// current variables at cell s
-	precision  S[NUMBER_CONSERVED_VARIABLES];		// external source terms in hydrodynamic equations
+	precision q_s[NUMBER_CONSERVED_VARIABLES];		// current variables at cell s
+	precision   S[NUMBER_CONSERVED_VARIABLES];		// external source terms in hydrodynamic equations
 
 	precision e1[6];								// primary variables of neighbors [i-1, i+1, j-1, j+1, k-1, k+1]
 
@@ -53,8 +52,6 @@ const precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict_
 	precision  Hn_plus[NUMBER_CONSERVED_VARIABLES];	// Hn_{k + 1/2}
 	precision Hn_minus[NUMBER_CONSERVED_VARIABLES];	// Hn_{k - 1/2}
 
-
-	// loop over physical grid points
 	for(int k = 2; k < nz + 2; k++)
 	{
 		for(int j = 2; j < ny + 2; j++)
@@ -78,130 +75,93 @@ const precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict_
 				int skp  = s + stride_z;
 				int skpp = s + 2*stride_z;
 
-				ql[0] = q->ttt[s];			// conserved variables of cell s
-				ql[1] = q->ttx[s];
-				ql[2] = q->tty[s];
-				ql[3] = q->ttn[s];
-
-				ql[4] = q->pl[s];
+				q_s[0] = q[s].ttt;			// conserved variables of cell s
+				q_s[1] = q[s].ttx;
+				q_s[2] = q[s].tty;
+				q_s[3] = q[s].ttn;
+				q_s[4] = q[s].pl;
 
 				int a = 5;					// counter
-
 			#if (PT_MATCHING == 1)
-				ql[a] = q->pt[s];	a++;
+				q_s[a] = q[s].pt;	a++;
 			#endif
 			#ifdef PIMUNU
-				ql[a] = q->pitt[s]; a++;
-				ql[a] = q->pitx[s]; a++;
-				ql[a] = q->pity[s]; a++;
-				ql[a] = q->pitn[s]; a++;
-				ql[a] = q->pixx[s]; a++;
-				ql[a] = q->pixy[s]; a++;
-				ql[a] = q->pixn[s]; a++;
-				ql[a] = q->piyy[s]; a++;
-				ql[a] = q->piyn[s]; a++;
-				ql[a] = q->pinn[s]; a++;
+				q_s[a] = q[s].pitt; a++;
+				q_s[a] = q[s].pitx; a++;
+				q_s[a] = q[s].pity; a++;
+				q_s[a] = q[s].pitn; a++;
+				q_s[a] = q[s].pixx; a++;
+				q_s[a] = q[s].pixy; a++;
+				q_s[a] = q[s].pixn; a++;
+				q_s[a] = q[s].piyy; a++;
+				q_s[a] = q[s].piyn; a++;
+				q_s[a] = q[s].pinn; a++;
 			#endif
 			#ifdef WTZMU
-				ql[a] = q->WtTz[s]; a++;
-				ql[a] = q->WxTz[s]; a++;
-				ql[a] = q->WyTz[s]; a++;
-				ql[a] = q->WnTz[s];
+				q_s[a] = q[s].WtTz; a++;
+				q_s[a] = q[s].WxTz; a++;
+				q_s[a] = q[s].WyTz; a++;
+				q_s[a] = q[s].WnTz;
 			#endif
-
 				precision e_s = e[s];
 
-				precision ux = u->ux[s];
-				precision uy = u->uy[s];
-				precision un = u->un[s];
+				precision ux = u[s].ux;
+				precision uy = u[s].uy;
+				precision un = u[s].un;
 				precision ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t2 * un * un);
 
-				precision ux_p = up->ux[s];	// previous fluid velocity
-				precision uy_p = up->uy[s];
-				precision un_p = up->un[s];
+				precision ux_p = up[s].ux;	// previous fluid velocity
+				precision uy_p = up[s].uy;
+				precision un_p = up[s].un;
 
-
-				// get primary variables of neighbor cells
 			#if (PT_MATCHING == 0)
 				get_primary_neighbor_cells(e, e1, sim, sip, sjm, sjp, skm, skp);
 			#endif
-
-				// fluid velocity of neighbor cells
-				get_u_neighbor_cells(u->ux, u->uy, u->un, ui1, uj1, uk1, sim, sip, sjm, sjp, skm, skp);
-				get_v_neighbor_cells(u->ux, u->uy, u->un, vxi, vyj, vnk, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp, t2);
-
-				int r = 0;
-
-				// get conserved variables of neighbor cells
-				get_q_neighbor_cells(q->ttt, qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
-				get_q_neighbor_cells(q->ttx, qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
-				get_q_neighbor_cells(q->tty, qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
-				get_q_neighbor_cells(q->ttn, qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
-				get_q_neighbor_cells(q->pl,  qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
-			#if (PT_MATCHING == 1)
-				get_q_neighbor_cells(q->pt,  qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
-			#endif
-			#ifdef PIMUNU
-				get_q_neighbor_cells(q->pitt, qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
-				get_q_neighbor_cells(q->pitx, qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
-				get_q_neighbor_cells(q->pity, qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
-				get_q_neighbor_cells(q->pitn, qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
-				get_q_neighbor_cells(q->pixx, qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
-				get_q_neighbor_cells(q->pixy, qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
-				get_q_neighbor_cells(q->pixn, qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
-				get_q_neighbor_cells(q->piyy, qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
-				get_q_neighbor_cells(q->piyn, qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
-				get_q_neighbor_cells(q->pinn, qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
-			#endif
-			#ifdef WTZMU
-				get_q_neighbor_cells(q->WtTz, qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
-				get_q_neighbor_cells(q->WxTz, qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
-				get_q_neighbor_cells(q->WyTz, qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
-				get_q_neighbor_cells(q->WnTz, qi1, qj1, qk1, qi2, qj2, qk2, &r, simm, sim, sip, sipp, sjmm, sjm, sjp, sjpp, skmm, skm, skp, skpp);
-			#endif
+				get_fluid_velocity_neighbor_cells(u[simm], u[sim], u[sip], u[sipp], u[sjmm], u[sjm], u[sjp], u[sjpp], u[skmm], u[skm], u[skp], u[skpp], ui1, uj1, uk1, vxi, vyj, vnk, t2);
+				get_conserved_neighbor_cells(q[simm], q[sim], q[sip], q[sipp], q[sjmm], q[sjm], q[sjp], q[sjpp], q[skmm], q[skm], q[skp], q[skpp], qi1, qj1, qk1, qi2, qj2, qk2);
 
 				// compute the external source terms (S)
-				source_terms(S, ql, e_s, t, qi1, qj1, qk1, e1, ui1, uj1, uk1, ux, uy, un, ux_p, uy_p, un_p, dt, dx, dy, dn, etabar);
+				source_terms(S, q_s, e_s, t, qi1, qj1, qk1, e1, ui1, uj1, uk1, ux, uy, un, ux_p, uy_p, un_p, dt, dx, dy, dn, etabar);
 
 				// compute the flux terms
-				flux_terms(Hx_plus, Hx_minus, ql, qi1, qi2, vxi, ux/ut);
-				flux_terms(Hy_plus, Hy_minus, ql, qj1, qj2, vyj, uy/ut);
-				flux_terms(Hn_plus, Hn_minus, ql, qk1, qk2, vnk, un/ut);
+				flux_terms(Hx_plus, Hx_minus, q_s, qi1, qi2, vxi, ux/ut);
+				flux_terms(Hy_plus, Hy_minus, q_s, qj1, qj2, vyj, uy/ut);
+				flux_terms(Hn_plus, Hn_minus, q_s, qk1, qk2, vnk, un/ut);
 
 				// add euler step
 				for(int n = 0; n < NUMBER_CONSERVED_VARIABLES; n++)
 				{
-					ql[n] += dt * (S[n]  +  (Hx_minus[n] - Hx_plus[n]) / dx  +  (Hy_minus[n] - Hy_plus[n]) / dy  +  (Hn_minus[n] - Hn_plus[n]) / dn);
+					q_s[n] += dt * (S[n]  +  (Hx_minus[n] - Hx_plus[n]) / dx  +  (Hy_minus[n] - Hy_plus[n]) / dy  +  (Hn_minus[n] - Hn_plus[n]) / dn);
 				}
 
 				// update Q
-				Q->ttt[s] = ql[0];
-				Q->ttx[s] = ql[1];
-				Q->tty[s] = ql[2];
-				Q->ttn[s] = ql[3];
-				Q->pl[s]  = ql[4];
+				Q[s].ttt = q_s[0];
+				Q[s].ttx = q_s[1];
+				Q[s].tty = q_s[2];
+				Q[s].ttn = q_s[3];
+				Q[s].pl  = q_s[4];
 
 				a = 5;	// reset counter
 			#if (PT_MATCHING == 1)
-				Q->pt[s] = ql[a];	a++;
+				Q[s].pt = q_s[a]; a++;
 			#endif
 			#ifdef PIMUNU
-				Q->pitt[s] = ql[a];	a++;
-				Q->pitx[s] = ql[a];	a++;
-				Q->pity[s] = ql[a];	a++;
-				Q->pitn[s] = ql[a];	a++;
-				Q->pixx[s] = ql[a];	a++;
-				Q->pixy[s] = ql[a];	a++;
-				Q->pixn[s] = ql[a]; a++;
-				Q->piyy[s] = ql[a]; a++;
-				Q->piyn[s] = ql[a]; a++;
-				Q->pinn[s] = ql[a]; a++;
+				Q[s].pitt = q_s[a]; a++;
+				Q[s].pitx = q_s[a]; a++;
+				Q[s].pity = q_s[a]; a++;
+				Q[s].pitn = q_s[a]; a++;
+				Q[s].pixx = q_s[a]; a++;
+				Q[s].pixy = q_s[a]; a++;
+				Q[s].pixn = q_s[a]; a++;
+				Q[s].piyy = q_s[a]; a++;
+				Q[s].piyn = q_s[a]; a++;
+				Q[s].pinn = q_s[a]; a++;
 			#endif
 			#ifdef WTZMU
-				Q->WtTz[s] = ql[a]; a++;
-				Q->WxTz[s] = ql[a]; a++;
-				Q->WyTz[s] = ql[a]; a++;
-				Q->WnTz[s] = ql[a];
+				Q[s].WtTz = q_s[a]; a++;
+				Q[s].WxTz = q_s[a]; a++;
+				Q[s].WyTz = q_s[a]; a++;
+				Q[s].WnTz = q_s[a];
 			#endif
 			}
 		}
@@ -209,10 +169,9 @@ const precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict_
 }
 
 
-void runge_kutta2(const CONSERVED_VARIABLES * const __restrict__ q, CONSERVED_VARIABLES * const __restrict__ Q, int nx, int ny, int nz)
+void runge_kutta2(const conserved_variables * const __restrict__ q, conserved_variables * const __restrict__ Q, int nx, int ny, int nz)
  {
  	// runge kutta time evolution update: (q + Q) / 2  -> store in Q
-
 	for(int k = 2; k < nz + 2; k++)
 	{
 		for(int j = 2; j < ny + 2; j++)
@@ -221,32 +180,31 @@ void runge_kutta2(const CONSERVED_VARIABLES * const __restrict__ q, CONSERVED_VA
 			{
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
-				Q->ttt[s] = (q->ttt[s]  +  Q->ttt[s]) / 2.;
-				Q->ttx[s] = (q->ttx[s]  +  Q->ttx[s]) / 2.;
-				Q->tty[s] = (q->tty[s]  +  Q->tty[s]) / 2.;
-				Q->ttn[s] = (q->ttn[s]  +  Q->ttn[s]) / 2.;
-				Q->pl[s]  = (q->pl[s]   +  Q-> pl[s]) / 2.;
-
+				Q[s].ttt = (q[s].ttt  +  Q[s].ttt) / 2.;
+				Q[s].ttx = (q[s].ttx  +  Q[s].ttx) / 2.;
+				Q[s].tty = (q[s].tty  +  Q[s].tty) / 2.;
+				Q[s].ttn = (q[s].ttn  +  Q[s].ttn) / 2.;
+				Q[s].pl  = (q[s].pl   +  Q[s].pl)  / 2.;
 			#if (PT_MATCHING == 1)
-				Q->pt[s]  = (q->pt[s]  +  Q->pt[s]) / 2.;
+				Q[s].pt  = (q[s].pt   +  Q[s].pt)  / 2.;
 			#endif
 			#ifdef PIMUNU
-				Q->pitt[s] = (q->pitt[s]  +  Q->pitt[s]) / 2.;
-				Q->pitx[s] = (q->pitx[s]  +  Q->pitx[s]) / 2.;
-				Q->pity[s] = (q->pity[s]  +  Q->pity[s]) / 2.;
-				Q->pitn[s] = (q->pitn[s]  +  Q->pitn[s]) / 2.;
-				Q->pixx[s] = (q->pixx[s]  +  Q->pixx[s]) / 2.;
-				Q->pixy[s] = (q->pixy[s]  +  Q->pixy[s]) / 2.;
-				Q->pixn[s] = (q->pixn[s]  +  Q->pixn[s]) / 2.;
-				Q->piyy[s] = (q->piyy[s]  +  Q->piyy[s]) / 2.;
-				Q->piyn[s] = (q->piyn[s]  +  Q->piyn[s]) / 2.;
-				Q->pinn[s] = (q->pinn[s]  +  Q->pinn[s]) / 2.;
+				Q[s].pitt = (q[s].pitt  +  Q[s].pitt) / 2.;
+				Q[s].pitx = (q[s].pitx  +  Q[s].pitx) / 2.;
+				Q[s].pity = (q[s].pity  +  Q[s].pity) / 2.;
+				Q[s].pitn = (q[s].pitn  +  Q[s].pitn) / 2.;
+				Q[s].pixx = (q[s].pixx  +  Q[s].pixx) / 2.;
+				Q[s].pixy = (q[s].pixy  +  Q[s].pixy) / 2.;
+				Q[s].pixn = (q[s].pixn  +  Q[s].pixn) / 2.;
+				Q[s].piyy = (q[s].piyy  +  Q[s].piyy) / 2.;
+				Q[s].piyn = (q[s].piyn  +  Q[s].piyn) / 2.;
+				Q[s].pinn = (q[s].pinn  +  Q[s].pinn) / 2.;
 			#endif
 			#ifdef WTZMU
-				Q->WtTz[s] = (q->WtTz[s]  +  Q->WtTz[s]) / 2.;
-				Q->WxTz[s] = (q->WxTz[s]  +  Q->WxTz[s]) / 2.;
-				Q->WyTz[s] = (q->WyTz[s]  +  Q->WyTz[s]) / 2.;
-				Q->WnTz[s] = (q->WnTz[s]  +  Q->WnTz[s]) / 2.;
+				Q[s].WtTz = (q[s].WtTz  +  Q[s].WtTz) / 2.;
+				Q[s].WxTz = (q[s].WxTz  +  Q[s].WxTz) / 2.;
+				Q[s].WyTz = (q[s].WyTz  +  Q[s].WyTz) / 2.;
+				Q[s].WnTz = (q[s].WnTz  +  Q[s].WnTz) / 2.;
 			#endif
 			}
 		}
@@ -254,7 +212,6 @@ void runge_kutta2(const CONSERVED_VARIABLES * const __restrict__ q, CONSERVED_VA
 }
 
 
-// main algorithm
 void evolve_hydro_one_time_step(precision t, precision dt, int nx, int ny, int nz, precision dx, precision dy, precision dz, precision etabar)
 {
 	// first intermediate time step (compute qS = q + dt.(S - dHx/dx - dHy/dy - dHn/dn))
@@ -263,7 +220,7 @@ void evolve_hydro_one_time_step(precision t, precision dt, int nx, int ny, int n
 	// next time step
 	t += dt;
 
-	// compute uS, e,
+	// compute uS, e
 	set_inferred_variables(qS, e, uS, t, nx, ny, nz);
 
 	// regulate dissipative components of qS

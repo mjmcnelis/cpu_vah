@@ -5,7 +5,7 @@
 #include "Precision.h"
 #include "DynamicalVariables.h"
 
-using namespace std;
+//using namespace std;
 
 const precision delta = 0.01;	// piecewise interval where hypergeometric functions are Taylor expanded
 
