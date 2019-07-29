@@ -95,6 +95,8 @@ void run_hydro(void * latticeParams, void * initCondParams, void * hydroParams)
 
 	// allocate memory for computational grid points
 	allocate_memory(ncx * ncy * ncz);
+	test_memory_time(nt, nx, ny, nz);
+
 
 	// fluid dynamic initialization
 	double t = t0;
@@ -106,6 +108,8 @@ void run_hydro(void * latticeParams, void * initCondParams, void * hydroParams)
 	int sctr = central_index(nx, ny, nz, ncx, ncy, ncz);	// central index
 
 	//cout << sctr << endl;
+
+
 
 	double steps = 0.0;
 	clock_t start = clock();

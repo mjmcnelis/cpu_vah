@@ -1,6 +1,8 @@
 
 #include <stdlib.h>
 #include <iostream>
+#include <iomanip>
+#include <ctime>
 #include <math.h>
 #include "../include/Precision.h"
 #include "../include/DynamicalVariables.h"
@@ -10,6 +12,8 @@ using namespace std;
 
 CONSERVED_VARIABLES *q, *Q, *qS;	// the extern variables are defined here
 FLUID_VELOCITY *u, *up, *uS;		// so what is this purpose then?
+conserved_variables_new *q_new, *Q_new, *qI_new;
+fluid_velocity_new *u_new, *up_new, *uI_new;
 precision *e;
 
 
@@ -42,6 +46,21 @@ void allocate_memory(int len)
 	uS->ux = (precision *)calloc(len, bytes);
 	uS->uy = (precision *)calloc(len, bytes);
 	uS->un = (precision *)calloc(len, bytes);
+
+
+	u_new  = (fluid_velocity_new *)calloc(len, sizeof(fluid_velocity_new));
+	up_new = (fluid_velocity_new *)calloc(len, sizeof(fluid_velocity_new));
+	uI_new = (fluid_velocity_new *)calloc(len, sizeof(fluid_velocity_new));
+
+	q_new  = (conserved_variables_new *)calloc(len, sizeof(conserved_variables_new));
+	Q_new  = (conserved_variables_new *)calloc(len, sizeof(conserved_variables_new));
+	qI_new = (conserved_variables_new *)calloc(len, sizeof(conserved_variables_new));
+
+
+
+
+
+
 
 	// conserved variables at current time step
 	q = (CONSERVED_VARIABLES *)calloc(1, sizeof(CONSERVED_VARIABLES));
@@ -131,6 +150,138 @@ void allocate_memory(int len)
 #endif
 }
 
+
+void test_memory_time(int nt, int nx, int ny, int nz)
+{
+	clock_t start_1 = clock();
+
+	for(int n = 0; n <= nt; n++)
+	{
+		double t = 0.25 + (double)n * 0.005;
+		if(t >= 3.250) break;
+
+		for(int k = 2; k < nz + 2; k++)
+		{
+			for(int j = 2; j < ny + 2; j++)
+			{
+				for(int i = 2; i < nx + 2; i++)
+				{
+					int s = linear_column_index(i, j, k, nx + 4, ny + 4);
+
+				// 	q->ttt[s] = 1.0;
+				// 	q->ttx[s] = 1.0;
+				// 	q->tty[s] = 1.0;
+				// 	q->ttn[s] = 1.0;
+				// 	q->pl[s] = 1.0;
+				// #if (PT_MATCHING == 1)
+				// 	q->pt[s] = 1.0;
+				// #endif
+				// #ifdef PIMUNU
+				// 	q->pitt[s] = 1.0;
+				// 	q->pitx[s] = 1.0;
+				// 	q->pity[s] = 1.0;
+				// 	q->pitn[s] = 1.0;
+				// 	q->pixx[s] = 1.0;
+				// 	q->pixy[s] = 1.0;
+				// 	q->pixn[s] = 1.0;
+				// 	q->piyy[s] = 1.0;
+				// 	q->piyn[s] = 1.0;
+				// 	q->pinn[s] = 1.0;
+				// #endif
+				// #ifdef WTZMU
+				// 	q->WtTz[s] = 1.0;
+				// 	q->WxTz[s] = 1.0;
+				// 	q->WyTz[s] = 1.0;
+				// 	q->WnTz[s] = 1.0;
+				// #endif
+
+
+				// 	q_new[s].ttt = 1.0;
+				// 	q_new[s].ttx = 1.0;
+				// 	q_new[s].tty = 1.0;
+				// 	q_new[s].ttn = 1.0;
+				// 	q_new[s].pl  = 1.0;
+				// #if (PT_MATCHING == 1)
+				// 	q_new[s].pt = 1.0;
+				// #endif
+				// #ifdef PIMUNU
+				// 	q_new[s].pitt = 1.0;
+				// 	q_new[s].pitx = 1.0;
+				// 	q_new[s].pity = 1.0;
+				// 	q_new[s].pitn = 1.0;
+				// 	q_new[s].pixx = 1.0;
+				// 	q_new[s].pixy = 1.0;
+				// 	q_new[s].pixn = 1.0;
+				// 	q_new[s].piyy = 1.0;
+				// 	q_new[s].piyn = 1.0;
+				// 	q_new[s].pinn = 1.0;
+				// #endif
+				// #ifdef WTZMU
+				// 	q_new[s].WtTz = 1.0;
+				// 	q_new[s].WxTz = 1.0;
+				// 	q_new[s].WyTz = 1.0;
+				// 	q_new[s].WnTz = 1.0;
+				// #endif
+
+
+					conserved_variables_new q_new_s;
+
+					q_new_s.ttt = 1.0;
+					q_new_s.ttx = 1.0;
+					q_new_s.tty = 1.0;
+					q_new_s.ttn = 1.0;
+					q_new_s.pl  = 1.0;
+				#if (PT_MATCHING == 1)
+					q_new_s.pt = 1.0;
+				#endif
+				#ifdef PIMUNU
+					q_new_s.pitt = 1.0;
+					q_new_s.pitx = 1.0;
+					q_new_s.pity = 1.0;
+					q_new_s.pitn = 1.0;
+					q_new_s.pixx = 1.0;
+					q_new_s.pixy = 1.0;
+					q_new_s.pixn = 1.0;
+					q_new_s.piyy = 1.0;
+					q_new_s.piyn = 1.0;
+					q_new_s.pinn = 1.0;
+				#endif
+				#ifdef WTZMU
+					q_new_s.WtTz = 1.0;
+					q_new_s.WxTz = 1.0;
+					q_new_s.WyTz = 1.0;
+					q_new_s.WnTz = 1.0;
+				#endif
+					q_new[s] = q_new_s;
+
+
+
+					// u->ux[s] = 1.0;
+					// u->uy[s] = 1.0;
+					// u->un[s] = 1.0;
+
+					// fluid_velocity_new u_new_s;
+					// u_new_s.ux = ux;
+					// u_new_s.uy = uy;
+					// u_new_s.un = un;
+
+					// u_new[s] = u_new_s;
+
+					// u_new[s].ux = ux;
+					// u_new[s].uy = uy;
+					// u_new[s].un = un;
+				}
+			}
+		}
+	}
+
+	double duration_1 = (clock() - start_1) / (double)CLOCKS_PER_SEC;
+
+	cout << "Total time to access struct of arrays = " << setprecision(5) << duration_1 << " s\n";
+
+
+	exit(-1);
+}
 
 void swap_conserved_variables(CONSERVED_VARIABLES **arr1, CONSERVED_VARIABLES **arr2)
 {

@@ -71,6 +71,45 @@ typedef struct
 	precision * un;
 } FLUID_VELOCITY;
 
+
+typedef struct
+{
+	precision ttt;
+	precision ttx;
+	precision tty;
+	precision ttn;
+	precision pl;
+#if (PT_MATCHING == 1)
+	precision pt;
+#endif
+#ifdef PIMUNU
+	precision pitt;
+	precision pitx;
+	precision pity;
+	precision pitn;
+	precision pixx;
+	precision pixy;
+	precision pixn;
+	precision piyy;
+	precision piyn;
+	precision pinn;
+#endif
+#ifdef WTZMU
+	precision WtTz;
+	precision WxTz;
+	precision WyTz;
+	precision WnTz;
+#endif
+} conserved_variables_new;
+
+
+typedef struct
+{
+	precision ux;
+	precision uy;
+	precision un;
+} fluid_velocity_new;
+
 // q, u = current variables
 // up = previous fluid velocity
 // Q = updated variables
@@ -79,7 +118,11 @@ typedef struct
 
 extern CONSERVED_VARIABLES *q, *Q, *qS;	// should call it qI, uI
 extern FLUID_VELOCITY *u, *up, *uS;
+extern fluid_velocity_new *u_new, *up_new, *uI_new;
+extern conserved_variables_new *q_new, *Q_new, *qI_new;
 extern precision *e;
+
+void test_memory_time(int nt, int nx, int ny, int nz);
 
 // swap q <-> Q
 void set_current_conserved_variables();

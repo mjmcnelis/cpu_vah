@@ -26,9 +26,7 @@ const precision * const __restrict__ e, const FLUID_VELOCITY * const __restrict_
 	precision ql[NUMBER_CONSERVED_VARIABLES];		// current variables at cell s
 	precision  S[NUMBER_CONSERVED_VARIABLES];		// external source terms in hydrodynamic equations
 
-#ifdef CONFORMAL_EOS
 	precision e1[6];								// primary variables of neighbors [i-1, i+1, j-1, j+1, k-1, k+1]
-#endif
 
 	precision qi1[2 * NUMBER_CONSERVED_VARIABLES];	// conserved variables of neighbor cells along x [i-1, i+1]
 	precision qj1[2 * NUMBER_CONSERVED_VARIABLES];	// conserved variables of neighbor cells along y [j-1, j+1]
