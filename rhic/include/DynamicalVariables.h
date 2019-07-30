@@ -7,7 +7,7 @@
 
 #define NUMBER_OF_CONSERVATION_LAWS 4
 
-#define PIMUNU
+//#define PIMUNU
 //#define WTZMU
 
 #ifdef PIMUNU
@@ -78,11 +78,9 @@ typedef struct
 // qI, uI = intermediate variables
 // extern means the variables are declared but defined elsewhere to allow other source files to use it
 
-extern hydro_variables *q, *Q, *qI;	
+extern hydro_variables *q, *Q, *qI;
 extern fluid_velocity *u, *up, *uI;
 extern precision *e;
-
-void test_memory_time(int nt, int nx, int ny, int nz);
 
 // swap q <-> Q
 void set_current_hydro_variables();

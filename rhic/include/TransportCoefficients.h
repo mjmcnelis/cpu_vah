@@ -59,7 +59,7 @@ class transport_coefficients
 		precision lambda_Wupi;
 		precision lambda_WTpi;
 	#endif
-	
+
 		// hypergeometric functions needed
 		precision t_200;
 		precision t_220;
@@ -82,7 +82,7 @@ class transport_coefficients
 		precision t_403;
 	#endif
 
-		
+
 		transport_coefficients();
 		~transport_coefficients();
 

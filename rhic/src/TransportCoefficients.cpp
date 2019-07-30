@@ -253,7 +253,7 @@ void transport_coefficients::compute_transport_coefficients(precision e, precisi
 #ifdef PIMUNU
 	lambda_piL = I_422 / I_402;
 #else
-	lamnda_piL = 0;
+	lambda_piL = 0;
 #endif
 	// pt transport coefficients
 #if (PT_MATCHING == 1)

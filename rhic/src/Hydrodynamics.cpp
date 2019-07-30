@@ -17,7 +17,7 @@
 
 using namespace std;
 
-#define FREQ 100
+#define FREQ 10
 
 const double hbarc = 0.197326938;
 

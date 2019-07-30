@@ -90,8 +90,9 @@ double compute_conformal_aL(double pl, double e)
 
 void output_shear_validity(const hydro_variables * const __restrict__ q, const fluid_velocity * const __restrict__ u, const precision * const e, double t, int nx, int ny, int nz, double dx, double dy, double dz)
 {
+#ifdef PIMUNU
 	FILE *RpiInverse;
-	FILE *piu_ortho0, *piu_ortho1, *piu_ortho2, *piu_ortho3;	
+	FILE *piu_ortho0, *piu_ortho1, *piu_ortho2, *piu_ortho3;
 	FILE *piz_ortho0, *piz_ortho1, *piz_ortho2, *piz_ortho3;	// I forgot tracelessness
 	FILE *pi_trace;
 
@@ -206,6 +207,7 @@ void output_shear_validity(const hydro_variables * const __restrict__ q, const f
 	fclose(piz_ortho1);
 	fclose(piz_ortho2);
 	fclose(piz_ortho3);
+#endif
 }
 
 

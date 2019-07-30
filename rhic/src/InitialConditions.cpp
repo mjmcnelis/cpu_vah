@@ -193,11 +193,11 @@ void set_Glauber_energy_density_and_flow_profile(int nx, int ny, int nz, double 
 	double eL[nz];			// normalized longitudinal profile
 
 	// compute normalized transverse and longitudinal profiles
-	if(initialConditionType == 3)
+	if(initialConditionType == 4)
 	{
 		Optical_Glauber_energy_density_transverse_profile(eT, nx, ny, dx, dy, initCondParams);
 	}
-	else if(initialConditionType == 4)
+	else if(initialConditionType == 5)
 	{
 		MC_Glauber_energy_density_transverse_profile(eT, nx, ny, dx, dy, initCondParams);
 	}
