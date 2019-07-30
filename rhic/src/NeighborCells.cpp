@@ -126,9 +126,9 @@ void get_fluid_velocity_neighbor_cells(	fluid_velocity u_simm, fluid_velocity u_
 }
 
 
-void get_conserved_neighbor_cells(	conserved_variables q_simm, conserved_variables q_sim, conserved_variables q_sip, conserved_variables q_sipp, 
-									conserved_variables q_sjmm, conserved_variables q_sjm, conserved_variables q_sjp, conserved_variables q_sjpp, 
-									conserved_variables q_skmm, conserved_variables q_skm, conserved_variables q_skp, conserved_variables q_skpp, 
+void get_conserved_neighbor_cells(	hydro_variables q_simm, hydro_variables q_sim, hydro_variables q_sip, hydro_variables q_sipp, 
+									hydro_variables q_sjmm, hydro_variables q_sjm, hydro_variables q_sjp, hydro_variables q_sjpp, 
+									hydro_variables q_skmm, hydro_variables q_skm, hydro_variables q_skp, hydro_variables q_skpp, 
 									precision * const __restrict__ qi1, precision * const __restrict__ qj1, precision * const __restrict__ qk1, 
 									precision * const __restrict__ qi2, precision * const __restrict__ qj2, precision * const __restrict__ qk2)
 {

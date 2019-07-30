@@ -28,7 +28,7 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 // maybe regulate individual rows of pimunu
 // here maybe: I don't need to reproject pimunu b/c already "fixed" velocity solution (just use "old method")
 
-void set_inferred_variables(const conserved_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u, precision t, int nx, int ny, int nz)
+void set_inferred_variables(const hydro_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u, precision t, int nx, int ny, int nz)
 {
 	precision t2 = t * t;
 	precision t4 = t2 * t2;

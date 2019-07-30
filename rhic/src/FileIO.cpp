@@ -88,7 +88,7 @@ double compute_conformal_aL(double pl, double e)
 // }
 
 
-void output_shear_validity(const conserved_variables * const __restrict__ q, const fluid_velocity * const __restrict__ u, const precision * const e, double t, int nx, int ny, int nz, double dx, double dy, double dz)
+void output_shear_validity(const hydro_variables * const __restrict__ q, const fluid_velocity * const __restrict__ u, const precision * const e, double t, int nx, int ny, int nz, double dx, double dy, double dz)
 {
 	FILE *RpiInverse;
 	FILE *piu_ortho0, *piu_ortho1, *piu_ortho2, *piu_ortho3;	
@@ -209,7 +209,7 @@ void output_shear_validity(const conserved_variables * const __restrict__ q, con
 }
 
 
-void output_gubser_test(const conserved_variables * const __restrict__ q, const fluid_velocity  * const __restrict__ u, const precision * const e, double t, int nx, int ny, int nz, double dx, double dy, double dz)
+void output_gubser_test(const hydro_variables * const __restrict__ q, const fluid_velocity  * const __restrict__ u, const precision * const e, double t, int nx, int ny, int nz, double dx, double dy, double dz)
 {
 	FILE *energy, *plptratio;
 	FILE *uxplot, *urplot;
@@ -261,7 +261,7 @@ void output_gubser_test(const conserved_variables * const __restrict__ q, const 
 }
 
 
-void output_bjorken_test(const conserved_variables * const __restrict__ q, const precision * const e, double e0, double t, int nx, int ny, int nz)
+void output_bjorken_test(const hydro_variables * const __restrict__ q, const precision * const e, double e0, double t, int nx, int ny, int nz)
 {
 	FILE *energy, *plptratio, *temperature, *aLplot, *Lambdaplot;
 

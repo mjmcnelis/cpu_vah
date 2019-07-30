@@ -64,7 +64,7 @@ void test_WTzmu_properties(precision WtTz, precision WxTz, precision WyTz, preci
 }
 
 
-void regulate_dissipative_currents(precision t, conserved_variables * const __restrict__ q, precision * const __restrict__ e, const fluid_velocity * const __restrict__ u, int nx, int ny, int nz)
+void regulate_dissipative_currents(precision t, hydro_variables * const __restrict__ q, precision * const __restrict__ e, const fluid_velocity * const __restrict__ u, int nx, int ny, int nz)
 {
 	precision eps = 1.e-7;		// is there a more effective way to regulate pl, pt?
 

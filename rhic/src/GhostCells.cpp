@@ -11,7 +11,7 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 }
 
 
-void ghost_cell_BC(conserved_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u, int s, int sBC)
+void ghost_cell_BC(hydro_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u, int s, int sBC)
 {
 	e[s] = e[sBC];	// set the ghost cell boundary conditions
 	u[s] = u[sBC];
@@ -19,7 +19,7 @@ void ghost_cell_BC(conserved_variables * const __restrict__ q, precision * const
 }
 
 
-void set_ghost_cells(conserved_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u, int nx, int ny, int nz)
+void set_ghost_cells(hydro_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u, int nx, int ny, int nz)
 {
 	// s = ghost cell index	 |	sBC = physical cell at boundary index
 

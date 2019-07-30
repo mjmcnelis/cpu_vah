@@ -12,11 +12,7 @@ using namespace std;
 
 double rho_function(double t, double r, double q)
 {
-	double rho = - asinh((1.0  -  q * q * (t * t  -  r * r)) / (2.0 * q * t));
-
-	if(std::isnan(rho) || std::isinf(rho)) printf("Error: rho = %lf\n", rho);
-
-	return rho;
+	return - asinh((1.0  -  q * q * (t * t  -  r * r)) / (2. * q * t));
 }
 
 
@@ -36,7 +32,7 @@ double dpl_drho(double e, double pl, double rho, double etas)
 
 	precision zeta_LL = aniso.zeta_LL;
 
-	return - taupiInv * (pl - e/3.)  -  (4.0 * pl + zeta_LL) * tanh(rho);
+	return - taupiInv * (pl - e/3.)  -  (4. * pl + zeta_LL) * tanh(rho);
 }
 
 

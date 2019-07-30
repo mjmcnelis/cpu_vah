@@ -7,8 +7,8 @@
 #include "../include/Parameters.h"
 using namespace std;
 
-conserved_variables *q, *Q, *qS;	
-fluid_velocity *u, *up, *uS;	
+hydro_variables *q, *Q, *qI;	
+fluid_velocity *u, *up, *uI;	
 precision *e;
 
 
@@ -25,27 +25,25 @@ void allocate_memory(int len)
 
 	u  = (fluid_velocity *)calloc(len, sizeof(fluid_velocity));
 	up = (fluid_velocity *)calloc(len, sizeof(fluid_velocity));
-	uS = (fluid_velocity *)calloc(len, sizeof(fluid_velocity));
+	uI = (fluid_velocity *)calloc(len, sizeof(fluid_velocity));
 
-	q  = (conserved_variables *)calloc(len, sizeof(conserved_variables));
-	Q  = (conserved_variables *)calloc(len, sizeof(conserved_variables));
-	qS = (conserved_variables *)calloc(len, sizeof(conserved_variables));
+	q  = (hydro_variables *)calloc(len, sizeof(hydro_variables));
+	Q  = (hydro_variables *)calloc(len, sizeof(hydro_variables));
+	qI = (hydro_variables *)calloc(len, sizeof(hydro_variables));
 }
 
 
-
-void swap_conserved_variables(conserved_variables **arr1, conserved_variables **arr2)
+void swap_hydro_variables(hydro_variables **arr1, hydro_variables **arr2)
 {
-	// don't understand the double pointer thing
-	conserved_variables *tmp = *arr1;
+	hydro_variables *tmp = *arr1;
 	*arr1 = *arr2;
 	*arr2 = tmp;
 }
 
 
-void set_current_conserved_variables()
+void set_current_hydro_variables()
 {
-	swap_conserved_variables(&q, &Q);
+	swap_hydro_variables(&q, &Q);
 }
 
 
@@ -62,9 +60,9 @@ void free_memory()
 	free(e);
 	free(u);
 	free(up);
-	free(uS);
+	free(uI);
 	free(q);
-	free(qS);
+	free(qI);
 	free(Q);
 }
 

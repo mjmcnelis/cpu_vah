@@ -2,7 +2,7 @@
 #ifndef DYNAMICALVARIABLES_H_
 #define DYNAMICALVARIABLES_H_
 
-#include "EquationofState.h"
+#include "EquationOfState.h"
 #include "Precision.h"
 
 #define NUMBER_OF_CONSERVATION_LAWS 4
@@ -62,7 +62,7 @@ typedef struct
 	precision WyTz;
 	precision WnTz;
 #endif
-} conserved_variables;
+} hydro_variables;
 
 typedef struct
 {
@@ -75,17 +75,17 @@ typedef struct
 // q, u = current variables
 // up = previous fluid velocity
 // Q = updated variables
-// qS, uS = intermediate variables
+// qI, uI = intermediate variables
 // extern means the variables are declared but defined elsewhere to allow other source files to use it
 
-extern conserved_variables *q, *Q, *qS;	// should call it qI, uI
-extern fluid_velocity *u, *up, *uS;
+extern hydro_variables *q, *Q, *qI;	
+extern fluid_velocity *u, *up, *uI;
 extern precision *e;
 
 void test_memory_time(int nt, int nx, int ny, int nz);
 
 // swap q <-> Q
-void set_current_conserved_variables();
+void set_current_hydro_variables();
 
 // swap u <-> up
 void swap_fluid_velocity(fluid_velocity ** arr1, fluid_velocity ** arr2);

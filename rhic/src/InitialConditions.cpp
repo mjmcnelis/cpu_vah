@@ -28,7 +28,7 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 }
 
 // initialize (ttt, ttx, tty, ttn)
-void set_initial_conserved_variables(double t, int nx, int ny, int nz)
+void set_initial_hydro_variables(double t, int nx, int ny, int nz)
 {
 	// loop over the physical grid points
 	for(int k = 2; k < nz + 2; k++)
@@ -503,7 +503,7 @@ void set_initial_conditions(double t, void * latticeParams, void * initCondParam
 
 			set_Bjorken_energy_density_and_flow_profile(nx, ny, nz, initCondParams);
 			set_equilibrium_initial_condition(nx, ny, nz);
-			set_initial_conserved_variables(t, nx, ny, nz);
+			set_initial_hydro_variables(t, nx, ny, nz);
 
 			break;
 		}
@@ -517,7 +517,7 @@ void set_initial_conditions(double t, void * latticeParams, void * initCondParam
 
 			set_ideal_gubser_energy_density_and_flow_profile(nx, ny, nz, dt, dx, dy, dz, initCondParams, hydroParams);
 			set_equilibrium_initial_condition(nx, ny, nz);
-			set_initial_conserved_variables(t, nx, ny, nz);
+			set_initial_hydro_variables(t, nx, ny, nz);
 
 			break;
 		}
@@ -530,7 +530,7 @@ void set_initial_conditions(double t, void * latticeParams, void * initCondParam
 		#endif
 
 			set_aniso_gubser_energy_density_and_flow_profile(nx, ny, nz, dt, dx, dy, dz, hydroParams);
-			set_initial_conserved_variables(t, nx, ny, nz);
+			set_initial_hydro_variables(t, nx, ny, nz);
 
 			break;
 		}
@@ -540,7 +540,7 @@ void set_initial_conditions(double t, void * latticeParams, void * initCondParam
 
 			set_Glauber_energy_density_and_flow_profile(nx, ny, nz, dx, dy, dz, initCondParams);
 			set_equilibrium_initial_condition(nx, ny, nz);
-			set_initial_conserved_variables(t, nx, ny, nz);
+			set_initial_hydro_variables(t, nx, ny, nz);
 
 			break;
 		}
@@ -551,7 +551,7 @@ void set_initial_conditions(double t, void * latticeParams, void * initCondParam
 			set_Glauber_energy_density_and_flow_profile(nx, ny, nz, dx, dy, dz, initCondParams);
 			printf("(fluid velocity and viscous pressures initialized to zero)\n");
 			set_equilibrium_initial_condition(nx, ny, nz);
-			set_initial_conserved_variables(t, nx, ny, nz);
+			set_initial_hydro_variables(t, nx, ny, nz);
 
 			break;
 		}

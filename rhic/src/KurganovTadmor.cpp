@@ -15,7 +15,7 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 }
 
 
-void euler_step(precision t, const conserved_variables * const __restrict__ q, conserved_variables * const __restrict__ Q,
+void euler_step(precision t, const hydro_variables * const __restrict__ q, hydro_variables * const __restrict__ Q,
 const precision * const __restrict__ e, const fluid_velocity * const __restrict__ u, const fluid_velocity * const __restrict__ up, int nx, int ny, int nz, precision dt, precision dx, precision dy, precision dn, precision etabar)
 {
 	precision t2 = t * t;
@@ -169,7 +169,7 @@ const precision * const __restrict__ e, const fluid_velocity * const __restrict_
 }
 
 
-void runge_kutta2(const conserved_variables * const __restrict__ q, conserved_variables * const __restrict__ Q, int nx, int ny, int nz)
+void runge_kutta2(const hydro_variables * const __restrict__ q, hydro_variables * const __restrict__ Q, int nx, int ny, int nz)
  {
  	// runge kutta time evolution update: (q + Q) / 2  -> store in Q
 	for(int k = 2; k < nz + 2; k++)
@@ -215,22 +215,22 @@ void runge_kutta2(const conserved_variables * const __restrict__ q, conserved_va
 void evolve_hydro_one_time_step(precision t, precision dt, int nx, int ny, int nz, precision dx, precision dy, precision dz, precision etabar)
 {
 	// first intermediate time step (compute qS = q + dt.(S - dHx/dx - dHy/dy - dHn/dn))
-	euler_step(t, q, qS, e, u, up, nx, ny, nz, dt, dx, dy, dz, etabar);
+	euler_step(t, q, qI, e, u, up, nx, ny, nz, dt, dx, dy, dz, etabar);
 
 	// next time step
 	t += dt;
 
 	// compute uS, e
-	set_inferred_variables(qS, e, uS, t, nx, ny, nz);
+	set_inferred_variables(qI, e, uI, t, nx, ny, nz);
 
 	// regulate dissipative components of qS
-	regulate_dissipative_currents(t, qS, e, uS, nx, ny, nz);
+	regulate_dissipative_currents(t, qI, e, uI, nx, ny, nz);		// is this needed? 
 
 	// set ghost cells for qS, uS, e,
-	set_ghost_cells(qS, e, uS, nx, ny, nz);
+	set_ghost_cells(qI, e, uI, nx, ny, nz);
 
 	// second intermediate time step (compute Q = qS + dt.(S - dHx/dx - dHy/dy - dHn/dn))
-	euler_step(t, qS, Q, e, uS, u, nx, ny, nz, dt, dx, dy, dz, etabar);
+	euler_step(t, qI, Q, e, uI, u, nx, ny, nz, dt, dx, dy, dz, etabar);
 
 	// 2nd order runge kutta: (q + Q) / 2 -> Q
 	runge_kutta2(q, Q, nx, ny, nz);
@@ -249,7 +249,7 @@ void evolve_hydro_one_time_step(precision t, precision dt, int nx, int ny, int n
 	set_ghost_cells(Q, e, u, nx, ny, nz);
 
 	// swap q and Q
-	set_current_conserved_variables();
+	set_current_hydro_variables();
 }
 
 
