@@ -1,4 +1,3 @@
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
@@ -13,8 +12,6 @@
 #include "../include/InitialConditions.h"
 #include "../include/KurganovTadmor.h"
 #include "../include/EquationOfState.h"
-
-
 using namespace std;
 
 #define FREQ 10
@@ -32,7 +29,7 @@ int central_index(int nx, int ny, int nz, int ncx, int ncy, int ncz)
 	return ictr  +  ncx * (jctr  +  ncy * kctr);
 }
 
-inline void print_hydro_center(double t, double e, double peq, double pl, double pt, double T)
+void print_hydro_center(double t, double e, double peq, double pl, double pt, double T)
 {
 	printf("t = %.3f fm/c\t\te = %.3f GeV/fm^3\tpeq = %.3f GeV/fm^3\tpl = %.3f GeV/fm^3\tpt = %.3f GeV/fm^3\tT = %.3f GeV\n", t, e, peq, pl, pt, T);
 }
@@ -43,7 +40,7 @@ void print_parameters(int nx, int ny, int nz, double dt, double dx, double dy, d
 	printf("Time resolution    = %.4f fm/c\n", dt);
 	printf("Hydro grid         = %d x %d x %d\n", nx, ny, nz);
 	printf("Spatial resolution = (%.3f fm, %.3f fm, %.3f)\n", dx, dy, dz);
-	printf("Spatial size       = %.3f fm  x  %.3f fm  x  %.3f\n", 0.5 * (nx - 1.0) * dx, 0.5 * (ny - 1.0) * dy, 0.5 * (nz - 1.0) * dz);
+	printf("Spatial size       = %.3f fm  x  %.3f fm  x  %.3f\n", (nx - 1.) * dx, (ny - 1.) * dy, (nz - 1.) * dz);
 
 	printf("\nFreezeout temperature = %.3f GeV\t(e = %.3f GeV/fm^3)\n", T_switch * hbarc, e_switch * hbarc);
 	printf("Shear viscosity       = %.3f\n", etabar);
@@ -57,12 +54,12 @@ void print_parameters(int nx, int ny, int nz, double dt, double dx, double dy, d
 
 void run_hydro(void * latticeParams, void * initCondParams, void * hydroParams)
 {
-	// Parameters
+	// parameters
 	struct LatticeParameters * lattice = (struct LatticeParameters *) latticeParams;
 	struct InitialConditionParameters * initCond = (struct InitialConditionParameters *) initCondParams;
 	struct HydroParameters * hydro = (struct HydroParameters *) hydroParams;
 
-	// System configuration
+	// system configuration
 	int initialType = initCond->initialConditionType;	// initial condition type
 
 	int nx = lattice->numLatticePointsX;				// physical grid
@@ -70,7 +67,7 @@ void run_hydro(void * latticeParams, void * initCondParams, void * hydroParams)
 	int nz = lattice->numLatticePointsRapidity;
 	int nt = lattice->numProperTimePoints;
 
-	int ncx = nx + 4;									// (physical + ghost + white) grid
+	int ncx = nx + 4;									// computational grid = physical + ghost + white
 	int ncy = ny + 4;
 	int ncz = nz + 4;
 
@@ -83,18 +80,13 @@ void run_hydro(void * latticeParams, void * initCondParams, void * hydroParams)
 
 	double T0 = initCond->initialCentralTemperatureGeV;
 	double e0 = equilibriumEnergyDensity(T0 / hbarc);
-	double t0 = hydro->tau_initial;						// initial longitudinal proper time
-														// if use F.S. need t_fs instead
-
+	double t0 = hydro->tau_initial;						// initial longitudinal proper time (if use F.S. need t_fs instead)
 	double T_switch = (hydro->freezeoutTemperatureGeV) / hbarc;		// switching temperature [fm^-1]
 	double e_switch = equilibriumEnergyDensity(T_switch);			// switching energy density [fm^-4]
 
-
 	print_parameters(nx, ny, nz, dt, dx, dy, dz, T_switch, e_switch, etabar);
 
-
-	// allocate memory for computational grid points
-	allocate_memory(ncx * ncy * ncz);
+	allocate_memory(ncx * ncy * ncz);					// allocate memory for computational grid points
 
 	// fluid dynamic initialization
 	double t = t0;
@@ -103,37 +95,30 @@ void run_hydro(void * latticeParams, void * initCondParams, void * hydroParams)
 
 	printf("\n");
 
-	int sctr = central_index(nx, ny, nz, ncx, ncy, ncz);	// central index
+	int s = central_index(nx, ny, nz, ncx, ncy, ncz);	// central index
 
-	//cout << sctr << endl;
-
-
-
-	double steps = 0.0;
+	double steps = 0;
 	clock_t start = clock();
 
 	// fluid dynamic evolution
 	for(int n = 0; n <= nt; n++)
 	{
-		// output variables to file occasionally (for testing)
-		if(n % FREQ == 0)
+		if(n % FREQ == 0)	// output variables to file for testing
 		{
-			precision ectr = e[sctr] * hbarc;
-			precision peqctr = equilibriumPressure(e[sctr]) * hbarc;
-			precision Tctr = effectiveTemperature(e[sctr]) * hbarc;
-			precision plctr = q[sctr].pl * hbarc;
-
+			precision e_s = e[s] * hbarc;
+			precision peq = equilibriumPressure(e[s])  * hbarc;
+			precision T   = effectiveTemperature(e[s]) * hbarc;
+			precision pl  = q[s].pl * hbarc;
 		#if (PT_MATCHING == 1)
-			precision ptctr = q[sctr].pt * hbarc;
+			precision pt = q[s].pt * hbarc;
 		#else
-			precision ptctr = 0.5 * (ectr - plctr);
+			precision pt = (e_s - pl) / 2.;
 		#endif
-
-			print_hydro_center(t, ectr, peqctr, plctr, ptctr, Tctr);
+			print_hydro_center(t, e_s, peq, pl, pt, T);
 
 			output_dynamical_variables(t, nx, ny, nz, dx, dy, dz, initialType, e0);
 
-			if(e[sctr] < e_switch) 	// replace with freezeout finder not finding any cells
+			if(e[s] < e_switch) 	// replace with freezeout finder not finding any cells
 			{
 				printf("\nReached freezeout temperature at the center.\n\n");
 				break;	// need to change it so that all cells below freezeout temperature
@@ -141,18 +126,16 @@ void run_hydro(void * latticeParams, void * initCondParams, void * hydroParams)
 		}
 
 		evolve_hydro_one_time_step(t, dt, nx, ny, nz, dx, dy, dz, etabar);
-
-		steps += 1.0;
+		steps += 1.;
 		t += dt;
 	}
 
-	// time benchmarks
 	double duration     = (clock() - start) / (double)CLOCKS_PER_SEC;
 	double spatial_grid = (double)(nx * ny * nz);
 
 	cout << "Total time             = " << setprecision(4) << duration << " s\n";
-	cout << "Average time/step      = " << setprecision(3) << 1000.0 * duration / steps << " ms\n";
-	cout << "Average time/cell/step = " << setprecision(3) << 1000.0 * duration / (spatial_grid * steps) << " ms\n";
+	cout << "Average time/step      = " << setprecision(3) << 1000. * duration / steps << " ms\n";
+	cout << "Average time/cell/step = " << setprecision(3) << 1000. * duration / (spatial_grid * steps) << " ms\n";
 
 	free_memory();
 }

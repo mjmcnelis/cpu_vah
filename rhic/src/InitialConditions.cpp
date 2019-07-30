@@ -211,7 +211,7 @@ void set_Glauber_energy_density_and_flow_profile(int nx, int ny, int nz, double 
 			{
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
-				precision e_s = max(E_MIN, e0 * eT[i - 2 + (j - 2) * nx] * eL[k - 2]);
+				precision e_s = max(E_MIN, e0 * eT[i - 2 + (j - 2) * nx] * eL[k - 2]);	// is there some asymmetry not aware of? 
 
 				e[s] = e_s;
 

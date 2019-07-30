@@ -11,7 +11,7 @@ using namespace std;
 #define TEST_WTZMU 0					// 1 to test WTz orthogonality
 
 #define XI0 	0.1						// regulation parameters
-#define RHO_MAX 5.0
+#define RHO_MAX 1.0
 
 precision piu_error = 1.e-13;
 precision piz_error = 1.e-13;
@@ -66,7 +66,7 @@ void test_WTzmu_properties(precision WtTz, precision WxTz, precision WyTz, preci
 
 void regulate_dissipative_currents(precision t, hydro_variables * const __restrict__ q, precision * const __restrict__ e, const fluid_velocity * const __restrict__ u, int nx, int ny, int nz)
 {
-	precision eps = 1.e-7;		// is there a more effective way to regulate pl, pt?
+	precision eps = 1.e-8;		// is there a more effective way to regulate pl, pt?
 
 	precision xi0 = XI0;
 	precision rho_max = RHO_MAX;
@@ -156,6 +156,12 @@ void regulate_dissipative_currents(precision t, hydro_variables * const __restri
 				precision factor_pi;
 				if(rho_pi > 1.e-5) factor_pi = tanh(rho_pi) / rho_pi;
 				else factor_pi = 1.  -  rho_pi * rho_pi / 3.;
+
+				if(factor_pi > 1.)
+				{
+					printf("Regulation error: factor_pi = %.6g\n", factor_pi);
+				}
+
 			#if (TEST_PIMUNU == 1)
 				test_pimunu_properties(trpi, piu0, piu1, piu2, piu3, piz0, piz1, piz2, piz3, pi_mag, t);
 			#endif

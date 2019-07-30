@@ -29,7 +29,7 @@ int center_index(int nx, int ny, int nz, int ncx, int ncy, int ncz)
 
 double compute_conformal_aL(double pl, double e)
 {
-	precision x   = pl / e;				// x = pl / e
+	precision x   = pl / e;		// x = pl / e
 	precision x2  = x   * x;
 	precision x3  = x2  * x;
 	precision x4  = x3  * x;
@@ -55,37 +55,7 @@ double compute_conformal_aL(double pl, double e)
 }
 
 
-// void output_ur(const precision * const ux, const precision * const uy, double t, int nx, int ny, int nz, double dx, double dy, double dz)
-// {
-// 	FILE * output;
-// 	char fname[255];
-// 	sprintf(fname, "output/ur_%.3f.dat", t);
 
-// 	output = fopen(fname, "w");
-
-// 	for(int k = 2; k < nz + 2; k++)
-// 	{
-// 		double z = (k - 2.0 - (nz - 1.0)/2.0) * dz;
-
-// 		for(int j = 2; j < ny + 2; j++)
-// 		{
-// 			double y = (j - 2.0 - (ny - 1.0)/2.0) * dy;
-
-// 			for(int i = 2; i < nx + 2; i++)
-// 			{
-// 				double x = (i - 2.0 - (nx - 1.0)/2.0) * dx;
-
-// 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
-
-// 				double ux_s = ux[s];
-// 				double uy_s = uy[s];
-
-// 				fprintf(output, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, sqrt(ux_s*ux_s + uy_s*uy_s));
-// 			}
-// 		}
-// 	}
-// 	fclose(output);
-// }
 
 
 void output_shear_validity(const hydro_variables * const __restrict__ q, const fluid_velocity * const __restrict__ u, const precision * const e, double t, int nx, int ny, int nz, double dx, double dy, double dz)
@@ -93,7 +63,7 @@ void output_shear_validity(const hydro_variables * const __restrict__ q, const f
 #ifdef PIMUNU
 	FILE *RpiInverse;
 	FILE *piu_ortho0, *piu_ortho1, *piu_ortho2, *piu_ortho3;
-	FILE *piz_ortho0, *piz_ortho1, *piz_ortho2, *piz_ortho3;	// I forgot tracelessness
+	FILE *piz_ortho0, *piz_ortho1, *piz_ortho2, *piz_ortho3;	// put in shear Knudsen number 
 	FILE *pi_trace;
 
 	char fname1[255];
@@ -128,15 +98,15 @@ void output_shear_validity(const hydro_variables * const __restrict__ q, const f
 
 	for(int k = 2; k < nz + 2; k++)
 	{
-		double z = (k - 2.0 - (nz - 1.0)/2.0) * dz;
+		double z = (k - 2. - (nz - 1.)/2.) * dz;
 
 		for(int j = 2; j < ny + 2; j++)
 		{
-			double y = (j - 2.0 - (ny - 1.0)/2.0) * dy;
+			double y = (j - 2. - (ny - 1.)/2.) * dy;
 
 			for(int i = 2; i < nx + 2; i++)
 			{
-				double x = (i - 2.0 - (nx - 1.0)/2.0) * dx;
+				double x = (i - 2. - (nx - 1.)/2.) * dx;
 
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
@@ -211,59 +181,7 @@ void output_shear_validity(const hydro_variables * const __restrict__ q, const f
 }
 
 
-void output_gubser_test(const hydro_variables * const __restrict__ q, const fluid_velocity  * const __restrict__ u, const precision * const e, double t, int nx, int ny, int nz, double dx, double dy, double dz)
-{
-	FILE *energy, *plptratio;
-	FILE *uxplot, *urplot;
-	char fname1[255], fname2[255];
-	char fname3[255], fname4[255];
-
-	sprintf(fname1, "output/e_%.3f.dat", t);
-	sprintf(fname2, "output/plpt_%.3f.dat", t);
-	sprintf(fname3, "output/ux_%.3f.dat", t);
-	sprintf(fname4, "output/ur_%.3f.dat", t);
-
-	energy      = fopen(fname1, "w");
-	plptratio 	= fopen(fname2, "w");
-	uxplot    	= fopen(fname3, "w");
-	urplot		= fopen(fname4, "w");
-
-	for(int k = 2; k < nz + 2; k++)
-	{
-		double z = (k - 2. - (nz - 1.)/2.) * dz;
-
-		for(int j = 2; j < ny + 2; j++)
-		{
-			double y = (j - 2. - (ny - 1.)/2.) * dy;
-
-			for(int i = 2; i < nx + 2; i++)
-			{
-				double x = (i - 2. - (nx - 1.)/2.) * dx;
-
-				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
-
-				precision ux = u[s].ux;
-				precision uy = u[s].uy;
-				precision ur = sqrt(ux * ux  +  uy * uy);
-				precision e_s = e[s];
-				precision pl = q[s].pl;
-				precision pt = (e_s - pl) / 2.;
-
-				fprintf(energy, 	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, e_s);
-				fprintf(plptratio,	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, pl / pt);
-				fprintf(uxplot, 	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, ux);
-				fprintf(urplot, 	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, ur);
-			}
-		}
-	}
-	fclose(energy);
-	fclose(plptratio);
-	fclose(uxplot);
-	fclose(urplot);
-}
-
-
-void output_bjorken_test(const hydro_variables * const __restrict__ q, const precision * const e, double e0, double t, int nx, int ny, int nz)
+void output_bjorken(const hydro_variables * const __restrict__ q, const precision * const e, double e0, double t, int nx, int ny, int nz)
 {
 	FILE *energy, *plptratio, *temperature, *aLplot, *Lambdaplot;
 
@@ -322,24 +240,139 @@ void output_bjorken_test(const hydro_variables * const __restrict__ q, const pre
 }
 
 
+void output_gubser(const hydro_variables * const __restrict__ q, const fluid_velocity  * const __restrict__ u, const precision * const e, double t, int nx, int ny, int nz, double dx, double dy, double dz)
+{
+	FILE *energy, *plptratio;
+	FILE *uxplot, *urplot;
+	char fname1[255], fname2[255];
+	char fname3[255], fname4[255];
+
+	sprintf(fname1, "output/e_%.3f.dat", t);
+	sprintf(fname2, "output/plpt_%.3f.dat", t);
+	sprintf(fname3, "output/ux_%.3f.dat", t);
+	sprintf(fname4, "output/ur_%.3f.dat", t);
+
+	energy      = fopen(fname1, "w");
+	plptratio 	= fopen(fname2, "w");
+	uxplot    	= fopen(fname3, "w");
+	urplot		= fopen(fname4, "w");
+
+	for(int k = 2; k < nz + 2; k++)
+	{
+		double z = (k - 2. - (nz - 1.)/2.) * dz;
+
+		for(int j = 2; j < ny + 2; j++)
+		{
+			double y = (j - 2. - (ny - 1.)/2.) * dy;
+
+			for(int i = 2; i < nx + 2; i++)
+			{
+				double x = (i - 2. - (nx - 1.)/2.) * dx;
+
+				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
+
+				precision ux = u[s].ux;
+				precision uy = u[s].uy;
+				precision ur = sqrt(ux * ux  +  uy * uy);
+				precision e_s = e[s];
+				precision pl = q[s].pl;
+				precision pt = (e_s - pl) / 2.;
+
+				fprintf(energy, 	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, e_s);
+				fprintf(plptratio,	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, pl / pt);
+				fprintf(uxplot, 	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, ux);
+				fprintf(urplot, 	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, ur);
+			}
+		}
+	}
+	fclose(energy);
+	fclose(plptratio);
+	fclose(uxplot);
+	fclose(urplot);
+}
+
+
+void output_optical_glauber(const hydro_variables * const __restrict__ q, const fluid_velocity  * const __restrict__ u, const precision * const e, double t, int nx, int ny, int nz, double dx, double dy, double dz)
+{
+	FILE *energy, *plptratio;
+	FILE *uxplot, *uyplot, *urplot;
+	char fname1[255], fname2[255];
+	char fname3[255], fname4[255], fname5[255];
+
+	sprintf(fname1, "output/e_%.3f.dat", t);
+	sprintf(fname2, "output/plpt_%.3f.dat", t);
+	sprintf(fname3, "output/ux_%.3f.dat", t);
+	sprintf(fname4, "output/uy_%.3f.dat", t);
+	sprintf(fname5, "output/ur_%.3f.dat", t);
+
+	energy      = fopen(fname1, "w");
+	plptratio 	= fopen(fname2, "w");
+	uxplot    	= fopen(fname3, "w");
+	uyplot    	= fopen(fname4, "w");
+	urplot		= fopen(fname5, "w");
+
+	for(int k = 2; k < nz + 2; k++)
+	{
+		double z = (k - 2. - (nz - 1.)/2.) * dz;
+
+		for(int j = 2; j < ny + 2; j++)
+		{
+			double y = (j - 2. - (ny - 1.)/2.) * dy;
+
+			for(int i = 2; i < nx + 2; i++)
+			{
+				double x = (i - 2. - (nx - 1.)/2.) * dx;
+
+				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
+
+				precision ux = u[s].ux;
+				precision uy = u[s].uy;
+				precision ur = sqrt(ux * ux  +  uy * uy);
+				precision e_s = e[s];
+				precision pl = q[s].pl;
+			#if (PT_MATCHING == 1)
+				precision pt = q[s].pt;
+			#else
+				precision pt = (e_s - pl) / 2.;
+			#endif
+				fprintf(energy, 	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, e_s);
+				fprintf(plptratio,	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, pl / pt);
+				fprintf(uxplot, 	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, ux);
+				fprintf(uyplot, 	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, uy);
+				fprintf(urplot, 	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, ur);
+			}
+		}
+	}
+	fclose(energy);
+	fclose(plptratio);
+	fclose(uxplot);
+	fclose(uyplot);
+	fclose(urplot);
+}
+
+
 void output_dynamical_variables(double t, int nx, int ny, int nz, double dx, double dy, double dz, int initialConditionType, double e0)
 {
 	if(initialConditionType == 1)
 	{
-		output_bjorken_test(q, e, e0, t, nx, ny, nz);
-		return;
+		output_bjorken(q, e, e0, t, nx, ny, nz);
 	}
-	if(initialConditionType == 2 || initialConditionType == 3)
+	else if(initialConditionType == 2 || initialConditionType == 3)
 	{
-		output_gubser_test(q, u, e, t, nx, ny, nz, dx, dy, dz);
-
-	#ifdef PIMUNU
-		output_shear_validity(q, u, e, t, nx, ny, nz, dx, dy, dz);
-	#endif
-
-		return;
+		output_gubser(q, u, e, t, nx, ny, nz, dx, dy, dz);
 	}
+	else if(initialConditionType == 4)
+	{
+		output_optical_glauber(q, u, e, t, nx, ny, nz, dx, dy, dz);
+	}
+#ifdef PIMUNU
+	output_shear_validity(q, u, e, t, nx, ny, nz, dx, dy, dz);
+#endif
+
 }
+
+
+
 
 
 

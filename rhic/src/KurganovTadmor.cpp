@@ -224,7 +224,7 @@ void evolve_hydro_one_time_step(precision t, precision dt, int nx, int ny, int n
 	set_inferred_variables(qI, e, uI, t, nx, ny, nz);
 
 	// regulate dissipative components of qS
-	regulate_dissipative_currents(t, qI, e, uI, nx, ny, nz);		// is this needed? 
+	regulate_dissipative_currents(t, qI, e, uI, nx, ny, nz);	
 
 	// set ghost cells for qS, uS, e,
 	set_ghost_cells(qI, e, uI, nx, ny, nz);
