@@ -1,11 +1,9 @@
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <random>
 #include <chrono>
 #include "../include/Precision.h"
 #include "../include/Projections.h"
-
 using namespace std;
 
 double canonical(default_random_engine & generator)

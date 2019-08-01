@@ -18,9 +18,14 @@ inline precision minmod(precision x, precision y)
 	return (sign(x) + sign(y)) * fmin(fabs(x), fabs(y)) / 2.;
 }
 
+inline precision minmod3(precision x, precision y, precision z)
+{
+   return minmod(x, minmod(y, z));
+}
+
 precision approximate_derivative(precision qm, precision q, precision qp)
 {
-	return minmod(THETA * (q - qm), minmod((qp - qm) / 2., THETA * (qp - q)));
+	return minmod3(THETA * (q - qm), (qp - qm) / 2., THETA * (qp - q));
 }
 
 void flux_terms(precision * const __restrict__ Hp, precision * const __restrict__ Hm, const precision * const __restrict__ q_data, const precision * const __restrict__ q1_data, const precision * const __restrict__ q2_data, const precision * const __restrict__ v_data, precision v)

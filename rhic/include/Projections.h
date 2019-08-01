@@ -3,7 +3,7 @@
 
 #include "Precision.h"
 
-using namespace std;
+//using namespace std;
 
 class transverse_projection
 {

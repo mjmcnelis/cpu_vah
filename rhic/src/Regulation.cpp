@@ -66,7 +66,7 @@ void test_WTzmu_properties(precision WtTz, precision WxTz, precision WyTz, preci
 
 void regulate_dissipative_currents(precision t, hydro_variables * const __restrict__ q, precision * const __restrict__ e, const fluid_velocity * const __restrict__ u, int nx, int ny, int nz)
 {
-	precision eps = 1.e-8;		// is there a more effective way to regulate pl, pt?
+	precision eps = 1.e-10;		// is there a more effective way to regulate pl, pt?
 
 	precision xi0 = XI0;
 	precision rho_max = RHO_MAX;
@@ -128,6 +128,7 @@ void regulate_dissipative_currents(precision t, hydro_variables * const __restri
 
 				precision trpi = fabs(pitt  -  pixx  -  piyy  -  t2 * pinn);
 
+				// new regulation scheme
 				precision piu0 = fabs(pitt * ut  -  pitx * ux  -  pity * uy  -  t2 * pitn * un) / ut;
 				precision piu1 = fabs(pitx * ut  -  pixx * ux  -  pixy * uy  -  t2 * pixn * un) / ut;
 				precision piu2 = fabs(pity * ut  -  pixy * ux  -  piyy * uy  -  t2 * piyn * un) / ut;
@@ -137,6 +138,17 @@ void regulate_dissipative_currents(precision t, hydro_variables * const __restri
 				precision piz1 = fabs(zt * pitx  -  t2 * zn * pixn) / (t * zn);
 				precision piz2 = fabs(zt * pity  -  t2 * zn * piyn) / (t * zn);
 				precision piz3 = fabs(zt * pitn  -  t2 * zn * pinn) / zn;
+
+				// old regulation scheme
+				// precision piu0 = fabs(pitt * ut  -  pitx * ux  -  pity * uy  -  t2 * pitn * un);
+				// precision piu1 = fabs(pitx * ut  -  pixx * ux  -  pixy * uy  -  t2 * pixn * un);
+				// precision piu2 = fabs(pity * ut  -  pixy * ux  -  piyy * uy  -  t2 * piyn * un);
+				// precision piu3 = fabs(pitn * ut  -  pixn * ux  -  piyn * uy  -  t2 * pinn * un) * t;
+
+				// precision piz0 = fabs(zt * pitt  -  t2 * zn * pitn);
+				// precision piz1 = fabs(zt * pitx  -  t2 * zn * pixn);
+				// precision piz2 = fabs(zt * pity  -  t2 * zn * piyn);
+				// precision piz3 = fabs(zt * pitn  -  t2 * zn * pinn) * t;
 
 				precision denom_pi = xi0 * rho_max * pi_mag;
 

@@ -116,7 +116,7 @@ void run_hydro(void * latticeParams, void * initCondParams, void * hydroParams)
 		#endif
 			print_hydro_center(t, e_s, peq, pl, pt, T);
 
-			output_dynamical_variables(t, nx, ny, nz, dx, dy, dz, initialType, e0);
+			output_dynamical_variables(t, nx, ny, nz, dt, dx, dy, dz, initialType, e0, etabar);
 
 			if(e[s] < e_switch) 	// replace with freezeout finder not finding any cells
 			{
