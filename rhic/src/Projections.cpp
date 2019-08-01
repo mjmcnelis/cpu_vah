@@ -167,16 +167,16 @@ double_transverse_projection::~double_transverse_projection()
 void double_transverse_projection::double_transverse_project_tensor(precision & Att, precision & Atx, precision & Aty, precision & Atn, precision & Axx, precision & Axy, precision & Axn, precision & Ayy, precision & Ayn, precision & Ann)
 {
 	// A_pro^{\mu\nu} = Xi^{\mu\nu\alpha\beta} . A_{\alpha\beta}
-	precision Att_pro = Xitt_tt * Att  +  Xitt_xx * Axx  +  Xitt_yy * Ayy  +  t4 * Xitt_nn * Ann  -  2.0 * (Xitt_tx * Atx  +  Xitt_ty * Aty  -  Xitt_xy * Axy  +  t2 * (Xitt_tn * Atn   -  Xitt_xn * Axn  -  Xitt_yn * Ayn));
-	precision Atx_pro = Xitt_tx * Att  +  Xitx_xx * Axx  +  Xitx_yy * Ayy  +  t4 * Xitx_nn * Ann  -  2.0 * (Xitx_tx * Atx  +  Xitx_ty * Aty  -  Xitx_xy * Axy  +  t2 * (Xitx_tn * Atn   -  Xitx_xn * Axn  -  Xitx_yn * Ayn));
-	precision Aty_pro = Xitt_ty * Att  +  Xity_xx * Axx  +  Xity_yy * Ayy  +  t4 * Xity_nn * Ann  -  2.0 * (Xitx_ty * Atx  +  Xity_ty * Aty  -  Xity_xy * Axy  +  t2 * (Xity_tn * Atn   -  Xity_xn * Axn  -  Xity_yn * Ayn));
-	precision Atn_pro = Xitt_tn * Att  +  Xitn_xx * Axx  +  Xitn_yy * Ayy  +  t4 * Xitn_nn * Ann  -  2.0 * (Xitx_tn * Atx  +  Xity_tn * Aty  -  Xitn_xy * Axy  +  t2 * (Xitn_tn * Atn   -  Xitn_xn * Axn  -  Xitn_yn * Ayn));
-	precision Axx_pro = Xitt_xx * Att  +  Xixx_xx * Axx  +  Xixx_yy * Ayy  +  t4 * Xixx_nn * Ann  -  2.0 * (Xitx_xx * Atx  +  Xity_xx * Aty  -  Xixx_xy * Axy  +  t2 * (Xitn_xx * Atn   -  Xixx_xn * Axn  -  Xixx_yn * Ayn));
-	precision Axy_pro = Xitt_xy * Att  +  Xixx_xy * Axx  +  Xixy_yy * Ayy  +  t4 * Xixy_nn * Ann  -  2.0 * (Xitx_xy * Atx  +  Xity_xy * Aty  -  Xixy_xy * Axy  +  t2 * (Xitn_xy * Atn   -  Xixy_xn * Axn  -  Xixy_yn * Ayn));
-	precision Axn_pro = Xitt_xn * Att  +  Xixx_xn * Axx  +  Xixn_yy * Ayy  +  t4 * Xixn_nn * Ann  -  2.0 * (Xitx_xn * Atx  +  Xity_xn * Aty  -  Xixy_xn * Axy  +  t2 * (Xitn_xn * Atn   -  Xixn_xn * Axn  -  Xixn_yn * Ayn));
-	precision Ayy_pro = Xitt_yy * Att  +  Xixx_yy * Axx  +  Xiyy_yy * Ayy  +  t4 * Xiyy_nn * Ann  -  2.0 * (Xitx_yy * Atx  +  Xity_yy * Aty  -  Xixy_yy * Axy  +  t2 * (Xitn_yy * Atn   -  Xixn_yy * Axn  -  Xiyy_yn * Ayn));
-	precision Ayn_pro = Xitt_yn * Att  +  Xixx_yn * Axx  +  Xiyy_yn * Ayy  +  t4 * Xiyn_nn * Ann  -  2.0 * (Xitx_yn * Atx  +  Xity_yn * Aty  -  Xixy_yn * Axy  +  t2 * (Xitn_yn * Atn   -  Xixn_yn * Axn  -  Xiyn_yn * Ayn));
-	precision Ann_pro = Xitt_nn * Att  +  Xixx_nn * Axx  +  Xiyy_nn * Ayy  +  t4 * Xinn_nn * Ann  -  2.0 * (Xitx_nn * Atx  +  Xity_nn * Aty  -  Xixy_nn * Axy  +  t2 * (Xitn_nn * Atn   -  Xixn_nn * Axn  -  Xiyn_nn * Ayn));
+	precision Att_pro = Xitt_tt * Att  +  Xitt_xx * Axx  +  Xitt_yy * Ayy  +  t4 * Xitt_nn * Ann  -  2. * (Xitt_tx * Atx  +  Xitt_ty * Aty  -  Xitt_xy * Axy  +  t2 * (Xitt_tn * Atn   -  Xitt_xn * Axn  -  Xitt_yn * Ayn));
+	precision Atx_pro = Xitt_tx * Att  +  Xitx_xx * Axx  +  Xitx_yy * Ayy  +  t4 * Xitx_nn * Ann  -  2. * (Xitx_tx * Atx  +  Xitx_ty * Aty  -  Xitx_xy * Axy  +  t2 * (Xitx_tn * Atn   -  Xitx_xn * Axn  -  Xitx_yn * Ayn));
+	precision Aty_pro = Xitt_ty * Att  +  Xity_xx * Axx  +  Xity_yy * Ayy  +  t4 * Xity_nn * Ann  -  2. * (Xitx_ty * Atx  +  Xity_ty * Aty  -  Xity_xy * Axy  +  t2 * (Xity_tn * Atn   -  Xity_xn * Axn  -  Xity_yn * Ayn));
+	precision Atn_pro = Xitt_tn * Att  +  Xitn_xx * Axx  +  Xitn_yy * Ayy  +  t4 * Xitn_nn * Ann  -  2. * (Xitx_tn * Atx  +  Xity_tn * Aty  -  Xitn_xy * Axy  +  t2 * (Xitn_tn * Atn   -  Xitn_xn * Axn  -  Xitn_yn * Ayn));
+	precision Axx_pro = Xitt_xx * Att  +  Xixx_xx * Axx  +  Xixx_yy * Ayy  +  t4 * Xixx_nn * Ann  -  2. * (Xitx_xx * Atx  +  Xity_xx * Aty  -  Xixx_xy * Axy  +  t2 * (Xitn_xx * Atn   -  Xixx_xn * Axn  -  Xixx_yn * Ayn));
+	precision Axy_pro = Xitt_xy * Att  +  Xixx_xy * Axx  +  Xixy_yy * Ayy  +  t4 * Xixy_nn * Ann  -  2. * (Xitx_xy * Atx  +  Xity_xy * Aty  -  Xixy_xy * Axy  +  t2 * (Xitn_xy * Atn   -  Xixy_xn * Axn  -  Xixy_yn * Ayn));
+	precision Axn_pro = Xitt_xn * Att  +  Xixx_xn * Axx  +  Xixn_yy * Ayy  +  t4 * Xixn_nn * Ann  -  2. * (Xitx_xn * Atx  +  Xity_xn * Aty  -  Xixy_xn * Axy  +  t2 * (Xitn_xn * Atn   -  Xixn_xn * Axn  -  Xixn_yn * Ayn));
+	precision Ayy_pro = Xitt_yy * Att  +  Xixx_yy * Axx  +  Xiyy_yy * Ayy  +  t4 * Xiyy_nn * Ann  -  2. * (Xitx_yy * Atx  +  Xity_yy * Aty  -  Xixy_yy * Axy  +  t2 * (Xitn_yy * Atn   -  Xixn_yy * Axn  -  Xiyy_yn * Ayn));
+	precision Ayn_pro = Xitt_yn * Att  +  Xixx_yn * Axx  +  Xiyy_yn * Ayy  +  t4 * Xiyn_nn * Ann  -  2. * (Xitx_yn * Atx  +  Xity_yn * Aty  -  Xixy_yn * Axy  +  t2 * (Xitn_yn * Atn   -  Xixn_yn * Axn  -  Xiyn_yn * Ayn));
+	precision Ann_pro = Xitt_nn * Att  +  Xixx_nn * Axx  +  Xiyy_nn * Ayy  +  t4 * Xinn_nn * Ann  -  2. * (Xitx_nn * Atx  +  Xity_nn * Aty  -  Xixy_nn * Axy  +  t2 * (Xitn_nn * Atn   -  Xixn_nn * Axn  -  Xiyn_nn * Ayn));
 
 	Att = Att_pro;
 	Atx = Atx_pro;

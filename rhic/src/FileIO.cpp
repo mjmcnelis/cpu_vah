@@ -64,6 +64,153 @@ inline precision central_derivative(const precision * const __restrict__ f, int 
 }
 
 
+void output_gradients(const hydro_variables * const __restrict__ q, const fluid_velocity * const __restrict__ u, const fluid_velocity * const __restrict__ up, const precision * const e, double t, int nx, int ny, int nz, double dt, double dx, double dy, double dn, double etabar)
+{
+	FILE *Knpi, *pi_thetaL, *pi_thetaT, *tau_sigmaT;
+
+	char fname1[255], fname2[255], fname3[255], fname4[255];
+
+	sprintf(fname1, "output/Knpi_%.3f.dat", t);
+	sprintf(fname2, "output/pi_thetaL_%.3f.dat", t);
+	sprintf(fname3, "output/pi_thetaT_%.3f.dat", t);
+	sprintf(fname4, "output/tau_sigmaT_%.3f.dat", t);
+
+	Knpi 	   = fopen(fname1, "w");
+	pi_thetaL  = fopen(fname2, "w");
+	pi_thetaT  = fopen(fname3, "w");
+	tau_sigmaT = fopen(fname4, "w");
+
+	precision t2 = t * t;
+	precision t4 = t2 * t2;
+
+	int stride_y = nx + 4;						
+	int stride_z = (nx + 4) * (ny + 4);	
+
+	precision ui1[6], uj1[6], uk1[6];
+	precision vxi[4], vyj[4], vnk[4];			
+
+	for(int k = 2; k < nz + 2; k++)
+	{
+		double z = (k - 2. - (nz - 1.)/2.) * dn;
+
+		for(int j = 2; j < ny + 2; j++)
+		{
+			double y = (j - 2. - (ny - 1.)/2.) * dy;
+
+			for(int i = 2; i < nx + 2; i++)
+			{
+				double x = (i - 2. - (nx - 1.)/2.) * dx;
+
+				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
+
+				int simm = s - 2;			
+				int sim  = s - 1;
+				int sip  = s + 1;
+				int sipp = s + 2;
+
+				int sjmm = s - 2*stride_y;	
+				int sjm  = s - stride_y;
+				int sjp  = s + stride_y;
+				int sjpp = s + 2*stride_y;
+
+				int skmm = s - 2*stride_z;
+				int skm  = s - stride_z;
+				int skp  = s + stride_z;
+				int skpp = s + 2*stride_z;
+
+				get_fluid_velocity_neighbor_cells(u[simm], u[sim], u[sip], u[sipp], u[sjmm], u[sjm], u[sjp], u[sjpp], u[skmm], u[skm], u[skp], u[skpp], ui1, uj1, uk1, vxi, vyj, vnk, t2);
+
+				precision e_s = e[s];
+				precision T = effectiveTemperature(e_s);
+				precision tau_pi = (5. * etabar) / T;
+
+			#if (PT_MATCHING == 1)
+				precision pt = q[s].pt;
+			#else
+				precision pl = q[s].pl;
+				precision pt = (e_s - pl) / 2.;
+			#endif
+
+				// transport_coefficients aniso;
+				// aniso.compute_transport_coefficients(e_s, pl, pt);
+				// precision delta_pipi = aniso.delta_pipi;
+				// precision lambda_pipi = aniso.lambda_pipi;
+
+				precision ux = u[s].ux;
+				precision uy = u[s].uy;
+				precision un = u[s].un;
+				precision ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t2 * un * un);
+
+				precision ux_p = up[s].ux;
+				precision uy_p = up[s].uy;
+				precision un_p = up[s].un;
+
+				precision utperp = sqrt(1.  +  ux * ux  +  uy * uy);
+				precision zt = t * un / utperp;
+				precision zn = ut / t / utperp;
+
+				precision vx = ux / ut;
+				precision vy = uy / ut;
+				precision vn = un / ut;
+
+				// compute \sigma_T^{\mu\nu}
+				int n = 0;
+				precision dux_dt = (ux - ux_p) / dt;
+				precision dux_dx = central_derivative(ui1, n, dx);
+				precision dux_dy = central_derivative(uj1, n, dy);
+				precision dux_dn = central_derivative(uk1, n, dn);	
+				n += 2;
+				precision duy_dt = (uy - uy_p) / dt;
+				precision duy_dx = central_derivative(ui1, n, dx);
+				precision duy_dy = central_derivative(uj1, n, dy);
+				precision duy_dn = central_derivative(uk1, n, dn);	
+				n += 2;
+				precision dun_dt = (un - un_p) / dt;
+				precision dun_dx = central_derivative(ui1, n, dx);
+				precision dun_dy = central_derivative(uj1, n, dy);
+				precision dun_dn = central_derivative(uk1, n, dn);
+
+				precision dut_dt = vx * dux_dt  +  vy * duy_dt  +  t2 * vn * dun_dt  +  t * vn * un;
+				precision dut_dx = vx * dux_dx  +  vy * duy_dx  +  t2 * vn * dun_dx;
+				precision dut_dy = vx * dux_dy  +  vy * duy_dy  +  t2 * vn * dun_dy;
+				precision dut_dn = vx * dux_dn  +  vy * duy_dn  +  t2 * vn * dun_dn;
+
+				precision theta = dut_dt  +  dux_dx  +  duy_dy  +  dun_dn  +  ut / t;
+				precision thetaL = - zt * zt * dut_dt  +  t2 * zn * zn * dun_dn  +  zt * zn * (t2 * dun_dt  -  dut_dn)  +  t * zn * zn * ut;
+				precision thetaT = theta  -  thetaL;
+
+				precision sTtt = dut_dt;
+				precision sTtx = (dux_dt  -  dut_dx) / 2.;
+				precision sTty = (duy_dt  -  dut_dy) / 2.;
+				precision sTtn = (dun_dt  +  un / t  -  (dut_dn  +  t * un) / t2) / 2.;  
+				precision sTxx = - dux_dx;
+				precision sTxy = - (dux_dy  +  duy_dx) / 2.;
+				precision sTxn = - (dun_dx  +  dux_dn / t2) / 2.;
+				precision sTyy = - duy_dy;
+				precision sTyn = - (dun_dy  +  duy_dn / t2) / 2.;
+				precision sTnn = - (dun_dn  +  ut / t) / t2;
+
+				transverse_projection Xi(ut, ux, uy, un, zt, zn, t2);	
+				double_transverse_projection Xi_2(Xi, t2, t4);			
+				Xi_2.double_transverse_project_tensor(sTtt, sTtx, sTty, sTtn, sTxx, sTxy, sTxn, sTyy, sTyn, sTnn);
+
+				precision sT_mag = sqrt(fabs(sTtt * sTtt  +  sTxx * sTxx  +  sTyy * sTyy  +  t4 * sTnn * sTnn  -  2. * (sTtx * sTtx  +  sTty * sTty  -  sTxy * sTxy  +  t2 * (sTtn * sTtn  -  sTxn * sTxn  -  sTyn * sTyn))));
+
+				fprintf(Knpi, 		"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, tau_pi * sT_mag);
+				// fprintf(pi_thetaL,	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, -tau_pi * lambda_pipi * thetaL);
+				// fprintf(pi_thetaT, 	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, tau_pi * delta_pipi * thetaT);
+				fprintf(pi_thetaL,	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, tau_pi * fabs(thetaL));
+				fprintf(pi_thetaT, 	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, tau_pi * fabs(thetaT));
+				fprintf(tau_sigmaT,	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, t * sT_mag);
+			}
+		}
+	}
+	fclose(Knpi);
+	fclose(pi_thetaL);
+	fclose(pi_thetaT);
+	fclose(tau_sigmaT);
+}
+
 void output_shear_validity(const hydro_variables * const __restrict__ q, const fluid_velocity * const __restrict__ u, const fluid_velocity * const __restrict__ up, const precision * const e, double t, int nx, int ny, int nz, double dt, double dx, double dy, double dn, double etabar)
 {
 #ifdef PIMUNU
@@ -470,10 +617,12 @@ void output_dynamical_variables(double t, int nx, int ny, int nz, double dt, dou
 	else if(initialConditionType == 2 || initialConditionType == 3)
 	{
 		output_gubser(q, u, e, t, nx, ny, nz, dx, dy, dz);
+		output_gradients(q, u, up, e, t, nx, ny, nz, dt, dx, dy, dz, etabar);
 	}
 	else if(initialConditionType == 4)
 	{
 		output_optical_glauber(q, u, e, t, nx, ny, nz, dx, dy, dz);
+		output_gradients(q, u, up, e, t, nx, ny, nz, dt, dx, dy, dz, etabar);
 	}
 #ifdef PIMUNU
 	output_shear_validity(q, u, up, e, t, nx, ny, nz, dt, dx, dy, dz, etabar);

@@ -79,12 +79,15 @@ const precision * const __restrict__ e, const fluid_velocity * const __restrict_
 				q_s[1] = q[s].ttx;
 				q_s[2] = q[s].tty;
 				q_s[3] = q[s].ttn;
-				q_s[4] = q[s].pl;
 
-				int a = 5;					// counter
+				int a = 4;					// counter
+			#ifdef ANISO_HYDRO
+				q_s[a] = q[s].pl;	a++;
 			#if (PT_MATCHING == 1)
 				q_s[a] = q[s].pt;	a++;
 			#endif
+			#endif
+
 			#ifdef PIMUNU
 				q_s[a] = q[s].pitt; a++;
 				q_s[a] = q[s].pitx; a++;
@@ -97,12 +100,18 @@ const precision * const __restrict__ e, const fluid_velocity * const __restrict_
 				q_s[a] = q[s].piyn; a++;
 				q_s[a] = q[s].pinn; a++;
 			#endif
+
 			#ifdef WTZMU
 				q_s[a] = q[s].WtTz; a++;
 				q_s[a] = q[s].WxTz; a++;
 				q_s[a] = q[s].WyTz; a++;
 				q_s[a] = q[s].WnTz;
 			#endif
+
+			#ifdef PI
+				q_s[a] = q[s].bulkPi;
+			#endif
+
 				precision e_s = e[s];
 
 				precision ux = u[s].ux;
@@ -139,12 +148,15 @@ const precision * const __restrict__ e, const fluid_velocity * const __restrict_
 				Q[s].ttx = q_s[1];
 				Q[s].tty = q_s[2];
 				Q[s].ttn = q_s[3];
-				Q[s].pl  = q_s[4];
 
-				a = 5;	// reset counter
+				a = 4;	// reset counter
+			#ifdef ANISO_HYDRO
+				Q[s].pl  = q_s[a];	a++;
 			#if (PT_MATCHING == 1)
 				Q[s].pt = q_s[a]; a++;
 			#endif
+			#endif
+
 			#ifdef PIMUNU
 				Q[s].pitt = q_s[a]; a++;
 				Q[s].pitx = q_s[a]; a++;
@@ -162,6 +174,10 @@ const precision * const __restrict__ e, const fluid_velocity * const __restrict_
 				Q[s].WxTz = q_s[a]; a++;
 				Q[s].WyTz = q_s[a]; a++;
 				Q[s].WnTz = q_s[a];
+			#endif
+
+			#ifdef PI
+				Q[s].bulkPi = q_s[a];
 			#endif
 			}
 		}
@@ -184,10 +200,14 @@ void runge_kutta2(const hydro_variables * const __restrict__ q, hydro_variables 
 				Q[s].ttx = (q[s].ttx  +  Q[s].ttx) / 2.;
 				Q[s].tty = (q[s].tty  +  Q[s].tty) / 2.;
 				Q[s].ttn = (q[s].ttn  +  Q[s].ttn) / 2.;
+
+			#ifdef ANISO_HYDRO
 				Q[s].pl  = (q[s].pl   +  Q[s].pl)  / 2.;
 			#if (PT_MATCHING == 1)
 				Q[s].pt  = (q[s].pt   +  Q[s].pt)  / 2.;
 			#endif
+			#endif
+
 			#ifdef PIMUNU
 				Q[s].pitt = (q[s].pitt  +  Q[s].pitt) / 2.;
 				Q[s].pitx = (q[s].pitx  +  Q[s].pitx) / 2.;
@@ -200,12 +220,17 @@ void runge_kutta2(const hydro_variables * const __restrict__ q, hydro_variables 
 				Q[s].piyn = (q[s].piyn  +  Q[s].piyn) / 2.;
 				Q[s].pinn = (q[s].pinn  +  Q[s].pinn) / 2.;
 			#endif
+
 			#ifdef WTZMU
 				Q[s].WtTz = (q[s].WtTz  +  Q[s].WtTz) / 2.;
 				Q[s].WxTz = (q[s].WxTz  +  Q[s].WxTz) / 2.;
 				Q[s].WyTz = (q[s].WyTz  +  Q[s].WyTz) / 2.;
 				Q[s].WnTz = (q[s].WnTz  +  Q[s].WnTz) / 2.;
 			#endif
+
+			#ifdef PI
+				Q[s].bulkPi = (q[s].bulkPi  +  Q[s].bulkPi) / 2.;
+			#endif	
 			}
 		}
 	}
@@ -223,8 +248,12 @@ void evolve_hydro_one_time_step(precision t, precision dt, int nx, int ny, int n
 	// compute uS, e
 	set_inferred_variables(qI, e, uI, t, nx, ny, nz);
 
-	// regulate dissipative components of qS
-	regulate_dissipative_currents(t, qI, e, uI, nx, ny, nz);	
+	// regulate residual components of qS
+#ifdef ANISO_HYDRO
+	regulate_residual_currents(t, qI, e, uI, nx, ny, nz);	
+#else
+	regulate_viscous_currents(t, qI, e, uI, nx, ny, nz);	
+#endif
 
 	// set ghost cells for qS, uS, e,
 	set_ghost_cells(qI, e, uI, nx, ny, nz);
@@ -238,12 +267,15 @@ void evolve_hydro_one_time_step(precision t, precision dt, int nx, int ny, int n
 	// swap up and u
 	swap_fluid_velocity(&up, &u);
 
-	// maybe this can all be grouped together in one function somehow
-	// compute u, e,
+	// compute u, e
 	set_inferred_variables(Q, e, u, t, nx, ny, nz);
 
-	// regulate dissipative components of Q
-	regulate_dissipative_currents(t, Q, e, u, nx, ny, nz);
+	// regulate residual components of Q
+#ifdef ANISO_HYDRO
+	regulate_residual_currents(t, Q, e, u, nx, ny, nz);
+#else 
+	regulate_viscous_currents(t, Q, e, u, nx, ny, nz);
+#endif
 
 	// set ghost cells for Q, u, e,
 	set_ghost_cells(Q, e, u, nx, ny, nz);

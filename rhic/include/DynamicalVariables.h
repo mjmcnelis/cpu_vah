@@ -5,10 +5,38 @@
 #include "EquationOfState.h"
 #include "Precision.h"
 
+
 #define NUMBER_OF_CONSERVATION_LAWS 4
 
-#define PIMUNU
-//#define WTZMU
+
+#define ANISO_HYDRO				// comment to run 2nd order viscous hydrodynamics
+								// (for cross-checking vahydro in limit of small viscosity)
+
+#ifndef ANISO_HYDRO
+	#define VISCOUS_HYDRO
+#endif
+
+
+#define PIMUNU 					// name shared but different shear stresses (maybe isolate them)
+
+
+#ifdef ANISO_HYDRO
+	#define PL_MATCHING 1		// don't change PL, PT values
+	#ifdef CONFORMAL_EOS
+		#define PT_MATCHING 0
+	#else
+		#define PT_MATCHING 1
+	#endif
+	//#define WTZMU 			// uncomment to turn on W_Tz (comment for 2+1d simulations)
+#endif
+
+
+#ifdef VISCOUS_HYDRO
+	#ifndef CONFORMAL_EOS
+		//#define PI 			// uncomment to turn on bulk pressure
+	#endif
+#endif
+
 
 #ifdef PIMUNU
 	#define PIMUNU_COMPONENTS 10
@@ -16,23 +44,30 @@
 	#define PIMUNU_COMPONENTS 0
 #endif
 
+
 #ifdef WTZMU
 	#define WTZMU_COMPONENTS 4
 #else
 	#define WTZMU_COMPONENTS 0
 #endif
 
-#define NUMBER_OF_RESIDUAL_CURRENTS (PIMUNU_COMPONENTS + WTZMU_COMPONENTS)
 
-#define PL_MATCHING 1
-
-#ifdef CONFORMAL_EOS
-	#define PT_MATCHING 0
+#ifdef PI
+	#define PI_COMPONENTS 1
 #else
-	#define PT_MATCHING 1
+	#define PI_COMPONENTS 0 
 #endif
 
-#define NUMBER_CONSERVED_VARIABLES (NUMBER_OF_CONSERVATION_LAWS + PL_MATCHING + PT_MATCHING + NUMBER_OF_RESIDUAL_CURRENTS)
+
+#define NUMBER_OF_RESIDUAL_CURRENTS (PIMUNU_COMPONENTS + WTZMU_COMPONENTS)
+#define NUMBER_OF_VISCOUS_CURRENTS (PIMUNU_COMPONENTS + PI_COMPONENTS)
+
+#ifdef ANISO_HYDRO
+	#define NUMBER_CONSERVED_VARIABLES (NUMBER_OF_CONSERVATION_LAWS + PL_MATCHING + PT_MATCHING + NUMBER_OF_RESIDUAL_CURRENTS)
+#else
+	#define NUMBER_CONSERVED_VARIABLES (NUMBER_OF_CONSERVATION_LAWS + NUMBER_OF_RESIDUAL_CURRENTS)
+#endif
+
 
 typedef struct
 {
@@ -40,10 +75,26 @@ typedef struct
 	precision ttx;
 	precision tty;
 	precision ttn;
+
+#ifdef ANISO_HYDRO
 	precision pl;
 #if (PT_MATCHING == 1)
 	precision pt;
 #endif
+#ifdef WTZMU
+	precision WtTz;
+	precision WxTz;
+	precision WyTz;
+	precision WnTz;
+#endif
+#endif
+
+#ifdef VISCOUS_HYDRO
+#ifdef PI
+	precision bulkPi;
+#endif
+#endif
+
 #ifdef PIMUNU
 	precision pitt;
 	precision pitx;
@@ -56,12 +107,8 @@ typedef struct
 	precision piyn;
 	precision pinn;
 #endif
-#ifdef WTZMU
-	precision WtTz;
-	precision WxTz;
-	precision WyTz;
-	precision WnTz;
-#endif
+
+
 } hydro_variables;
 
 typedef struct
@@ -72,9 +119,9 @@ typedef struct
 } fluid_velocity;
 
 
-// q, u = current variables
+// q, u = current hydro, fluid velocity variables
 // up = previous fluid velocity
-// Q = updated variables
+// Q = updated hydro variables
 // qI, uI = intermediate variables
 // extern means the variables are declared but defined elsewhere to allow other source files to use it
 
