@@ -3,7 +3,125 @@
 
 #include "Precision.h"
 
-//using namespace std;
+class spatial_projection
+{
+	private:
+		precision ut;
+		precision ux;
+		precision uy;
+		precision un;
+		precision t2;
+	public:
+		precision Dtt;	// \Delta^{\mu\nu}
+		precision Dtx;
+		precision Dty;
+		precision Dtn;
+		precision Dxx;
+		precision Dxy;
+		precision Dxn;
+		precision Dyy;
+		precision Dyn;
+		precision Dnn;
+
+		spatial_projection(precision ut_in, precision ux_in, precision uy_in, precision un_in, precision t2_in);
+		~spatial_projection();
+
+		void spatial_project_vector(precision & At, precision & Ax, precision & Ay, precision & An);
+
+		void test_spatial_projector();
+};
+
+class double_spatial_projection
+{
+	private:
+		precision t2;
+		precision t4;
+
+		precision Dtt;	// \Delta^{\mu\nu}
+		precision Dtx;
+		precision Dty;
+		precision Dtn;
+		precision Dxx;
+		precision Dxy;
+		precision Dxn;
+		precision Dyy;
+		precision Dyn;
+		precision Dnn;
+
+		precision Dtt_tt;	// \Delta^{\mu\nu\alpha\beta} 
+		precision Dtt_tx;	// all upper indices (55 independent components)
+		precision Dtt_ty;	
+		precision Dtt_tn;
+		precision Dtt_xx;
+		precision Dtt_xy;
+		precision Dtt_xn;
+		precision Dtt_yy;
+		precision Dtt_yn;
+		precision Dtt_nn;
+
+		precision Dtx_tx;
+		precision Dtx_ty;
+		precision Dtx_tn;
+		precision Dtx_xx;
+		precision Dtx_xy;
+		precision Dtx_xn;
+		precision Dtx_yy;
+		precision Dtx_yn;
+		precision Dtx_nn;
+
+		precision Dty_ty;
+		precision Dty_tn;
+		precision Dty_xx;
+		precision Dty_xy;
+		precision Dty_xn;
+		precision Dty_yy;
+		precision Dty_yn;
+		precision Dty_nn;
+
+		precision Dtn_tn;
+		precision Dtn_xx;
+		precision Dtn_xy;
+		precision Dtn_xn;
+		precision Dtn_yy;
+		precision Dtn_yn;
+		precision Dtn_nn;
+
+		precision Dxx_xx;
+		precision Dxx_xy;
+		precision Dxx_xn;
+		precision Dxx_yy;
+		precision Dxx_yn;
+		precision Dxx_nn;
+
+		precision Dxy_xy;
+		precision Dxy_xn;
+		precision Dxy_yy;
+		precision Dxy_yn;
+		precision Dxy_nn;
+
+		precision Dxn_xn;
+		precision Dxn_yy;
+		precision Dxn_yn;
+		precision Dxn_nn;
+
+		precision Dyy_yy;
+		precision Dyy_yn;
+		precision Dyy_nn;
+
+		precision Dyn_yn;
+		precision Dyn_nn;
+
+		precision Dnn_nn;
+
+	public:
+	
+		double_spatial_projection(spatial_projection Delta, precision t2_in, precision t4_in);
+		~double_spatial_projection();
+
+		void double_spatial_project_tensor(precision & Att, precision & Atx, precision & Aty, precision & Atn, precision & Axx, precision & Axy, precision & Axn, precision & Ayy, precision & Ayn, precision & Ann);
+
+		void test_double_spatial_projector(precision ut, precision ux, precision uy, precision un);
+};
 
 class transverse_projection
 {

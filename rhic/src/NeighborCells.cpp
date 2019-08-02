@@ -150,6 +150,7 @@ void get_conserved_neighbor_cells(	hydro_variables q_simm, hydro_variables q_sim
 	qi1[n]	   = q_sim.ttn;
 	qi1[n + 1] = q_sip.ttn;		n += 2;
 
+#ifdef ANISO_HYDRO
 	qi1[n]	   = q_sim.pl;
 	qi1[n + 1] = q_sip.pl;		n += 2;
 
@@ -157,6 +158,8 @@ void get_conserved_neighbor_cells(	hydro_variables q_simm, hydro_variables q_sim
 	qi1[n]	   = q_sim.pt;
 	qi1[n + 1] = q_sip.pt;		n += 2;
 #endif
+#endif
+
 #ifdef PIMUNU
 	qi1[n]	   = q_sim.pitt;
 	qi1[n + 1] = q_sip.pitt;	n += 2;
@@ -188,6 +191,7 @@ void get_conserved_neighbor_cells(	hydro_variables q_simm, hydro_variables q_sim
 	qi1[n]	   = q_sim.pinn;
 	qi1[n + 1] = q_sip.pinn;	n += 2;
 #endif
+
 #ifdef WTZMU
 	qi1[n]	   = q_sim.WtTz;
 	qi1[n + 1] = q_sip.WtTz;	n += 2;
@@ -202,6 +206,11 @@ void get_conserved_neighbor_cells(	hydro_variables q_simm, hydro_variables q_sim
 	qi1[n + 1] = q_sip.WnTz;
 #endif
 
+#ifdef PI
+	qi1[n]	   = q_sim.Pi;
+	qi1[n + 1] = q_sip.Pi;		
+#endif
+
 
 	// q neighbors [i-2, i+2] stored in qi1
 	//------------------------------------------------
@@ -209,17 +218,18 @@ void get_conserved_neighbor_cells(	hydro_variables q_simm, hydro_variables q_sim
 	n = 0;
 
 	qi2[n]	   = q_simm.ttt;					
-	qi2[n + 1] = q_sipp.ttt;		n += 2;
+	qi2[n + 1] = q_sipp.ttt;	n += 2;
 
 	qi2[n]	   = q_simm.ttx;
-	qi2[n + 1] = q_sipp.ttx;		n += 2;
+	qi2[n + 1] = q_sipp.ttx;	n += 2;
 
 	qi2[n]	   = q_simm.tty;
-	qi2[n + 1] = q_sipp.tty;		n += 2;
+	qi2[n + 1] = q_sipp.tty;	n += 2;
 
 	qi2[n]	   = q_simm.ttn;
-	qi2[n + 1] = q_sipp.ttn;		n += 2;
+	qi2[n + 1] = q_sipp.ttn;	n += 2;
 
+#ifdef ANISO_HYDRO
 	qi2[n]	   = q_simm.pl;
 	qi2[n + 1] = q_sipp.pl;		n += 2;
 
@@ -227,6 +237,8 @@ void get_conserved_neighbor_cells(	hydro_variables q_simm, hydro_variables q_sim
 	qi2[n]	   = q_simm.pt;
 	qi2[n + 1] = q_sipp.pt;		n += 2;
 #endif
+#endif
+
 #ifdef PIMUNU
 	qi2[n]	   = q_simm.pitt;
 	qi2[n + 1] = q_sipp.pitt;	n += 2;
@@ -258,6 +270,7 @@ void get_conserved_neighbor_cells(	hydro_variables q_simm, hydro_variables q_sim
 	qi2[n]	   = q_simm.pinn;
 	qi2[n + 1] = q_sipp.pinn;	n += 2;
 #endif
+
 #ifdef WTZMU
 	qi2[n]	   = q_simm.WtTz;
 	qi2[n + 1] = q_sipp.WtTz;	n += 2;
@@ -270,6 +283,11 @@ void get_conserved_neighbor_cells(	hydro_variables q_simm, hydro_variables q_sim
 	
 	qi2[n]	   = q_simm.WnTz;
 	qi2[n + 1] = q_sipp.WnTz;
+#endif
+
+#ifdef PI
+	qi2[n]	   = q_simm.Pi;
+	qi2[n + 1] = q_sipp.Pi;
 #endif
 
 
@@ -290,6 +308,7 @@ void get_conserved_neighbor_cells(	hydro_variables q_simm, hydro_variables q_sim
 	qj1[n]	   = q_sjm.ttn;
 	qj1[n + 1] = q_sjp.ttn;		n += 2;
 
+#ifdef ANISO_HYDRO
 	qj1[n]	   = q_sjm.pl;
 	qj1[n + 1] = q_sjp.pl;		n += 2;
 
@@ -297,6 +316,8 @@ void get_conserved_neighbor_cells(	hydro_variables q_simm, hydro_variables q_sim
 	qj1[n]	   = q_sjm.pt;
 	qj1[n + 1] = q_sjp.pt;		n += 2;
 #endif
+#endif
+
 #ifdef PIMUNU
 	qj1[n]	   = q_sjm.pitt;
 	qj1[n + 1] = q_sjp.pitt;	n += 2;
@@ -328,6 +349,7 @@ void get_conserved_neighbor_cells(	hydro_variables q_simm, hydro_variables q_sim
 	qj1[n]	   = q_sjm.pinn;
 	qj1[n + 1] = q_sjp.pinn;	n += 2;
 #endif
+
 #ifdef WTZMU
 	qj1[n]	   = q_sjm.WtTz;
 	qj1[n + 1] = q_sjp.WtTz;	n += 2;
@@ -342,6 +364,11 @@ void get_conserved_neighbor_cells(	hydro_variables q_simm, hydro_variables q_sim
 	qj1[n + 1] = q_sjp.WnTz;
 #endif
 
+#ifdef PI
+	qj1[n]	   = q_sjm.Pi;
+	qj1[n + 1] = q_sjp.Pi;	
+#endif
+
 
 	// q neighbors [j-2, j+2] stored in qj2
 	//------------------------------------------------
@@ -349,17 +376,18 @@ void get_conserved_neighbor_cells(	hydro_variables q_simm, hydro_variables q_sim
 	n = 0;
 
 	qj2[n]	   = q_sjmm.ttt;					
-	qj2[n + 1] = q_sjpp.ttt;		n += 2;
+	qj2[n + 1] = q_sjpp.ttt;	n += 2;
 
 	qj2[n]	   = q_sjmm.ttx;
-	qj2[n + 1] = q_sjpp.ttx;		n += 2;
+	qj2[n + 1] = q_sjpp.ttx;	n += 2;
 
 	qj2[n]	   = q_sjmm.tty;
-	qj2[n + 1] = q_sjpp.tty;		n += 2;
+	qj2[n + 1] = q_sjpp.tty;	n += 2;
 
 	qj2[n]	   = q_sjmm.ttn;
-	qj2[n + 1] = q_sjpp.ttn;		n += 2;
+	qj2[n + 1] = q_sjpp.ttn;	n += 2;
 
+#ifdef ANISO_HYDRO
 	qj2[n]	   = q_sjmm.pl;
 	qj2[n + 1] = q_sjpp.pl;		n += 2;
 
@@ -367,6 +395,8 @@ void get_conserved_neighbor_cells(	hydro_variables q_simm, hydro_variables q_sim
 	qj2[n]	   = q_sjmm.pt;
 	qj2[n + 1] = q_sjpp.pt;		n += 2;
 #endif
+#endif
+
 #ifdef PIMUNU
 	qj2[n]	   = q_sjmm.pitt;
 	qj2[n + 1] = q_sjpp.pitt;	n += 2;
@@ -398,6 +428,7 @@ void get_conserved_neighbor_cells(	hydro_variables q_simm, hydro_variables q_sim
 	qj2[n]	   = q_sjmm.pinn;
 	qj2[n + 1] = q_sjpp.pinn;	n += 2;
 #endif
+
 #ifdef WTZMU
 	qj2[n]	   = q_sjmm.WtTz;
 	qj2[n + 1] = q_sjpp.WtTz;	n += 2;
@@ -410,6 +441,11 @@ void get_conserved_neighbor_cells(	hydro_variables q_simm, hydro_variables q_sim
 
 	qj2[n]	   = q_sjmm.WnTz;
 	qj2[n + 1] = q_sjpp.WnTz;
+#endif
+
+#ifdef PI
+	qj2[n]	   = q_sjmm.Pi;
+	qj2[n + 1] = q_sjpp.Pi;
 #endif
 
 
@@ -430,6 +466,7 @@ void get_conserved_neighbor_cells(	hydro_variables q_simm, hydro_variables q_sim
 	qk1[n]	   = q_skm.ttn;
 	qk1[n + 1] = q_skp.ttn;		n += 2;
 
+#ifdef ANISO_HYDRO
 	qk1[n]	   = q_skm.pl;
 	qk1[n + 1] = q_skp.pl;		n += 2;
 
@@ -437,6 +474,8 @@ void get_conserved_neighbor_cells(	hydro_variables q_simm, hydro_variables q_sim
 	qk1[n]	   = q_skm.pt;
 	qk1[n + 1] = q_skp.pt;		n += 2;
 #endif
+#endif
+
 #ifdef PIMUNU
 	qk1[n]	   = q_skm.pitt;
 	qk1[n + 1] = q_skp.pitt;	n += 2;
@@ -468,6 +507,7 @@ void get_conserved_neighbor_cells(	hydro_variables q_simm, hydro_variables q_sim
 	qk1[n]	   = q_skm.pinn;
 	qk1[n + 1] = q_skp.pinn;	n += 2;
 #endif
+
 #ifdef WTZMU
 	qk1[n]	   = q_skm.WtTz;
 	qk1[n + 1] = q_skp.WtTz;	n += 2;
@@ -482,6 +522,11 @@ void get_conserved_neighbor_cells(	hydro_variables q_simm, hydro_variables q_sim
 	qk1[n + 1] = q_skp.WnTz;
 #endif
 
+#ifdef PI
+	qk1[n]	   = q_skm.Pi;
+	qk1[n + 1] = q_skp.Pi;
+#endif
+
 
 	// q neighbors [k-2, k+2] stored in qk2
 	//------------------------------------------------
@@ -489,17 +534,18 @@ void get_conserved_neighbor_cells(	hydro_variables q_simm, hydro_variables q_sim
 	n = 0;
 
 	qk2[n]	   = q_skmm.ttt;					
-	qk2[n + 1] = q_skpp.ttt;		n += 2;
+	qk2[n + 1] = q_skpp.ttt;	n += 2;
 
 	qk2[n]	   = q_skmm.ttx;
-	qk2[n + 1] = q_skpp.ttx;		n += 2;
+	qk2[n + 1] = q_skpp.ttx;	n += 2;
 
 	qk2[n]	   = q_skmm.tty;
-	qk2[n + 1] = q_skpp.tty;		n += 2;
+	qk2[n + 1] = q_skpp.tty;	n += 2;
 
 	qk2[n]	   = q_skmm.ttn;
-	qk2[n + 1] = q_skpp.ttn;		n += 2;
+	qk2[n + 1] = q_skpp.ttn;	n += 2;
 
+#ifdef ANISO_HYDRO
 	qk2[n]	   = q_skmm.pl;
 	qk2[n + 1] = q_skpp.pl;		n += 2;
 
@@ -507,6 +553,8 @@ void get_conserved_neighbor_cells(	hydro_variables q_simm, hydro_variables q_sim
 	qk2[n]	   = q_skmm.pt;
 	qk2[n + 1] = q_skpp.pt;		n += 2;
 #endif
+#endif
+
 #ifdef PIMUNU
 	qk2[n]	   = q_skmm.pitt;
 	qk2[n + 1] = q_skpp.pitt;	n += 2;
@@ -538,6 +586,7 @@ void get_conserved_neighbor_cells(	hydro_variables q_simm, hydro_variables q_sim
 	qk2[n]	   = q_skmm.pinn;
 	qk2[n + 1] = q_skpp.pinn;	n += 2;
 #endif
+
 #ifdef WTZMU
 	qk2[n]	   = q_skmm.WtTz;
 	qk2[n + 1] = q_skpp.WtTz;	n += 2;
@@ -550,6 +599,11 @@ void get_conserved_neighbor_cells(	hydro_variables q_simm, hydro_variables q_sim
 
 	qk2[n]	   = q_skmm.WnTz;
 	qk2[n + 1] = q_skpp.WnTz;
+#endif
+
+#ifdef PI
+	qk2[n]	   = q_skmm.Pi;
+	qk2[n + 1] = q_skpp.Pi;
 #endif
 }
 

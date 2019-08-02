@@ -28,7 +28,7 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 // maybe regulate individual rows of pimunu
 // here maybe: I don't need to reproject pimunu b/c already "fixed" velocity solution (just use "old method")
 
-void set_inferred_variables(const hydro_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u, precision t, int nx, int ny, int nz)
+void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u, precision t, int nx, int ny, int nz)
 {
 	precision t2 = t * t;
 	precision t4 = t2 * t2;
@@ -100,7 +100,7 @@ void set_inferred_variables(const hydro_variables * const __restrict__ q, precis
 				precision zt2  = zt * zt;
 				precision ztzn = zt * zn;
 
-				// what a pain in the ass (maybe double check)
+				// what a pain in the ass (messy, so far testing shows it works though...)
 				precision a = 0.25 * t2 * ztzn * ztzn  +  0.5 * (1. + zt2) * (1.  -  0.5 * zt2);
 				precision b = 0.5 * t2 * Mn * ztzn  -  1.5 * t2 * pl * ztzn * ztzn  -  (0.5 * (1. + zt2) * (Mt - 1.5 * pl * zt2)  -  (1. - 0.5 * zt2) * (Mt - 0.5 * pl * (1. + 3. * zt2)));
 				precision c = Mx * Mx  +  My * My  +  t2 * Mn * Mn  -  1.5 * t2 * Mn * pl * ztzn  +  2.25 * t2 * pl * pl * ztzn * ztzn  -  (Mt - 0.5 * pl * (1. + 3. * zt2)) * (Mt - 1.5 * pl * zt2);
@@ -119,7 +119,7 @@ void set_inferred_variables(const hydro_variables * const __restrict__ q, precis
 
 				if(std::isnan(ut_s))
 				{
-					printf("\nget_inferred_variables_test error: u^mu = (%lf, %lf, %lf, %lf) is nan\n", ut_s, ux_s, uy_s, un_s);
+					printf("\nget_inferred_variables_aniso_hydro error: u^mu = (%lf, %lf, %lf, %lf) is nan\n", ut_s, ux_s, uy_s, un_s);
 					exit(-1);
 				}
 
@@ -140,11 +140,101 @@ void set_inferred_variables(const hydro_variables * const __restrict__ q, precis
 					ttx_error = fmax(dttx, ttx_error);
 					tty_error = fmax(dtty, tty_error);
 					ttn_error = fmax(dttn, ttn_error);
-					printf("get_inferred_variables: |dt^{tau/mu}| = (%.6g, %.6g, %.6g, %.6g)\n", ttt_error, ttx_error, tty_error, ttn_error);
+					printf("get_inferred_variables_aniso_hydro: |dt^{tau/mu}| = (%.6g, %.6g, %.6g, %.6g)\n", ttt_error, ttx_error, tty_error, ttn_error);
 				}
 			#endif
 
-				e[s]     = e_s;		// get solution for primary variables
+				e[s]     = e_s;		// set solution for primary variables
+				u[s].ux = ux_s;
+				u[s].uy = uy_s;
+				u[s].un = un_s;
+			}
+		}
+	}
+}
+
+
+
+void set_inferred_variables_viscous_hydro(const hydro_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u, precision t, int nx, int ny, int nz)
+{
+	precision t2 = t * t;
+	
+	for(int k = 2; k < nz + 2; k++)
+	{
+		for(int j = 2; j < ny + 2; j++)
+		{
+			for(int i = 2; i < nx + 2; i++)
+			{
+				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
+
+				precision ttt = q[s].ttt;
+				precision ttx = q[s].ttx;
+				precision tty = q[s].tty;
+				precision ttn = q[s].ttn;
+				
+			#ifdef PIMUNU
+				precision pitt = q[s].pitt;
+				precision pitx = q[s].pitx;
+				precision pity = q[s].pity;
+				precision pitn = q[s].pitn;
+			#else
+				precision pitt = 0, pitx = 0, pity = 0, pitn = 0;
+			#endif
+			#ifdef PI
+				precision Pi = q[s].Pi;		
+			#else
+				precision Pi = 0;
+			#endif
+
+				precision Mt = ttt  -  pitt;			
+				precision Mx = ttx  -  pitx;			
+				precision My = tty  -  pity;			
+				precision Mn = ttn  -  pitn;
+
+				precision M2 = Mx * Mx  +  My * My  +  t2 * Mn * Mn;		
+
+			#ifdef CONFORMAL_EOS
+				precision e_s = fmax(E_MIN, - Mt  +  sqrt(fabs(4. * Mt * Mt  -  3. * M2)));
+			#else
+				// add root-solving algorithm (use a function)
+				// initial guess (need ePrev)
+				precision ePrev = e[s];
+				precision e_s;
+				// root solving algorithm (update e)
+			#endif
+
+				precision p = equilibriumPressure(e_s);
+
+				precision ut_s = sqrt(fabs((Mt + p + Pi) / (e_s + p + Pi)));
+				precision ux_s = Mx / ut_s / (e_s + p + Pi);
+				precision uy_s = My / ut_s / (e_s + p + Pi);
+				precision un_s = Mn / ut_s / (e_s + p + Pi);
+		
+				if(std::isnan(ut_s))
+				{
+					printf("\nget_inferred_variables_viscous_hydro error: u^mu = (%lf, %lf, %lf, %lf) is nan\n", ut_s, ux_s, uy_s, un_s);
+					exit(-1);
+				}
+
+			#if (TEST_TMUNU == 1)
+				ut_s = sqrt(1.  +  ux_s * ux_s  +  uy_s * uy_s  +  t2 * un_s * un_s);
+				
+				precision dttt = fabs((e_s + p) * ut_s * ut_s  -  (p + Pi)  +  pitt  -  ttt);
+				precision dttx = fabs((e_s + p) * ut_s * ux_s  +  pitx  -  ttx);
+				precision dtty = fabs((e_s + p) * ut_s * uy_s  +  pity  -  tty);
+				precision dttn = fabs((e_s + p) * ut_s * un_s  +  pitn  -  ttn);
+
+				if(dttt > ttt_error || dttx > ttx_error || dtty > tty_error || dttn > ttn_error)
+				{
+					ttt_error = fmax(dttt, ttt_error);
+					ttx_error = fmax(dttx, ttx_error);
+					tty_error = fmax(dtty, tty_error);
+					ttn_error = fmax(dttn, ttn_error);
+					printf("get_inferred_variables_viscous_hydro: |dt^{tau/mu}| = (%.6g, %.6g, %.6g, %.6g)\n", ttt_error, ttx_error, tty_error, ttn_error);
+				}
+			#endif
+
+				e[s]     = e_s;		// set solution for primary variables
 				u[s].ux = ux_s;
 				u[s].uy = uy_s;
 				u[s].un = un_s;

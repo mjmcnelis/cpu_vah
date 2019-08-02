@@ -6,7 +6,7 @@
 -------------------------------------------------------
 | Date created	| 10/12/15
 -------------------------------------------------------
-| Last edited	| 7/23/19
+| Last edited	| 8/2/19
 -------------------------------------------------------
 | Description 	| A viscous anisotropic hydrodynamic
 |				| simulation of a heavy-ion collision
@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <libconfig.h>
+#include "../include/DynamicalVariables.h"
 #include "../include/Parameters.h"
 #include "../include/Hydrodynamics.h"
 
@@ -36,9 +37,15 @@ int main(int argc, char **argv)
 	loadInitialConditionParameters(&initCondConfig, &initCondParams);
 	loadHydroParameters(&hydroConfig, &hydroParams);
 
+#ifdef ANISO_HYDRO
 	printf("\n:::::::::::::::::::::::::::::::::::::::::::\n");
 	printf(":::  Running viscous anisotropic hydro  :::\n");
 	printf(":::::::::::::::::::::::::::::::::::::::::::\n\n");
+#else
+	printf("\n:::::::::::::::::::::::::::::::::::::::::::\n");
+	printf(":::   Running 2nd order viscous hydro   :::\n");
+	printf(":::::::::::::::::::::::::::::::::::::::::::\n\n");
+#endif
 
 	// main function
 	run_hydro(&latticeParams, &initCondParams, &hydroParams);

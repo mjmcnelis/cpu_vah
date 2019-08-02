@@ -179,6 +179,8 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 
 void regulate_viscous_currents(precision t, hydro_variables * const __restrict__ q, precision * const __restrict__ e, const fluid_velocity * const __restrict__ u, int nx, int ny, int nz)
 {
+	// may change to adopt regulation of ttt, ttx, etc
+
 	#if (NUMBER_OF_VISCOUS_CURRENTS != 0)
 
 	precision xi0 = XI0;
@@ -260,14 +262,14 @@ void regulate_viscous_currents(precision t, hydro_variables * const __restrict__
 			#endif
 
 			#ifdef PI
-				precision bulkPi = q[s].bulkPi;
-				precision rho_bulk = fabs(bulkPi / (rho_max * Teq_mag));
+				precision Pi = q[s].Pi;
+				precision rho_bulk = fabs(Pi / (rho_max * Teq_mag));
 
 				precision factor_bulk;
 				if(rho_bulk > 1.e-5) factor_bulk = tanh(rho_bulk) / rho_bulk;
 				else factor_bulk = 1.  -  rho_bulk * rho_bulk / 3.;	// 2nd-order expansion
 
-				q[s].bulkPi = factor_bulk * bulkPi;
+				q[s].Pi = factor_bulk * Pi;
 			#endif
 			}
 		}

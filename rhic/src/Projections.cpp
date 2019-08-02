@@ -13,6 +13,221 @@ double canonical(default_random_engine & generator)
 }
 
 
+//////////////////////////////////////////////////////////////////////
+
+
+spatial_projection::spatial_projection(precision ut_in, precision ux_in, precision uy_in, precision un_in, precision t2_in)
+{
+	ut = ut_in;		ux = ux_in;		uy = uy_in;		un = un_in;
+	t2 = t2_in;
+
+	Dtt = 1.  -  ut * ut;
+	Dtx = - ut * ux;
+	Dty = - ut * uy;
+	Dtn = - ut * un;
+	Dxx = - 1.  -  ux * ux;
+	Dxy = - ux * uy;
+	Dxn = - ux * un;
+	Dyy = - 1.  -  uy * uy;
+	Dyn = - uy * un;
+	Dnn = - 1. / t2  -  un * un;
+}
+
+spatial_projection::~spatial_projection()
+{
+
+}
+
+void spatial_projection::spatial_project_vector(precision & At, precision & Ax, precision & Ay, precision & An)
+{
+	precision At_pro = Dtt * At  -  Dtx * Ax  -  Dty * Ay  -  t2 * Dtn * An;
+	precision Ax_pro = Dtx * At  -  Dxx * Ax  -  Dxy * Ay  -  t2 * Dxn * An;
+	precision Ay_pro = Dty * At  -  Dxy * Ax  -  Dyy * Ay  -  t2 * Dyn * An;
+	precision An_pro = Dtn * At  -  Dxn * Ax  -  Dyn * Ay  -  t2 * Dnn * An;
+
+	At = At_pro;
+	Ax = Ax_pro;
+	Ay = Ay_pro;
+	An = An_pro;
+}
+
+void spatial_projection::test_spatial_projector()
+{
+	// test spatial projector by projecting a random vector
+	unsigned long int seed = chrono::system_clock::now().time_since_epoch().count();
+	default_random_engine generator(seed);
+
+	precision At = canonical(generator);
+	precision Ax = canonical(generator);
+	precision Ay = canonical(generator);
+	precision An = canonical(generator);
+
+	spatial_project_vector(At, Ax, Ay, An);
+
+	precision Au = fabs(At * ut  -  Ax * ux  -  Ay * uy  -  t2 * An * un);
+
+    if(Au > 1.e-14)  printf("test_spatial_projector error: A is not orthogonal to u (%.6g)\n", Au);
+}
+
+
+//////////////////////////////////////////////////////////////////////
+
+
+
+double_spatial_projection::double_spatial_projection(spatial_projection Delta, precision t2_in, precision t4_in)
+{
+	t2 = t2_in;
+	t4 = t4_in;
+
+	Dtt = Delta.Dtt;
+	Dtx = Delta.Dtx;
+	Dty = Delta.Dty;
+	Dtn = Delta.Dtn;
+	Dxx = Delta.Dxx;
+	Dxy = Delta.Dxy;
+	Dxn = Delta.Dxn;
+	Dyy = Delta.Dyy;
+	Dyn = Delta.Dyn;
+	Dnn = Delta.Dnn;
+
+	Dtt_tt =  2./3. * Dtt * Dtt;
+	Dtt_tx =  2./3. * Dtt * Dtx;
+	Dtt_ty =  2./3. * Dtt * Dty;
+	Dtt_tn =  2./3. * Dtt * Dtn;
+	Dtt_xx =  Dtx * Dtx  -  Dtt * Dxx / 3.;
+	Dtt_xy =  Dtx * Dty  -  Dtt * Dxy / 3.;
+	Dtt_xn =  Dtx * Dtn  -  Dtt * Dxn / 3.;
+	Dtt_yy =  Dty * Dty  -  Dtt * Dyy / 3.;
+	Dtt_yn =  Dty * Dtn  -  Dtt * Dyn / 3.;
+	Dtt_nn =  Dtn * Dtn  -  Dtt * Dnn / 3.;
+
+	Dtx_tx = (Dtx * Dtx  +  3. * Dtt * Dxx) / 6.;
+	Dtx_ty = (Dtx * Dty  +  3. * Dtt * Dxy) / 6.;	
+	Dtx_tn = (Dtx * Dtn  +  3. * Dtt * Dxn) / 6.;
+	Dtx_xx = 2./3. * Dtx * Dxx;
+	Dtx_xy = (Dtx * Dxy  +  3. * Dty * Dxx) / 6.;
+	Dtx_xn = (Dtx * Dxn  +  3. * Dtn * Dxx) / 6.;
+	Dtx_yy = Dty * Dxy  -  2./3. * Dtx * Dyy;
+	Dtx_yn = (3. * Dty * Dxn  +  3. * Dtn * Dxy  -  2. * Dtx * Dyn) / 6.;
+	Dtx_nn = Dtn * Dxn  -  Dtx * Dnn / 3.;
+
+	Dty_ty = (Dty * Dty  +  3. * Dtt * Dyy) / 6.;
+	Dty_tn = (Dty * Dtn  +  3. * Dtt * Dyn) / 6.;
+	Dty_xx = Dtx * Dxy  -  Dty * Dxx / 3.;
+	Dty_xy = (Dty * Dxy  +  3. * Dtx * Dyy) / 6.;
+	Dty_xn = (3. * Dtx * Dyn  +  3. * Dtn * Dxy  -  2. * Dty * Dxn) / 6.;
+	Dty_yy = 2./3. * Dty * Dyy;
+	Dty_yn = (Dty * Dyn  +  3. * Dtn * Dyy) / 6.;
+	Dty_nn = Dtn * Dyn  -  Dnn * Dty / 3.;
+
+	Dtn_tn = (Dtn * Dtn  +  3. * Dnn * Dtt) / 6.;
+	Dtn_xx = Dtx * Dxn  -  Dtn * Dxx / 3.;
+	Dtn_xy = (3. * Dty * Dxn  +  3. * Dtx * Dyn  -  2. * Dtn * Dxy) / 6.;
+	Dtn_xn = (Dtn * Dxn  +  3. * Dnn * Dtx) / 6.;
+	Dtn_yy = Dty * Dyn  -  Dtn * Dyy / 3.;
+	Dtn_yn = (Dtn * Dyn  +  3. * Dnn * Dty) / 6.;
+	Dtn_nn = 2./3. * Dnn * Dtn;
+
+	Dxx_xx = 2./3. * Dxx * Dxx;
+	Dxx_xy = 2./3. * Dxx * Dxy;
+	Dxx_xn = 2./3. * Dxx * Dxn;
+	Dxx_yy = Dxy * Dxy  -  Dxx * Dyy / 3.;
+	Dxx_yn = Dxy * Dxn  -  Dxx * Dyn / 3.;
+	Dxx_nn = Dxn * Dxn  -  Dxx * Dnn / 3.;
+
+	Dxy_xy = (Dxy * Dxy  +  3. * Dxx * Dyy) / 6.;
+	Dxy_xn = (Dxn * Dxy  +  3. * Dxx * Dyn) / 6.;
+	Dxy_yy = 2./3. * Dyy * Dxy;
+	Dxy_yn = (Dxy * Dyn  +  3. * Dxn * Dyy) / 6.;
+	Dxy_nn = Dxn * Dyn  -  Dxy * Dnn / 3.;
+
+	Dxn_xn = (Dxn * Dxn  +  3. * Dnn * Dxx) / 6.;
+	Dxn_yy = Dxy * Dyn  -  Dyy * Dxn / 3.;
+	Dxn_yn = (Dxn * Dyn  +  3. * Dnn * Dxy) / 6.;
+	Dxn_nn = 2./3. * Dxn * Dnn;
+
+	Dyy_yy = 2./3. * Dyy * Dyy;
+	Dyy_yn = 2./3. * Dyy * Dyn;
+	Dyy_nn = Dyn * Dyn  -  Dyy * Dnn / 3.;
+
+	Dyn_yn = (Dyn * Dyn  +  3. * Dnn * Dyy) / 6.;
+	Dyn_nn = 2./3. * Dyn * Dnn;
+
+	Dnn_nn = 2./3. * Dnn * Dnn;
+}
+
+
+double_spatial_projection::~double_spatial_projection()
+{
+
+}
+
+
+
+void double_spatial_projection::double_spatial_project_tensor(precision & Att, precision & Atx, precision & Aty, precision & Atn, precision & Axx, precision & Axy, precision & Axn, precision & Ayy, precision & Ayn, precision & Ann)
+{
+	// A_pro^{\mu\nu} = \Delta^{\mu\nu\alpha\beta} . A_{\alpha\beta}
+	precision Att_pro = Dtt_tt * Att  +  Dtt_xx * Axx  +  Dtt_yy * Ayy  +  t4 * Dtt_nn * Ann  -  2. * (Dtt_tx * Atx  +  Dtt_ty * Aty  -  Dtt_xy * Axy  +  t2 * (Dtt_tn * Atn   -  Dtt_xn * Axn  -  Dtt_yn * Ayn));
+	precision Atx_pro = Dtt_tx * Att  +  Dtx_xx * Axx  +  Dtx_yy * Ayy  +  t4 * Dtx_nn * Ann  -  2. * (Dtx_tx * Atx  +  Dtx_ty * Aty  -  Dtx_xy * Axy  +  t2 * (Dtx_tn * Atn   -  Dtx_xn * Axn  -  Dtx_yn * Ayn));
+	precision Aty_pro = Dtt_ty * Att  +  Dty_xx * Axx  +  Dty_yy * Ayy  +  t4 * Dty_nn * Ann  -  2. * (Dtx_ty * Atx  +  Dty_ty * Aty  -  Dty_xy * Axy  +  t2 * (Dty_tn * Atn   -  Dty_xn * Axn  -  Dty_yn * Ayn));
+	precision Atn_pro = Dtt_tn * Att  +  Dtn_xx * Axx  +  Dtn_yy * Ayy  +  t4 * Dtn_nn * Ann  -  2. * (Dtx_tn * Atx  +  Dty_tn * Aty  -  Dtn_xy * Axy  +  t2 * (Dtn_tn * Atn   -  Dtn_xn * Axn  -  Dtn_yn * Ayn));
+	precision Axx_pro = Dtt_xx * Att  +  Dxx_xx * Axx  +  Dxx_yy * Ayy  +  t4 * Dxx_nn * Ann  -  2. * (Dtx_xx * Atx  +  Dty_xx * Aty  -  Dxx_xy * Axy  +  t2 * (Dtn_xx * Atn   -  Dxx_xn * Axn  -  Dxx_yn * Ayn));
+	precision Axy_pro = Dtt_xy * Att  +  Dxx_xy * Axx  +  Dxy_yy * Ayy  +  t4 * Dxy_nn * Ann  -  2. * (Dtx_xy * Atx  +  Dty_xy * Aty  -  Dxy_xy * Axy  +  t2 * (Dtn_xy * Atn   -  Dxy_xn * Axn  -  Dxy_yn * Ayn));
+	precision Axn_pro = Dtt_xn * Att  +  Dxx_xn * Axx  +  Dxn_yy * Ayy  +  t4 * Dxn_nn * Ann  -  2. * (Dtx_xn * Atx  +  Dty_xn * Aty  -  Dxy_xn * Axy  +  t2 * (Dtn_xn * Atn   -  Dxn_xn * Axn  -  Dxn_yn * Ayn));
+	precision Ayy_pro = Dtt_yy * Att  +  Dxx_yy * Axx  +  Dyy_yy * Ayy  +  t4 * Dyy_nn * Ann  -  2. * (Dtx_yy * Atx  +  Dty_yy * Aty  -  Dxy_yy * Axy  +  t2 * (Dtn_yy * Atn   -  Dxn_yy * Axn  -  Dyy_yn * Ayn));
+	precision Ayn_pro = Dtt_yn * Att  +  Dxx_yn * Axx  +  Dyy_yn * Ayy  +  t4 * Dyn_nn * Ann  -  2. * (Dtx_yn * Atx  +  Dty_yn * Aty  -  Dxy_yn * Axy  +  t2 * (Dtn_yn * Atn   -  Dxn_yn * Axn  -  Dyn_yn * Ayn));
+	precision Ann_pro = Dtt_nn * Att  +  Dxx_nn * Axx  +  Dyy_nn * Ayy  +  t4 * Dnn_nn * Ann  -  2. * (Dtx_nn * Atx  +  Dty_nn * Aty  -  Dxy_nn * Axy  +  t2 * (Dtn_nn * Atn   -  Dxn_nn * Axn  -  Dyn_nn * Ayn));
+
+	Att = Att_pro;
+	Atx = Atx_pro;
+	Aty = Aty_pro;
+	Atn = Atn_pro;
+	Axx = Axx_pro;
+	Axy = Axy_pro;
+	Axn = Axn_pro;
+	Ayy = Ayy_pro;
+	Ayn = Ayn_pro;
+	Ann = Ann_pro;
+}
+
+
+void double_spatial_projection::test_double_spatial_projector(precision ut, precision ux, precision uy, precision un)
+{
+	// test double projector by projecting a random symmetric matrix
+	unsigned long int seed = chrono::system_clock::now().time_since_epoch().count();
+	default_random_engine generator(seed);
+
+	precision Att = canonical(generator);
+	precision Atx = canonical(generator);
+	precision Aty = canonical(generator);
+	precision Atn = canonical(generator);
+	precision Axx = canonical(generator);
+	precision Axy = canonical(generator);
+	precision Axn = canonical(generator);
+	precision Ayy = canonical(generator);
+	precision Ayn = canonical(generator);
+	precision Ann = canonical(generator);
+
+	double_spatial_project_tensor(Att, Atx, Aty, Atn, Axx, Axy, Axn, Ayy, Ayn, Ann);
+
+	precision Au0 = fabs(Att * ut  -  Atx * ux  -  Aty * uy  -  t2 * Atn * un);
+	precision Au1 = fabs(Atx * ut  -  Axx * ux  -  Axy * uy  -  t2 * Axn * un);
+	precision Au2 = fabs(Aty * ut  -  Axy * ux  -  Ayy * uy  -  t2 * Ayn * un);
+	precision Au3 = fabs(Atn * ut  -  Axn * ux  -  Ayn * uy  -  t2 * Ann * un);
+	precision Au = fmax(Au0, fmax(Au1, fmax(Au2, Au3)));
+
+	precision trA = fabs(Att  -  Axx  -  Ayy  -  t2 * Ann);
+
+    precision eps = 1.e-14;
+
+    if(Au > 1.e-14)  printf("test_double_spatial_projector error: A is not orthogonal to u (%.6g)\n", Au);
+    if(trA > 1.e-14) printf("test_double_spatial_projector error: A is not traceless (%.6g)\n", trA);
+}
+
+
+//////////////////////////////////////////////////////////////////////
+
+
 transverse_projection::transverse_projection(precision ut_in, precision ux_in, precision uy_in, precision un_in, precision zt_in, precision zn_in, precision t2_in)
 {
 	ut = ut_in;		ux = ux_in;		uy = uy_in;		un = un_in;
@@ -31,12 +246,10 @@ transverse_projection::transverse_projection(precision ut_in, precision ux_in, p
 	Xinn = - 1. / t2  -  un * un  +  zn * zn;
 }
 
-
 transverse_projection::~transverse_projection()
 {
 
 }
-
 
 void transverse_projection::transverse_project_vector(precision & At, precision & Ax, precision & Ay, precision & An)
 {
@@ -50,7 +263,6 @@ void transverse_projection::transverse_project_vector(precision & At, precision 
 	Ay = Ay_pro;
 	An = An_pro;
 }
-
 
 void transverse_projection::test_transverse_projector()
 {
@@ -68,12 +280,11 @@ void transverse_projection::test_transverse_projector()
 	precision Au = fabs(At * ut  -  Ax * ux  -  Ay * uy  -  t2 * An * un);
 	precision Az = fabs(At * zt  -  t2 * An * zn);
 
-    precision eps = 1.e-14;
-
-    if(Au > eps)  printf("test_transverse_projector error: A is not orthogonal to u (%.6g)\n", Au);
-    if(Az > eps)  printf("test_transverse_projector error: A is not orthogonal to z (%.6g)\n", Az);
+    if(Au > 1.e-14)  printf("test_transverse_projector error: A is not orthogonal to u (%.6g)\n", Au);
+    if(Az > 1.e-14)  printf("test_transverse_projector error: A is not orthogonal to z (%.6g)\n", Az);
 }
 
+//////////////////////////////////////////////////////////////////////
 
 double_transverse_projection::double_transverse_projection(transverse_projection Xi, precision t2_in, precision t4_in)
 {

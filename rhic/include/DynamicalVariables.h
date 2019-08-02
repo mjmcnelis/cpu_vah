@@ -5,35 +5,23 @@
 #include "EquationOfState.h"
 #include "Precision.h"
 
-
-#define NUMBER_OF_CONSERVATION_LAWS 4
-
+// should have a macros.h (only for tunable macro parameters?)
 
 #define ANISO_HYDRO				// comment to run 2nd order viscous hydrodynamics
 								// (for cross-checking vahydro in limit of small viscosity)
 
-#ifndef ANISO_HYDRO
-	#define VISCOUS_HYDRO
-#endif
-
-
 #define PIMUNU 					// name shared but different shear stresses (maybe isolate them)
 
-
 #ifdef ANISO_HYDRO
-	#define PL_MATCHING 1		// don't change PL, PT values
 	#ifdef CONFORMAL_EOS
 		#define PT_MATCHING 0
 	#else
 		#define PT_MATCHING 1
 	#endif
-	//#define WTZMU 			// uncomment to turn on W_Tz (comment for 2+1d simulations)
-#endif
-
-
-#ifdef VISCOUS_HYDRO
+	//#define WTZMU 			// uncomment to turn on WTz (comment for 2+1d simulations)
+#else
 	#ifndef CONFORMAL_EOS
-		//#define PI 			// uncomment to turn on bulk pressure
+		#define PI 			
 	#endif
 #endif
 
@@ -63,9 +51,9 @@
 #define NUMBER_OF_VISCOUS_CURRENTS (PIMUNU_COMPONENTS + PI_COMPONENTS)
 
 #ifdef ANISO_HYDRO
-	#define NUMBER_CONSERVED_VARIABLES (NUMBER_OF_CONSERVATION_LAWS + PL_MATCHING + PT_MATCHING + NUMBER_OF_RESIDUAL_CURRENTS)
+	#define NUMBER_CONSERVED_VARIABLES (5 + PT_MATCHING + NUMBER_OF_RESIDUAL_CURRENTS)
 #else
-	#define NUMBER_CONSERVED_VARIABLES (NUMBER_OF_CONSERVATION_LAWS + NUMBER_OF_RESIDUAL_CURRENTS)
+	#define NUMBER_CONSERVED_VARIABLES (4 + NUMBER_OF_VISCOUS_CURRENTS)
 #endif
 
 
@@ -78,20 +66,9 @@ typedef struct
 
 #ifdef ANISO_HYDRO
 	precision pl;
+
 #if (PT_MATCHING == 1)
 	precision pt;
-#endif
-#ifdef WTZMU
-	precision WtTz;
-	precision WxTz;
-	precision WyTz;
-	precision WnTz;
-#endif
-#endif
-
-#ifdef VISCOUS_HYDRO
-#ifdef PI
-	precision bulkPi;
 #endif
 #endif
 
@@ -108,6 +85,16 @@ typedef struct
 	precision pinn;
 #endif
 
+#ifdef WTZMU
+	precision WtTz;
+	precision WxTz;
+	precision WyTz;
+	precision WnTz;
+#endif
+
+#ifdef PI
+	precision Pi;
+#endif
 
 } hydro_variables;
 

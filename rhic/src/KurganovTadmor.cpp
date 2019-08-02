@@ -109,7 +109,7 @@ const precision * const __restrict__ e, const fluid_velocity * const __restrict_
 			#endif
 
 			#ifdef PI
-				q_s[a] = q[s].bulkPi;
+				q_s[a] = q[s].Pi;
 			#endif
 
 				precision e_s = e[s];
@@ -130,7 +130,11 @@ const precision * const __restrict__ e, const fluid_velocity * const __restrict_
 				get_conserved_neighbor_cells(q[simm], q[sim], q[sip], q[sipp], q[sjmm], q[sjm], q[sjp], q[sjpp], q[skmm], q[skm], q[skp], q[skpp], qi1, qj1, qk1, qi2, qj2, qk2);
 
 				// compute the external source terms (S)
-				source_terms(S, q_s, e_s, t, qi1, qj1, qk1, e1, ui1, uj1, uk1, ux, uy, un, ux_p, uy_p, un_p, dt, dx, dy, dn, etabar);
+			#ifdef ANISO_HYDRO
+				source_terms_aniso_hydro(S, q_s, e_s, t, qi1, qj1, qk1, e1, ui1, uj1, uk1, ux, uy, un, ux_p, uy_p, un_p, dt, dx, dy, dn, etabar);
+			#else
+				source_terms_viscous_hydro(S, q_s, e_s, t, qi1, qj1, qk1, e1, ui1, uj1, uk1, ux, uy, un, ux_p, uy_p, un_p, dt, dx, dy, dn, etabar);
+			#endif
 
 				// compute the flux terms
 				flux_terms(Hx_plus, Hx_minus, q_s, qi1, qi2, vxi, ux/ut);
@@ -177,7 +181,7 @@ const precision * const __restrict__ e, const fluid_velocity * const __restrict_
 			#endif
 
 			#ifdef PI
-				Q[s].bulkPi = q_s[a];
+				Q[s].Pi = q_s[a];
 			#endif
 			}
 		}
@@ -229,7 +233,7 @@ void runge_kutta2(const hydro_variables * const __restrict__ q, hydro_variables 
 			#endif
 
 			#ifdef PI
-				Q[s].bulkPi = (q[s].bulkPi  +  Q[s].bulkPi) / 2.;
+				Q[s].Pi = (q[s].Pi  +  Q[s].Pi) / 2.;
 			#endif	
 			}
 		}
@@ -245,17 +249,21 @@ void evolve_hydro_one_time_step(precision t, precision dt, int nx, int ny, int n
 	// next time step
 	t += dt;
 
-	// compute uS, e
-	set_inferred_variables(qI, e, uI, t, nx, ny, nz);
+	// compute uI, e
+#ifdef ANISO_HYDRO
+	set_inferred_variables_aniso_hydro(qI, e, uI, t, nx, ny, nz);
+#else
+	// nothing here yet
+#endif
 
-	// regulate residual components of qS
+	// regulate dissipative components of qI
 #ifdef ANISO_HYDRO
 	regulate_residual_currents(t, qI, e, uI, nx, ny, nz);	
 #else
 	regulate_viscous_currents(t, qI, e, uI, nx, ny, nz);	
 #endif
 
-	// set ghost cells for qS, uS, e,
+	// set ghost cells for qS, uS, e
 	set_ghost_cells(qI, e, uI, nx, ny, nz);
 
 	// second intermediate time step (compute Q = qS + dt.(S - dHx/dx - dHy/dy - dHn/dn))
@@ -268,8 +276,12 @@ void evolve_hydro_one_time_step(precision t, precision dt, int nx, int ny, int n
 	swap_fluid_velocity(&up, &u);
 
 	// compute u, e
-	set_inferred_variables(Q, e, u, t, nx, ny, nz);
-
+#ifdef ANISO_HYDRO
+	set_inferred_variables_aniso_hydro(Q, e, u, t, nx, ny, nz);
+#else
+	// nothing here yet
+#endif
+	
 	// regulate residual components of Q
 #ifdef ANISO_HYDRO
 	regulate_residual_currents(t, Q, e, u, nx, ny, nz);
