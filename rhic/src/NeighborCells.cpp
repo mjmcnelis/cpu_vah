@@ -18,8 +18,8 @@ void get_primary_neighbor_cells(const precision * const __restrict__ E, precisio
 }
 
 
-void get_fluid_velocity_neighbor_cells(	fluid_velocity u_simm, fluid_velocity u_sim, fluid_velocity u_sip, fluid_velocity u_sipp, 
-										fluid_velocity u_sjmm, fluid_velocity u_sjm, fluid_velocity u_sjp, fluid_velocity u_sjpp, 
+void get_fluid_velocity_neighbor_cells(	fluid_velocity u_simm, fluid_velocity u_sim, fluid_velocity u_sip, fluid_velocity u_sipp,
+										fluid_velocity u_sjmm, fluid_velocity u_sjm, fluid_velocity u_sjp, fluid_velocity u_sjpp,
 										fluid_velocity u_skmm, fluid_velocity u_skm, fluid_velocity u_skp, fluid_velocity u_skpp,
 										precision * const __restrict__ ui1, precision * const __restrict__ uj1, precision * const __restrict__ uk1,
 										precision * const __restrict__ vxi, precision * const __restrict__ vyj, precision * const __restrict__ vnk, precision t2)
@@ -126,11 +126,11 @@ void get_fluid_velocity_neighbor_cells(	fluid_velocity u_simm, fluid_velocity u_
 }
 
 
-void get_conserved_neighbor_cells(	hydro_variables q_simm, hydro_variables q_sim, hydro_variables q_sip, hydro_variables q_sipp, 
-									hydro_variables q_sjmm, hydro_variables q_sjm, hydro_variables q_sjp, hydro_variables q_sjpp, 
-									hydro_variables q_skmm, hydro_variables q_skm, hydro_variables q_skp, hydro_variables q_skpp, 
-									precision * const __restrict__ qi1, precision * const __restrict__ qj1, precision * const __restrict__ qk1, 
-									precision * const __restrict__ qi2, precision * const __restrict__ qj2, precision * const __restrict__ qk2)
+void get_hydro_neighbor_cells(	hydro_variables q_simm, hydro_variables q_sim, hydro_variables q_sip, hydro_variables q_sipp,
+								hydro_variables q_sjmm, hydro_variables q_sjm, hydro_variables q_sjp, hydro_variables q_sjpp,
+								hydro_variables q_skmm, hydro_variables q_skm, hydro_variables q_skp, hydro_variables q_skpp,
+								precision * const __restrict__ qi1, precision * const __restrict__ qj1, precision * const __restrict__ qk1,
+								precision * const __restrict__ qi2, precision * const __restrict__ qj2, precision * const __restrict__ qk2)
 {
 	int n = 0;
 
@@ -138,7 +138,7 @@ void get_conserved_neighbor_cells(	hydro_variables q_simm, hydro_variables q_sim
 	// q neighbors [i-1, i+1] stored in qi1
 	//------------------------------------------------
 
-	qi1[n]	   = q_sim.ttt;					
+	qi1[n]	   = q_sim.ttt;
 	qi1[n + 1] = q_sip.ttt;		n += 2;
 
 	qi1[n]	   = q_sim.ttx;
@@ -208,7 +208,7 @@ void get_conserved_neighbor_cells(	hydro_variables q_simm, hydro_variables q_sim
 
 #ifdef PI
 	qi1[n]	   = q_sim.Pi;
-	qi1[n + 1] = q_sip.Pi;		
+	qi1[n + 1] = q_sip.Pi;
 #endif
 
 
@@ -217,7 +217,7 @@ void get_conserved_neighbor_cells(	hydro_variables q_simm, hydro_variables q_sim
 
 	n = 0;
 
-	qi2[n]	   = q_simm.ttt;					
+	qi2[n]	   = q_simm.ttt;
 	qi2[n + 1] = q_sipp.ttt;	n += 2;
 
 	qi2[n]	   = q_simm.ttx;
@@ -280,7 +280,7 @@ void get_conserved_neighbor_cells(	hydro_variables q_simm, hydro_variables q_sim
 
 	qi2[n]	   = q_simm.WyTz;
 	qi2[n + 1] = q_sipp.WyTz;	n += 2;
-	
+
 	qi2[n]	   = q_simm.WnTz;
 	qi2[n + 1] = q_sipp.WnTz;
 #endif
@@ -296,7 +296,7 @@ void get_conserved_neighbor_cells(	hydro_variables q_simm, hydro_variables q_sim
 
 	n = 0;
 
-	qj1[n]	   = q_sjm.ttt;					
+	qj1[n]	   = q_sjm.ttt;
 	qj1[n + 1] = q_sjp.ttt;		n += 2;
 
 	qj1[n]	   = q_sjm.ttx;
@@ -366,7 +366,7 @@ void get_conserved_neighbor_cells(	hydro_variables q_simm, hydro_variables q_sim
 
 #ifdef PI
 	qj1[n]	   = q_sjm.Pi;
-	qj1[n + 1] = q_sjp.Pi;	
+	qj1[n + 1] = q_sjp.Pi;
 #endif
 
 
@@ -375,7 +375,7 @@ void get_conserved_neighbor_cells(	hydro_variables q_simm, hydro_variables q_sim
 
 	n = 0;
 
-	qj2[n]	   = q_sjmm.ttt;					
+	qj2[n]	   = q_sjmm.ttt;
 	qj2[n + 1] = q_sjpp.ttt;	n += 2;
 
 	qj2[n]	   = q_sjmm.ttx;
@@ -454,7 +454,7 @@ void get_conserved_neighbor_cells(	hydro_variables q_simm, hydro_variables q_sim
 
 	n = 0;
 
-	qk1[n]	   = q_skm.ttt;					
+	qk1[n]	   = q_skm.ttt;
 	qk1[n + 1] = q_skp.ttt;		n += 2;
 
 	qk1[n]	   = q_skm.ttx;
@@ -533,7 +533,7 @@ void get_conserved_neighbor_cells(	hydro_variables q_simm, hydro_variables q_sim
 
 	n = 0;
 
-	qk2[n]	   = q_skmm.ttt;					
+	qk2[n]	   = q_skmm.ttt;
 	qk2[n + 1] = q_skpp.ttt;	n += 2;
 
 	qk2[n]	   = q_skmm.ttx;

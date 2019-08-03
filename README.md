@@ -8,3 +8,5 @@ You will need to install libconfig
 The C++ source and header files are located in rhic/
 
 The parameter files are located in parameters/
+
+Note: macro parameters spread out in rhic/include

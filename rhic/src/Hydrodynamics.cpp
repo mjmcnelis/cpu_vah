@@ -6,6 +6,7 @@
 #include "../include/Hydrodynamics.h"
 #include "../include/Precision.h"
 #include "../include/DynamicalVariables.h"
+#include "../include/FluxTerms.h"
 #include "../include/GhostCells.h"
 #include "../include/Parameters.h"
 #include "../include/FileIO.h"
@@ -29,25 +30,65 @@ int central_index(int nx, int ny, int nz, int ncx, int ncy, int ncz)
 	return ictr  +  ncx * (jctr  +  ncy * kctr);
 }
 
-void print_hydro_center(double t, double e, double peq, double pl, double pt, double T)
+void print_hydro_center(double t, double e, int s)
 {
-	printf("t = %.3f fm/c\t\te = %.3f GeV/fm^3\tpeq = %.3f GeV/fm^3\tpl = %.3f GeV/fm^3\tpt = %.3f GeV/fm^3\tT = %.3f GeV\n", t, e, peq, pl, pt, T);
+	precision p = equilibriumPressure(e / hbarc) * hbarc;
+	precision T = effectiveTemperature(e / hbarc) * hbarc;
+#ifdef ANISO_HYDRO
+	precision pl  = q[s].pl * hbarc;
+	#if (PT_MATCHING == 1)
+		precision pt = q[s].pt * hbarc;
+	#else
+		precision pt = (e - pl) / 2.;
+	#endif
+	printf("t = %.3f fm/c\t\te = %.3f GeV/fm^3\tpeq = %.3f GeV/fm^3\tpl = %.3f GeV/fm^3\tpt = %.3f GeV/fm^3\tT = %.3f GeV\n", t, e, p, pl, pt, T);
+#else
+	printf("t = %.3f fm/c\t\te = %.3f GeV/fm^3\tpeq = %.3f GeV/fm^3\tT = %.3f GeV\n", t, e, p, T);
+#endif
 }
 
 
-void print_parameters(int nx, int ny, int nz, double dt, double dx, double dy, double dz, double T_switch, double e_switch, double etabar)
+void print_parameters(int nx, int ny, int nz, double dt, double dx, double dy, double dz, double t0, double T_switch, double etabar)
 {
-	printf("Time resolution    = %.4f fm/c\n", dt);
-	printf("Hydro grid         = %d x %d x %d\n", nx, ny, nz);
-	printf("Spatial resolution = (%.3f fm, %.3f fm, %.3f)\n", dx, dy, dz);
-	printf("Spatial size       = %.3f fm  x  %.3f fm  x  %.3f\n", (nx - 1.) * dx, (ny - 1.) * dy, (nz - 1.) * dz);
-
-	printf("\nFreezeout temperature = %.3f GeV\t(e = %.3f GeV/fm^3)\n", T_switch * hbarc, e_switch * hbarc);
+// lattice parameters
+	printf("Time resolution     = %.4f fm/c\n", dt);
+	printf("Spatial grid points = %d x %d x %d\n", nx, ny, nz);
+	printf("Spatial resolution  = [%.3f fm, %.3f fm, %.3f]\n", dx, dy, dz);
+	printf("Spatial dimensions  = %.3f fm  x  %.3f fm  x  %.3f\n", (nx - 1.) * dx, (ny - 1.) * dy, (nz - 1.) * dz);
+// hydro parameters
+	printf("\nHydro time 	      = %.3f fm/c\n", t0);
 	printf("Shear viscosity       = %.3f\n", etabar);
+	printf("Freezeout temperature = %.3f GeV\n", T_switch * hbarc);
+	printf("Flux limiter          = %.2f\n", THETA);
+// equation of state
 #ifdef CONFORMAL_EOS
-	printf("Equation of state     = Conformal\n");
+	printf("\nEquation of state = Conformal\n\n");
 #else
-	printf("Equation of state     = QCD\n");
+	printf("\nEquation of state = QCD\n\n");
+#endif
+// viscous pressures
+#ifdef ANISO_HYDRO
+#ifdef PIMUNU
+	printf("Transverse shear stress 	= On\n");
+#else
+	printf("Transverse shear stress 	= Off\n");
+#endif
+#ifdef WTZMU
+	printf("Longitudinal momentum diffusion = On\n");
+#else
+	printf("Longitudinal momentum diffusion = Off\n");
+#endif
+#else
+#ifdef PIMUNU
+	printf("Shear stress  = On\n");
+#else
+	printf("Shear stress  = Off\n");
+#endif
+#ifdef PI
+	printf("Bulk pressure = On\n");
+#else
+	printf("Bulk pressure = Off\n");
+#endif
 #endif
 }
 
@@ -84,7 +125,7 @@ void run_hydro(void * latticeParams, void * initCondParams, void * hydroParams)
 	double T_switch = (hydro->freezeoutTemperatureGeV) / hbarc;		// switching temperature [fm^-1]
 	double e_switch = equilibriumEnergyDensity(T_switch);			// switching energy density [fm^-4]
 
-	print_parameters(nx, ny, nz, dt, dx, dy, dz, T_switch, e_switch, etabar);
+	print_parameters(nx, ny, nz, dt, dx, dy, dz, t0, T_switch, etabar);
 
 	allocate_memory(ncx * ncy * ncz);					// allocate memory for computational grid points
 
@@ -106,15 +147,8 @@ void run_hydro(void * latticeParams, void * initCondParams, void * hydroParams)
 		if(n % FREQ == 0)	// output variables to file for testing
 		{
 			precision e_s = e[s] * hbarc;
-			precision peq = equilibriumPressure(e[s])  * hbarc;
-			precision T   = effectiveTemperature(e[s]) * hbarc;
-			precision pl  = q[s].pl * hbarc;
-		#if (PT_MATCHING == 1)
-			precision pt = q[s].pt * hbarc;
-		#else
-			precision pt = (e_s - pl) / 2.;
-		#endif
-			print_hydro_center(t, e_s, peq, pl, pt, T);
+
+			print_hydro_center(t, e_s, s);
 
 			output_dynamical_variables(t, nx, ny, nz, dt, dx, dy, dz, initialType, e0, etabar);
 

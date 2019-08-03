@@ -127,7 +127,7 @@ const precision * const __restrict__ e, const fluid_velocity * const __restrict_
 				get_primary_neighbor_cells(e, e1, sim, sip, sjm, sjp, skm, skp);
 			#endif
 				get_fluid_velocity_neighbor_cells(u[simm], u[sim], u[sip], u[sipp], u[sjmm], u[sjm], u[sjp], u[sjpp], u[skmm], u[skm], u[skp], u[skpp], ui1, uj1, uk1, vxi, vyj, vnk, t2);
-				get_conserved_neighbor_cells(q[simm], q[sim], q[sip], q[sipp], q[sjmm], q[sjm], q[sjp], q[sjpp], q[skmm], q[skm], q[skp], q[skpp], qi1, qj1, qk1, qi2, qj2, qk2);
+				get_hydro_neighbor_cells(q[simm], q[sim], q[sip], q[sipp], q[sjmm], q[sjm], q[sjp], q[sjpp], q[skmm], q[skm], q[skp], q[skpp], qi1, qj1, qk1, qi2, qj2, qk2);
 
 				// compute the external source terms (S)
 			#ifdef ANISO_HYDRO
@@ -234,7 +234,7 @@ void runge_kutta2(const hydro_variables * const __restrict__ q, hydro_variables 
 
 			#ifdef PI
 				Q[s].Pi = (q[s].Pi  +  Q[s].Pi) / 2.;
-			#endif	
+			#endif
 			}
 		}
 	}
@@ -253,14 +253,14 @@ void evolve_hydro_one_time_step(precision t, precision dt, int nx, int ny, int n
 #ifdef ANISO_HYDRO
 	set_inferred_variables_aniso_hydro(qI, e, uI, t, nx, ny, nz);
 #else
-	// nothing here yet
+	set_inferred_variables_viscous_hydro(qI, e, uI, t, nx, ny, nz);
 #endif
 
 	// regulate dissipative components of qI
 #ifdef ANISO_HYDRO
-	regulate_residual_currents(t, qI, e, uI, nx, ny, nz);	
+	regulate_residual_currents(t, qI, e, uI, nx, ny, nz);
 #else
-	regulate_viscous_currents(t, qI, e, uI, nx, ny, nz);	
+	regulate_viscous_currents(t, qI, e, uI, nx, ny, nz);
 #endif
 
 	// set ghost cells for qS, uS, e
@@ -279,13 +279,13 @@ void evolve_hydro_one_time_step(precision t, precision dt, int nx, int ny, int n
 #ifdef ANISO_HYDRO
 	set_inferred_variables_aniso_hydro(Q, e, u, t, nx, ny, nz);
 #else
-	// nothing here yet
+	set_inferred_variables_viscous_hydro(Q, e, u, t, nx, ny, nz);
 #endif
-	
+
 	// regulate residual components of Q
 #ifdef ANISO_HYDRO
 	regulate_residual_currents(t, Q, e, u, nx, ny, nz);
-#else 
+#else
 	regulate_viscous_currents(t, Q, e, u, nx, ny, nz);
 #endif
 

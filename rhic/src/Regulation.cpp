@@ -10,7 +10,7 @@ using namespace std;
 #define XI0 	0.1						// regulation parameters
 #define RHO_MAX 5.0
 #define REGULATION_SCHEME 1				// 1 = new regulation scheme (old regulation otherwise)
-									
+
 
 inline int linear_column_index(int i, int j, int k, int nx, int ny)
 {
@@ -20,6 +20,7 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 
 void regulate_residual_currents(precision t, hydro_variables * const __restrict__ q, precision * const __restrict__ e, const fluid_velocity * const __restrict__ u, int nx, int ny, int nz)
 {
+#ifdef ANISO_HYDRO
 	precision eps = 1.e-6;	// enforce pl, pt to be positive
 
 	precision xi0 = XI0;
@@ -103,7 +104,7 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 				precision piz1 = fabs(zt * pitx  -  t2 * zn * pixn);
 				precision piz2 = fabs(zt * pity  -  t2 * zn * piyn);
 				precision piz3 = fabs(zt * pitn  -  t2 * zn * pinn) * t;
-			#endif				
+			#endif
 
 				precision denom_pi = xi0 * rho_max * pi_mag;
 
@@ -146,7 +147,7 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 				precision WxTz = q[s].WxTz;
 				precision WyTz = q[s].WyTz;
 				precision WnTz = q[s].WnTz;
-			
+
 				precision WTz_mag = sqrt(fabs(WtTz * WtTz  -  WxTz * WxTz  -  WyTz * WyTz  -  t2 * WnTz * WnTz));
 
 				precision WTzu = fabs(WtTz * ut  -  WxTz * ux  -  WyTz * uy  -  t2 * WnTz * un);
@@ -172,6 +173,7 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 			}
 		}
 	}
+#endif
 }
 
 
@@ -198,14 +200,14 @@ void regulate_viscous_currents(precision t, hydro_variables * const __restrict__
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
 				precision e_s = e[s];
-				precision p = equilibriumPressure(e_s);  
+				precision p = equilibriumPressure(e_s);
 				precision ux = u[s].ux;
 				precision uy = u[s].uy;
 				precision un = u[s].un;
 				precision ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t2 * un * un);
 
 				precision Teq_mag = sqrt(e_s * e_s  +  3. * p * p);
-			
+
 			#ifdef PIMUNU
 				precision pitt = q[s].pitt;
 				precision pitx = q[s].pitx;
@@ -232,7 +234,7 @@ void regulate_viscous_currents(precision t, hydro_variables * const __restrict__
 				precision piu1 = fabs(pitx * ut  -  pixx * ux  -  pixy * uy  -  t2 * pixn * un);
 				precision piu2 = fabs(pity * ut  -  pixy * ux  -  piyy * uy  -  t2 * piyn * un);
 				precision piu3 = fabs(pitn * ut  -  pixn * ux  -  piyn * uy  -  t2 * pinn * un) * t;
-			#endif	
+			#endif
 
 				precision denom_pi = xi0 * rho_max * pi_mag;
 

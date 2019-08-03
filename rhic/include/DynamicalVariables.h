@@ -18,10 +18,10 @@
 	#else
 		#define PT_MATCHING 1
 	#endif
-	//#define WTZMU 			// uncomment to turn on WTz (comment for 2+1d simulations)
+	//#define WTZMU 			// uncomment to turn on WTz (comment for 2+1d simulations b/c it's zero)
 #else
 	#ifndef CONFORMAL_EOS
-		#define PI 			
+		#define PI
 	#endif
 #endif
 
@@ -43,7 +43,7 @@
 #ifdef PI
 	#define PI_COMPONENTS 1
 #else
-	#define PI_COMPONENTS 0 
+	#define PI_COMPONENTS 0
 #endif
 
 
