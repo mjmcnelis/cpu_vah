@@ -91,10 +91,10 @@ void set_initial_hydro_variables(double t, int nx, int ny, int nz)
 				q[s].tty = (e_s + pt) * ut * uy  +  WyTz * zt  +  pity;
 				q[s].ttn = (e_s + pt) * ut * un  +  (pl - pt) * zt * zn  +  WtTz * zn  +  WnTz * zt  +  pitn;
 			#else
-				q[s].ttt = (e_s + p) * ut * ut  -   p  -  Pi  +  pitt;
-				q[s].ttx = (e_s + p) * ut * ux  +  pitx;
-				q[s].tty = (e_s + p) * ut * uy  +  pity;
-				q[s].ttn = (e_s + p) * ut * un  +  pitn;
+				q[s].ttt = (e_s + p + Pi) * ut * ut  -   p  -  Pi  +  pitt;
+				q[s].ttx = (e_s + p + Pi) * ut * ux  +  pitx;
+				q[s].tty = (e_s + p + Pi) * ut * uy  +  pity;
+				q[s].ttn = (e_s + p + Pi) * ut * un  +  pitn;
 			#endif
 			}
 		}

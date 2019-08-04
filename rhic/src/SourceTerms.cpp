@@ -784,9 +784,9 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	// shear transport coefficients
 	precision betapi = (e + p) / 5.;
 	precision taupiInv = T / (5. * etabar);
-	precision delta_pipi = 4./3. * taupiInv;
-	precision tau_pipi = 10./7 * taupiInv;
-	precision lambda_pibulkPi = 1.2 * taupiInv;
+	precision delta_pipi = 4./3.;
+	precision tau_pipi = 10./7;
+	precision lambda_pibulkPi = 1.2;
 #else
 	precision pitt = 0, pitx = 0, pity = 0, pitn = 0, pixx = 0, pixy = 0, pixn = 0, piyy = 0, piyn = 0, pinn = 0;
 #endif
@@ -798,8 +798,8 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	precision third_cs2 = 1./3. - cs2;
 	precision betabulk = 15. * third_cs2 * third_cs2 * (e + p);
 	precision taubulkInv = 15. * third_cs2 * third_cs2 * T / zetabar(T);
-	precision lambda_bulkPipi = 1.6 * third_cs2 * taubulkInv;
-	precision delta_bulkPibulkPi = 2./3. * taubulkInv;
+	precision lambda_bulkPipi = 1.6 * third_cs2;
+	precision delta_bulkPibulkPi = 2./3.;
 #else
 	precision Pi = 0;
 #endif
@@ -1012,7 +1012,7 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 #endif
 
 	// conservation laws
-	precision tnn = (e + p) * un * un  +  (p + Pi) / t2  +  pinn;
+	precision tnn = (e + p + Pi) * un * un  +  (p + Pi) / t2  +  pinn;
 
 	S[0] =	- (ttt / t  +  t * tnn)  +  div_v * (pitt  -  p  -  Pi)
 			+  vx * (dpitt_dx  -  dp_dx  -  dPi_dx)  -  dpitx_dx

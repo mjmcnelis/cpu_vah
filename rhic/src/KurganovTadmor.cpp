@@ -173,6 +173,7 @@ const precision * const __restrict__ e, const fluid_velocity * const __restrict_
 				Q[s].piyn = q_s[a]; a++;
 				Q[s].pinn = q_s[a]; a++;
 			#endif
+
 			#ifdef WTZMU
 				Q[s].WtTz = q_s[a]; a++;
 				Q[s].WxTz = q_s[a]; a++;

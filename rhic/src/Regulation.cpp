@@ -182,9 +182,7 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 void regulate_viscous_currents(precision t, hydro_variables * const __restrict__ q, precision * const __restrict__ e, const fluid_velocity * const __restrict__ u, int nx, int ny, int nz)
 {
 	// may change to adopt regulation of ttt, ttx, etc
-
-	#if (NUMBER_OF_VISCOUS_CURRENTS != 0)
-
+#if (NUMBER_OF_VISCOUS_CURRENTS != 0)
 	precision xi0 = XI0;
 	precision rho_max = RHO_MAX;
 
@@ -276,7 +274,7 @@ void regulate_viscous_currents(precision t, hydro_variables * const __restrict__
 			}
 		}
 	}
-	#endif
+#endif
 }
 
 

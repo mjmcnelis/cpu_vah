@@ -12,7 +12,7 @@
 
 using namespace std;
 
-#define TEST_TMUNU 0		// 1 for testing reproduction of t^{\tau\mu}
+#define TEST_TMUNU 1		// 1 for testing reproduction of t^{\tau\mu}
 
 double ttt_error = 1.e-13;
 double ttx_error = 1.e-13;
@@ -221,10 +221,10 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 			#if (TEST_TMUNU == 1)
 				ut_s = sqrt(1.  +  ux_s * ux_s  +  uy_s * uy_s  +  t2 * un_s * un_s);
 
-				precision dttt = fabs((e_s + p) * ut_s * ut_s  -  (p + Pi)  +  pitt  -  ttt);
-				precision dttx = fabs((e_s + p) * ut_s * ux_s  +  pitx  -  ttx);
-				precision dtty = fabs((e_s + p) * ut_s * uy_s  +  pity  -  tty);
-				precision dttn = fabs((e_s + p) * ut_s * un_s  +  pitn  -  ttn);
+				precision dttt = fabs((e_s + p + Pi) * ut_s * ut_s  -  (p + Pi)  +  pitt  -  ttt);
+				precision dttx = fabs((e_s + p + Pi) * ut_s * ux_s  +  pitx  -  ttx);
+				precision dtty = fabs((e_s + p + Pi) * ut_s * uy_s  +  pity  -  tty);
+				precision dttn = fabs((e_s + p + Pi) * ut_s * un_s  +  pitn  -  ttn);
 
 				if(dttt > ttt_error || dttx > ttx_error || dtty > tty_error || dttn > ttn_error)
 				{
