@@ -12,7 +12,7 @@ using namespace std;
 
 double rho_function(double t, double r, double q)
 {
-	return - asinh((1.0  -  q * q * (t * t  -  r * r)) / (2. * q * t));
+	return - asinh((1.  -  q * q * (t * t  -  r * r)) / (2. * q * t));
 }
 
 

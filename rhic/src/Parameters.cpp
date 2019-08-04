@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include "../include/Parameters.h"
 
+#define PRINT_PARAMETERS
+
 void getIntegerProperty(config_t * cfg, const char * propName, int * propValue)
 {
 	config_lookup_int(cfg, propName, propValue);
@@ -38,17 +40,19 @@ void loadLatticeParameters(config_t *cfg, void * params)
 	getDoubleProperty(cfg,  "latticeSpacingRapidity", 	&latticeSpacingRapidity);
 	getDoubleProperty(cfg,  "latticeSpacingProperTime", &latticeSpacingProperTime);
 
-	// printf("\nLattice parameters:");
-	// printf("\n-------------------\n");
-	// printf("numLatticePointsX        = %d\n", numLatticePointsX);
-	// printf("numLatticePointsY        = %d\n", numLatticePointsY);
-	// printf("numLatticePointsRapidity = %d\n", numLatticePointsRapidity);
-	// printf("numProperTimePoints      = %d\n", numProperTimePoints);
-	// printf("latticeSpacingX          = %.3f\n", latticeSpacingX);
-	// printf("latticeSpacingY          = %.3f\n", latticeSpacingY);
-	// printf("latticeSpacingRapidity   = %.3f\n", latticeSpacingRapidity);
-	// printf("latticeSpacingProperTime = %.3f\n", latticeSpacingProperTime);
-	// printf("\n");
+#ifdef PRINT_PARAMETERS
+	printf("\nLattice parameters:");
+	printf("\n-------------------\n");
+	printf("numLatticePointsX        = %d\n", numLatticePointsX);
+	printf("numLatticePointsY        = %d\n", numLatticePointsY);
+	printf("numLatticePointsRapidity = %d\n", numLatticePointsRapidity);
+	printf("numProperTimePoints      = %d\n", numProperTimePoints);
+	printf("latticeSpacingX          = %.3f\n", latticeSpacingX);
+	printf("latticeSpacingY          = %.3f\n", latticeSpacingY);
+	printf("latticeSpacingRapidity   = %.3f\n", latticeSpacingRapidity);
+	printf("latticeSpacingProperTime = %.3f\n", latticeSpacingProperTime);
+	printf("\n");
+#endif
 
 	struct LatticeParameters * lattice = (struct LatticeParameters *) params;
 	lattice->numLatticePointsX 			= numLatticePointsX;
@@ -86,17 +90,19 @@ void loadInitialConditionParameters(config_t *cfg, void * params)
 	getDoubleProperty(cfg, 	"rapidityVariance", 			&rapidityVariance);
 	getDoubleProperty(cfg, 	"rapidityMean", 				&rapidityMean);
 
-	// printf("Initial condition parameters:");
-	// printf("\n-----------------------------\n");
-	// printf("initialConditionType         = %d\n", initialConditionType);
-	// printf("numberOfNucleonsPerNuclei    = %d\n", numberOfNucleonsPerNuclei);
-	// printf("initialCentralTemperatureGeV = %.3f\n", initialCentralTemperatureGeV);
-	// printf("scatteringCrossSectionNN     = %.2f\n", scatteringCrossSectionNN);
-	// printf("impactParameter              = %.2f\n", impactParameter);
-	// printf("fractionOfBinaryCollisions   = %.2f\n", fractionOfBinaryCollisions);
-	// printf("rapidityVariance             = %.3f\n", rapidityVariance);
-	// printf("rapidityMean                 = %.2f\n", rapidityMean);
-	// printf("\n");
+#ifdef PRINT_PARAMETERS
+	printf("Initial condition parameters:");
+	printf("\n-----------------------------\n");
+	printf("initialConditionType         = %d\n", initialConditionType);
+	printf("numberOfNucleonsPerNuclei    = %d\n", numberOfNucleonsPerNuclei);
+	printf("initialCentralTemperatureGeV = %.3f\n", initialCentralTemperatureGeV);
+	printf("scatteringCrossSectionNN     = %.2f\n", scatteringCrossSectionNN);
+	printf("impactParameter              = %.2f\n", impactParameter);
+	printf("fractionOfBinaryCollisions   = %.2f\n", fractionOfBinaryCollisions);
+	printf("rapidityVariance             = %.3f\n", rapidityVariance);
+	printf("rapidityMean                 = %.2f\n", rapidityMean);
+	printf("\n");
+#endif
 
 	struct InitialConditionParameters * initCond = (struct InitialConditionParameters *) params;
 	initCond->initialConditionType 			= initialConditionType;
@@ -128,12 +134,14 @@ void loadHydroParameters(config_t *cfg, void * params)
 	getDoubleProperty(cfg, "shear_viscosity", 			&shear_viscosity);
 	getDoubleProperty(cfg, "freezeoutTemperatureGeV",	&freezeoutTemperatureGeV);
 
-	// printf("Hydro parameters:");
-	// printf("\n-----------------\n");
-	// printf("tau_initial             = %.3f\n", tau_initial);
-	// printf("shear_viscosity         = %.3f\n", shear_viscosity);
-	// printf("freezeoutTemperatureGeV = %.3f\n", freezeoutTemperatureGeV);
-	// printf("\n");
+#ifdef PRINT_PARAMETERS
+	printf("Hydro parameters:");
+	printf("\n-----------------\n");
+	printf("tau_initial             = %.3f\n", tau_initial);
+	printf("shear_viscosity         = %.3f\n", shear_viscosity);
+	printf("freezeoutTemperatureGeV = %.3f\n", freezeoutTemperatureGeV);
+	printf("\n");
+#endif
 
 	// set hydro struct
 	struct HydroParameters * hydro = (struct HydroParameters *) params;

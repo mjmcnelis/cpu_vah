@@ -8,7 +8,7 @@
 using namespace std;
 
 #define XI0 	0.1						// regulation parameters
-#define RHO_MAX 5.0
+#define RHO_MAX 1.0
 #define REGULATION_SCHEME 0				// 1 = new regulation scheme (old regulation otherwise)
 
 

@@ -64,9 +64,11 @@ void spatial_projection::test_spatial_projector()
 
 	spatial_project_vector(At, Ax, Ay, An);
 
-	precision Au = fabs(At * ut  -  Ax * ux  -  Ay * uy  -  t2 * An * un);
+	precision A_mag = sqrt(fabs(At * At  -  Ax * Ax  -  Ay * Ay  -  t2 * An * An));
 
-    if(Au > 1.e-14)  printf("test_spatial_projector error: A is not orthogonal to u (%.6g)\n", Au);
+	precision Au = fabs(At * ut  -  Ax * ux  -  Ay * uy  -  t2 * An * un) / (ut * A_mag);
+
+    if(Au > 1.e-12)  printf("test_spatial_projector error: A is not orthogonal to u (%.6g)\n", Au);
 }
 
 
@@ -99,7 +101,7 @@ double_spatial_projection::double_spatial_projection(spatial_projection Delta, p
 	Dtt_xn =  Dtx * Dtn  -  Dtt * Dxn / 3.;
 	Dtt_yy =  Dty * Dty  -  Dtt * Dyy / 3.;
 	Dtt_yn =  Dty * Dtn  -  Dtt * Dyn / 3.;
-	Dtt_nn =  Dtn * Dtn  -  Dtt * Dnn / 3.;
+	Dtt_nn =  Dtn * Dtn  -  Dtt * Dnn / 3.;		// seems ok
 
 	Dtx_tx = (Dtx * Dtx  +  3. * Dtt * Dxx) / 6.;
 	Dtx_ty = (Dtx * Dty  +  3. * Dtt * Dxy) / 6.;
@@ -107,7 +109,7 @@ double_spatial_projection::double_spatial_projection(spatial_projection Delta, p
 	Dtx_xx = 2./3. * Dtx * Dxx;
 	Dtx_xy = (Dtx * Dxy  +  3. * Dty * Dxx) / 6.;
 	Dtx_xn = (Dtx * Dxn  +  3. * Dtn * Dxx) / 6.;
-	Dtx_yy = Dty * Dxy  -  2./3. * Dtx * Dyy;
+	Dtx_yy = Dty * Dxy  -  Dtx * Dyy / 3.;	// fixed bug 8/4
 	Dtx_yn = (3. * Dty * Dxn  +  3. * Dtn * Dxy  -  2. * Dtx * Dyn) / 6.;
 	Dtx_nn = Dtn * Dxn  -  Dtx * Dnn / 3.;
 
@@ -118,7 +120,7 @@ double_spatial_projection::double_spatial_projection(spatial_projection Delta, p
 	Dty_xn = (3. * Dtx * Dyn  +  3. * Dtn * Dxy  -  2. * Dty * Dxn) / 6.;
 	Dty_yy = 2./3. * Dty * Dyy;
 	Dty_yn = (Dty * Dyn  +  3. * Dtn * Dyy) / 6.;
-	Dty_nn = Dtn * Dyn  -  Dnn * Dty / 3.;
+	Dty_nn = Dtn * Dyn  -  Dnn * Dty / 3.;	// seems ok
 
 	Dtn_tn = (Dtn * Dtn  +  3. * Dnn * Dtt) / 6.;
 	Dtn_xx = Dtx * Dxn  -  Dtn * Dxx / 3.;
@@ -210,18 +212,18 @@ void double_spatial_projection::test_double_spatial_projector(precision ut, prec
 
 	double_spatial_project_tensor(Att, Atx, Aty, Atn, Axx, Axy, Axn, Ayy, Ayn, Ann);
 
+	precision A_mag = sqrt(fabs(Att * Att  +  Axx * Axx  +  Ayy * Ayy  +  t4 * Ann * Ann  -  2. * (Atx * Atx  +  Aty * Aty  -  Axy * Axy  +  t2 * (Atn * Atn  -  Axn * Axn  -  Ayn * Ayn))));
+
 	precision Au0 = fabs(Att * ut  -  Atx * ux  -  Aty * uy  -  t2 * Atn * un);
 	precision Au1 = fabs(Atx * ut  -  Axx * ux  -  Axy * uy  -  t2 * Axn * un);
 	precision Au2 = fabs(Aty * ut  -  Axy * ux  -  Ayy * uy  -  t2 * Ayn * un);
 	precision Au3 = fabs(Atn * ut  -  Axn * ux  -  Ayn * uy  -  t2 * Ann * un);
-	precision Au = fmax(Au0, fmax(Au1, fmax(Au2, Au3)));
+	precision Au = fmax(Au0, fmax(Au1, fmax(Au2, Au3))) / (ut * A_mag);
 
-	precision trA = fabs(Att  -  Axx  -  Ayy  -  t2 * Ann);
+	precision trA = fabs(Att  -  Axx  -  Ayy  -  t2 * Ann) / A_mag;
 
-    precision eps = 1.e-14;
-
-    if(Au > 1.e-14)  printf("test_double_spatial_projector error: A is not orthogonal to u (%.6g)\n", Au);
-    if(trA > 1.e-14) printf("test_double_spatial_projector error: A is not traceless (%.6g)\n", trA);
+    if(Au > 1.e-12)  printf("test_double_spatial_projector error: A is not orthogonal to u (%.6g)\n", Au);
+    if(trA > 1.e-12) printf("test_double_spatial_projector error: A is not traceless (%.6g)\n", trA);
 }
 
 

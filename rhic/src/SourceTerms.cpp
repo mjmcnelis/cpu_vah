@@ -751,7 +751,7 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 {
 	precision t2 = t * t;
 	precision t4 = t2 * t2;
-	precision tun  = t * un;
+	precision tun = t * un;
 
 	precision ut = sqrt(1.  +  ux * ux  +  uy * uy  +  tun * tun);
 	precision vx = ux / ut;
@@ -886,12 +886,12 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	precision dvn_dn = (dun_dn  -  vn * dut_dn) / ut;
 	precision div_v = dvx_dx  +  dvy_dy  +  dvn_dn;
 
+
 #if (NUMBER_OF_VISCOUS_CURRENTS != 0)
 	spatial_projection Delta(ut, ux, uy, un, t2);		// \Delta^{\mu\nu}
 	double_spatial_projection Delta_2(Delta, t2, t4);	// \Delta^{\mu\nu\alpha\beta}
 
-	// this test passed
-	Delta.test_spatial_projector();
+	//Delta.test_spatial_projector();
 
 	// okay something is wrong with the double projector (algebraic mistake probably)
 	//Delta_2.test_double_spatial_projector(ut, ux, uy, un);
