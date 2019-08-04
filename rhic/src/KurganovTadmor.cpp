@@ -126,8 +126,18 @@ const precision * const __restrict__ e, const fluid_velocity * const __restrict_
 			#if (PT_MATCHING == 0)
 				get_primary_neighbor_cells(e, e1, sim, sip, sjm, sjp, skm, skp);
 			#endif
+
 				get_fluid_velocity_neighbor_cells(u[simm], u[sim], u[sip], u[sipp], u[sjmm], u[sjm], u[sjp], u[sjpp], u[skmm], u[skm], u[skp], u[skpp], ui1, uj1, uk1, vxi, vyj, vnk, t2);
-				get_hydro_neighbor_cells(q[simm], q[sim], q[sip], q[sipp], q[sjmm], q[sjm], q[sjp], q[sjpp], q[skmm], q[skm], q[skp], q[skpp], qi1, qj1, qk1, qi2, qj2, qk2);
+
+				get_hydro_neighbor_cells(q[sim],  q[sip],  qi1);
+				get_hydro_neighbor_cells(q[simm], q[sipp], qi2);
+
+				get_hydro_neighbor_cells(q[sjm],  q[sjp],  qj1);
+				get_hydro_neighbor_cells(q[sjmm], q[sjpp], qj2);
+
+				get_hydro_neighbor_cells(q[skm],  q[skp],  qk1);
+				get_hydro_neighbor_cells(q[skmm], q[skpp], qk2);
+
 
 				// compute the external source terms (S)
 			#ifdef ANISO_HYDRO

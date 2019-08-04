@@ -102,7 +102,7 @@ double_spatial_projection::double_spatial_projection(spatial_projection Delta, p
 	Dtt_nn =  Dtn * Dtn  -  Dtt * Dnn / 3.;
 
 	Dtx_tx = (Dtx * Dtx  +  3. * Dtt * Dxx) / 6.;
-	Dtx_ty = (Dtx * Dty  +  3. * Dtt * Dxy) / 6.;	
+	Dtx_ty = (Dtx * Dty  +  3. * Dtt * Dxy) / 6.;
 	Dtx_tn = (Dtx * Dtn  +  3. * Dtt * Dxn) / 6.;
 	Dtx_xx = 2./3. * Dtx * Dxx;
 	Dtx_xy = (Dtx * Dxy  +  3. * Dty * Dxx) / 6.;

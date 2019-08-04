@@ -17,10 +17,7 @@ void get_fluid_velocity_neighbor_cells(	fluid_velocity u_simm, fluid_velocity u_
 										precision * const __restrict__ ui1, precision * const __restrict__ uj1, precision * const __restrict__ uk1,
 										precision * const __restrict__ vxi, precision * const __restrict__ vyj, precision * const __restrict__ vnk, precision t2);
 
-void get_hydro_neighbor_cells(	hydro_variables q_simm, hydro_variables q_sim, hydro_variables q_sip, hydro_variables q_sipp,
-								hydro_variables q_sjmm, hydro_variables q_sjm, hydro_variables q_sjp, hydro_variables q_sjpp,
-								hydro_variables q_skmm, hydro_variables q_skm, hydro_variables q_skp, hydro_variables q_skpp,
-								precision * const __restrict__ qi1, precision * const __restrict__ qj1, precision * const __restrict__ qk1,
-								precision * const __restrict__ qi2, precision * const __restrict__ qj2, precision * const __restrict__ qk2);
+
+void get_hydro_neighbor_cells(hydro_variables qm, hydro_variables qp, precision * const __restrict__ q);
 
 #endif

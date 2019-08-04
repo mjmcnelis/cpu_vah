@@ -890,8 +890,16 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	spatial_projection Delta(ut, ux, uy, un, t2);		// \Delta^{\mu\nu}
 	double_spatial_projection Delta_2(Delta, t2, t4);	// \Delta^{\mu\nu\alpha\beta}
 
+	// this test passed
+	Delta.test_spatial_projector();
+
+	// okay something is wrong with the double projector (algebraic mistake probably)
+	//Delta_2.test_double_spatial_projector(ut, ux, uy, un);
+
 #ifdef PIMUNU
 	Delta_2.double_spatial_project_tensor(pitt, pitx, pity, pitn, pixx, pixy, pixn, piyy, piyn, pinn);
+
+
 
 	// acceleration = D u^\mu
 	precision at = ut * dut_dt  +  ux * dut_dx  +  uy * dut_dy  +  un * dut_dn  +  tun * un;
@@ -996,7 +1004,7 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	precision piay = pity * at  -  pixy * ax  -  piyy * ay  -  t2 * piyn * an;
 	precision pian = pitn * at  -  pixn * ax  -  piyn * ay  -  t2 * pinn * an;
 
-	// product rule terms: P^{\mu\nu} = 2 . u^{(\mu} . \pi_{\nu)\lambda} . a_\lambda
+	// product rule terms: P^{\mu\nu} = 2 . u^{(\mu} . \pi^\nu)_\lambda} . a_\lambda
 	precision Ptt = 2. * ut * piat;
 	precision Ptx = ut * piax  -  ux * piat;
 	precision Pty = ut * piay  -  uy * piat;

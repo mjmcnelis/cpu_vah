@@ -9,7 +9,7 @@ using namespace std;
 
 #define XI0 	0.1						// regulation parameters
 #define RHO_MAX 5.0
-#define REGULATION_SCHEME 1				// 1 = new regulation scheme (old regulation otherwise)
+#define REGULATION_SCHEME 0				// 1 = new regulation scheme (old regulation otherwise)
 
 
 inline int linear_column_index(int i, int j, int k, int nx, int ny)

@@ -12,7 +12,7 @@
 
 using namespace std;
 
-#define TEST_TMUNU 1		// 1 for testing reproduction of t^{\tau\mu}
+#define TEST_TMUNU 0		// 1 for testing reproduction of t^{\tau\mu}
 
 double ttt_error = 1.e-13;
 double ttx_error = 1.e-13;

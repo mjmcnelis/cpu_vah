@@ -126,486 +126,91 @@ void get_fluid_velocity_neighbor_cells(	fluid_velocity u_simm, fluid_velocity u_
 }
 
 
-void get_hydro_neighbor_cells(	hydro_variables q_simm, hydro_variables q_sim, hydro_variables q_sip, hydro_variables q_sipp,
-								hydro_variables q_sjmm, hydro_variables q_sjm, hydro_variables q_sjp, hydro_variables q_sjpp,
-								hydro_variables q_skmm, hydro_variables q_skm, hydro_variables q_skp, hydro_variables q_skpp,
-								precision * const __restrict__ qi1, precision * const __restrict__ qj1, precision * const __restrict__ qk1,
-								precision * const __restrict__ qi2, precision * const __restrict__ qj2, precision * const __restrict__ qk2)
+void get_hydro_neighbor_cells(hydro_variables qm, hydro_variables qp, precision * const __restrict__ q)
 {
 	int n = 0;
 
-
-	// q neighbors [i-1, i+1] stored in qi1
+	// q neighbors [qm, qp] stored in q
 	//------------------------------------------------
 
-	qi1[n]	   = q_sim.ttt;
-	qi1[n + 1] = q_sip.ttt;		n += 2;
+	q[n]	 = qm.ttt;
+	q[n + 1] = qp.ttt;	n += 2;
 
-	qi1[n]	   = q_sim.ttx;
-	qi1[n + 1] = q_sip.ttx;		n += 2;
+	q[n]	 = qm.ttx;
+	q[n + 1] = qp.ttx;	n += 2;
 
-	qi1[n]	   = q_sim.tty;
-	qi1[n + 1] = q_sip.tty;		n += 2;
+	q[n]	 = qm.tty;
+	q[n + 1] = qp.tty;	n += 2;
 
-	qi1[n]	   = q_sim.ttn;
-	qi1[n + 1] = q_sip.ttn;		n += 2;
+	q[n]	 = qm.ttn;
+	q[n + 1] = qp.ttn;	n += 2;
 
 #ifdef ANISO_HYDRO
-	qi1[n]	   = q_sim.pl;
-	qi1[n + 1] = q_sip.pl;		n += 2;
+	q[n]	 = qm.pl;
+	q[n + 1] = qp.pl;	n += 2;
 
 #if (PT_MATCHING == 1)
-	qi1[n]	   = q_sim.pt;
-	qi1[n + 1] = q_sip.pt;		n += 2;
+	q[n]	 = qm.pt;
+	q[n + 1] = qp.pt;	n += 2;
 #endif
 #endif
 
 #ifdef PIMUNU
-	qi1[n]	   = q_sim.pitt;
-	qi1[n + 1] = q_sip.pitt;	n += 2;
+	q[n]	 = qm.pitt;
+	q[n + 1] = qp.pitt;	n += 2;
 
-	qi1[n]	   = q_sim.pitx;
-	qi1[n + 1] = q_sip.pitx;	n += 2;
+	q[n]	 = qm.pitx;
+	q[n + 1] = qp.pitx;	n += 2;
 
-	qi1[n]	   = q_sim.pity;
-	qi1[n + 1] = q_sip.pity;	n += 2;
+	q[n]	 = qm.pity;
+	q[n + 1] = qp.pity;	n += 2;
 
-	qi1[n]	   = q_sim.pitn;
-	qi1[n + 1] = q_sip.pitn;	n += 2;
+	q[n]	 = qm.pitn;
+	q[n + 1] = qp.pitn;	n += 2;
 
-	qi1[n]	   = q_sim.pixx;
-	qi1[n + 1] = q_sip.pixx;	n += 2;
+	q[n]	 = qm.pixx;
+	q[n + 1] = qp.pixx;	n += 2;
 
-	qi1[n]	   = q_sim.pixy;
-	qi1[n + 1] = q_sip.pixy;	n += 2;
+	q[n]	 = qm.pixy;
+	q[n + 1] = qp.pixy;	n += 2;
 
-	qi1[n]	   = q_sim.pixn;
-	qi1[n + 1] = q_sip.pixn;	n += 2;
+	q[n]	 = qm.pixn;
+	q[n + 1] = qp.pixn;	n += 2;
 
-	qi1[n]	   = q_sim.piyy;
-	qi1[n + 1] = q_sip.piyy;	n += 2;
+	q[n]	 = qm.piyy;
+	q[n + 1] = qp.piyy;	n += 2;
 
-	qi1[n]	   = q_sim.piyn;
-	qi1[n + 1] = q_sip.piyn;	n += 2;
+	q[n]     = qm.piyn;
+	q[n + 1] = qp.piyn;	n += 2;
 
-	qi1[n]	   = q_sim.pinn;
-	qi1[n + 1] = q_sip.pinn;	n += 2;
+	q[n]	 = qm.pinn;
+	q[n + 1] = qp.pinn;	n += 2;
 #endif
 
 #ifdef WTZMU
-	qi1[n]	   = q_sim.WtTz;
-	qi1[n + 1] = q_sip.WtTz;	n += 2;
+	q[n]  	 = qm.WtTz;
+	q[n + 1] = qp.WtTz;	n += 2;
 
-	qi1[n]	   = q_sim.WxTz;
-	qi1[n + 1] = q_sip.WxTz;	n += 2;
+	q[n]	 = qm.WxTz;
+	q[n + 1] = qp.WxTz;	n += 2;
 
-	qi1[n]	   = q_sim.WyTz;
-	qi1[n + 1] = q_sip.WyTz;	n += 2;
+	q[n]	 = qm.WyTz;
+	q[n + 1] = qp.WyTz;	n += 2;
 
-	qi1[n]	   = q_sim.WnTz;
-	qi1[n + 1] = q_sip.WnTz;
+	q[n]	 = qm.WnTz;
+	q[n + 1] = qp.WnTz;
 #endif
 
 #ifdef PI
-	qi1[n]	   = q_sim.Pi;
-	qi1[n + 1] = q_sip.Pi;
-#endif
-
-
-	// q neighbors [i-2, i+2] stored in qi1
-	//------------------------------------------------
-
-	n = 0;
-
-	qi2[n]	   = q_simm.ttt;
-	qi2[n + 1] = q_sipp.ttt;	n += 2;
-
-	qi2[n]	   = q_simm.ttx;
-	qi2[n + 1] = q_sipp.ttx;	n += 2;
-
-	qi2[n]	   = q_simm.tty;
-	qi2[n + 1] = q_sipp.tty;	n += 2;
-
-	qi2[n]	   = q_simm.ttn;
-	qi2[n + 1] = q_sipp.ttn;	n += 2;
-
-#ifdef ANISO_HYDRO
-	qi2[n]	   = q_simm.pl;
-	qi2[n + 1] = q_sipp.pl;		n += 2;
-
-#if (PT_MATCHING == 1)
-	qi2[n]	   = q_simm.pt;
-	qi2[n + 1] = q_sipp.pt;		n += 2;
-#endif
-#endif
-
-#ifdef PIMUNU
-	qi2[n]	   = q_simm.pitt;
-	qi2[n + 1] = q_sipp.pitt;	n += 2;
-
-	qi2[n]	   = q_simm.pitx;
-	qi2[n + 1] = q_sipp.pitx;	n += 2;
-
-	qi2[n]	   = q_simm.pity;
-	qi2[n + 1] = q_sipp.pity;	n += 2;
-
-	qi2[n]	   = q_simm.pitn;
-	qi2[n + 1] = q_sipp.pitn;	n += 2;
-
-	qi2[n]	   = q_simm.pixx;
-	qi2[n + 1] = q_sipp.pixx;	n += 2;
-
-	qi2[n]	   = q_simm.pixy;
-	qi2[n + 1] = q_sipp.pixy;	n += 2;
-
-	qi2[n]	   = q_simm.pixn;
-	qi2[n + 1] = q_sipp.pixn;	n += 2;
-
-	qi2[n]	   = q_simm.piyy;
-	qi2[n + 1] = q_sipp.piyy;	n += 2;
-
-	qi2[n]	   = q_simm.piyn;
-	qi2[n + 1] = q_sipp.piyn;	n += 2;
-
-	qi2[n]	   = q_simm.pinn;
-	qi2[n + 1] = q_sipp.pinn;	n += 2;
-#endif
-
-#ifdef WTZMU
-	qi2[n]	   = q_simm.WtTz;
-	qi2[n + 1] = q_sipp.WtTz;	n += 2;
-
-	qi2[n]	   = q_simm.WxTz;
-	qi2[n + 1] = q_sipp.WxTz;	n += 2;
-
-	qi2[n]	   = q_simm.WyTz;
-	qi2[n + 1] = q_sipp.WyTz;	n += 2;
-
-	qi2[n]	   = q_simm.WnTz;
-	qi2[n + 1] = q_sipp.WnTz;
-#endif
-
-#ifdef PI
-	qi2[n]	   = q_simm.Pi;
-	qi2[n + 1] = q_sipp.Pi;
-#endif
-
-
-	// q neighbors [j-1, j+1] stored in qj1
-	//------------------------------------------------
-
-	n = 0;
-
-	qj1[n]	   = q_sjm.ttt;
-	qj1[n + 1] = q_sjp.ttt;		n += 2;
-
-	qj1[n]	   = q_sjm.ttx;
-	qj1[n + 1] = q_sjp.ttx;		n += 2;
-
-	qj1[n]	   = q_sjm.tty;
-	qj1[n + 1] = q_sjp.tty;		n += 2;
-
-	qj1[n]	   = q_sjm.ttn;
-	qj1[n + 1] = q_sjp.ttn;		n += 2;
-
-#ifdef ANISO_HYDRO
-	qj1[n]	   = q_sjm.pl;
-	qj1[n + 1] = q_sjp.pl;		n += 2;
-
-#if (PT_MATCHING == 1)
-	qj1[n]	   = q_sjm.pt;
-	qj1[n + 1] = q_sjp.pt;		n += 2;
-#endif
-#endif
-
-#ifdef PIMUNU
-	qj1[n]	   = q_sjm.pitt;
-	qj1[n + 1] = q_sjp.pitt;	n += 2;
-
-	qj1[n]	   = q_sjm.pitx;
-	qj1[n + 1] = q_sjp.pitx;	n += 2;
-
-	qj1[n]	   = q_sjm.pity;
-	qj1[n + 1] = q_sjp.pity;	n += 2;
-
-	qj1[n]	   = q_sjm.pitn;
-	qj1[n + 1] = q_sjp.pitn;	n += 2;
-
-	qj1[n]	   = q_sjm.pixx;
-	qj1[n + 1] = q_sjp.pixx;	n += 2;
-
-	qj1[n]	   = q_sjm.pixy;
-	qj1[n + 1] = q_sjp.pixy;	n += 2;
-
-	qj1[n]	   = q_sjm.pixn;
-	qj1[n + 1] = q_sjp.pixn;	n += 2;
-
-	qj1[n]	   = q_sjm.piyy;
-	qj1[n + 1] = q_sjp.piyy;	n += 2;
-
-	qj1[n]	   = q_sjm.piyn;
-	qj1[n + 1] = q_sjp.piyn;	n += 2;
-
-	qj1[n]	   = q_sjm.pinn;
-	qj1[n + 1] = q_sjp.pinn;	n += 2;
-#endif
-
-#ifdef WTZMU
-	qj1[n]	   = q_sjm.WtTz;
-	qj1[n + 1] = q_sjp.WtTz;	n += 2;
-
-	qj1[n]	   = q_sjm.WxTz;
-	qj1[n + 1] = q_sjp.WxTz;	n += 2;
-
-	qj1[n]	   = q_sjm.WyTz;
-	qj1[n + 1] = q_sjp.WyTz;	n += 2;
-
-	qj1[n]	   = q_sjm.WnTz;
-	qj1[n + 1] = q_sjp.WnTz;
-#endif
-
-#ifdef PI
-	qj1[n]	   = q_sjm.Pi;
-	qj1[n + 1] = q_sjp.Pi;
-#endif
-
-
-	// q neighbors [j-2, j+2] stored in qj2
-	//------------------------------------------------
-
-	n = 0;
-
-	qj2[n]	   = q_sjmm.ttt;
-	qj2[n + 1] = q_sjpp.ttt;	n += 2;
-
-	qj2[n]	   = q_sjmm.ttx;
-	qj2[n + 1] = q_sjpp.ttx;	n += 2;
-
-	qj2[n]	   = q_sjmm.tty;
-	qj2[n + 1] = q_sjpp.tty;	n += 2;
-
-	qj2[n]	   = q_sjmm.ttn;
-	qj2[n + 1] = q_sjpp.ttn;	n += 2;
-
-#ifdef ANISO_HYDRO
-	qj2[n]	   = q_sjmm.pl;
-	qj2[n + 1] = q_sjpp.pl;		n += 2;
-
-#if (PT_MATCHING == 1)
-	qj2[n]	   = q_sjmm.pt;
-	qj2[n + 1] = q_sjpp.pt;		n += 2;
-#endif
-#endif
-
-#ifdef PIMUNU
-	qj2[n]	   = q_sjmm.pitt;
-	qj2[n + 1] = q_sjpp.pitt;	n += 2;
-
-	qj2[n]	   = q_sjmm.pitx;
-	qj2[n + 1] = q_sjpp.pitx;	n += 2;
-
-	qj2[n]	   = q_sjmm.pity;
-	qj2[n + 1] = q_sjpp.pity;	n += 2;
-
-	qj2[n]	   = q_sjmm.pitn;
-	qj2[n + 1] = q_sjpp.pitn;	n += 2;
-
-	qj2[n]	   = q_sjmm.pixx;
-	qj2[n + 1] = q_sjpp.pixx;	n += 2;
-
-	qj2[n]	   = q_sjmm.pixy;
-	qj2[n + 1] = q_sjpp.pixy;	n += 2;
-
-	qj2[n]	   = q_sjmm.pixn;
-	qj2[n + 1] = q_sjpp.pixn;	n += 2;
-
-	qj2[n]	   = q_sjmm.piyy;
-	qj2[n + 1] = q_sjpp.piyy;	n += 2;
-
-	qj2[n]	   = q_sjmm.piyn;
-	qj2[n + 1] = q_sjpp.piyn;	n += 2;
-
-	qj2[n]	   = q_sjmm.pinn;
-	qj2[n + 1] = q_sjpp.pinn;	n += 2;
-#endif
-
-#ifdef WTZMU
-	qj2[n]	   = q_sjmm.WtTz;
-	qj2[n + 1] = q_sjpp.WtTz;	n += 2;
-
-	qj2[n]	   = q_sjmm.WxTz;
-	qj2[n + 1] = q_sjpp.WxTz;	n += 2;
-
-	qj2[n]	   = q_sjmm.WyTz;
-	qj2[n + 1] = q_sjpp.WyTz;	n += 2;
-
-	qj2[n]	   = q_sjmm.WnTz;
-	qj2[n + 1] = q_sjpp.WnTz;
-#endif
-
-#ifdef PI
-	qj2[n]	   = q_sjmm.Pi;
-	qj2[n + 1] = q_sjpp.Pi;
-#endif
-
-
-	// q neighbors [k-1, k+1] stored in qk1
-	//------------------------------------------------
-
-	n = 0;
-
-	qk1[n]	   = q_skm.ttt;
-	qk1[n + 1] = q_skp.ttt;		n += 2;
-
-	qk1[n]	   = q_skm.ttx;
-	qk1[n + 1] = q_skp.ttx;		n += 2;
-
-	qk1[n]	   = q_skm.tty;
-	qk1[n + 1] = q_skp.tty;		n += 2;
-
-	qk1[n]	   = q_skm.ttn;
-	qk1[n + 1] = q_skp.ttn;		n += 2;
-
-#ifdef ANISO_HYDRO
-	qk1[n]	   = q_skm.pl;
-	qk1[n + 1] = q_skp.pl;		n += 2;
-
-#if (PT_MATCHING == 1)
-	qk1[n]	   = q_skm.pt;
-	qk1[n + 1] = q_skp.pt;		n += 2;
-#endif
-#endif
-
-#ifdef PIMUNU
-	qk1[n]	   = q_skm.pitt;
-	qk1[n + 1] = q_skp.pitt;	n += 2;
-
-	qk1[n]	   = q_skm.pitx;
-	qk1[n + 1] = q_skp.pitx;	n += 2;
-
-	qk1[n]	   = q_skm.pity;
-	qk1[n + 1] = q_skp.pity;	n += 2;
-
-	qk1[n]	   = q_skm.pitn;
-	qk1[n + 1] = q_skp.pitn;	n += 2;
-
-	qk1[n]	   = q_skm.pixx;
-	qk1[n + 1] = q_skp.pixx;	n += 2;
-
-	qk1[n]	   = q_skm.pixy;
-	qk1[n + 1] = q_skp.pixy;	n += 2;
-
-	qk1[n]	   = q_skm.pixn;
-	qk1[n + 1] = q_skp.pixn;	n += 2;
-
-	qk1[n]	   = q_skm.piyy;
-	qk1[n + 1] = q_skp.piyy;	n += 2;
-
-	qk1[n]	   = q_skm.piyn;
-	qk1[n + 1] = q_skp.piyn;	n += 2;
-
-	qk1[n]	   = q_skm.pinn;
-	qk1[n + 1] = q_skp.pinn;	n += 2;
-#endif
-
-#ifdef WTZMU
-	qk1[n]	   = q_skm.WtTz;
-	qk1[n + 1] = q_skp.WtTz;	n += 2;
-
-	qk1[n]	   = q_skm.WxTz;
-	qk1[n + 1] = q_skp.WxTz;	n += 2;
-
-	qk1[n]	   = q_skm.WyTz;
-	qk1[n + 1] = q_skp.WyTz;	n += 2;
-
-	qk1[n]	   = q_skm.WnTz;
-	qk1[n + 1] = q_skp.WnTz;
-#endif
-
-#ifdef PI
-	qk1[n]	   = q_skm.Pi;
-	qk1[n + 1] = q_skp.Pi;
-#endif
-
-
-	// q neighbors [k-2, k+2] stored in qk2
-	//------------------------------------------------
-
-	n = 0;
-
-	qk2[n]	   = q_skmm.ttt;
-	qk2[n + 1] = q_skpp.ttt;	n += 2;
-
-	qk2[n]	   = q_skmm.ttx;
-	qk2[n + 1] = q_skpp.ttx;	n += 2;
-
-	qk2[n]	   = q_skmm.tty;
-	qk2[n + 1] = q_skpp.tty;	n += 2;
-
-	qk2[n]	   = q_skmm.ttn;
-	qk2[n + 1] = q_skpp.ttn;	n += 2;
-
-#ifdef ANISO_HYDRO
-	qk2[n]	   = q_skmm.pl;
-	qk2[n + 1] = q_skpp.pl;		n += 2;
-
-#if (PT_MATCHING == 1)
-	qk2[n]	   = q_skmm.pt;
-	qk2[n + 1] = q_skpp.pt;		n += 2;
-#endif
-#endif
-
-#ifdef PIMUNU
-	qk2[n]	   = q_skmm.pitt;
-	qk2[n + 1] = q_skpp.pitt;	n += 2;
-
-	qk2[n]	   = q_skmm.pitx;
-	qk2[n + 1] = q_skpp.pitx;	n += 2;
-
-	qk2[n]	   = q_skmm.pity;
-	qk2[n + 1] = q_skpp.pity;	n += 2;
-
-	qk2[n]	   = q_skmm.pitn;
-	qk2[n + 1] = q_skpp.pitn;	n += 2;
-
-	qk2[n]	   = q_skmm.pixx;
-	qk2[n + 1] = q_skpp.pixx;	n += 2;
-
-	qk2[n]	   = q_skmm.pixy;
-	qk2[n + 1] = q_skpp.pixy;	n += 2;
-
-	qk2[n]	   = q_skmm.pixn;
-	qk2[n + 1] = q_skpp.pixn;	n += 2;
-
-	qk2[n]	   = q_skmm.piyy;
-	qk2[n + 1] = q_skpp.piyy;	n += 2;
-
-	qk2[n]	   = q_skmm.piyn;
-	qk2[n + 1] = q_skpp.piyn;	n += 2;
-
-	qk2[n]	   = q_skmm.pinn;
-	qk2[n + 1] = q_skpp.pinn;	n += 2;
-#endif
-
-#ifdef WTZMU
-	qk2[n]	   = q_skmm.WtTz;
-	qk2[n + 1] = q_skpp.WtTz;	n += 2;
-
-	qk2[n]	   = q_skmm.WxTz;
-	qk2[n + 1] = q_skpp.WxTz;	n += 2;
-
-	qk2[n]	   = q_skmm.WyTz;
-	qk2[n + 1] = q_skpp.WyTz;	n += 2;
-
-	qk2[n]	   = q_skmm.WnTz;
-	qk2[n + 1] = q_skpp.WnTz;
-#endif
-
-#ifdef PI
-	qk2[n]	   = q_skmm.Pi;
-	qk2[n + 1] = q_skpp.Pi;
+	q[n]	 = qm.Pi;
+	q[n + 1] = qp.Pi;
 #endif
 }
+
+
+
+
+
 
 
 
