@@ -84,7 +84,6 @@ void set_initial_hydro_variables(double t, int nx, int ny, int nz)
 				precision Pi = 0;
 			#endif
 
-
 			#ifdef ANISO_HYDRO
 				q[s].ttt = (e_s + pt) * ut * ut  -   pt  +  (pl - pt) * zt * zt  +  2. * WtTz * zt  +  pitt;
 				q[s].ttx = (e_s + pt) * ut * ux  +  WxTz * zt  +  pitx;

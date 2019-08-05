@@ -813,7 +813,7 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	precision dp_dn = cs2 * de_dn;
 
 	int n = 8;
-#ifdef PIMUNU	// pi^{\mu\nu} derivatives
+#ifdef PIMUNU	// \pi^{\mu\nu} derivatives
 	precision dpitt_dx = central_derivative(qi1, n, dx);
 	precision dpitt_dy = central_derivative(qj1, n, dy);
 	precision dpitt_dn = central_derivative(qk1, n, dn);	n += 2;
@@ -848,7 +848,7 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 #else
 	precision dpitt_dx = 0, dpitt_dy = 0, dpitt_dn = 0, dpitx_dx = 0, dpitx_dy = 0, dpitx_dn = 0, dpity_dx = 0, dpity_dy = 0, dpity_dn = 0, dpitn_dx = 0, dpitn_dy = 0, dpitn_dn = 0, dpixx_dx = 0, dpixy_dx = 0, dpixy_dy = 0, dpixn_dx = 0, dpixn_dn = 0, dpiyy_dy = 0, dpiyn_dy = 0, dpiyn_dn = 0, dpinn_dn = 0;
 #endif
-#ifdef PI 	// Pi derivatives
+#ifdef PI 	// \Pi derivatives
 	precision dPi_dx = central_derivative(qi1, n, dx);
 	precision dPi_dy = central_derivative(qj1, n, dy);
 	precision dPi_dn = central_derivative(qk1, n, dn);
@@ -940,16 +940,16 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	precision Inn = 2. * betapi * snn;
 
 	// ignore the vorticity term for now
-	Itt += 0;
-	Itx += 0;
-	Ity += 0;
-	Itn += 0;
-	Ixx += 0;
-	Ixy += 0;
-	Ixn += 0;
-	Iyy += 0;
-	Iyn += 0;
-	Inn += 0;
+	Itt += 0.;
+	Itx += 0.;
+	Ity += 0.;
+	Itn += 0.;
+	Ixx += 0.;
+	Ixy += 0.;
+	Ixn += 0.;
+	Iyy += 0.;
+	Iyn += 0.;
+	Inn += 0.;
 
 	// \delta_{\pi\pi} . pi^{\mu\nu} . \theta
 	Itt -= delta_pipi * pitt * theta;
