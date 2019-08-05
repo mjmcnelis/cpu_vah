@@ -8,8 +8,8 @@
 using namespace std;
 
 #define XI0 	0.1						// regulation parameters
-#define RHO_MAX 1.0
-#define REGULATION_SCHEME 0				// 1 = new regulation scheme (old regulation otherwise)
+#define RHO_MAX 5.0
+#define REGULATION_SCHEME 1				// 1 = new regulation scheme (old regulation otherwise)
 
 
 inline int linear_column_index(int i, int j, int k, int nx, int ny)
@@ -21,7 +21,7 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 void regulate_residual_currents(precision t, hydro_variables * const __restrict__ q, precision * const __restrict__ e, const fluid_velocity * const __restrict__ u, int nx, int ny, int nz)
 {
 #ifdef ANISO_HYDRO
-	precision eps = 1.e-6;	// enforce pl, pt to be positive
+	precision eps = 1.e-6;	// enforce pl, pt to be positive (should be smaller in magnitude than E_MIN)
 
 	precision xi0 = XI0;
 	precision rho_max = RHO_MAX;
@@ -52,8 +52,10 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 					q[s].pt = eps;
 					pt = eps;
 				}
+			#else
+				precision pt = (e_s - pl) / 2.;
 			#endif
-			#if (NUMBER_OF_RESIDUAL_CURRENTS != 0)
+
 				precision ux = u[s].ux;
 				precision uy = u[s].uy;
 				precision un = u[s].un;
@@ -62,12 +64,9 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 				precision utperp = sqrt(1.  +  ux * ux  +  uy * uy);
 				precision zt = t * un / utperp;
 				precision zn = ut / t / utperp;
-			#ifdef CONFORMAL_EOS
-				precision pt = (e_s - pl) / 2.;
-			#endif
-				precision T_aniso_mag = sqrt(e_s * e_s  +  pl * pl  +  2. * pt * pt);
-			#endif
 
+				precision T_aniso_mag = sqrt(e_s * e_s  +  pl * pl  +  2. * pt * pt);
+		
 			#ifdef PIMUNU
 				precision pitt = q[s].pitt;
 				precision pitx = q[s].pitx;
@@ -140,6 +139,9 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 				q[s].piyy = factor_pi * piyy;
 				q[s].piyn = factor_pi * piyn;
 				q[s].pinn = factor_pi * pinn;
+			#else
+				precision pitt = 0, pitx = 0, pity = 0, pitn = 0, pixx = 0, pixy = 0, pixn = 0, piyy = 0, piyn = 0, pinn = 0;
+				precision factor_pi = 1.;
 			#endif
 
 			#ifdef WTZMU
@@ -169,7 +171,16 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 				q[s].WxTz = factor_W * WxTz;
 				q[s].WyTz = factor_W * WyTz;
 				q[s].WnTz = factor_W * WnTz;
+			#else
+				precision WtTz = 0, WxTz = 0, WyTz = 0, WnTz = 0;
+				precision factor_W = 1.;
 			#endif
+
+				// // regulate T^{\tau\mu} for self-consistency (e, pl, pt, pimunu, WTz potentially regulated)
+				// q[s].ttt = (e_s + pt) * ut * ut  -   pt  +  (pl - pt) * zt * zt  +  factor_W * 2. * WtTz * zt  +  factor_pi * pitt;
+				// q[s].ttx = (e_s + pt) * ut * ux  +  factor_W * WxTz * zt  +  factor_pi * pitx;
+				// q[s].tty = (e_s + pt) * ut * uy  +  factor_W * WyTz * zt  +  factor_pi * pity;
+				// q[s].ttn = (e_s + pt) * ut * un  +  (pl - pt) * zt * zn  +  factor_W * (WtTz * zn  +  WnTz * zt)  +  factor_pi * pitn;
 			}
 		}
 	}

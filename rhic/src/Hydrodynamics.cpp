@@ -15,7 +15,7 @@
 #include "../include/EquationOfState.h"
 using namespace std;
 
-#define FREQ 10
+#define FREQ 100
 
 const double hbarc = 0.197326938;
 
