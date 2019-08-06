@@ -54,19 +54,30 @@ inline precision central_derivative(const precision * const __restrict__ f, int 
 
 void source_terms_aniso_hydro(precision * const __restrict__ S, const precision * const __restrict__ q, precision e, precision t, const precision * const __restrict__ qi1, const precision * const __restrict__ qj1, const precision * const __restrict__ qk1, const precision * const __restrict__ e1, const precision * const __restrict__ ui1, const precision * const __restrict__ uj1, const precision * const __restrict__ uk1, precision ux, precision uy, precision un, precision ux_p, precision uy_p, precision un_p, precision dt, precision dx, precision dy, precision dn, precision etabar)
 {
+// useful expressions
+//-------------------------------------------------
 	precision t2 = t * t;
 	precision t4 = t2 * t2;
 
+
+// fluid velocity components
+//-------------------------------------------------
 	precision ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t2 * un * un);
-	precision vx = ux / ut;				// spatial velocity
+	precision vx = ux / ut;
 	precision vy = uy / ut;
 	precision vn = un / ut;
 
+
+// longitudinal basis vector
+//-------------------------------------------------
 	precision utperp  = sqrt(1.  +  ux * ux  +  uy * uy);
-	precision zt = t * un / utperp;		// longitudinal basis vector
+	precision zt = t * un / utperp;
 	precision zn = ut / t / utperp;
 
-	precision zt2  = zt * zt;			// other useful expressions
+
+// other useful expressions
+//-------------------------------------------------
+	precision zt2  = zt * zt;
 	precision ztzn = zt * zn;
 	precision zn2  = zn * zn;
 	precision t2zn = t2 * zn;
@@ -77,10 +88,15 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	precision unzn = un * zn;
 	precision utperp2 = utperp * utperp;
 
+
+// thermodynamic variables
+//-------------------------------------------------
 	precision T = effectiveTemperature(e);
 	precision p = equilibriumPressure(e);
 
-	// conserved variables
+
+// hydrodynamic variables
+//-------------------------------------------------
 	precision ttt = q[0];
 	precision ttx = q[1];
 	precision tty = q[2];
@@ -94,6 +110,7 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 #else
 	precision pt  = (e - pl) / 2.;
 #endif
+
 #ifdef PIMUNU
 	precision pitt = q[a];	a++;
 	precision pitx = q[a];	a++;
@@ -106,16 +123,30 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	precision piyn = q[a];	a++;
 	precision pinn = q[a];	a++;
 #else
-	precision pitt = 0, pitx = 0, pity = 0, pitn = 0, pixx = 0, pixy = 0, pixn = 0, piyy = 0, piyn = 0, pinn = 0;
+	precision pitt = 0;
+	precision pitx = 0;
+	precision pity = 0;
+	precision pitn = 0;
+	precision pixx = 0;
+	precision pixy = 0;
+	precision pixn = 0;
+	precision piyy = 0;
+	precision piyn = 0;
+	precision pinn = 0;
 #endif
+
 #ifdef WTZMU
 	precision WtTz = q[a];	a++;
 	precision WxTz = q[a];	a++;
 	precision WyTz = q[a];	a++;
 	precision WnTz = q[a];
 #else
-	precision WtTz = 0, WxTz = 0, WyTz = 0, WnTz = 0;
+	precision WtTz = 0;
+	precision WxTz = 0;
+	precision WyTz = 0;
+	precision WnTz = 0;
 #endif
+
 
 // relaxation times and transport coefficients
 //-------------------------------------------------
@@ -127,18 +158,17 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	precision taubulkInv = 1.;
 #endif
 
-	// anisotropic transport coefficients
 	transport_coefficients aniso;
 	aniso.compute_transport_coefficients(e, pl, pt);
 
-	// pl transport coefficients
+	// pl coefficients
 	precision zeta_LL = aniso.zeta_LL;
 	precision zeta_TL = aniso.zeta_TL;
 	precision lambda_WuL = aniso.lambda_WuL;
 	precision lambda_WTL = aniso.lambda_WTL;
 	precision lambda_piL = aniso.lambda_piL;
 
-	// pt transport coefficients
+	// pt coefficients
 #if (PT_MATCHING == 1)
 	precision zeta_LT = aniso.zeta_LT;
 	precision zeta_TT = aniso.zeta_TT;
@@ -147,19 +177,27 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	precision lambda_piT = aniso.lambda_piT;
 #endif
 
-	// primary variable derivatives
+
+// primary variable derivatives
+//-------------------------------------------------
 #if (PT_MATCHING == 0)
 	precision de_dx = (e1[1] - e1[0]) / (2. * dx);
 	precision de_dy = (e1[3] - e1[2]) / (2. * dy);
 	precision de_dn = (e1[5] - e1[4]) / (2. * dn);
 #endif
-	// pl derivatives
+
+
+// pl derivatives
+//-------------------------------------------------
 	int n = 8;
 	precision dpl_dx = central_derivative(qi1, n, dx);
 	precision dpl_dy = central_derivative(qj1, n, dy);
 	precision dpl_dn = central_derivative(qk1, n, dn);		n += 2;
 
-#if (PT_MATCHING == 1)	// pt derivatives
+
+// pt derivatives
+//-------------------------------------------------
+#if (PT_MATCHING == 1)
 	precision dpt_dx = central_derivative(qi1, n, dx);
 	precision dpt_dy = central_derivative(qj1, n, dy);
 	precision dpt_dn = central_derivative(qk1, n, dn);		n += 2;
@@ -169,7 +207,10 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	precision dpt_dn = (de_dn  -  dpl_dn) / 2.;
 #endif
 
-#ifdef PIMUNU	// pimunu derivatives
+
+// pimunu derivatives
+//-------------------------------------------------
+#ifdef PIMUNU
 	precision dpitt_dx = central_derivative(qi1, n, dx);
 	precision dpitt_dy = central_derivative(qj1, n, dy);
 	precision dpitt_dn = central_derivative(qk1, n, dn);	n += 2;
@@ -202,8 +243,41 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	precision dpinn_dn = central_derivative(qk1, n, dn);	n += 2;
 
 #else
-	precision dpitt_dx = 0, dpitt_dy = 0, dpitt_dn = 0, dpitx_dx = 0, dpitx_dy = 0, dpitx_dn = 0, dpity_dx = 0, dpity_dy = 0, dpity_dn = 0, dpitn_dx = 0, dpitn_dy = 0, dpitn_dn = 0, dpixx_dx = 0, dpixy_dx = 0, dpixy_dy = 0, dpixn_dx = 0, dpixn_dn = 0, dpiyy_dy = 0, dpiyn_dy = 0, dpiyn_dn = 0, dpinn_dn = 0;
+	precision dpitt_dx = 0;
+	precision dpitt_dy = 0;
+	precision dpitt_dn = 0;
+
+	precision dpitx_dx = 0;
+	precision dpitx_dy = 0;
+	precision dpitx_dn = 0;
+
+	precision dpity_dx = 0;
+	precision dpity_dy = 0;
+	precision dpity_dn = 0;
+
+	precision dpitn_dx = 0;
+	precision dpitn_dy = 0;
+	precision dpitn_dn = 0;
+
+	precision dpixx_dx = 0;
+
+	precision dpixy_dx = 0;
+	precision dpixy_dy = 0;
+
+	precision dpixn_dx = 0;
+	precision dpixn_dn = 0;
+
+	precision dpiyy_dy = 0;
+
+	precision dpiyn_dy = 0;
+
+	precision dpiyn_dn = 0;
+	precision dpinn_dn = 0;
 #endif
+
+
+// WTz derivatives
+//-------------------------------------------------
 #ifdef WTZMU
 	precision dWtTz_dx = central_derivative(qi1, n, dx);
 	precision dWtTz_dy = central_derivative(qj1, n, dy);
@@ -222,43 +296,46 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	precision dWnTz_dn = central_derivative(qk1, n, dn);
 
 #else
-	precision dWtTz_dx = 0, dWtTz_dy = 0, dWtTz_dn = 0, dWxTz_dx = 0, dWxTz_dy = 0, dWxTz_dn = 0, dWyTz_dx = 0, dWyTz_dy = 0, dWyTz_dn = 0, dWnTz_dx = 0, dWnTz_dy = 0, dWnTz_dn = 0;
+	precision dWtTz_dx = 0;
+	precision dWtTz_dy = 0;
+	precision dWtTz_dn = 0;
+
+	precision dWxTz_dx = 0;
+ 	precision dWxTz_dy = 0;
+ 	precision dWxTz_dn = 0;
+
+ 	precision dWyTz_dx = 0;
+ 	precision dWyTz_dy = 0;
+ 	precision dWyTz_dn = 0;
+
+ 	precision dWnTz_dx = 0;
+ 	precision dWnTz_dy = 0;
+ 	precision dWnTz_dn = 0;
 #endif
 
-	// fluid velocity derivatives
-	n = 0;
+
+// fluid velocity derivatives
+//-------------------------------------------------
 	precision dux_dt = (ux - ux_p) / dt;
-	precision dux_dx = central_derivative(ui1, n, dx);
-	precision dux_dy = central_derivative(uj1, n, dy);
-	precision dux_dn = central_derivative(uk1, n, dn);	n += 2;
+	precision dux_dx = central_derivative(ui1, 0, dx);
+	precision dux_dy = central_derivative(uj1, 0, dy);
+	precision dux_dn = central_derivative(uk1, 0, dn);
 
 	precision duy_dt = (uy - uy_p) / dt;
-	precision duy_dx = central_derivative(ui1, n, dx);
-	precision duy_dy = central_derivative(uj1, n, dy);
-	precision duy_dn = central_derivative(uk1, n, dn);	n += 2;
+	precision duy_dx = central_derivative(ui1, 2, dx);
+	precision duy_dy = central_derivative(uj1, 2, dy);
+	precision duy_dn = central_derivative(uk1, 2, dn);
 
 	precision dun_dt = (un - un_p) / dt;
-	precision dun_dx = central_derivative(ui1, n, dx);
-	precision dun_dy = central_derivative(uj1, n, dy);
-	precision dun_dn = central_derivative(uk1, n, dn);
+	precision dun_dx = central_derivative(ui1, 4, dx);
+	precision dun_dy = central_derivative(uj1, 4, dy);
+	precision dun_dn = central_derivative(uk1, 4, dn);
 
-
-	// use chain rule for ut derivatives
+	// chain rule for ut derivatives
 	precision dut_dt = vx * dux_dt  +  vy * duy_dt  +  t2 * vn * dun_dt  +  t * vn * un;
 	precision dut_dx = vx * dux_dx  +  vy * duy_dx  +  t2 * vn * dun_dx;
 	precision dut_dy = vx * dux_dy  +  vy * duy_dy  +  t2 * vn * dun_dy;
 	precision dut_dn = vx * dux_dn  +  vy * duy_dn  +  t2 * vn * dun_dn;
-
-	// radial velocity derivatives
-	precision duT2_dt = ux * dux_dt  +  uy * duy_dt;
-	precision duT2_dx = ux * dux_dx  +  uy * duy_dx;
-	precision duT2_dy = ux * dux_dy  +  uy * duy_dy;
-	precision duT2_dn = ux * dux_dn  +  uy * duy_dn;
-
-	// scalar, longitudinal and transverse expansion rates: theta = D_\mu u^\mu, thetaL = z_\mu Dz u^\mu, thetaT = NablaT_\mu u^\mu
-	precision theta = dut_dt  +  dux_dx  +  duy_dy  +  dun_dn  +  ut / t;
-	precision thetaL = - zt2 * dut_dt  +  t2 * zn2 * dun_dn  +  ztzn * (t2 * dun_dt  -  dut_dn)  +  t * zn2 * ut;
-	precision thetaT = theta  -  thetaL;
 
 	// spatial velocity derivatives and divergence
 	precision dvx_dx = (dux_dx  -  vx * dut_dx) / ut;
@@ -267,27 +344,37 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 
 	precision div_v = dvx_dx  +  dvy_dy  +  dvn_dn;
 
-	// other spatial velocity derivatives (get rid of chain rule later)
+	// other spatial velocity derivatives (is this still needed?)
 	precision dvx_dn = (dux_dn  -  vx * dut_dn) / ut;
 	precision dvy_dn = (duy_dn  -  vy * dut_dn) / ut;
 
-	// longitudinal vector derivatives
-	precision dzt_dt = t * (dun_dt  -  un * duT2_dt / utperp2) / utperp  +  zt / t;
-	precision dzt_dx = t * (dun_dx  -  un * duT2_dx / utperp2) / utperp;
-	precision dzt_dy = t * (dun_dy  -  un * duT2_dy / utperp2) / utperp;
-	precision dzt_dn = t * (dun_dn  -  un * duT2_dn / utperp2) / utperp;
 
-	precision dzn_dt = (dut_dt  -  ut * duT2_dt / utperp2) / (t * utperp)  -  zn / t;
-	precision dzn_dx = (dut_dx  -  ut * duT2_dx / utperp2) / (t * utperp);
-	precision dzn_dy = (dut_dy  -  ut * duT2_dy / utperp2) / (t * utperp);
-	precision dzn_dn = (dut_dn  -  ut * duT2_dn / utperp2) / (t * utperp);
+
+// scalar, longitudinal and transverse expansion rates: theta = D_\mu u^\mu, thetaL = z_\mu Dz u^\mu, thetaT = NablaT_\mu u^\mu
+//-------------------------------------------------
+	precision theta = dut_dt  +  dux_dx  +  duy_dy  +  dun_dn  +  ut / t;
+	precision thetaL = - zt2 * dut_dt  +  t2 * zn2 * dun_dn  +  ztzn * (t2 * dun_dt  -  dut_dn)  +  t * zn2 * ut;
+	precision thetaT = theta  -  thetaL;
+
+
+
+// longitudinal vector derivatives
+//-------------------------------------------------
+	precision dzt_dt = t * (dun_dt  -  un * (ux * dux_dt  +  uy * duy_dt) / utperp2) / utperp  +  zt / t;
+	precision dzt_dx = t * (dun_dx  -  un * (ux * dux_dx  +  uy * duy_dx) / utperp2) / utperp;
+	precision dzt_dy = t * (dun_dy  -  un * (ux * dux_dy  +  uy * duy_dy) / utperp2) / utperp;
+	precision dzt_dn = t * (dun_dn  -  un * (ux * dux_dn  +  uy * duy_dn) / utperp2) / utperp;
+
+	precision dzn_dt = (dut_dt  -  ut * (ux * dux_dt  +  uy * duy_dt) / utperp2) / (t * utperp)  -  zn / t;
+	precision dzn_dx = (dut_dx  -  ut * (ux * dux_dx  +  uy * duy_dx) / utperp2) / (t * utperp);
+	precision dzn_dy = (dut_dy  -  ut * (ux * dux_dy  +  uy * duy_dy) / utperp2) / (t * utperp);
+	precision dzn_dn = (dut_dn  -  ut * (ux * dux_dn  +  uy * duy_dn) / utperp2) / (t * utperp);
+
 
 
 #if (NUMBER_OF_RESIDUAL_CURRENTS != 0)
 	transverse_projection Xi(ut, ux, uy, un, zt, zn, t2);	// Xi^{\mu\nu}
 	double_transverse_projection Xi_2(Xi, t2, t4);			// Xi^{\mu\nu\alpha\beta}
-
-	//double_transverse_projection Xi_2_sigma(Xi, t2, t4);
 
 	// project residual shear stress that appear in source terms
 #ifdef PIMUNU
@@ -664,19 +751,11 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 			+  vn * (dLtt_dn  +  dWtt_dn  +  dpitt_dn  -  dpt_dn)  -  dWtn_dn  -  dpitn_dn  -  dLtn_dn;
 
 
-
-
 	S[1] =	- ttx / t  -  dpt_dx  +  div_v * (Wtx  +  pitx)
 			+  vx * (dWtx_dx  +  dpitx_dx)  -  dpixx_dx
-
 			+  vy * (dWtx_dy  +  dpitx_dy)  -  dpixy_dy
-
 			+  vn * (dWtx_dn  +  dpitx_dn)  -  dpixn_dn  -  dWxn_dn
 			-  0.5 * (vx * dLtn_dn  -  Ltn * dvx_dn);	// go over this line again
-
-
-
-
 
 	S[2] =	- tty / t  -  dpt_dy  +  div_v * (Wty  +  pity)
 			+  vx * (dWty_dx  +  dpity_dx)  -  dpixy_dx

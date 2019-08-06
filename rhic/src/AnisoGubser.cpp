@@ -58,6 +58,7 @@ void gubser_rho_evolution(double * e_hat, double * pl_hat, double * rho_array, i
 		double de4  = drho *  de_drho(ep + de3, plp + dpl3, rho + drho, etas);
 		double dpl4 = drho * dpl_drho(ep + de3, plp + dpl3, rho + drho, etas);
 
+		// RK4 update
 		e_hat[i]  = ep   +  (de1   +  2. * de2   +  2. * de3   +  de4)  / 6.;
 		pl_hat[i] = plp  +  (dpl1  +  2. * dpl2  +  2. * dpl3  +  dpl4) / 6.;
 	}
