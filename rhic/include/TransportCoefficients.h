@@ -5,9 +5,11 @@
 #include "Precision.h"
 #include "DynamicalVariables.h"
 
-//using namespace std;
+//#define CONSTANT_ETA_S
 
 const precision delta = 0.01;	// piecewise interval where hypergeometric functions are Taylor expanded
+
+precision eta_over_s(precision T, precision etabar_const);
 
 class transport_coefficients
 {

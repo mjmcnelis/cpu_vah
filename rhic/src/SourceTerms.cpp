@@ -52,7 +52,7 @@ inline precision central_derivative(const precision * const __restrict__ f, int 
 }
 
 
-void source_terms_aniso_hydro(precision * const __restrict__ S, const precision * const __restrict__ q, precision e, precision t, const precision * const __restrict__ qi1, const precision * const __restrict__ qj1, const precision * const __restrict__ qk1, const precision * const __restrict__ e1, const precision * const __restrict__ ui1, const precision * const __restrict__ uj1, const precision * const __restrict__ uk1, precision ux, precision uy, precision un, precision ux_p, precision uy_p, precision un_p, precision dt, precision dx, precision dy, precision dn, precision etabar)
+void source_terms_aniso_hydro(precision * const __restrict__ S, const precision * const __restrict__ q, precision e, precision t, const precision * const __restrict__ qi1, const precision * const __restrict__ qj1, const precision * const __restrict__ qk1, const precision * const __restrict__ e1, const precision * const __restrict__ ui1, const precision * const __restrict__ uj1, const precision * const __restrict__ uk1, precision ux, precision uy, precision un, precision ux_p, precision uy_p, precision un_p, precision dt, precision dx, precision dy, precision dn, precision etabar_const)
 {
 	precision t2 = t * t;
 	precision t4 = t2 * t2;
@@ -79,6 +79,10 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 
 	precision T = effectiveTemperature(e);
 	precision p = equilibriumPressure(e);
+
+	// shear and bulk viscosities
+	precision etabar = eta_over_s(T, etabar_const);
+	precision zetabar = 0;
 
 	// conserved variables
 	precision ttt = q[0];

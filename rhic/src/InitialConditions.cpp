@@ -155,8 +155,8 @@ void set_Bjorken_energy_density_and_flow_profile(int nx, int ny, int nz, void * 
 {
 	struct InitialConditionParameters * initCond = (struct InitialConditionParameters *) initCondParams;
 
-	double T0 = initCond->initialCentralTemperatureGeV;		// central temperature (GeV)
-	double e0 = equilibriumEnergyDensity(T0 / hbarc);		// energy density
+	precision T0 = initCond->initialCentralTemperatureGeV;		// central temperature (GeV)
+	precision e0 = equilibriumEnergyDensity(T0 / hbarc);		// energy density
 
 	for(int i = 2; i < nx + 2; i++)
 	{
@@ -166,7 +166,7 @@ void set_Bjorken_energy_density_and_flow_profile(int nx, int ny, int nz, void * 
 			{
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
-				e[s] = e0;
+				e[s] = energy_density_cutoff(e0);
 				u[s].ux = 0;
 				u[s].uy = 0;
 				u[s].un = 0;
@@ -233,9 +233,9 @@ void set_Glauber_energy_density_and_flow_profile(int nx, int ny, int nz, double 
 			{
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
-				precision e_s = max(E_MIN, e0 * eT[i - 2 + (j - 2) * nx] * eL[k - 2]);	// is there some asymmetry not aware of?
+				precision e_s = e0 * eT[i - 2 + (j - 2) * nx] * eL[k - 2];	
 
-				e[s] = e_s;
+				e[s] = energy_density_cutoff(e_s);
 
 				// default initial flow to zero
 				u[s].ux = 0.0;
@@ -291,9 +291,9 @@ void set_ideal_gubser_energy_density_and_flow_profile(int nx, int ny, int nz, do
 			}
 
 			// temperature profile
-			double T = (T0_hat / t) * pow(2. * q * t, 2./3.) / pow(1.  +  2. * q2 * (t2 + r2)  +  q4 * (t2 - r2) * (t2 - r2), 1./3.);
+			precision T = (T0_hat / t) * pow(2. * q * t, 2./3.) / pow(1.  +  2. * q2 * (t2 + r2)  +  q4 * (t2 - r2) * (t2 - r2), 1./3.);
 
-			double e_s = fmax(E_MIN, equilibriumEnergyDensity(T));
+			precision e_s = equilibriumEnergyDensity(T);
 
 			double ux = sinh(kappa) * x / r;
 			double uy = sinh(kappa) * y / r;
@@ -311,7 +311,7 @@ void set_ideal_gubser_energy_density_and_flow_profile(int nx, int ny, int nz, do
 			{
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
-				e[s] = (precision) e_s;
+				e[s] = energy_density_cutoff(e_s);
 
 				u[s].ux = ux;
 				u[s].uy = uy;
@@ -446,7 +446,7 @@ void set_aniso_gubser_energy_density_and_flow_profile(int nx, int ny, int nz, do
 			{
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
-				e[s] = fmax(E_MIN, e_s);
+				e[s] = energy_density_cutoff(e_s);
 
 				q[s].pl = pl_s;
 			#if (PT_MATCHING == 1)

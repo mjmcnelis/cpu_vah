@@ -65,7 +65,7 @@ inline precision central_derivative(const precision * const __restrict__ f, int 
 }
 
 
-void output_residual_gradients(const hydro_variables * const __restrict__ q, const fluid_velocity * const __restrict__ u, const fluid_velocity * const __restrict__ up, const precision * const e, double t, int nx, int ny, int nz, double dt, double dx, double dy, double dn, double etabar)
+void output_residual_gradients(const hydro_variables * const __restrict__ q, const fluid_velocity * const __restrict__ u, const fluid_velocity * const __restrict__ up, const precision * const e, double t, int nx, int ny, int nz, double dt, double dx, double dy, double dn, precision etabar_const)
 {
 #ifdef ANISO_HYDRO
 	FILE *Knpi;
@@ -115,6 +115,8 @@ void output_residual_gradients(const hydro_variables * const __restrict__ q, con
 
 				precision e_s = e[s];
 				precision T = effectiveTemperature(e_s);
+
+				precision etabar = eta_over_s(T, etabar_const);
 				precision tau_pi = (5. * etabar) / T;
 
 				precision ux = u[s].ux;

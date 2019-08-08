@@ -10,7 +10,9 @@
 #define EOS_FACTOR 15.6269 // Nc=3, Nf=3
 //#define EOS_FACTOR 13.8997 // Nc=3, Nf=2.5
 
-#define E_MIN 1.e-4		// minimum energy density
+#define E_MIN 1.e-2		// minimum energy density
+
+precision energy_density_cutoff(precision e);
 
 precision equilibriumPressure(precision e);
 

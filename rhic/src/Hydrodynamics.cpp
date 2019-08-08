@@ -15,7 +15,7 @@
 #include "../include/EquationOfState.h"
 using namespace std;
 
-#define FREQ 100
+#define FREQ 10
 
 const double hbarc = 0.197326938;
 
@@ -60,7 +60,7 @@ void print_parameters(int nx, int ny, int nz, double dt, double dx, double dy, d
 	printf("Shear viscosity        = %.3f\n", etabar);
 	printf("Freezeout temperature  = %.3f GeV\n", T_switch * hbarc);
 	printf("Flux limiter           = %.2f\n", THETA);
-	printf("Minimum energy density = %.3e\n", E_MIN);
+	printf("Minimum energy density = %.2e\n", E_MIN);
 // equation of state
 #ifdef CONFORMAL_EOS
 	printf("\nEquation of state = Conformal\n\n");

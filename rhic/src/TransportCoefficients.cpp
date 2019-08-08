@@ -14,6 +14,20 @@ double dpl_error = 1.e-7;
 double dpt_error = 1.e-7;
 
 
+precision eta_over_s(precision T, precision etabar_const)
+{
+	#ifndef CONSTANT_VISCOSITY
+		precision etas_min = 0.08;
+		precision etas_slope = 0.85 / 5.067731;
+		precision Tc = 0.154 * 5.067731;
+
+		return fmax(etas_min, etas_min  +  etas_slope * (T - Tc));
+	#else
+		return etabar_const;
+	#endif
+}
+
+
 transport_coefficients::transport_coefficients()
 {
 

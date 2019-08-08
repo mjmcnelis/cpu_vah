@@ -23,6 +23,9 @@ struct LatticeParameters
 	double latticeSpacingRapidity;
 
 	double latticeSpacingProperTime;
+
+	int adaptive_time_step;
+	double min_time_step;
 };
 
 
