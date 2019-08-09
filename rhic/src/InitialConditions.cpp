@@ -502,14 +502,25 @@ void set_initial_conditions(double t, void * latticeParams, void * initCondParam
 	struct LatticeParameters * lattice = (struct LatticeParameters *) latticeParams;
 	struct InitialConditionParameters * initCond = (struct InitialConditionParameters *) initCondParams;
 
-	int nx = lattice->numLatticePointsX;
-	int ny = lattice->numLatticePointsY;
-	int nz = lattice->numLatticePointsRapidity;
+	int nx = lattice->lattice_points_x;
+	int ny = lattice->lattice_points_x;
+	int nz = lattice->lattice_points_eta;
 
-	double dt = lattice->latticeSpacingProperTime;
-	double dx = lattice->latticeSpacingX;
-	double dy = lattice->latticeSpacingY;
-	double dz = lattice->latticeSpacingRapidity;
+	double dx = lattice->lattice_spacing_x;
+	double dy = lattice->lattice_spacing_y;
+	double dz = lattice->lattice_spacing_eta;
+
+	int adaptive_time_step = lattice->adaptive_time_step;	
+
+	precision dt;			
+	if(adaptive_time_step)
+	{
+		dt = lattice->min_time_step;	
+	}	
+	else
+	{
+		dt = lattice->fixed_time_step;
+	}	
 
 	int initialConditionType = initCond->initialConditionType;
 	printf("\nInitial conditions = ");

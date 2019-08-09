@@ -52,7 +52,7 @@ inline precision central_derivative(const precision * const __restrict__ f, int 
 }
 
 
-void source_terms_aniso_hydro(precision * const __restrict__ S, const precision * const __restrict__ q, precision e, precision t, const precision * const __restrict__ qi1, const precision * const __restrict__ qj1, const precision * const __restrict__ qk1, const precision * const __restrict__ e1, const precision * const __restrict__ ui1, const precision * const __restrict__ uj1, const precision * const __restrict__ uk1, precision ux, precision uy, precision un, precision ux_p, precision uy_p, precision un_p, precision dt, precision dx, precision dy, precision dn, precision etabar_const)
+precision source_terms_aniso_hydro(precision * const __restrict__ S, const precision * const __restrict__ q, precision e, precision t, const precision * const __restrict__ qi1, const precision * const __restrict__ qj1, const precision * const __restrict__ qk1, const precision * const __restrict__ e1, const precision * const __restrict__ ui1, const precision * const __restrict__ uj1, const precision * const __restrict__ uk1, precision ux, precision uy, precision un, precision ux_p, precision uy_p, precision un_p, precision dt_prev, precision dx, precision dy, precision dn, precision etabar_const)
 {
 	precision t2 = t * t;
 	precision t4 = t2 * t2;
@@ -110,7 +110,16 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	precision piyn = q[a];	a++;
 	precision pinn = q[a];	a++;
 #else
-	precision pitt = 0, pitx = 0, pity = 0, pitn = 0, pixx = 0, pixy = 0, pixn = 0, piyy = 0, piyn = 0, pinn = 0;
+	precision pitt = 0;
+	precision pitx = 0;
+	precision pity = 0;
+	precision pitn = 0;
+	precision pixx = 0;
+	precision pixy = 0;
+	precision pixn = 0;
+	precision piyy = 0;
+	precision piyn = 0;
+	precision pinn = 0;
 #endif
 #ifdef WTZMU
 	precision WtTz = q[a];	a++;
@@ -118,7 +127,10 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	precision WyTz = q[a];	a++;
 	precision WnTz = q[a];
 #else
-	precision WtTz = 0, WxTz = 0, WyTz = 0, WnTz = 0;
+	precision WtTz = 0;
+	precision WxTz = 0;
+	precision WyTz = 0;
+	precision WnTz = 0;
 #endif
 
 // relaxation times and transport coefficients
@@ -204,10 +216,39 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	precision dpiyn_dn = central_derivative(qk1, n, dn);	n += 2;
 
 	precision dpinn_dn = central_derivative(qk1, n, dn);	n += 2;
-
 #else
-	precision dpitt_dx = 0, dpitt_dy = 0, dpitt_dn = 0, dpitx_dx = 0, dpitx_dy = 0, dpitx_dn = 0, dpity_dx = 0, dpity_dy = 0, dpity_dn = 0, dpitn_dx = 0, dpitn_dy = 0, dpitn_dn = 0, dpixx_dx = 0, dpixy_dx = 0, dpixy_dy = 0, dpixn_dx = 0, dpixn_dn = 0, dpiyy_dy = 0, dpiyn_dy = 0, dpiyn_dn = 0, dpinn_dn = 0;
+	precision dpitt_dx = 0;
+	precision dpitt_dy = 0;
+	precision dpitt_dn = 0;
+
+	precision dpitx_dx = 0;
+	precision dpitx_dy = 0;
+	precision dpitx_dn = 0;
+
+	precision dpity_dx = 0;
+	precision dpity_dy = 0;
+	precision dpity_dn = 0; 
+
+	precision dpitn_dx = 0;
+	precision dpitn_dy = 0;
+	precision dpitn_dn = 0;
+
+	precision dpixx_dx = 0;
+
+	precision dpixy_dx = 0;
+	precision dpixy_dy = 0;
+
+	precision dpixn_dx = 0;
+	precision dpixn_dn = 0;
+
+	precision dpiyy_dy = 0;
+
+	precision dpiyn_dy = 0;
+	precision dpiyn_dn = 0;
+
+	precision dpinn_dn = 0;
 #endif
+
 #ifdef WTZMU
 	precision dWtTz_dx = central_derivative(qi1, n, dx);
 	precision dWtTz_dy = central_derivative(qj1, n, dy);
@@ -226,25 +267,38 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	precision dWnTz_dn = central_derivative(qk1, n, dn);
 
 #else
-	precision dWtTz_dx = 0, dWtTz_dy = 0, dWtTz_dn = 0, dWxTz_dx = 0, dWxTz_dy = 0, dWxTz_dn = 0, dWyTz_dx = 0, dWyTz_dy = 0, dWyTz_dn = 0, dWnTz_dx = 0, dWnTz_dy = 0, dWnTz_dn = 0;
+	precision dWtTz_dx = 0;
+	precision dWtTz_dy = 0;
+	precision dWtTz_dn = 0;
+
+	precision dWxTz_dx = 0;
+	precision dWxTz_dy = 0;
+	precision dWxTz_dn = 0;
+
+	precision dWyTz_dx = 0;
+	precision dWyTz_dy = 0;
+	precision dWyTz_dn = 0;
+
+	precision dWnTz_dx = 0;
+	precision dWnTz_dy = 0;
+	precision dWnTz_dn = 0;
 #endif
 
 	// fluid velocity derivatives
-	n = 0;
-	precision dux_dt = (ux - ux_p) / dt;
-	precision dux_dx = central_derivative(ui1, n, dx);
-	precision dux_dy = central_derivative(uj1, n, dy);
-	precision dux_dn = central_derivative(uk1, n, dn);	n += 2;
+	precision dux_dt = (ux - ux_p) / dt_prev;
+	precision dux_dx = central_derivative(ui1, 0, dx);
+	precision dux_dy = central_derivative(uj1, 0, dy);
+	precision dux_dn = central_derivative(uk1, 0, dn);	
 
-	precision duy_dt = (uy - uy_p) / dt;
-	precision duy_dx = central_derivative(ui1, n, dx);
-	precision duy_dy = central_derivative(uj1, n, dy);
-	precision duy_dn = central_derivative(uk1, n, dn);	n += 2;
+	precision duy_dt = (uy - uy_p) / dt_prev;
+	precision duy_dx = central_derivative(ui1, 2, dx);
+	precision duy_dy = central_derivative(uj1, 2, dy);
+	precision duy_dn = central_derivative(uk1, 2, dn);
 
-	precision dun_dt = (un - un_p) / dt;
-	precision dun_dx = central_derivative(ui1, n, dx);
-	precision dun_dy = central_derivative(uj1, n, dy);
-	precision dun_dn = central_derivative(uk1, n, dn);
+	precision dun_dt = (un - un_p) / dt_prev;
+	precision dun_dx = central_derivative(ui1, 4, dx);
+	precision dun_dy = central_derivative(uj1, 4, dy);
+	precision dun_dn = central_derivative(uk1, 4, dn);
 
 
 	// use chain rule for ut derivatives
@@ -667,9 +721,6 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 			+  vy * (dLtt_dy  +  dWtt_dy  +  dpitt_dy  -  dpt_dy)  -  dWty_dy  -  dpity_dy
 			+  vn * (dLtt_dn  +  dWtt_dn  +  dpitt_dn  -  dpt_dn)  -  dWtn_dn  -  dpitn_dn  -  dLtn_dn;
 
-
-
-
 	S[1] =	- ttx / t  -  dpt_dx  +  div_v * (Wtx  +  pitx)
 			+  vx * (dWtx_dx  +  dpitx_dx)  -  dpixx_dx
 
@@ -677,10 +728,6 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 
 			+  vn * (dWtx_dn  +  dpitx_dn)  -  dpixn_dn  -  dWxn_dn
 			-  0.5 * (vx * dLtn_dn  -  Ltn * dvx_dn);	// go over this line again
-
-
-
-
 
 	S[2] =	- tty / t  -  dpt_dy  +  div_v * (Wty  +  pity)
 			+  vx * (dWty_dx  +  dpity_dx)  -  dpixy_dx
@@ -742,6 +789,29 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	S[a] = dWnTz / ut  +  div_v * WnTz;
 #endif
 
+
+
+	// compute the max time step (temporary)
+
+	// CFL condition
+	precision CFL_x = fabs(vx / dx);
+	precision CFL_y = fabs(vy / dy);
+	precision CFL_n = fabs(vn / dn);
+
+	precision dt_CFL = 1. / fmax(CFL_x, fmax(CFL_y, CFL_n));	// todo: make a flag that says this got picked
+
+	// relaxation times
+
+	// inverse gradients
+	precision theta_abs = fabs(theta);
+
+	precision max_gradient = theta_abs;
+
+	precision inverse_gradient = 1. / max_gradient;
+
+	precision dt_max = fmin(5. * etabar / T, fmin(inverse_gradient, dt_CFL));
+
+	return dt_max;
 }
 
 
@@ -751,7 +821,7 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 
 
 
-void source_terms_viscous_hydro(precision * const __restrict__ S, const precision * const __restrict__ q, precision e, precision t, const precision * const __restrict__ qi1, const precision * const __restrict__ qj1, const precision * const __restrict__ qk1, const precision * const __restrict__ e1, const precision * const __restrict__ ui1, const precision * const __restrict__ uj1, const precision * const __restrict__ uk1, precision ux, precision uy, precision un, precision ux_p, precision uy_p, precision un_p, precision dt, precision dx, precision dy, precision dn, precision etabar)
+precision source_terms_viscous_hydro(precision * const __restrict__ S, const precision * const __restrict__ q, precision e, precision t, const precision * const __restrict__ qi1, const precision * const __restrict__ qj1, const precision * const __restrict__ qk1, const precision * const __restrict__ e1, const precision * const __restrict__ ui1, const precision * const __restrict__ uj1, const precision * const __restrict__ uk1, precision ux, precision uy, precision un, precision ux_p, precision uy_p, precision un_p, precision dt_prev, precision dx, precision dy, precision dn, precision etabar)
 {
 	precision t2 = t * t;
 	precision t4 = t2 * t2;
@@ -861,17 +931,17 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 #endif
 
 	// fluid velocity derivatives
-	precision dux_dt = (ux - ux_p) / dt;
+	precision dux_dt = (ux - ux_p) / dt_prev;
 	precision dux_dx = central_derivative(ui1, 0, dx);
 	precision dux_dy = central_derivative(uj1, 0, dy);
 	precision dux_dn = central_derivative(uk1, 0, dn);
 
-	precision duy_dt = (uy - uy_p) / dt;
+	precision duy_dt = (uy - uy_p) / dt_prev;
 	precision duy_dx = central_derivative(ui1, 2, dx);
 	precision duy_dy = central_derivative(uj1, 2, dy);
 	precision duy_dn = central_derivative(uk1, 2, dn);
 
-	precision dun_dt = (un - un_p) / dt;
+	precision dun_dt = (un - un_p) / dt_prev;
 	precision dun_dx = central_derivative(ui1, 4, dx);
 	precision dun_dy = central_derivative(uj1, 4, dy);
 	precision dun_dn = central_derivative(uk1, 4, dn);
@@ -1079,6 +1149,12 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 
 	S[a] = dPi / ut  +  div_v * Pi;
 #endif
+
+
+	// compute the max time step
+	precision dt_max = 5. * etabar / T;
+
+	return dt_max;
 
 }
 

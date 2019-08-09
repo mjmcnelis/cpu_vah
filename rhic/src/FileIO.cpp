@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <math.h>
 #include "../include/FileIO.h"
+#include "../include/Parameters.h"
 #include "../include/Precision.h"
 #include "../include/DynamicalVariables.h"
 #include "../include/EquationOfState.h"
@@ -529,19 +530,26 @@ void output_optical_glauber(const hydro_variables * const __restrict__ q, const 
 }
 
 
-void output_dynamical_variables(double t, int nx, int ny, int nz, double dt, double dx, double dy, double dz, int initialConditionType, double e0, double etabar)
+void output_dynamical_variables(double t, int nx, int ny, int nz, double dt, double dx, double dy, double dz, void * initCondParams, double etabar)
 {
-	if(initialConditionType == 1)
+	struct InitialConditionParameters * initCond = (struct InitialConditionParameters *) initCondParams;
+
+	int initial_type = initCond->initialConditionType;	
+
+	if(initial_type == 1)
 	{
+		precision T0 = initCond->initialCentralTemperatureGeV;
+		precision e0 = equilibriumEnergyDensity(T0 / hbarc);
+
 		output_aniso_bjorken(q, e, e0, t, nx, ny, nz);
 	}
-	else if(initialConditionType == 2 || initialConditionType == 3)
+	else if(initial_type == 2 || initial_type == 3)
 	{
 		output_gubser(q, u, e, t, nx, ny, nz, dx, dy, dz);
 		output_residual_gradients(q, u, up, e, t, nx, ny, nz, dt, dx, dy, dz, etabar);
 		output_residual_shear_validity(q, u, e, t, nx, ny, nz, dt, dx, dy, dz);
 	}
-	else if(initialConditionType == 4)
+	else if(initial_type == 4)
 	{
 		output_optical_glauber(q, u, e, t, nx, ny, nz, dx, dy, dz);
 		output_residual_gradients(q, u, up, e, t, nx, ny, nz, dt, dx, dy, dz, etabar);

@@ -33,7 +33,7 @@ int main(int argc, char **argv)
 	config_init(&hydroConfig);
 
 	// load parameters
-	loadLatticeParameters(&latticeConfig, &latticeParams);
+	load_lattice_parameters(&latticeConfig, &latticeParams);
 	loadInitialConditionParameters(&initCondConfig, &initCondParams);
 	loadHydroParameters(&hydroConfig, &hydroParams);
 

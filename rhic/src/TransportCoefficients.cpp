@@ -191,7 +191,7 @@ void transport_coefficients::compute_transport_coefficients(precision e, precisi
 
 		if(!(z >= -0.99999999 && z <= 1.e-8))
 		{
-			printf("z = %lf is out of range\n", z);
+			//printf("z = %lf is out of range\n", z);
 			//exit(-1);
 			z = fmax(-0.99999999, fmin(z, 1.e-8));
 		}
@@ -213,7 +213,7 @@ void transport_coefficients::compute_transport_coefficients(precision e, precisi
 
    		if(!(aL >= 0.0001 && aL <= 1.0001))
 		{
-			printf("aL = %lf is out of range [%lf, %lf]\n", aL, 0.0001, 1.0001);
+			//printf("aL = %lf is out of range [%lf, %lf]\n", aL, 0.0001, 1.0001);
 			//exit(-1);
 			aL = fmax(0.0001, fmin(aL, 1.0001));
 		}

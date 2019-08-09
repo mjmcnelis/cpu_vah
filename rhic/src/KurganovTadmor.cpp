@@ -16,7 +16,7 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 
 
 void euler_step(precision t, const hydro_variables * const __restrict__ q, hydro_variables * const __restrict__ Q,
-const precision * const __restrict__ e, const fluid_velocity * const __restrict__ u, const fluid_velocity * const __restrict__ up, int nx, int ny, int nz, precision dt, precision dx, precision dy, precision dn, precision etabar)
+const precision * const __restrict__ e, const fluid_velocity * const __restrict__ u, const fluid_velocity * const __restrict__ up, int nx, int ny, int nz, precision dt, precision dt_prev, precision dx, precision dy, precision dn, precision etabar_const)
 {
 	precision t2 = t * t;
 	int stride_y = nx + 4;							// strides for neighbor cells along x, y, n (stride_x = 1)
@@ -141,9 +141,9 @@ const precision * const __restrict__ e, const fluid_velocity * const __restrict_
 
 				// compute the external source terms (S)
 			#ifdef ANISO_HYDRO
-				source_terms_aniso_hydro(S, q_s, e_s, t, qi1, qj1, qk1, e1, ui1, uj1, uk1, ux, uy, un, ux_p, uy_p, un_p, dt, dx, dy, dn, etabar);
+				precision dt_max = source_terms_aniso_hydro(S, q_s, e_s, t, qi1, qj1, qk1, e1, ui1, uj1, uk1, ux, uy, un, ux_p, uy_p, un_p, dt_prev, dx, dy, dn, etabar_const);
 			#else
-				source_terms_viscous_hydro(S, q_s, e_s, t, qi1, qj1, qk1, e1, ui1, uj1, uk1, ux, uy, un, ux_p, uy_p, un_p, dt, dx, dy, dn, etabar);
+				precision dt_max = source_terms_viscous_hydro(S, q_s, e_s, t, qi1, qj1, qk1, e1, ui1, uj1, uk1, ux, uy, un, ux_p, uy_p, un_p, dt_prev, dx, dy, dn, etabar_const);
 			#endif
 
 				// compute the flux terms
@@ -252,10 +252,10 @@ void runge_kutta2(const hydro_variables * const __restrict__ q, hydro_variables 
 }
 
 
-void evolve_hydro_one_time_step(precision t, precision dt, int nx, int ny, int nz, precision dx, precision dy, precision dz, precision etabar)
+void evolve_hydro_one_time_step(precision t, precision dt, precision dt_prev, int nx, int ny, int nz, precision dx, precision dy, precision dz, precision etabar_const)
 {
-	// first intermediate time step (compute qS = q + dt.(S - dHx/dx - dHy/dy - dHn/dn))
-	euler_step(t, q, qI, e, u, up, nx, ny, nz, dt, dx, dy, dz, etabar);
+	// first intermediate euler step (compute qI = q + dt.(S - dHx/dx - dHy/dy - dHn/dn))
+	euler_step(t, q, qI, e, u, up, nx, ny, nz, dt, dt_prev, dx, dy, dz, etabar_const);
 
 	// next time step
 	t += dt;
@@ -274,11 +274,13 @@ void evolve_hydro_one_time_step(precision t, precision dt, int nx, int ny, int n
 	regulate_viscous_currents(t, qI, e, uI, nx, ny, nz);
 #endif
 
+	dt_prev = dt;
+
 	// set ghost cells for qS, uS, e
 	set_ghost_cells(qI, e, uI, nx, ny, nz);
 
-	// second intermediate time step (compute Q = qS + dt.(S - dHx/dx - dHy/dy - dHn/dn))
-	euler_step(t, qI, Q, e, uI, u, nx, ny, nz, dt, dx, dy, dz, etabar);
+	// second intermediate euler step (compute Q = qI + dt.(S - dHx/dx - dHy/dy - dHn/dn))
+	euler_step(t, qI, Q, e, uI, u, nx, ny, nz, dt, dt_prev, dx, dy, dz, etabar_const);
 
 	// 2nd order runge kutta: (q + Q) / 2 -> Q
 	runge_kutta2(q, Q, nx, ny, nz);
