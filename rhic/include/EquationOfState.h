@@ -12,6 +12,8 @@
 
 #define E_MIN 1.e-3		// minimum energy density
 
+precision energy_density_cutoff(precision e);
+
 precision equilibriumPressure(precision e);
 
 precision speedOfSoundSquared(precision e);

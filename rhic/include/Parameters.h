@@ -4,6 +4,7 @@
 
 #include <libconfig.h>
 
+#define PRINT_PARAMETERS
 
 void getIntegerProperty(config_t * cfg, const char * propName, int * propValue);
 
@@ -12,17 +13,19 @@ void getDoubleProperty(config_t * cfg, const char * propName, double * propValue
 
 struct LatticeParameters
 {
-	int numLatticePointsX;
-	int numLatticePointsY;
-	int numLatticePointsRapidity;
+	int lattice_points_x;
+	int lattice_points_y;
+	int lattice_points_eta;
 
-	int numProperTimePoints;
+	int max_number_of_time_steps;
 
-	double latticeSpacingX;
-	double latticeSpacingY;
-	double latticeSpacingRapidity;
+	double lattice_spacing_x;
+	double lattice_spacing_y;
+	double lattice_spacing_eta;
+	double fixed_time_step;
 
-	double latticeSpacingProperTime;
+	int adaptive_time_step;
+	double min_time_step;
 };
 
 
@@ -50,7 +53,7 @@ struct HydroParameters
 	double freezeoutTemperatureGeV;
 };
 
-void loadLatticeParameters(config_t *cfg, void * params);
+void load_lattice_parameters(config_t *cfg, void * params);
 
 void loadInitialConditionParameters(config_t *cfg, void * params);
 

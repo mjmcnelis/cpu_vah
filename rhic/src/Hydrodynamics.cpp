@@ -4,20 +4,17 @@
 #include <iomanip>
 #include <ctime>
 #include "../include/Hydrodynamics.h"
-#include "../include/Precision.h"
-#include "../include/DynamicalVariables.h"
-#include "../include/FluxTerms.h"
-#include "../include/GhostCells.h"
-#include "../include/Parameters.h"
+#include "../include/Print.h"
 #include "../include/FileIO.h"
+#include "../include/Parameters.h"
+#include "../include/Precision.h"
+#include "../include/GhostCells.h"
 #include "../include/InitialConditions.h"
 #include "../include/KurganovTadmor.h"
-#include "../include/EquationOfState.h"
+#include "../include/AdaptiveTimeStep.h"
 using namespace std;
 
 #define FREQ 10
-
-const double hbarc = 0.197326938;
 
 
 int central_index(int nx, int ny, int nz, int ncx, int ncy, int ncz)
@@ -30,69 +27,6 @@ int central_index(int nx, int ny, int nz, int ncx, int ncy, int ncz)
 	return ictr  +  ncx * (jctr  +  ncy * kctr);
 }
 
-void print_hydro_center(double t, double e, int s)
-{
-	precision p = equilibriumPressure(e / hbarc) * hbarc;
-	precision T = effectiveTemperature(e / hbarc) * hbarc;
-#ifdef ANISO_HYDRO
-	precision pl  = q[s].pl * hbarc;
-	#if (PT_MATCHING == 1)
-		precision pt = q[s].pt * hbarc;
-	#else
-		precision pt = (e - pl) / 2.;
-	#endif
-	printf("t = %.3f fm/c\t\te = %.3f GeV/fm^3\tpeq = %.3f GeV/fm^3\tpl = %.3f GeV/fm^3\tpt = %.3f GeV/fm^3\tT = %.3f GeV\n", t, e, p, pl, pt, T);
-#else
-	printf("t = %.3f fm/c\t\te = %.3f GeV/fm^3\tpeq = %.3f GeV/fm^3\tT = %.3f GeV\n", t, e, p, T);
-#endif
-}
-
-
-void print_parameters(int nx, int ny, int nz, double dt, double dx, double dy, double dz, double t0, double T_switch, double etabar)
-{
-// lattice parameters
-	printf("Time resolution     = %.4f fm/c\n", dt);
-	printf("Spatial grid points = %d x %d x %d\n", nx, ny, nz);
-	printf("Spatial resolution  = [%.3f fm, %.3f fm, %.3f]\n", dx, dy, dz);
-	printf("Spatial dimensions  = %.3f fm  x  %.3f fm  x  %.3f\n", (nx - 1.) * dx, (ny - 1.) * dy, (nz - 1.) * dz);
-// hydro parameters
-	printf("\nHydro time 	       = %.3f fm/c\n", t0);
-	printf("Shear viscosity        = %.3f\n", etabar);
-	printf("Freezeout temperature  = %.3f GeV\n", T_switch * hbarc);
-	printf("Flux limiter           = %.2f\n", THETA);
-	printf("Minimum energy density = %.3e\n", E_MIN);
-// equation of state
-#ifdef CONFORMAL_EOS
-	printf("\nEquation of state = Conformal\n\n");
-#else
-	printf("\nEquation of state = QCD\n\n");
-#endif
-// viscous pressures
-#ifdef ANISO_HYDRO
-#ifdef PIMUNU
-	printf("Transverse shear stress 	= On\n");
-#else
-	printf("Transverse shear stress 	= Off\n");
-#endif
-#ifdef WTZMU
-	printf("Longitudinal momentum diffusion = On\n");
-#else
-	printf("Longitudinal momentum diffusion = Off\n");
-#endif
-#else
-#ifdef PIMUNU
-	printf("Shear stress  = On\n");
-#else
-	printf("Shear stress  = Off\n");
-#endif
-#ifdef PI
-	printf("Bulk pressure = On\n");
-#else
-	printf("Bulk pressure = Off\n");
-#endif
-#endif
-}
-
 
 void run_hydro(void * latticeParams, void * initCondParams, void * hydroParams)
 {
@@ -101,39 +35,68 @@ void run_hydro(void * latticeParams, void * initCondParams, void * hydroParams)
 	struct InitialConditionParameters * initCond = (struct InitialConditionParameters *) initCondParams;
 	struct HydroParameters * hydro = (struct HydroParameters *) hydroParams;
 
-	// system configuration
-	int initialType = initCond->initialConditionType;	// initial condition type
 
-	int nx = lattice->numLatticePointsX;				// physical grid
-	int ny = lattice->numLatticePointsY;
-	int nz = lattice->numLatticePointsRapidity;
-	int nt = lattice->numProperTimePoints;
+	// initial time (if use F.S. need t_fs instead)
+	double t0 = hydro->tau_initial;						
+	precision etabar_const = hydro->shear_viscosity;
+	
 
-	int ncx = nx + 4;									// computational grid = physical + ghost + white
+	// physical grid
+	int nx = lattice->lattice_points_x;				
+	int ny = lattice->lattice_points_y;
+	int nz = lattice->lattice_points_eta;
+	int nt = lattice->max_number_of_time_steps;
+
+
+	// computational grid = physical + ghost + white
+	int ncx = nx + 4;									
 	int ncy = ny + 4;
 	int ncz = nz + 4;
 
-	precision dx = lattice->latticeSpacingX;			// lattice spacing
-	precision dy = lattice->latticeSpacingY;
-	precision dz = lattice->latticeSpacingRapidity;
-	double dt = lattice->latticeSpacingProperTime;		// time resolution
 
-	precision etabar = hydro->shear_viscosity;			// shear viscosity
+	// lattice spacing
+	precision dx = lattice->lattice_spacing_x;			
+	precision dy = lattice->lattice_spacing_y;
+	precision dz = lattice->lattice_spacing_eta;
 
-	double T0 = initCond->initialCentralTemperatureGeV;
-	double e0 = equilibriumEnergyDensity(T0 / hbarc);
-	double t0 = hydro->tau_initial;						// initial longitudinal proper time (if use F.S. need t_fs instead)
-	double T_switch = (hydro->freezeoutTemperatureGeV) / hbarc;		// switching temperature [fm^-1]
-	double e_switch = equilibriumEnergyDensity(T_switch);			// switching energy density [fm^-4]
 
-	print_parameters(nx, ny, nz, dt, dx, dy, dz, t0, T_switch, etabar);
+	// option to turn on adaptive time step
+	int adaptive_time_step = lattice->adaptive_time_step;	
+	precision dt_min = lattice->min_time_step;
 
-	allocate_memory(ncx * ncy * ncz);					// allocate memory for computational grid points
+	precision dt;			// current time step	
+	precision dt_prev;		// need to track previous time step (for computing time derivatives)	
+
+	// initialize time step
+	if(adaptive_time_step)
+	{
+		dt = dt_min;		
+		dt_prev = dt;		// todo: dt_prev should be initialized to time resolution in free-streaming? 
+	}	
+	else
+	{
+		dt = lattice->fixed_time_step;
+		dt_prev = dt;
+	}
+
+
+	// freezeout temperature							
+	double T_switch = hydro->freezeoutTemperatureGeV;		
+	double e_switch = equilibriumEnergyDensity(T_switch / hbarc);			
+
+	
+	print_parameters(nx, ny, nz, dt, dx, dy, dz, t0, T_switch, etabar_const, adaptive_time_step);
+
+
+	// allocate memory for computational grid points
+	allocate_memory(ncx * ncy * ncz);					
+
 
 	// fluid dynamic initialization
-	double t = t0;
+	precision t = t0;
 	set_initial_conditions(t, latticeParams, initCondParams, hydroParams);	// generate initial (Tmunu, e, p, u, up, pl, pimunu, Wmu)
 	set_ghost_cells(q, e, u, nx, ny, nz);									// initialize ghost cells (all current variables)
+
 
 	printf("\n");
 
@@ -151,7 +114,7 @@ void run_hydro(void * latticeParams, void * initCondParams, void * hydroParams)
 
 			print_hydro_center(t, e_s, s);
 
-			output_dynamical_variables(t, nx, ny, nz, dt, dx, dy, dz, initialType, e0, etabar);
+			//output_dynamical_variables(t, nx, ny, nz, dt, dx, dy, dz, initCondParams, etabar_const);
 
 			if(e[s] < e_switch) 	// replace with freezeout finder not finding any cells
 			{
@@ -160,9 +123,21 @@ void run_hydro(void * latticeParams, void * initCondParams, void * hydroParams)
 			}
 		}
 
-		evolve_hydro_one_time_step(t, dt, nx, ny, nz, dx, dy, dz, etabar);
+		evolve_hydro_one_time_step(t, dt, dt_prev, nx, ny, nz, dx, dy, dz, etabar_const);
+
 		steps += 1.;
+
 		t += dt;
+
+		dt_prev = dt;
+
+		if(adaptive_time_step)
+		{
+			precision dt_max = compute_max_time_step(t, q, e, u, up, nx, ny, nz, dt, dt_prev, dx, dy, dz, etabar_const);
+			//precision dt_max = compute_max_time_step(t, dt, nx, ny, nz, dx, dy, dz, etabar_const);
+
+			dt = set_time_step(dt_max, dt_min);
+		}
 	}
 
 	double duration     = (clock() - start) / (double)CLOCKS_PER_SEC;

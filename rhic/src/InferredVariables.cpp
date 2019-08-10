@@ -31,6 +31,9 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u, precision t, int nx, int ny, int nz)
 {
 #ifdef ANISO_HYDRO
+
+	//precision eps = 1.e-5;		// cutoff to enforce positivity of "proposed solution" for energy density
+
 	precision t2 = t * t;
 	precision t4 = t2 * t2;
 
@@ -96,19 +99,22 @@ void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict
 				precision Ltt = (pl - pt) * zt * zt;
 				precision ut_numerator = Mt  +  pt  -  Ltt;
 
-				precision e_s = fmax(E_MIN, Mt  -  Ltt  -  (Mx * Mx  +  My * My) / ut_numerator  -  t2 * Mn * Mn * ut_numerator / (Mt + pl) / (Mt + pl));
+				precision e_s = energy_density_cutoff(Mt  -  Ltt  -  (Mx * Mx  +  My * My) / ut_numerator  -  t2 * Mn * Mn * ut_numerator / (Mt + pl) / (Mt + pl));
+
+				precision ut_numerator = Mt  +  pt  -  (pl - pt) * zt2;
 			#else
 				precision zt2  = zt * zt;
 				precision ztzn = zt * zn;
 
-				// what a pain in the ass (messy, so far testing shows it works though...)
+				// what a pain in the ass (so far testing shows it works though...)
 				precision a = 0.25 * t2 * ztzn * ztzn  +  0.5 * (1. + zt2) * (1.  -  0.5 * zt2);
 				precision b = 0.5 * t2 * Mn * ztzn  -  1.5 * t2 * pl * ztzn * ztzn  -  (0.5 * (1. + zt2) * (Mt - 1.5 * pl * zt2)  -  (1. - 0.5 * zt2) * (Mt - 0.5 * pl * (1. + 3. * zt2)));
 				precision c = Mx * Mx  +  My * My  +  t2 * Mn * Mn  -  1.5 * t2 * Mn * pl * ztzn  +  2.25 * t2 * pl * pl * ztzn * ztzn  -  (Mt - 0.5 * pl * (1. + 3. * zt2)) * (Mt - 1.5 * pl * zt2);
 
-				precision e_s = fmax(E_MIN, (sqrt(fabs(b * b  -  4. * a * c))  -  b) / (2. * a));
+				precision e_s = energy_density_cutoff((sqrt(fabs(b * b  -  4. * a * c))  -  b) / (2. * a));
 
-				precision pt = (e_s - pl) / 2.;
+				precision pt = (e_s - pl) / 2.;		
+			
 				precision ut_numerator = Mt  +  pt  -  (pl - pt) * zt2;
 			#endif
 
@@ -145,7 +151,7 @@ void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict
 				}
 			#endif
 
-				e[s]     = e_s;		// set solution for primary variables
+				e[s]    = e_s;		// cutoff the solution further so that e > E_MIN
 				u[s].ux = ux_s;
 				u[s].uy = uy_s;
 				u[s].un = un_s;
@@ -196,7 +202,7 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 				precision M2 = Mx * Mx  +  My * My  +  t2 * Mn * Mn;
 
 			#ifdef CONFORMAL_EOS
-				precision e_s = fmax(E_MIN, - Mt  +  sqrt(fabs(4. * Mt * Mt  -  3. * M2)));
+				precision e_s = energy_density_cutoff(- Mt  +  sqrt(fabs(4. * Mt * Mt  -  3. * M2)));
 			#else
 				// add root-solving algorithm (use a function)
 				// initial guess (need ePrev)

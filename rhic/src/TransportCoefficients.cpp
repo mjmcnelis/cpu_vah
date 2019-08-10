@@ -14,6 +14,20 @@ double dpl_error = 1.e-7;
 double dpt_error = 1.e-7;
 
 
+precision eta_over_s(precision T, precision etabar_const)
+{
+	#ifndef CONSTANT_VISCOSITY
+		precision etas_min = 0.08;
+		precision etas_slope = 0.85 / 5.067731;
+		precision Tc = 0.154 * 5.067731;
+
+		return fmax(etas_min, etas_min  +  etas_slope * (T - Tc));
+	#else
+		return etabar_const;
+	#endif
+}
+
+
 transport_coefficients::transport_coefficients()
 {
 
@@ -177,7 +191,7 @@ void transport_coefficients::compute_transport_coefficients(precision e, precisi
 
 		if(!(z >= -0.99999999 && z <= 1.e-8))
 		{
-			printf("z = %lf is out of range\n", z);
+			//printf("z = %lf is out of range\n", z);
 			//exit(-1);
 			z = fmax(-0.99999999, fmin(z, 1.e-8));
 		}
@@ -199,7 +213,7 @@ void transport_coefficients::compute_transport_coefficients(precision e, precisi
 
    		if(!(aL >= 0.0001 && aL <= 1.0001))
 		{
-			printf("aL = %lf is out of range [%lf, %lf]\n", aL, 0.0001, 1.0001);
+			//printf("aL = %lf is out of range [%lf, %lf]\n", aL, 0.0001, 1.0001);
 			//exit(-1);
 			aL = fmax(0.0001, fmin(aL, 1.0001));
 		}

@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include "../include/Parameters.h"
 
-#define PRINT_PARAMETERS
 
 void getIntegerProperty(config_t * cfg, const char * propName, int * propValue)
 {
@@ -16,7 +15,7 @@ void getDoubleProperty(config_t * cfg, const char * propName, double * propValue
 }
 
 
-void loadLatticeParameters(config_t *cfg, void * params)
+void load_lattice_parameters(config_t *cfg, void * params)
 {
 	char fname[255];
 	sprintf(fname, "parameters/lattice.properties");
@@ -27,42 +26,59 @@ void loadLatticeParameters(config_t *cfg, void * params)
 		exit(-1);
 	}
 
-	int numLatticePointsX, numLatticePointsY, numLatticePointsRapidity, numProperTimePoints;
-	double latticeSpacingX, latticeSpacingY, latticeSpacingRapidity, latticeSpacingProperTime;
+	int lattice_points_x;
+	int lattice_points_y;
+	int lattice_points_eta;
+
+	int max_number_of_time_steps;
+
+	double lattice_spacing_x;
+	double lattice_spacing_y;
+	double lattice_spacing_eta;
+	double fixed_time_step;
+
+	int adaptive_time_step;
+	double min_time_step;
 
 	// get the lattice parameters
-	getIntegerProperty(cfg, "numLatticePointsX", 		&numLatticePointsX);
-	getIntegerProperty(cfg, "numLatticePointsY", 		&numLatticePointsY);
-	getIntegerProperty(cfg, "numLatticePointsRapidity", &numLatticePointsRapidity);
-	getIntegerProperty(cfg, "numProperTimePoints", 		&numProperTimePoints);
-	getDoubleProperty(cfg,  "latticeSpacingX", 			&latticeSpacingX);
-	getDoubleProperty(cfg,  "latticeSpacingY", 			&latticeSpacingY);
-	getDoubleProperty(cfg,  "latticeSpacingRapidity", 	&latticeSpacingRapidity);
-	getDoubleProperty(cfg,  "latticeSpacingProperTime", &latticeSpacingProperTime);
+	getIntegerProperty(cfg, "lattice_points_x", 		&lattice_points_x);
+	getIntegerProperty(cfg, "lattice_points_y", 		&lattice_points_y);
+	getIntegerProperty(cfg, "lattice_points_eta", 		&lattice_points_eta);
+	getIntegerProperty(cfg, "max_number_of_time_steps", &max_number_of_time_steps);
+	getDoubleProperty(cfg,  "lattice_spacing_x", 		&lattice_spacing_x);
+	getDoubleProperty(cfg,  "lattice_spacing_y", 		&lattice_spacing_y);
+	getDoubleProperty(cfg,  "lattice_spacing_eta", 		&lattice_spacing_eta);
+	getDoubleProperty(cfg,  "fixed_time_step", 			&fixed_time_step);
+	getIntegerProperty(cfg, "adaptive_time_step", 		&adaptive_time_step);
+	getDoubleProperty(cfg,  "min_time_step", 			&min_time_step);
 
 #ifdef PRINT_PARAMETERS
 	printf("\nLattice parameters:");
 	printf("\n-------------------\n");
-	printf("numLatticePointsX        = %d\n", numLatticePointsX);
-	printf("numLatticePointsY        = %d\n", numLatticePointsY);
-	printf("numLatticePointsRapidity = %d\n", numLatticePointsRapidity);
-	printf("numProperTimePoints      = %d\n", numProperTimePoints);
-	printf("latticeSpacingX          = %.3f\n", latticeSpacingX);
-	printf("latticeSpacingY          = %.3f\n", latticeSpacingY);
-	printf("latticeSpacingRapidity   = %.3f\n", latticeSpacingRapidity);
-	printf("latticeSpacingProperTime = %.3f\n", latticeSpacingProperTime);
+	printf("lattice_points_x         = %d\n", 	lattice_points_x);
+	printf("lattice_points_y         = %d\n", 	lattice_points_y);
+	printf("lattice_points_eta       = %d\n", 	lattice_points_eta);
+	printf("max_number_of_time_steps = %d\n", 	max_number_of_time_steps);
+	printf("lattice_spacing_x        = %.3f\n", lattice_spacing_x);
+	printf("lattice_spacing_y        = %.3f\n", lattice_spacing_y);
+	printf("lattice_spacing_eta      = %.3f\n", lattice_spacing_eta);
+	printf("fixed_time_step          = %.3f\n", fixed_time_step);
+	printf("adaptive_time_step       = %d\n", 	adaptive_time_step);
+	printf("min_time_step            = %.2e\n", min_time_step);
 	printf("\n");
 #endif
 
 	struct LatticeParameters * lattice = (struct LatticeParameters *) params;
-	lattice->numLatticePointsX 			= numLatticePointsX;
-	lattice->numLatticePointsY 			= numLatticePointsY;
-	lattice->numLatticePointsRapidity	= numLatticePointsRapidity;
-	lattice->numProperTimePoints 		= numProperTimePoints;
-	lattice->latticeSpacingX 			= latticeSpacingX;
-	lattice->latticeSpacingY 			= latticeSpacingY;
-	lattice->latticeSpacingRapidity 	= latticeSpacingRapidity;
-	lattice->latticeSpacingProperTime 	= latticeSpacingProperTime;
+	lattice->lattice_points_x 			= lattice_points_x;
+	lattice->lattice_points_y 			= lattice_points_y;
+	lattice->lattice_points_eta			= lattice_points_eta;
+	lattice->max_number_of_time_steps 	= max_number_of_time_steps;
+	lattice->lattice_spacing_x 			= lattice_spacing_x;
+	lattice->lattice_spacing_y 			= lattice_spacing_y;
+	lattice->lattice_spacing_eta 		= lattice_spacing_eta;
+	lattice->fixed_time_step 			= fixed_time_step;
+	lattice->adaptive_time_step 		= adaptive_time_step;
+	lattice->min_time_step 				= min_time_step;
 }
 
 

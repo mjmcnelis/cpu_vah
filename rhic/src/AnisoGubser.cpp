@@ -33,6 +33,7 @@ double dpl_drho(double e, double pl, double rho, double etas)
 	precision zeta_LL = aniso.zeta_LL;
 
 	return - taupiInv * (pl - e/3.)  -  (4. * pl + zeta_LL) * tanh(rho);
+	
 }
 
 

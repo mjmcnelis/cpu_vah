@@ -1,9 +1,19 @@
 
 #include <math.h> // for math functions
 #include <cmath>
-
 #include "../include/Precision.h"
 #include "../include/EquationOfState.h"
+
+
+precision energy_density_cutoff(precision e)
+{
+	precision e_min = E_MIN;
+	precision e_cutoff = fmax(0.0, e);
+
+	// function approaches e_min exponentially as e -> 0 (avoids discontinuites in energy profile)
+	return e_cutoff  +  e_min * exp(- e_cutoff / e_min);
+	//return fmax(e_min, e);
+}
 
 
 // replaced powf with pow (7/2/19)

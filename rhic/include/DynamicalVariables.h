@@ -7,7 +7,7 @@
 
 // should have a macros.h (only for tunable macro parameters?)
 
-//#define ANISO_HYDRO				// comment to run 2nd order viscous hydrodynamics
+#define ANISO_HYDRO				// comment to run 2nd order viscous hydrodynamics
 								// (for cross-checking vahydro in limit of small viscosity)
 
 //#define PIMUNU 					// name shared but different shear stresses (maybe isolate them)
