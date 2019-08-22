@@ -37,42 +37,42 @@ void run_hydro(void * latticeParams, void * initCondParams, void * hydroParams)
 
 
 	// initial time (if use F.S. need t_fs instead)
-	double t0 = hydro->tau_initial;						
+	double t0 = hydro->tau_initial;
 	precision etabar_const = hydro->shear_viscosity;
-	
+
 
 	// physical grid
-	int nx = lattice->lattice_points_x;				
+	int nx = lattice->lattice_points_x;
 	int ny = lattice->lattice_points_y;
 	int nz = lattice->lattice_points_eta;
 	int nt = lattice->max_number_of_time_steps;
 
 
 	// computational grid = physical + ghost + white
-	int ncx = nx + 4;									
+	int ncx = nx + 4;
 	int ncy = ny + 4;
 	int ncz = nz + 4;
 
 
 	// lattice spacing
-	precision dx = lattice->lattice_spacing_x;			
+	precision dx = lattice->lattice_spacing_x;
 	precision dy = lattice->lattice_spacing_y;
 	precision dz = lattice->lattice_spacing_eta;
 
 
 	// option to turn on adaptive time step
-	int adaptive_time_step = lattice->adaptive_time_step;	
+	int adaptive_time_step = lattice->adaptive_time_step;
 	precision dt_min = lattice->min_time_step;
 
-	precision dt;			// current time step	
-	precision dt_prev;		// need to track previous time step (for computing time derivatives)	
+	precision dt;			// current time step
+	precision dt_prev;		// need to track previous time step (for computing time derivatives)
 
 	// initialize time step
 	if(adaptive_time_step)
 	{
-		dt = dt_min;		
-		dt_prev = dt;		// todo: dt_prev should be initialized to time resolution in free-streaming? 
-	}	
+		dt = dt_min;
+		dt_prev = dt;		// todo: dt_prev should be initialized to time resolution in free-streaming?
+	}
 	else
 	{
 		dt = lattice->fixed_time_step;
@@ -80,16 +80,16 @@ void run_hydro(void * latticeParams, void * initCondParams, void * hydroParams)
 	}
 
 
-	// freezeout temperature							
-	double T_switch = hydro->freezeoutTemperatureGeV;		
-	double e_switch = equilibriumEnergyDensity(T_switch / hbarc);			
+	// freezeout temperature
+	double T_switch = hydro->freezeoutTemperatureGeV;
+	double e_switch = equilibriumEnergyDensity(T_switch / hbarc);
 
-	
+
 	print_parameters(nx, ny, nz, dt, dx, dy, dz, t0, T_switch, etabar_const, adaptive_time_step);
 
 
 	// allocate memory for computational grid points
-	allocate_memory(ncx * ncy * ncz);					
+	allocate_memory(ncx * ncy * ncz);
 
 
 	// fluid dynamic initialization
@@ -133,10 +133,10 @@ void run_hydro(void * latticeParams, void * initCondParams, void * hydroParams)
 
 		if(adaptive_time_step)
 		{
-			precision dt_max = compute_max_time_step(t, q, e, u, up, nx, ny, nz, dt, dt_prev, dx, dy, dz, etabar_const);
-			//precision dt_max = compute_max_time_step(t, dt, nx, ny, nz, dx, dy, dz, etabar_const);
+			// compute the smallest time scale in the fluid
+			hydro_time_scales dt_hydro = compute_hydro_time_scales(t, q, e, u, up, nx, ny, nz, dt, dt_prev, dx, dy, dz, etabar_const, dt_min);
 
-			dt = set_time_step(dt_max, dt_min);
+			dt = set_time_step(dt_hydro, dt_min);
 		}
 	}
 

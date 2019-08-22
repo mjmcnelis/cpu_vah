@@ -12,6 +12,8 @@
 
 //#define PIMUNU 					// name shared but different shear stresses (maybe isolate them)
 
+#define VORTICITY				// include the vorticity source terms in the relaxation equations
+
 #ifdef ANISO_HYDRO
 	#ifdef CONFORMAL_EOS
 		#define PT_MATCHING 0
@@ -27,15 +29,19 @@
 
 
 #ifdef PIMUNU
+	#define PIMUNU_SCALAR 1
 	#define PIMUNU_COMPONENTS 10
 #else
+	#define PIMUNU_SCALAR 0
 	#define PIMUNU_COMPONENTS 0
 #endif
 
 
 #ifdef WTZMU
+	#define WTZMU_SCALAR 1
 	#define WTZMU_COMPONENTS 4
 #else
+	#define WTZMU_SCALAR 0
 	#define WTZMU_COMPONENTS 0
 #endif
 
@@ -52,6 +58,7 @@
 
 #ifdef ANISO_HYDRO
 	#define NUMBER_CONSERVED_VARIABLES (5 + PT_MATCHING + NUMBER_OF_RESIDUAL_CURRENTS)
+	#define NUMBER_HYDRO_SCALARS (3 + PT_MATCHING + PIMUNU_SCALAR + WTZMU_SCALAR)
 #else
 	#define NUMBER_CONSERVED_VARIABLES (4 + NUMBER_OF_VISCOUS_CURRENTS)
 #endif

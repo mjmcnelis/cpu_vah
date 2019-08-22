@@ -141,9 +141,9 @@ const precision * const __restrict__ e, const fluid_velocity * const __restrict_
 
 				// compute the external source terms (S)
 			#ifdef ANISO_HYDRO
-				precision dt_max = source_terms_aniso_hydro(S, q_s, e_s, t, qi1, qj1, qk1, e1, ui1, uj1, uk1, ux, uy, un, ux_p, uy_p, un_p, dt_prev, dx, dy, dn, etabar_const);
+				source_terms_aniso_hydro(S, q_s, e_s, t, qi1, qj1, qk1, e1, ui1, uj1, uk1, ux, uy, un, ux_p, uy_p, un_p, dt_prev, dx, dy, dn, etabar_const);
 			#else
-				precision dt_max = source_terms_viscous_hydro(S, q_s, e_s, t, qi1, qj1, qk1, e1, ui1, uj1, uk1, ux, uy, un, ux_p, uy_p, un_p, dt_prev, dx, dy, dn, etabar_const);
+				source_terms_viscous_hydro(S, q_s, e_s, t, qi1, qj1, qk1, e1, ui1, uj1, uk1, ux, uy, un, ux_p, uy_p, un_p, dt_prev, dx, dy, dn, etabar_const);
 			#endif
 
 				// compute the flux terms

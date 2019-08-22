@@ -41,7 +41,7 @@ void print_parameters(int nx, int ny, int nz, double dt, double dx, double dy, d
 // hydro parameters
 	printf("\nHydro time 	       = %.3f fm/c\n", t0);
 	printf("Shear viscosity        = %.3f\n", etabar);
-	printf("Freezeout temperature  = %.3f GeV\n", T_switch * hbarc);
+	printf("Freezeout temperature  = %.3f GeV\n", T_switch);
 	printf("Flux limiter           = %.2f\n", THETA);
 	printf("Minimum energy density = %.2e\n", E_MIN);
 // equation of state

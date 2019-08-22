@@ -6,7 +6,7 @@
 #include "../include/FluxTerms.h"
 #include "../include/Precision.h"
 #include "../include/DynamicalVariables.h"
-#include "../include/EquationOfState.h" // for bulk terms
+#include "../include/EquationOfState.h"
 #include "../include/TransportCoefficients.h"
 #include "../include/Projections.h"
 
@@ -52,7 +52,7 @@ inline precision central_derivative(const precision * const __restrict__ f, int 
 }
 
 
-precision source_terms_aniso_hydro(precision * const __restrict__ S, const precision * const __restrict__ q, precision e, precision t, const precision * const __restrict__ qi1, const precision * const __restrict__ qj1, const precision * const __restrict__ qk1, const precision * const __restrict__ e1, const precision * const __restrict__ ui1, const precision * const __restrict__ uj1, const precision * const __restrict__ uk1, precision ux, precision uy, precision un, precision ux_p, precision uy_p, precision un_p, precision dt_prev, precision dx, precision dy, precision dn, precision etabar_const)
+void source_terms_aniso_hydro(precision * const __restrict__ S, const precision * const __restrict__ q, precision e, precision t, const precision * const __restrict__ qi1, const precision * const __restrict__ qj1, const precision * const __restrict__ qk1, const precision * const __restrict__ e1, const precision * const __restrict__ ui1, const precision * const __restrict__ uj1, const precision * const __restrict__ uk1, precision ux, precision uy, precision un, precision ux_p, precision uy_p, precision un_p, precision dt_prev, precision dx, precision dy, precision dn, precision etabar_const)
 {
 // useful expressions
 //-------------------------------------------------
@@ -735,6 +735,9 @@ precision source_terms_aniso_hydro(precision * const __restrict__ S, const preci
 
 	precision IplW = 0;
 
+	precision WTz_Dz_u = 0;
+	precision WTz_z_NabT_u = 0;
+
 #if (PT_MATCHING == 1)
 	precision IptW = 0;
 #endif
@@ -813,40 +816,10 @@ precision source_terms_aniso_hydro(precision * const __restrict__ S, const preci
 	S[a] = dWyTz / ut  +  div_v * WyTz;		a++;
 	S[a] = dWnTz / ut  +  div_v * WnTz;
 #endif
-
-
-
-	// compute the max time step (temporary)
-
-	// CFL condition
-	precision CFL_x = fabs(vx / dx);
-	precision CFL_y = fabs(vy / dy);
-	precision CFL_n = fabs(vn / dn);
-
-	precision dt_CFL = 1. / fmax(CFL_x, fmax(CFL_y, CFL_n));	// todo: make a flag that says this got picked
-
-	// relaxation times
-
-	// inverse gradients
-	precision theta_abs = fabs(theta);
-
-	precision max_gradient = theta_abs;
-
-	precision inverse_gradient = 1. / max_gradient;
-
-	precision dt_max = fmin(5. * etabar / T, fmin(inverse_gradient, dt_CFL));
-
-	return dt_max;
 }
 
 
-
-
-
-
-
-
-precision source_terms_viscous_hydro(precision * const __restrict__ S, const precision * const __restrict__ q, precision e, precision t, const precision * const __restrict__ qi1, const precision * const __restrict__ qj1, const precision * const __restrict__ qk1, const precision * const __restrict__ e1, const precision * const __restrict__ ui1, const precision * const __restrict__ uj1, const precision * const __restrict__ uk1, precision ux, precision uy, precision un, precision ux_p, precision uy_p, precision un_p, precision dt_prev, precision dx, precision dy, precision dn, precision etabar)
+void source_terms_viscous_hydro(precision * const __restrict__ S, const precision * const __restrict__ q, precision e, precision t, const precision * const __restrict__ qi1, const precision * const __restrict__ qj1, const precision * const __restrict__ qk1, const precision * const __restrict__ e1, const precision * const __restrict__ ui1, const precision * const __restrict__ uj1, const precision * const __restrict__ uk1, precision ux, precision uy, precision un, precision ux_p, precision uy_p, precision un_p, precision dt_prev, precision dx, precision dy, precision dn, precision etabar)
 {
 	precision t2 = t * t;
 	precision t4 = t2 * t2;
@@ -1174,13 +1147,6 @@ precision source_terms_viscous_hydro(precision * const __restrict__ S, const pre
 
 	S[a] = dPi / ut  +  div_v * Pi;
 #endif
-
-
-	// compute the max time step
-	precision dt_max = 5. * etabar / T;
-
-	return dt_max;
-
 }
 
 

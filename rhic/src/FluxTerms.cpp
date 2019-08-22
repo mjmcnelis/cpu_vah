@@ -28,6 +28,30 @@ precision approximate_derivative(precision qm, precision q, precision qp)
 	return minmod3(THETA * (q - qm), (qp - qm) / 2., THETA * (qp - q));
 }
 
+precision compute_max_local_propagation_speed(const precision * const __restrict__ v_data, precision v)
+{
+	precision vmm = v_data[0];
+	precision vm  = v_data[1];
+	precision vp  = v_data[2];
+	precision vpp = v_data[3];
+
+	precision dvp = approximate_derivative(v,   vp, vpp);
+	precision dv  = approximate_derivative(vm,  v,  vp);
+	precision dvm = approximate_derivative(vmm, vm, v);
+
+	// extrapolated spatial velocities
+	precision vRp = fabs(vp  -  dvp / 2.);	// v^{+}_{i+1/2}
+	precision vLp = fabs(v   +  dv  / 2.);	// v^{-}_{i+1/2}
+	precision vRm = fabs(v   -  dv  / 2.);	// v^{+}_{i-1/2}
+	precision vLm = fabs(vm  +  dvm / 2.);	// v^{-}_{i-1/2}
+
+	// local propagation speeds
+	precision ap = fmax(vLp, vRp);	// a_{i+1/2}
+	precision am = fmax(vLm, vRm);	// a_{i-1/2}
+
+	return fmax(ap, am);	// max local speed
+}
+
 void flux_terms(precision * const __restrict__ Hp, precision * const __restrict__ Hm, const precision * const __restrict__ q_data, const precision * const __restrict__ q1_data, const precision * const __restrict__ q2_data, const precision * const __restrict__ v_data, precision v)
 {
 	// neighbor spatial velocities

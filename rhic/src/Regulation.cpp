@@ -21,7 +21,7 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 void regulate_residual_currents(precision t, hydro_variables * const __restrict__ q, precision * const __restrict__ e, const fluid_velocity * const __restrict__ u, int nx, int ny, int nz)
 {
 #ifdef ANISO_HYDRO
-	precision eps = 1.e-6;	// enforce pl, pt to be positive (should be smaller in magnitude than E_MIN)
+	precision eps = P_MIN;	// enforce pl, pt to be positive (should be smaller in magnitude than E_MIN)
 
 	precision xi0 = XI0;
 	precision rho_max = RHO_MAX;
@@ -66,7 +66,7 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 				precision zn = ut / t / utperp;
 
 				precision T_aniso_mag = sqrt(e_s * e_s  +  pl * pl  +  2. * pt * pt);
-		
+
 			#ifdef PIMUNU
 				precision pitt = q[s].pitt;
 				precision pitx = q[s].pitx;
