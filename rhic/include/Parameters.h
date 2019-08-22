@@ -50,8 +50,20 @@ struct HydroParameters
 {
 	double tau_initial;
 	double shear_viscosity;
-	double freezeoutTemperatureGeV;
+	double freezeout_temperature_GeV;
+	double flux_limiter;
 };
+
+
+typedef struct 
+{
+	double tau_initial;
+	double shear_viscosity;
+	double freezeout_temperature_GeV;
+	double flux_limiter;
+
+} hydro_parameters;
+
 
 void load_lattice_parameters(config_t *cfg, void * params);
 
@@ -59,6 +71,7 @@ void loadInitialConditionParameters(config_t *cfg, void * params);
 
 void loadHydroParameters(config_t *cfg, void * params);
 
+hydro_parameters load_hydro_parameters(config_t *cfg);
 
 #endif
 

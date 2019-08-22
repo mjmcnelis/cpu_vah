@@ -26,16 +26,20 @@ int main(int argc, char **argv)
 	struct InitialConditionParameters initCondParams;
 	struct HydroParameters hydroParams;
 
-	config_t latticeConfig, initCondConfig, hydroConfig;
+	config_t latticeConfig, initCondConfig, hydroConfig, hydroConfig_2;
 
 	config_init(&latticeConfig);
 	config_init(&initCondConfig);
 	config_init(&hydroConfig);
+	config_init(&hydroConfig_2);
 
 	// load parameters
 	load_lattice_parameters(&latticeConfig, &latticeParams);
 	loadInitialConditionParameters(&initCondConfig, &initCondParams);
 	loadHydroParameters(&hydroConfig, &hydroParams);
+
+	// test new loading parameters
+	hydro_parameters hydro = load_hydro_parameters(&hydroConfig_2);
 
 #ifdef ANISO_HYDRO
 	printf("\n:::::::::::::::::::::::::::::::::::::::::::\n");
@@ -48,7 +52,7 @@ int main(int argc, char **argv)
 #endif
 
 	// main function
-	run_hydro(&latticeParams, &initCondParams, &hydroParams);
+	run_hydro(&latticeParams, &initCondParams, &hydroParams, hydro);
 
 	printf("\nFinished hydro\n");
 

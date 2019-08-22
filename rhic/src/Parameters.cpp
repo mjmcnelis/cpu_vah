@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string>
 #include "../include/Parameters.h"
-
+using namespace std;
 
 void getIntegerProperty(config_t * cfg, const char * propName, int * propValue)
 {
@@ -59,12 +60,12 @@ void load_lattice_parameters(config_t *cfg, void * params)
 	printf("lattice_points_y         = %d\n", 	lattice_points_y);
 	printf("lattice_points_eta       = %d\n", 	lattice_points_eta);
 	printf("max_number_of_time_steps = %d\n", 	max_number_of_time_steps);
-	printf("lattice_spacing_x        = %.3f\n", lattice_spacing_x);
-	printf("lattice_spacing_y        = %.3f\n", lattice_spacing_y);
-	printf("lattice_spacing_eta      = %.3f\n", lattice_spacing_eta);
-	printf("fixed_time_step          = %.3f\n", fixed_time_step);
+	printf("lattice_spacing_x        = %.3g\n", lattice_spacing_x);
+	printf("lattice_spacing_y        = %.3g\n", lattice_spacing_y);
+	printf("lattice_spacing_eta      = %.3g\n", lattice_spacing_eta);
+	printf("fixed_time_step          = %.3g\n", fixed_time_step);
 	printf("adaptive_time_step       = %d\n", 	adaptive_time_step);
-	printf("min_time_step            = %.2e\n", min_time_step);
+	printf("min_time_step            = %.3g\n", min_time_step);
 	printf("\n");
 #endif
 
@@ -111,12 +112,12 @@ void loadInitialConditionParameters(config_t *cfg, void * params)
 	printf("\n-----------------------------\n");
 	printf("initialConditionType         = %d\n", initialConditionType);
 	printf("numberOfNucleonsPerNuclei    = %d\n", numberOfNucleonsPerNuclei);
-	printf("initialCentralTemperatureGeV = %.3f\n", initialCentralTemperatureGeV);
-	printf("scatteringCrossSectionNN     = %.2f\n", scatteringCrossSectionNN);
-	printf("impactParameter              = %.2f\n", impactParameter);
-	printf("fractionOfBinaryCollisions   = %.2f\n", fractionOfBinaryCollisions);
-	printf("rapidityVariance             = %.3f\n", rapidityVariance);
-	printf("rapidityMean                 = %.2f\n", rapidityMean);
+	printf("initialCentralTemperatureGeV = %.3g\n", initialCentralTemperatureGeV);
+	printf("scatteringCrossSectionNN     = %.3g\n", scatteringCrossSectionNN);
+	printf("impactParameter              = %.3g\n", impactParameter);
+	printf("fractionOfBinaryCollisions   = %.3g\n", fractionOfBinaryCollisions);
+	printf("rapidityVariance             = %.3g\n", rapidityVariance);
+	printf("rapidityMean                 = %.3g\n", rapidityMean);
 	printf("\n");
 #endif
 
@@ -143,27 +144,63 @@ void loadHydroParameters(config_t *cfg, void * params)
 		exit(-1);
 	}
 
-	double tau_initial, shear_viscosity, freezeoutTemperatureGeV;
+	double tau_initial;
+	double shear_viscosity;
+	double freezeout_temperature_GeV;
+	double flux_limiter;
 
 	// get hydro parameters
 	getDoubleProperty(cfg, "tau_initial", 				&tau_initial);
 	getDoubleProperty(cfg, "shear_viscosity", 			&shear_viscosity);
-	getDoubleProperty(cfg, "freezeoutTemperatureGeV",	&freezeoutTemperatureGeV);
+	getDoubleProperty(cfg, "freezeout_temperature_GeV",	&freezeout_temperature_GeV);
+	getDoubleProperty(cfg, "flux_limiter",				&flux_limiter);
 
 #ifdef PRINT_PARAMETERS
 	printf("Hydro parameters:");
 	printf("\n-----------------\n");
 	printf("tau_initial             = %.3f\n", tau_initial);
 	printf("shear_viscosity         = %.3f\n", shear_viscosity);
-	printf("freezeoutTemperatureGeV = %.3f\n", freezeoutTemperatureGeV);
+	printf("freezeout_temperature_GeV = %.3f\n", freezeout_temperature_GeV);
+	printf("flux_limiter            = %.3f\n", flux_limiter);
 	printf("\n");
 #endif
 
 	// set hydro struct
 	struct HydroParameters * hydro = (struct HydroParameters *) params;
-	hydro->tau_initial             = tau_initial;
-	hydro->shear_viscosity         = shear_viscosity;
-	hydro->freezeoutTemperatureGeV = freezeoutTemperatureGeV;
+	hydro->tau_initial				= tau_initial;
+	hydro->shear_viscosity			= shear_viscosity;
+	hydro->freezeout_temperature_GeV	= freezeout_temperature_GeV;
+	hydro->flux_limiter				= flux_limiter;
+}
+
+
+hydro_parameters load_hydro_parameters(config_t *cfg)
+{
+	char filename[255] = "parameters/hydro.properties";
+	if(!config_read_file(cfg, filename))
+	{
+		fprintf(stderr, "No configuration file  %s found for hydrodynamic parameters - %s.\n", filename, config_error_text(cfg));
+		exit(-1);
+	}
+
+	hydro_parameters hydro;
+
+	getDoubleProperty(cfg, "tau_initial", 				&hydro.tau_initial);
+	getDoubleProperty(cfg, "shear_viscosity", 			&hydro.shear_viscosity);
+	getDoubleProperty(cfg, "freezeout_temperature_GeV",	&hydro.freezeout_temperature_GeV);
+	getDoubleProperty(cfg, "flux_limiter",				&hydro.flux_limiter);
+
+#ifdef PRINT_PARAMETERS
+	printf("Hydro parameters:");
+	printf("\n-----------------\n");
+	printf("tau_initial               = %.3f\n", hydro.tau_initial);
+	printf("shear_viscosity           = %.3f\n", hydro.shear_viscosity);
+	printf("freezeout_temperature_GeV = %.3f\n", hydro.freezeout_temperature_GeV);
+	printf("flux_limiter              = %.3f\n", hydro.flux_limiter);
+	printf("\n");
+#endif
+
+	return hydro;
 }
 
 

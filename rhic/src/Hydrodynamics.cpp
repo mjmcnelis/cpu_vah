@@ -28,24 +28,25 @@ int central_index(int nx, int ny, int nz, int ncx, int ncy, int ncz)
 }
 
 
-void run_hydro(void * latticeParams, void * initCondParams, void * hydroParams)
+void run_hydro(void * lattice, void * initCondParams, void * hydroParams, hydro_parameters hydro)
 {
 	// parameters
-	struct LatticeParameters * lattice = (struct LatticeParameters *) latticeParams;
+	struct LatticeParameters * lattice_parameters = (struct LatticeParameters *) lattice;
 	struct InitialConditionParameters * initCond = (struct InitialConditionParameters *) initCondParams;
-	struct HydroParameters * hydro = (struct HydroParameters *) hydroParams;
+	struct HydroParameters * hydro_old = (struct HydroParameters *) hydroParams;
 
 
-	// initial time (if use F.S. need t_fs instead)
-	double t0 = hydro->tau_initial;
-	precision etabar_const = hydro->shear_viscosity;
+	// hydro parameters
+	precision t0 = hydro.tau_initial;
+	precision etabar_const = hydro.shear_viscosity;
+	precision T_switch = hydro.freezeout_temperature_GeV;
 
 
 	// physical grid
-	int nx = lattice->lattice_points_x;
-	int ny = lattice->lattice_points_y;
-	int nz = lattice->lattice_points_eta;
-	int nt = lattice->max_number_of_time_steps;
+	int nx = lattice_parameters->lattice_points_x;
+	int ny = lattice_parameters->lattice_points_y;
+	int nz = lattice_parameters->lattice_points_eta;
+	int nt = lattice_parameters->max_number_of_time_steps;
 
 
 	// computational grid = physical + ghost + white
@@ -55,38 +56,28 @@ void run_hydro(void * latticeParams, void * initCondParams, void * hydroParams)
 
 
 	// lattice spacing
-	precision dx = lattice->lattice_spacing_x;
-	precision dy = lattice->lattice_spacing_y;
-	precision dz = lattice->lattice_spacing_eta;
-
+	precision dx = lattice_parameters->lattice_spacing_x;
+	precision dy = lattice_parameters->lattice_spacing_y;
+	precision dz = lattice_parameters->lattice_spacing_eta;
 
 	// option to turn on adaptive time step
-	int adaptive_time_step = lattice->adaptive_time_step;
-	precision dt_min = lattice->min_time_step;
-
-	precision dt;			// current time step
-	precision dt_prev;		// need to track previous time step (for computing time derivatives)
-
-	// initialize time step
+	int adaptive_time_step = lattice_parameters->adaptive_time_step;
+	precision dt_min = lattice_parameters->min_time_step;
+	
+	precision dt = lattice_parameters->fixed_time_step;	// default time step (fixed)
 	if(adaptive_time_step)
-	{
+	{	
 		dt = dt_min;
-		dt_prev = dt;		// todo: dt_prev should be initialized to time resolution in free-streaming?
 	}
-	else
-	{
-		dt = lattice->fixed_time_step;
-		dt_prev = dt;
-	}
+	precision dt_prev = dt;		// previous time step for computing time derivatives
 
 
 	// freezeout temperature
-	double T_switch = hydro->freezeoutTemperatureGeV;
-	double e_switch = equilibriumEnergyDensity(T_switch / hbarc);
+	precision e_switch = equilibriumEnergyDensity(T_switch / hbarc);
 
 
-	print_parameters(nx, ny, nz, dt, dx, dy, dz, t0, T_switch, etabar_const, adaptive_time_step);
-
+	print_parameters(lattice, t0, T_switch, etabar_const);
+	
 
 	// allocate memory for computational grid points
 	allocate_memory(ncx * ncy * ncz);
@@ -94,7 +85,7 @@ void run_hydro(void * latticeParams, void * initCondParams, void * hydroParams)
 
 	// fluid dynamic initialization
 	precision t = t0;
-	set_initial_conditions(t, latticeParams, initCondParams, hydroParams);	// generate initial (Tmunu, e, p, u, up, pl, pimunu, Wmu)
+	set_initial_conditions(t, lattice, initCondParams, hydroParams);	// generate initial (Tmunu, e, p, u, up, pl, pimunu, Wmu)
 	set_ghost_cells(q, e, u, nx, ny, nz);									// initialize ghost cells (all current variables)
 
 
