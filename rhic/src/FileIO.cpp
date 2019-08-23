@@ -530,15 +530,13 @@ void output_optical_glauber(const hydro_variables * const __restrict__ q, const 
 }
 
 
-void output_dynamical_variables(double t, int nx, int ny, int nz, double dt, double dx, double dy, double dz, void * initCondParams, double etabar)
+void output_dynamical_variables(double t, int nx, int ny, int nz, double dt, double dx, double dy, double dz, initial_condition_parameters initial, double etabar)
 {
-	struct InitialConditionParameters * initCond = (struct InitialConditionParameters *) initCondParams;
-
-	int initial_type = initCond->initialConditionType;	
+	int initial_type = initial.initialConditionType;
 
 	if(initial_type == 1)
 	{
-		precision T0 = initCond->initialCentralTemperatureGeV;
+		precision T0 = initial.initialCentralTemperatureGeV;
 		precision e0 = equilibriumEnergyDensity(T0 / hbarc);
 
 		output_aniso_bjorken(q, e, e0, t, nx, ny, nz);

@@ -28,14 +28,8 @@ int central_index(int nx, int ny, int nz, int ncx, int ncy, int ncz)
 }
 
 
-void run_hydro(void * lattice, void * initCondParams, void * hydroParams, hydro_parameters hydro)
+void run_hydro(lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro)
 {
-	// parameters
-	struct LatticeParameters * lattice_parameters = (struct LatticeParameters *) lattice;
-	struct InitialConditionParameters * initCond = (struct InitialConditionParameters *) initCondParams;
-	struct HydroParameters * hydro_old = (struct HydroParameters *) hydroParams;
-
-
 	// hydro parameters
 	precision t0 = hydro.tau_initial;
 	precision etabar_const = hydro.shear_viscosity;
@@ -43,10 +37,10 @@ void run_hydro(void * lattice, void * initCondParams, void * hydroParams, hydro_
 
 
 	// physical grid
-	int nx = lattice_parameters->lattice_points_x;
-	int ny = lattice_parameters->lattice_points_y;
-	int nz = lattice_parameters->lattice_points_eta;
-	int nt = lattice_parameters->max_number_of_time_steps;
+	int nx = lattice.lattice_points_x;
+	int ny = lattice.lattice_points_y;
+	int nz = lattice.lattice_points_eta;
+	int nt = lattice.max_number_of_time_steps;
 
 
 	// computational grid = physical + ghost + white
@@ -56,28 +50,28 @@ void run_hydro(void * lattice, void * initCondParams, void * hydroParams, hydro_
 
 
 	// lattice spacing
-	precision dx = lattice_parameters->lattice_spacing_x;
-	precision dy = lattice_parameters->lattice_spacing_y;
-	precision dz = lattice_parameters->lattice_spacing_eta;
+	precision dx = lattice.lattice_spacing_x;
+	precision dy = lattice.lattice_spacing_y;
+	precision dz = lattice.lattice_spacing_eta;
 
 	// option to turn on adaptive time step
-	int adaptive_time_step = lattice_parameters->adaptive_time_step;
-	precision dt_min = lattice_parameters->min_time_step;
-	
-	precision dt = lattice_parameters->fixed_time_step;	// default time step (fixed)
+	int adaptive_time_step = lattice.adaptive_time_step;
+	precision dt_min = lattice.min_time_step;
+
+	precision dt = lattice.fixed_time_step;	// default time step (fixed)
 	if(adaptive_time_step)
-	{	
+	{
 		dt = dt_min;
 	}
 	precision dt_prev = dt;		// previous time step for computing time derivatives
 
 
-	// freezeout temperature
+	// freezeout energy density
 	precision e_switch = equilibriumEnergyDensity(T_switch / hbarc);
 
 
 	print_parameters(lattice, t0, T_switch, etabar_const);
-	
+
 
 	// allocate memory for computational grid points
 	allocate_memory(ncx * ncy * ncz);
@@ -85,13 +79,12 @@ void run_hydro(void * lattice, void * initCondParams, void * hydroParams, hydro_
 
 	// fluid dynamic initialization
 	precision t = t0;
-	set_initial_conditions(t, lattice, initCondParams, hydroParams);	// generate initial (Tmunu, e, p, u, up, pl, pimunu, Wmu)
-	set_ghost_cells(q, e, u, nx, ny, nz);									// initialize ghost cells (all current variables)
-
+	set_initial_conditions(t, lattice, initial, hydro);		// initial conditions for (q, u)
+	set_ghost_cells(q, e, u, nx, ny, nz);					// initialize ghost cells in q
 
 	printf("\n");
 
-	int s = central_index(nx, ny, nz, ncx, ncy, ncz);	// central index
+	int s = central_index(nx, ny, nz, ncx, ncy, ncz);
 
 	double steps = 0;
 	clock_t start = clock();
@@ -105,7 +98,7 @@ void run_hydro(void * lattice, void * initCondParams, void * hydroParams, hydro_
 
 			print_hydro_center(t, e_s, s);
 
-			//output_dynamical_variables(t, nx, ny, nz, dt, dx, dy, dz, initCondParams, etabar_const);
+			//output_dynamical_variables(t, nx, ny, nz, dt, dx, dy, dz, initial, etabar_const);
 
 			if(e[s] < e_switch) 	// replace with freezeout finder not finding any cells
 			{
@@ -116,8 +109,6 @@ void run_hydro(void * lattice, void * initCondParams, void * hydroParams, hydro_
 
 		evolve_hydro_one_time_step(t, dt, dt_prev, nx, ny, nz, dx, dy, dz, etabar_const);
 
-		steps += 1.;
-
 		t += dt;
 
 		dt_prev = dt;
@@ -126,13 +117,14 @@ void run_hydro(void * lattice, void * initCondParams, void * hydroParams, hydro_
 		{
 			// compute the smallest time scale in the fluid
 			hydro_time_scales dt_hydro = compute_hydro_time_scales(t, q, e, u, up, nx, ny, nz, dt, dt_prev, dx, dy, dz, etabar_const, dt_min);
-
 			dt = set_time_step(dt_hydro, dt_min);
 		}
+
+		steps += 1.0;
 	}
 
 	double duration     = (clock() - start) / (double)CLOCKS_PER_SEC;
-	double spatial_grid = (double)(nx * ny * nz);
+	double spatial_grid = nx * ny * nz;
 
 	cout << "Total time             = " << setprecision(4) << duration << " s\n";
 	cout << "Average time/step      = " << setprecision(3) << 1000. * duration / steps << " ms\n";

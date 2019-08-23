@@ -100,13 +100,11 @@ int numberWoundedNucleons(int A, double b, double * const __restrict__ x, double
 	return n;
 }
 
-void MC_Glauber_energy_density_transverse_profile(double * const __restrict__ energyDensityTransverse, int nx, int ny, double dx, double dy, void * initCondParams)
+void MC_Glauber_energy_density_transverse_profile(double * const __restrict__ energyDensityTransverse, int nx, int ny, double dx, double dy, initial_condition_parameters initial)
 {
-	struct InitialConditionParameters * initCond = (struct InitialConditionParameters *) initCondParams;
-
-	int A = initCond->numberOfNucleonsPerNuclei;
-	double b = initCond->impactParameter;
-	double snn = initCond->scatteringCrossSectionNN;
+	int A = initial.numberOfNucleonsPerNuclei;
+	double b = initial.impactParameter;
+	double snn = initial.scatteringCrossSectionNN;
 
 	double xp[2 * A], yp[2 * A];
    	srand(1328398221);

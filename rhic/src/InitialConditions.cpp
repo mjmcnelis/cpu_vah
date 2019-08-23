@@ -151,11 +151,9 @@ void set_equilibrium_initial_condition(int nx, int ny, int nz)
 
 
 // Constant initial energy density profile (Bjorken)
-void set_Bjorken_energy_density_and_flow_profile(int nx, int ny, int nz, void * initCondParams)
+void set_Bjorken_energy_density_and_flow_profile(int nx, int ny, int nz, initial_condition_parameters initial)
 {
-	struct InitialConditionParameters * initCond = (struct InitialConditionParameters *) initCondParams;
-
-	precision T0 = initCond->initialCentralTemperatureGeV;		// central temperature (GeV)
+	precision T0 = initial.initialCentralTemperatureGeV;		// central temperature (GeV)
 	precision e0 = equilibriumEnergyDensity(T0 / hbarc);		// energy density
 
 	for(int i = 2; i < nx + 2; i++)
@@ -182,12 +180,10 @@ void set_Bjorken_energy_density_and_flow_profile(int nx, int ny, int nz, void * 
 
 
 // Longitudinal energy density profile function eL(eta)
-void longitudinal_Energy_Density_Profile(double * const __restrict__ eL, int nz, double dz, void * initCondParams)
+void longitudinal_Energy_Density_Profile(double * const __restrict__ eL, int nz, double dz, initial_condition_parameters initial)
 {
-	struct InitialConditionParameters * initCond = (struct InitialConditionParameters *) initCondParams;
-
-	double etaFlat = initCond->rapidityMean;
-	double etaVariance = initCond->rapidityVariance;
+	double etaFlat = initial.rapidityMean;
+	double etaVariance = initial.rapidityVariance;
 
 	// profile along eta direction is a smooth plateu that exponentially decays when |eta| > etaFlat
 	for(int k = 0; k < nz; k++)
@@ -202,13 +198,11 @@ void longitudinal_Energy_Density_Profile(double * const __restrict__ eL, int nz,
 
 
 // Optical or MC glauber initial energy density profile
-void set_Glauber_energy_density_and_flow_profile(int nx, int ny, int nz, double dx, double dy, double dz, void * initCondParams)
+void set_Glauber_energy_density_and_flow_profile(int nx, int ny, int nz, double dx, double dy, double dz, initial_condition_parameters initial)
 {
-	struct InitialConditionParameters * initCond = (struct InitialConditionParameters *) initCondParams;
+	int initialConditionType = initial.initialConditionType;
 
-	int initialConditionType = initCond->initialConditionType;
-
-	double T0 = initCond->initialCentralTemperatureGeV;		// central temperature (GeV)
+	double T0 = initial.initialCentralTemperatureGeV;		// central temperature (GeV)
 	double e0 = equilibriumEnergyDensity(T0 / hbarc);		// energy density scale factor
 
 	double eT[nx * ny];		// normalized transverse profile
@@ -217,13 +211,13 @@ void set_Glauber_energy_density_and_flow_profile(int nx, int ny, int nz, double 
 	// compute normalized transverse and longitudinal profiles
 	if(initialConditionType == 4)
 	{
-		Optical_Glauber_energy_density_transverse_profile(eT, nx, ny, dx, dy, initCondParams);
+		Optical_Glauber_energy_density_transverse_profile(eT, nx, ny, dx, dy, initial);
 	}
 	else if(initialConditionType == 5)
 	{
-		MC_Glauber_energy_density_transverse_profile(eT, nx, ny, dx, dy, initCondParams);
+		MC_Glauber_energy_density_transverse_profile(eT, nx, ny, dx, dy, initial);
 	}
-	longitudinal_Energy_Density_Profile(eL, nz, dz, initCondParams);
+	longitudinal_Energy_Density_Profile(eL, nz, dz, initial);
 
 	for(int k = 2; k < nz + 2; k++)
 	{
@@ -233,7 +227,7 @@ void set_Glauber_energy_density_and_flow_profile(int nx, int ny, int nz, double 
 			{
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
-				precision e_s = e0 * eT[i - 2 + (j - 2) * nx] * eL[k - 2];	
+				precision e_s = e0 * eT[i - 2 + (j - 2) * nx] * eL[k - 2];
 
 				e[s] = energy_density_cutoff(e_s);
 
@@ -253,13 +247,10 @@ void set_Glauber_energy_density_and_flow_profile(int nx, int ny, int nz, double 
 
 
 // initial conditions for the ideal Gubser flow test
-void set_ideal_gubser_energy_density_and_flow_profile(int nx, int ny, int nz, double dt, double dx, double dy, double dz, void * initCondParams, void * hydroParams)
+void set_ideal_gubser_energy_density_and_flow_profile(int nx, int ny, int nz, double dt, double dx, double dy, double dz, initial_condition_parameters initial, hydro_parameters hydro)
 {
-	struct InitialConditionParameters * initCond = (struct InitialConditionParameters *) initCondParams;
-	struct HydroParameters * hydro = (struct HydroParameters *) hydroParams;
-
-	double t = hydro->tau_initial;								// initial longitudinal proper time
-	double T0 = initCond->initialCentralTemperatureGeV / hbarc;	// central temperature (fm)
+	double t = hydro.tau_initial;								// initial longitudinal proper time
+	double T0 = initial.initialCentralTemperatureGeV / hbarc;	// central temperature (fm)
 
 	double q  = 1.;												// inverse length size (hard coded)
 	double q2 = q * q;
@@ -328,13 +319,11 @@ void set_ideal_gubser_energy_density_and_flow_profile(int nx, int ny, int nz, do
 
 // initial conditions for the anisotropic hydro Gubser flow test
 // initial Gubser profile different than the "usual" gubser test
-void set_aniso_gubser_energy_density_and_flow_profile(int nx, int ny, int nz, double dt, double dx, double dy, double dz, void * hydroParams)
+void set_aniso_gubser_energy_density_and_flow_profile(int nx, int ny, int nz, double dt, double dx, double dy, double dz, hydro_parameters hydro)
 {
 #ifdef ANISO_HYDRO
-	struct HydroParameters * hydro = (struct HydroParameters *) hydroParams;
-
-	double t    = hydro->tau_initial;		// initial longitudinal proper time
-	double etas = hydro->shear_viscosity;	// shear viscosity
+	double t    = hydro.tau_initial;		// initial longitudinal proper time
+	double etas = hydro.shear_viscosity;	// shear viscosity
 
 	double q0 = 1.0;						// inverse length size (hard coded)
 	double plpt_ratio = 0.01;				// initial plpt ratio at transverse corner of grid (hard coded)
@@ -497,35 +486,24 @@ void set_aniso_gubser_energy_density_and_flow_profile(int nx, int ny, int nz, do
 //	4 - Optical Glauber
 //	5 - MC Glauber
 //////////////////////////////////////
-void set_initial_conditions(double t, void * latticeParams, void * initCondParams, void * hydroParams)
+void set_initial_conditions(double t, lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro)
 {
-	struct LatticeParameters * lattice = (struct LatticeParameters *) latticeParams;
-	struct InitialConditionParameters * initCond = (struct InitialConditionParameters *) initCondParams;
+	int nx = lattice.lattice_points_x;
+	int ny = lattice.lattice_points_x;
+	int nz = lattice.lattice_points_eta;
 
-	int nx = lattice->lattice_points_x;
-	int ny = lattice->lattice_points_x;
-	int nz = lattice->lattice_points_eta;
+	double dx = lattice.lattice_spacing_x;
+	double dy = lattice.lattice_spacing_y;
+	double dz = lattice.lattice_spacing_eta;
 
-	double dx = lattice->lattice_spacing_x;
-	double dy = lattice->lattice_spacing_y;
-	double dz = lattice->lattice_spacing_eta;
-
-	int adaptive_time_step = lattice->adaptive_time_step;	
-
-	precision dt;			
-	if(adaptive_time_step)
+	precision dt = lattice.fixed_time_step;
+	if(lattice.adaptive_time_step)
 	{
-		dt = lattice->min_time_step;	
-	}	
-	else
-	{
-		dt = lattice->fixed_time_step;
-	}	
+		dt = lattice.min_time_step;
+	}
 
-	int initialConditionType = initCond->initialConditionType;
 	printf("\nInitial conditions = ");
-
-	switch(initialConditionType)
+	switch(initial.initialConditionType)
 	{
 		case 1:
 		{
@@ -537,7 +515,7 @@ void set_initial_conditions(double t, void * latticeParams, void * initCondParam
 		#endif
 			printf("(fluid velocity and viscous pressures initialized to zero)\n");
 
-			set_Bjorken_energy_density_and_flow_profile(nx, ny, nz, initCondParams);
+			set_Bjorken_energy_density_and_flow_profile(nx, ny, nz, initial);
 			set_equilibrium_initial_condition(nx, ny, nz);
 			set_initial_hydro_variables(t, nx, ny, nz);
 
@@ -551,7 +529,7 @@ void set_initial_conditions(double t, void * latticeParams, void * initCondParam
 			exit(-1);
 		#endif
 
-			set_ideal_gubser_energy_density_and_flow_profile(nx, ny, nz, dt, dx, dy, dz, initCondParams, hydroParams);
+			set_ideal_gubser_energy_density_and_flow_profile(nx, ny, nz, dt, dx, dy, dz, initial, hydro);
 			set_equilibrium_initial_condition(nx, ny, nz);
 			set_initial_hydro_variables(t, nx, ny, nz);
 
@@ -569,7 +547,7 @@ void set_initial_conditions(double t, void * latticeParams, void * initCondParam
 			exit(-1);
 		#endif
 
-			set_aniso_gubser_energy_density_and_flow_profile(nx, ny, nz, dt, dx, dy, dz, hydroParams);
+			set_aniso_gubser_energy_density_and_flow_profile(nx, ny, nz, dt, dx, dy, dz, hydro);
 			set_initial_hydro_variables(t, nx, ny, nz);
 
 			break;
@@ -578,7 +556,7 @@ void set_initial_conditions(double t, void * latticeParams, void * initCondParam
 		{
 			printf("Optical Glauber (fluid velocity and viscous pressures initialized to zero)\n");
 
-			set_Glauber_energy_density_and_flow_profile(nx, ny, nz, dx, dy, dz, initCondParams);
+			set_Glauber_energy_density_and_flow_profile(nx, ny, nz, dx, dy, dz, initial);
 			set_equilibrium_initial_condition(nx, ny, nz);
 			set_initial_hydro_variables(t, nx, ny, nz);
 
@@ -588,7 +566,7 @@ void set_initial_conditions(double t, void * latticeParams, void * initCondParam
 		case 5:
 		{
 			printf("MC Glauber");
-			set_Glauber_energy_density_and_flow_profile(nx, ny, nz, dx, dy, dz, initCondParams);
+			set_Glauber_energy_density_and_flow_profile(nx, ny, nz, dx, dy, dz, initial);
 			printf("(fluid velocity and viscous pressures initialized to zero)\n");
 			set_equilibrium_initial_condition(nx, ny, nz);
 			set_initial_hydro_variables(t, nx, ny, nz);

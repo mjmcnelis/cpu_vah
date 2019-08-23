@@ -7,6 +7,20 @@
 #include "../include/Parameters.h"
 
 
+void print_hydro_mode()
+{
+#ifdef ANISO_HYDRO
+	printf("\n:::::::::::::::::::::::::::::::::::::::::::\n");
+	printf(":::  Running viscous anisotropic hydro  :::\n");
+	printf(":::::::::::::::::::::::::::::::::::::::::::\n\n");
+#else
+	printf("\n:::::::::::::::::::::::::::::::::::::::::::\n");
+	printf(":::   Running 2nd order viscous hydro   :::\n");
+	printf(":::::::::::::::::::::::::::::::::::::::::::\n\n");
+#endif
+}
+
+
 void print_hydro_center(double t, double e, int s)
 {
 	precision p = equilibriumPressure(e / hbarc) * hbarc;
@@ -25,28 +39,24 @@ void print_hydro_center(double t, double e, int s)
 }
 
 
-void print_parameters(void * lattice, double t0, double T_switch, double etabar)
+void print_parameters(lattice_parameters lattice, double t0, double T_switch, double etabar)
 {
-	struct LatticeParameters * lattice_parameters = (struct LatticeParameters *) lattice;
+	int nx = lattice.lattice_points_x;
+	int ny = lattice.lattice_points_y;
+	int nz = lattice.lattice_points_eta;
 
-	int nx = lattice_parameters->lattice_points_x;
-	int ny = lattice_parameters->lattice_points_y;
-	int nz = lattice_parameters->lattice_points_eta;
+	precision dx = lattice.lattice_spacing_x;
+	precision dy = lattice.lattice_spacing_y;
+	precision dz = lattice.lattice_spacing_eta;
 
-	precision dx = lattice_parameters->lattice_spacing_x;
-	precision dy = lattice_parameters->lattice_spacing_y;
-	precision dz = lattice_parameters->lattice_spacing_eta;
-
-	int adaptive_time_step = lattice_parameters->adaptive_time_step;
-
-	precision dt = lattice_parameters->fixed_time_step;
-	if(adaptive_time_step) 
+	precision dt = lattice.fixed_time_step;
+	if(lattice.adaptive_time_step)
 	{
-		dt = lattice_parameters->min_time_step;
+		dt = lattice.min_time_step;
 	}
 
 // lattice parameters
-	if(adaptive_time_step)
+	if(lattice.adaptive_time_step)
 	{
 		printf("Time resolution     = %.3g (adaptive) \n", dt);
 	}

@@ -79,16 +79,14 @@ double woundedNucleons(double TA, double TB, double A, double B, double snn)
 
 
 // Mixture of wounded nucleon and binary collision energy density profile
-void Optical_Glauber_energy_density_transverse_profile(double * const __restrict__ energyDensityTransverse, int nx, int ny, double dx, double dy, void * initCondParams)
+void Optical_Glauber_energy_density_transverse_profile(double * const __restrict__ energyDensityTransverse, int nx, int ny, double dx, double dy, initial_condition_parameters initial)
 {
-	struct InitialConditionParameters * initCond = (struct InitialConditionParameters *) initCondParams;
-
 	// nuclear collision parameters
-	double A = initCond->numberOfNucleonsPerNuclei;		// assume A = B
+	double A = initial.numberOfNucleonsPerNuclei;		// assume A = B
 	double B = A;
-	double b = initCond->impactParameter;
-	double snn = initCond->scatteringCrossSectionNN;
-	double alpha = initCond->fractionOfBinaryCollisions;
+	double b = initial.impactParameter;
+	double snn = initial.scatteringCrossSectionNN;
+	double alpha = initial.fractionOfBinaryCollisions;
 
 
 	// normalization factors

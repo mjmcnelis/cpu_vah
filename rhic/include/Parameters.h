@@ -11,12 +11,11 @@ void getIntegerProperty(config_t * cfg, const char * propName, int * propValue);
 void getDoubleProperty(config_t * cfg, const char * propName, double * propValue);
 
 
-struct LatticeParameters
+typedef struct
 {
 	int lattice_points_x;
 	int lattice_points_y;
 	int lattice_points_eta;
-
 	int max_number_of_time_steps;
 
 	double lattice_spacing_x;
@@ -25,17 +24,18 @@ struct LatticeParameters
 	double fixed_time_step;
 
 	int adaptive_time_step;
+
 	double min_time_step;
-};
+
+} lattice_parameters;
 
 
-struct InitialConditionParameters
+typedef struct
 {
 	int initialConditionType;
+	int numberOfNucleonsPerNuclei;			// can only do A = B collision
 
-	int numberOfNucleonsPerNuclei;			// this is an A = B collision
-
-	double initialCentralTemperatureGeV;	// initial central temperature for a central A = B collision (b = 0)
+	double initialCentralTemperatureGeV;	// initial central temperature for a central collision
 	double scatteringCrossSectionNN;
 	double impactParameter;
 	double fractionOfBinaryCollisions;
@@ -43,19 +43,11 @@ struct InitialConditionParameters
 	// longitudinal energy density profile parameters
 	double rapidityVariance; 	// \sigma^{2}_{\eta}
 	double rapidityMean; 		// flat region around \ets_s = 0
-};
+
+} initial_condition_parameters;
 
 
-struct HydroParameters
-{
-	double tau_initial;
-	double shear_viscosity;
-	double freezeout_temperature_GeV;
-	double flux_limiter;
-};
-
-
-typedef struct 
+typedef struct
 {
 	double tau_initial;
 	double shear_viscosity;
@@ -65,13 +57,9 @@ typedef struct
 } hydro_parameters;
 
 
-void load_lattice_parameters(config_t *cfg, void * params);
-
-void loadInitialConditionParameters(config_t *cfg, void * params);
-
-void loadHydroParameters(config_t *cfg, void * params);
-
-hydro_parameters load_hydro_parameters(config_t *cfg);
+lattice_parameters load_lattice_parameters();
+initial_condition_parameters load_initial_condition_parameters();
+hydro_parameters load_hydro_parameters();
 
 #endif
 
