@@ -15,13 +15,15 @@ void ghost_cell_BC(hydro_variables * const __restrict__ q, precision * const __r
 {
 	e[s] = e[sBC];	// set the ghost cell boundary conditions
 	u[s] = u[sBC];
-	q[s] = q[sBC];
+	q[s] = q[sBC];	// s = ghost cell index	 |	sBC = physical cell at boundary index
 }
 
 
-void set_ghost_cells(hydro_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u, int nx, int ny, int nz)
+void set_ghost_cells(hydro_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u, lattice_parameters lattice)
 {
-	// s = ghost cell index	 |	sBC = physical cell at boundary index
+	int nx = lattice.lattice_points_x;
+	int ny = lattice.lattice_points_y;
+	int nz = lattice.lattice_points_eta;
 
 	// loop over the physical (y,z) lattice points
 	for(int j = 2; j < ny + 2; j++)

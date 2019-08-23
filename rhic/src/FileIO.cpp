@@ -9,9 +9,7 @@
 #include "../include/TransportCoefficients.h"
 #include "../include/Projections.h"
 #include "../include/NeighborCells.h"
-//using namespace std;
-
-const double hbarc = 0.197326938;
+#include "../include/Hydrodynamics.h"
 
 
 inline int linear_column_index(int i, int j, int k, int nx, int ny)
@@ -19,16 +17,24 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 	return i  +  nx * (j  +  ny * k);
 }
 
-int center_index(int nx, int ny, int nz, int ncx, int ncy, int ncz)
+
+int central_index(lattice_parameters lattice)		
 {
+	int nx = lattice.lattice_points_x;
+	int ny = lattice.lattice_points_y;
+	int nz = lattice.lattice_points_eta;
+
+	int ncx = nx + 4;
+	int ncy = ny + 4;
+	int ncz = nz + 4;
+
 	// (not sure what this means)
-	int ictr = (nx % 2 == 0) ? ncx/2 : (ncx-1)/2;
-	int jctr = (ny % 2 == 0) ? ncy/2 : (ncy-1)/2;
-	int kctr = (nz % 2 == 0) ? ncz/2 : (ncz-1)/2;
+	int i = (nx % 2 == 0) ? ncx/2 : (ncx-1)/2;
+	int j = (ny % 2 == 0) ? ncy/2 : (ncy-1)/2;
+	int k = (nz % 2 == 0) ? ncz/2 : (ncz-1)/2;
 
-	return ictr  +  ncx * (jctr  +  ncy * kctr);
+	return linear_column_index(i, j, k, ncx, ncy);
 }
-
 
 
 double compute_conformal_aL(double pl, double e)
@@ -66,9 +72,17 @@ inline precision central_derivative(const precision * const __restrict__ f, int 
 }
 
 
-void output_residual_gradients(const hydro_variables * const __restrict__ q, const fluid_velocity * const __restrict__ u, const fluid_velocity * const __restrict__ up, const precision * const e, double t, int nx, int ny, int nz, double dt, double dx, double dy, double dn, precision etabar_const)
+void output_residual_gradients(const hydro_variables * const __restrict__ q, const fluid_velocity * const __restrict__ u, const fluid_velocity * const __restrict__ up, const precision * const e, double t, double dt, lattice_parameters lattice, hydro_parameters hydro)
 {
 #ifdef ANISO_HYDRO
+	int nx = lattice.lattice_points_x;
+	int ny = lattice.lattice_points_y;
+	int nz = lattice.lattice_points_eta;
+
+	precision dx = lattice.lattice_spacing_x;
+	precision dy = lattice.lattice_spacing_y;
+	precision dn = lattice.lattice_spacing_eta;
+
 	FILE *Knpi;
 	char fname1[255];
 	sprintf(fname1, "output/Knpi_%.3f.dat", t);		// tau_pi . sqrt(\sigma_T . \sigma_T)
@@ -117,7 +131,7 @@ void output_residual_gradients(const hydro_variables * const __restrict__ q, con
 				precision e_s = e[s];
 				precision T = effectiveTemperature(e_s);
 
-				precision etabar = eta_over_s(T, etabar_const);
+				precision etabar = eta_over_s(T, hydro);
 				precision tau_pi = (5. * etabar) / T;
 
 				precision ux = u[s].ux;
@@ -183,10 +197,18 @@ void output_residual_gradients(const hydro_variables * const __restrict__ q, con
 #endif
 }
 
-void output_residual_shear_validity(const hydro_variables * const __restrict__ q, const fluid_velocity * const __restrict__ u, const precision * const e, double t, int nx, int ny, int nz, double dt, double dx, double dy, double dn)
+void output_residual_shear_validity(const hydro_variables * const __restrict__ q, const fluid_velocity * const __restrict__ u, const precision * const e, double t, double dt, lattice_parameters lattice)
 {
 #ifdef ANISO_HYDRO
 #ifdef PIMUNU
+	int nx = lattice.lattice_points_x;
+	int ny = lattice.lattice_points_y;
+	int nz = lattice.lattice_points_eta;
+
+	precision dx = lattice.lattice_spacing_x;
+	precision dy = lattice.lattice_spacing_y;
+	precision dz = lattice.lattice_spacing_eta;
+
 	FILE *RpiInverse;
 	FILE *piu_ortho0, *piu_ortho1, *piu_ortho2, *piu_ortho3;
 	FILE *piz_ortho0, *piz_ortho1, *piz_ortho2, *piz_ortho3;
@@ -305,9 +327,13 @@ void output_residual_shear_validity(const hydro_variables * const __restrict__ q
 }
 
 
-void output_aniso_bjorken(const hydro_variables * const __restrict__ q, const precision * const e, double e0, double t, int nx, int ny, int nz)
+void output_aniso_bjorken(const hydro_variables * const __restrict__ q, const precision * const e, double e0, double t, lattice_parameters lattice)
 {
 #ifdef ANISO_HYDRO
+	int nx = lattice.lattice_points_x;
+	int ny = lattice.lattice_points_y;
+	int nz = lattice.lattice_points_eta;
+
 	FILE *energy, *plptratio, *temperature, *aLplot, *Lambdaplot;
 
 	energy      = fopen("output/eratio.dat", "a");
@@ -316,7 +342,7 @@ void output_aniso_bjorken(const hydro_variables * const __restrict__ q, const pr
 	aLplot      = fopen("output/aL.dat", "a");
 	Lambdaplot	= fopen("output/Lambda.dat", "a");
 
-	int s = center_index(nx, ny, nz, nx + 4, ny + 4, nz + 4);
+	int s = central_index(lattice);
 
 	precision e_s = e[s];
 	precision pl = q[s].pl;
@@ -366,8 +392,16 @@ void output_aniso_bjorken(const hydro_variables * const __restrict__ q, const pr
 }
 
 
-void output_gubser(const hydro_variables * const __restrict__ q, const fluid_velocity  * const __restrict__ u, const precision * const e, double t, int nx, int ny, int nz, double dx, double dy, double dz)
+void output_gubser(const hydro_variables * const __restrict__ q, const fluid_velocity  * const __restrict__ u, const precision * const e, double t, lattice_parameters lattice)
 {
+	int nx = lattice.lattice_points_x;
+	int ny = lattice.lattice_points_y;
+	int nz = lattice.lattice_points_eta;
+
+	precision dx = lattice.lattice_spacing_x;
+	precision dy = lattice.lattice_spacing_y;
+	precision dz = lattice.lattice_spacing_eta;
+
 	FILE *energy, *plptratio;
 	FILE *uxplot, *urplot;
 	char fname1[255], fname2[255];
@@ -440,8 +474,16 @@ void output_gubser(const hydro_variables * const __restrict__ q, const fluid_vel
 }
 
 
-void output_optical_glauber(const hydro_variables * const __restrict__ q, const fluid_velocity  * const __restrict__ u, const precision * const e, double t, int nx, int ny, int nz, double dx, double dy, double dz)
+void output_optical_glauber(const hydro_variables * const __restrict__ q, const fluid_velocity  * const __restrict__ u, const precision * const e, double t, lattice_parameters lattice)
 {
+	int nx = lattice.lattice_points_x;
+	int ny = lattice.lattice_points_y;
+	int nz = lattice.lattice_points_eta;
+
+	precision dx = lattice.lattice_spacing_x;
+	precision dy = lattice.lattice_spacing_y;
+	precision dz = lattice.lattice_spacing_eta;
+
 	FILE *energy, *plptratio;
 	FILE *uxplot, *uyplot, *urplot;
 	char fname1[255], fname2[255];
@@ -530,7 +572,7 @@ void output_optical_glauber(const hydro_variables * const __restrict__ q, const 
 }
 
 
-void output_dynamical_variables(double t, int nx, int ny, int nz, double dt, double dx, double dy, double dz, initial_condition_parameters initial, double etabar)
+void output_dynamical_variables(double t, double dt, lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro)
 {
 	int initial_type = initial.initialConditionType;
 
@@ -539,19 +581,19 @@ void output_dynamical_variables(double t, int nx, int ny, int nz, double dt, dou
 		precision T0 = initial.initialCentralTemperatureGeV;
 		precision e0 = equilibriumEnergyDensity(T0 / hbarc);
 
-		output_aniso_bjorken(q, e, e0, t, nx, ny, nz);
+		output_aniso_bjorken(q, e, e0, t, lattice);
 	}
 	else if(initial_type == 2 || initial_type == 3)
 	{
-		output_gubser(q, u, e, t, nx, ny, nz, dx, dy, dz);
-		output_residual_gradients(q, u, up, e, t, nx, ny, nz, dt, dx, dy, dz, etabar);
-		output_residual_shear_validity(q, u, e, t, nx, ny, nz, dt, dx, dy, dz);
+		output_gubser(q, u, e, t, lattice);
+		output_residual_gradients(q, u, up, e, t, dt, lattice, hydro);
+		output_residual_shear_validity(q, u, e, t, dt, lattice);
 	}
 	else if(initial_type == 4)
 	{
-		output_optical_glauber(q, u, e, t, nx, ny, nz, dx, dy, dz);
-		output_residual_gradients(q, u, up, e, t, nx, ny, nz, dt, dx, dy, dz, etabar);
-		output_residual_shear_validity(q, u, e, t, nx, ny, nz, dt, dx, dy, dz);
+		output_optical_glauber(q, u, e, t, lattice);
+		output_residual_gradients(q, u, up, e, t, dt, lattice, hydro);
+		output_residual_shear_validity(q, u, e, t, dt, lattice);
 	}
 }
 

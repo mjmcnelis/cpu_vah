@@ -4,15 +4,15 @@
 #include "../include/Parameters.h"
 using namespace std;
 
-void getIntegerProperty(config_t * cfg, const char * propName, int * propValue)
+void getIntegerProperty(config_t * cfg, const char * name, int * value)
 {
-	config_lookup_int(cfg, propName, propValue);
+	config_lookup_int(cfg, name, value);
 }
 
 
-void getDoubleProperty(config_t * cfg, const char * propName, double * propValue)
+void getDoubleProperty(config_t * cfg, const char * name, double * value)
 {
-	config_lookup_float(cfg, propName, propValue);
+	config_lookup_float(cfg, name, value);
 }
 
 
@@ -40,27 +40,32 @@ lattice_parameters load_lattice_parameters()
 	getDoubleProperty(&cfg,  "lattice_spacing_eta", 	&lattice.lattice_spacing_eta);
 	getDoubleProperty(&cfg,  "fixed_time_step", 		&lattice.fixed_time_step);
 
+	getIntegerProperty(&cfg, "output_period", 			&lattice.output_period);
 	getIntegerProperty(&cfg, "adaptive_time_step", 		&lattice.adaptive_time_step);
 
 	getDoubleProperty(&cfg,  "min_time_step", 			&lattice.min_time_step);
 
 	config_destroy(&cfg);
 
-#ifdef PRINT_PARAMETERS
 	printf("\nLattice parameters:");
 	printf("\n-------------------\n");
 	printf("lattice_points_x         = %d\n", 	lattice.lattice_points_x);
 	printf("lattice_points_y         = %d\n", 	lattice.lattice_points_y);
 	printf("lattice_points_eta       = %d\n", 	lattice.lattice_points_eta);
+
 	printf("max_number_of_time_steps = %d\n", 	lattice.max_number_of_time_steps);
+
 	printf("lattice_spacing_x        = %.3g\n", lattice.lattice_spacing_x);
 	printf("lattice_spacing_y        = %.3g\n", lattice.lattice_spacing_y);
 	printf("lattice_spacing_eta      = %.3g\n", lattice.lattice_spacing_eta);
+
 	printf("fixed_time_step          = %.3g\n", lattice.fixed_time_step);
+
+	printf("output_period            = %d\n", 	lattice.output_period);
 	printf("adaptive_time_step       = %d\n", 	lattice.adaptive_time_step);
-	printf("min_time_step            = %.3g\n", lattice.min_time_step);
+
+	printf("min_time_step            = %.2e\n", lattice.min_time_step);
 	printf("\n");
-#endif
 
 	return lattice;
 }
@@ -92,7 +97,6 @@ initial_condition_parameters load_initial_condition_parameters()
 
 	config_destroy(&cfg);
 
-#ifdef PRINT_PARAMETERS
 	printf("Initial condition parameters:");
 	printf("\n-----------------------------\n");
 	printf("initialConditionType         = %d\n", 	initial.initialConditionType);
@@ -104,7 +108,6 @@ initial_condition_parameters load_initial_condition_parameters()
 	printf("rapidityVariance             = %.3g\n", initial.rapidityVariance);
 	printf("rapidityMean                 = %.3g\n", initial.rapidityMean);
 	printf("\n");
-#endif
 
 	return initial;
 }
@@ -124,22 +127,26 @@ hydro_parameters load_hydro_parameters()
 
 	hydro_parameters hydro;
 
+	getIntegerProperty(&cfg,"test_hydro",				&hydro.test_hydro);
 	getDoubleProperty(&cfg, "tau_initial", 				&hydro.tau_initial);
-	getDoubleProperty(&cfg, "shear_viscosity", 			&hydro.shear_viscosity);
+	getIntegerProperty(&cfg,"temperature_etas", 		&hydro.temperature_etas);
+	getDoubleProperty(&cfg, "constant_etas", 			&hydro.constant_etas);
 	getDoubleProperty(&cfg, "freezeout_temperature_GeV",&hydro.freezeout_temperature_GeV);
 	getDoubleProperty(&cfg, "flux_limiter",				&hydro.flux_limiter);
+	getDoubleProperty(&cfg, "energy_min",				&hydro.energy_min);
 
 	config_destroy(&cfg);
 
-#ifdef PRINT_PARAMETERS
 	printf("Hydro parameters:");
 	printf("\n-----------------\n");
-	printf("tau_initial               = %.3f\n", hydro.tau_initial);
-	printf("shear_viscosity           = %.3f\n", hydro.shear_viscosity);
-	printf("freezeout_temperature_GeV = %.3f\n", hydro.freezeout_temperature_GeV);
-	printf("flux_limiter              = %.3f\n", hydro.flux_limiter);
+	printf("test_hydro                = %d\n",		hydro.test_hydro);
+	printf("tau_initial               = %.3g\n",	hydro.tau_initial);
+	printf("temperature_etas          = %d\n", 		hydro.temperature_etas);
+	printf("constant_etas             = %.3g\n", 	hydro.constant_etas);
+	printf("freezeout_temperature_GeV = %.3f\n", 	hydro.freezeout_temperature_GeV);
+	printf("flux_limiter              = %.3g\n", 	hydro.flux_limiter);
+	printf("energy_min                = %.2e\n", 	hydro.energy_min);
 	printf("\n");
-#endif
 
 	return hydro;
 }

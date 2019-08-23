@@ -4,6 +4,7 @@
 
 #include "EquationOfState.h"
 #include "Precision.h"
+#include "Parameters.h"
 
 // should have a macros.h (only for tunable macro parameters?)
 
@@ -12,7 +13,8 @@
 
 //#define PIMUNU 					// name shared but different shear stresses (maybe isolate them)
 
-#define VORTICITY				// include the vorticity source terms in the relaxation equations
+//#define VORTICITY				// include the vorticity source terms in the relaxation equations
+
 
 #ifdef ANISO_HYDRO
 	#ifdef CONFORMAL_EOS
@@ -129,9 +131,17 @@ void set_current_hydro_variables();
 // swap u <-> up
 void swap_fluid_velocity(fluid_velocity ** arr1, fluid_velocity ** arr2);
 
-void allocate_memory(int len);	// memory
+// memory
+void allocate_memory(lattice_parameters lattice);	
 void free_memory();
 
 #endif
+
+
+
+
+
+
+
 
 

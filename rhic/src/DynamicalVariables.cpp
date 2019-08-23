@@ -16,8 +16,23 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 	return i  +  nx * (j  +  ny * k);
 }
 
-void allocate_memory(int len)
+void allocate_memory(lattice_parameters lattice)
 {
+	// allocate memory for computational grid points
+
+	// physical grid points
+	int nx = lattice.lattice_points_x;
+	int ny = lattice.lattice_points_y;
+	int nz = lattice.lattice_points_eta;
+
+	// computational grid points = physical + ghost + white
+	int ncx = nx + 4;
+	int ncy = ny + 4;
+	int ncz = nz + 4;
+
+	// size of each array
+	int len = ncx * ncy * ncz;	
+
 	size_t bytes = sizeof(precision);
 
 	e = (precision *)calloc(len, bytes);

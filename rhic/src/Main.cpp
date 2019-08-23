@@ -20,17 +20,15 @@
 
 int main()
 {
-	// load parameters
 	lattice_parameters lattice = load_lattice_parameters();
 	initial_condition_parameters initial = load_initial_condition_parameters();
 	hydro_parameters hydro = load_hydro_parameters();
 
-	print_hydro_mode();
+	print_hydro_mode(hydro);
 
 	run_hydro(lattice, initial, hydro);		// main function
 
 	printf("\nFinished hydro\n");
 	return 0;
 }
-
 

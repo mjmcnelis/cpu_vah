@@ -3,9 +3,12 @@
 
 #include "Parameters.h"
 
-void print_hydro_mode();
-void print_hydro_center(double t, double e, int s);
+void print_hydro_mode(hydro_parameters hydro);
 
-void print_parameters(lattice_parameters lattice, double t0, double T_switch, double etabar);
+void print_run_time(double duration, double steps, lattice_parameters lattice);
+
+void print_hydro_center(int n, double t, int s);
+
+void print_parameters(lattice_parameters lattice, hydro_parameters hydro);
 
 #endif

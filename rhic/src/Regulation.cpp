@@ -2,9 +2,8 @@
 #include <stdio.h>
 #include <math.h>
 #include <cmath>
-#include "../include/Precision.h"
-#include "../include/DynamicalVariables.h"
 #include "../include/Projections.h"
+#include "../include/Regulation.h"
 using namespace std;
 
 #define XI0 	0.1						// regulation parameters
@@ -18,8 +17,12 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 }
 
 
-void regulate_residual_currents(precision t, hydro_variables * const __restrict__ q, precision * const __restrict__ e, const fluid_velocity * const __restrict__ u, int nx, int ny, int nz)
+void regulate_residual_currents(precision t, hydro_variables * const __restrict__ q, precision * const __restrict__ e, const fluid_velocity * const __restrict__ u, lattice_parameters lattice)
 {
+	int nx = lattice.lattice_points_x;
+	int ny = lattice.lattice_points_y;
+	int nz = lattice.lattice_points_eta;
+
 #ifdef ANISO_HYDRO
 	precision eps = P_MIN;	// enforce pl, pt to be positive (should be smaller in magnitude than E_MIN)
 
@@ -175,12 +178,6 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 				precision WtTz = 0, WxTz = 0, WyTz = 0, WnTz = 0;
 				precision factor_W = 1.;
 			#endif
-
-				// // regulate T^{\tau\mu} for self-consistency (e, pl, pt, pimunu, WTz potentially regulated)
-				// q[s].ttt = (e_s + pt) * ut * ut  -   pt  +  (pl - pt) * zt * zt  +  factor_W * 2. * WtTz * zt  +  factor_pi * pitt;
-				// q[s].ttx = (e_s + pt) * ut * ux  +  factor_W * WxTz * zt  +  factor_pi * pitx;
-				// q[s].tty = (e_s + pt) * ut * uy  +  factor_W * WyTz * zt  +  factor_pi * pity;
-				// q[s].ttn = (e_s + pt) * ut * un  +  (pl - pt) * zt * zn  +  factor_W * (WtTz * zn  +  WnTz * zt)  +  factor_pi * pitn;
 			}
 		}
 	}
@@ -190,8 +187,12 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 
 
 
-void regulate_viscous_currents(precision t, hydro_variables * const __restrict__ q, precision * const __restrict__ e, const fluid_velocity * const __restrict__ u, int nx, int ny, int nz)
+void regulate_viscous_currents(precision t, hydro_variables * const __restrict__ q, precision * const __restrict__ e, const fluid_velocity * const __restrict__ u, lattice_parameters lattice)
 {
+	int nx = lattice.lattice_points_x;
+	int ny = lattice.lattice_points_y;
+	int nz = lattice.lattice_points_eta;
+
 	// may change to adopt regulation of ttt, ttx, etc
 #if (NUMBER_OF_VISCOUS_CURRENTS != 0)
 	precision xi0 = XI0;

@@ -4,11 +4,9 @@
 
 #include <libconfig.h>
 
-#define PRINT_PARAMETERS
+void getIntegerProperty(config_t * cfg, const char * name, int * value);
 
-void getIntegerProperty(config_t * cfg, const char * propName, int * propValue);
-
-void getDoubleProperty(config_t * cfg, const char * propName, double * propValue);
+void getDoubleProperty(config_t * cfg, const char * name, double * value);
 
 
 typedef struct
@@ -23,6 +21,7 @@ typedef struct
 	double lattice_spacing_eta;
 	double fixed_time_step;
 
+	int output_period;
 	int adaptive_time_step;
 
 	double min_time_step;
@@ -49,10 +48,13 @@ typedef struct
 
 typedef struct
 {
+	int test_hydro;
 	double tau_initial;
-	double shear_viscosity;
+	int temperature_etas;
+	double constant_etas;
 	double freezeout_temperature_GeV;
 	double flux_limiter;
+	double energy_min;
 
 } hydro_parameters;
 

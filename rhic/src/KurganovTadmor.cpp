@@ -16,8 +16,18 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 
 
 void euler_step(precision t, const hydro_variables * const __restrict__ q, hydro_variables * const __restrict__ Q,
-const precision * const __restrict__ e, const fluid_velocity * const __restrict__ u, const fluid_velocity * const __restrict__ up, int nx, int ny, int nz, precision dt, precision dt_prev, precision dx, precision dy, precision dn, precision etabar_const)
+const precision * const __restrict__ e, const fluid_velocity * const __restrict__ u, const fluid_velocity * const __restrict__ up, precision dt, precision dt_prev, lattice_parameters lattice, hydro_parameters hydro)
 {
+	int nx = lattice.lattice_points_x;
+	int ny = lattice.lattice_points_y;
+	int nz = lattice.lattice_points_eta;
+
+	precision dx = lattice.lattice_spacing_x;
+	precision dy = lattice.lattice_spacing_y;
+	precision dn = lattice.lattice_spacing_eta;
+
+	precision Theta = hydro.flux_limiter;
+
 	precision t2 = t * t;
 	int stride_y = nx + 4;							// strides for neighbor cells along x, y, n (stride_x = 1)
 	int stride_z = (nx + 4) * (ny + 4);				// stride formulas based from linear_column_index()
@@ -141,15 +151,15 @@ const precision * const __restrict__ e, const fluid_velocity * const __restrict_
 
 				// compute the external source terms (S)
 			#ifdef ANISO_HYDRO
-				source_terms_aniso_hydro(S, q_s, e_s, t, qi1, qj1, qk1, e1, ui1, uj1, uk1, ux, uy, un, ux_p, uy_p, un_p, dt_prev, dx, dy, dn, etabar_const);
+				source_terms_aniso_hydro(S, q_s, e_s, t, qi1, qj1, qk1, e1, ui1, uj1, uk1, ux, uy, un, ux_p, uy_p, un_p, dt_prev, dx, dy, dn, hydro);
 			#else
-				source_terms_viscous_hydro(S, q_s, e_s, t, qi1, qj1, qk1, e1, ui1, uj1, uk1, ux, uy, un, ux_p, uy_p, un_p, dt_prev, dx, dy, dn, etabar_const);
+				source_terms_viscous_hydro(S, q_s, e_s, t, qi1, qj1, qk1, e1, ui1, uj1, uk1, ux, uy, un, ux_p, uy_p, un_p, dt_prev, dx, dy, dn, hydro);
 			#endif
 
 				// compute the flux terms
-				flux_terms(Hx_plus, Hx_minus, q_s, qi1, qi2, vxi, ux/ut);
-				flux_terms(Hy_plus, Hy_minus, q_s, qj1, qj2, vyj, uy/ut);
-				flux_terms(Hn_plus, Hn_minus, q_s, qk1, qk2, vnk, un/ut);
+				flux_terms(Hx_plus, Hx_minus, q_s, qi1, qi2, vxi, ux/ut, Theta);
+				flux_terms(Hy_plus, Hy_minus, q_s, qj1, qj2, vyj, uy/ut, Theta);
+				flux_terms(Hn_plus, Hn_minus, q_s, qk1, qk2, vnk, un/ut, Theta);
 
 				// add euler step
 				for(int n = 0; n < NUMBER_CONSERVED_VARIABLES; n++)
@@ -200,8 +210,12 @@ const precision * const __restrict__ e, const fluid_velocity * const __restrict_
 }
 
 
-void runge_kutta2(const hydro_variables * const __restrict__ q, hydro_variables * const __restrict__ Q, int nx, int ny, int nz)
+void runge_kutta2(const hydro_variables * const __restrict__ q, hydro_variables * const __restrict__ Q, lattice_parameters lattice)
  {
+ 	int nx = lattice.lattice_points_x;
+	int ny = lattice.lattice_points_y;
+	int nz = lattice.lattice_points_eta;
+
  	// runge kutta time evolution update: (q + Q) / 2  -> store in Q
 	for(int k = 2; k < nz + 2; k++)
 	{
@@ -252,58 +266,58 @@ void runge_kutta2(const hydro_variables * const __restrict__ q, hydro_variables 
 }
 
 
-void evolve_hydro_one_time_step(precision t, precision dt, precision dt_prev, int nx, int ny, int nz, precision dx, precision dy, precision dz, precision etabar_const)
+void evolve_hydro_one_time_step(precision t, precision dt, precision dt_prev, lattice_parameters lattice, hydro_parameters hydro)
 {
 	// first intermediate euler step (compute qI = q + dt.(S - dHx/dx - dHy/dy - dHn/dn))
-	euler_step(t, q, qI, e, u, up, nx, ny, nz, dt, dt_prev, dx, dy, dz, etabar_const);
+	euler_step(t, q, qI, e, u, up, dt, dt_prev, lattice, hydro);
 
 	// next time step
 	t += dt;
 
 	// compute uI, e
 #ifdef ANISO_HYDRO
-	set_inferred_variables_aniso_hydro(qI, e, uI, t, nx, ny, nz);
+	set_inferred_variables_aniso_hydro(qI, e, uI, t, lattice, hydro);
 #else
-	set_inferred_variables_viscous_hydro(qI, e, uI, t, nx, ny, nz);
+	set_inferred_variables_viscous_hydro(qI, e, uI, t, lattice, hydro);
 #endif
 
 	// regulate dissipative components of qI
 #ifdef ANISO_HYDRO
-	regulate_residual_currents(t, qI, e, uI, nx, ny, nz);
+	regulate_residual_currents(t, qI, e, uI, lattice);
 #else
-	regulate_viscous_currents(t, qI, e, uI, nx, ny, nz);
+	regulate_viscous_currents(t, qI, e, uI, lattice);
 #endif
 
 	dt_prev = dt;
 
 	// set ghost cells for qS, uS, e
-	set_ghost_cells(qI, e, uI, nx, ny, nz);
+	set_ghost_cells(qI, e, uI, lattice);
 
 	// second intermediate euler step (compute Q = qI + dt.(S - dHx/dx - dHy/dy - dHn/dn))
-	euler_step(t, qI, Q, e, uI, u, nx, ny, nz, dt, dt_prev, dx, dy, dz, etabar_const);
+	euler_step(t, qI, Q, e, uI, u, dt, dt_prev, lattice, hydro);
 
 	// 2nd order runge kutta: (q + Q) / 2 -> Q
-	runge_kutta2(q, Q, nx, ny, nz);
+	runge_kutta2(q, Q, lattice);
 
 	// swap up and u
 	swap_fluid_velocity(&up, &u);
 
 	// compute u, e
 #ifdef ANISO_HYDRO
-	set_inferred_variables_aniso_hydro(Q, e, u, t, nx, ny, nz);
+	set_inferred_variables_aniso_hydro(Q, e, u, t, lattice, hydro);
 #else
-	set_inferred_variables_viscous_hydro(Q, e, u, t, nx, ny, nz);
+	set_inferred_variables_viscous_hydro(Q, e, u, t, lattice, hydro);
 #endif
 
 	// regulate residual components of Q
 #ifdef ANISO_HYDRO
-	regulate_residual_currents(t, Q, e, u, nx, ny, nz);
+	regulate_residual_currents(t, Q, e, u, lattice);
 #else
-	regulate_viscous_currents(t, Q, e, u, nx, ny, nz);
+	regulate_viscous_currents(t, Q, e, u, lattice);
 #endif
 
 	// set ghost cells for Q, u, e,
-	set_ghost_cells(Q, e, u, nx, ny, nz);
+	set_ghost_cells(Q, e, u, lattice);
 
 	// swap q and Q
 	set_current_hydro_variables();

@@ -4,12 +4,13 @@
 
 #include "Precision.h"
 #include "DynamicalVariables.h"
+#include "Parameters.h"
 
-//#define CONSTANT_ETA_S
+// todo: possibly use cubic spline interpolation for the xi data (could be more accurate than a fit)
 
 const precision delta = 0.01;	// piecewise interval where hypergeometric functions are Taylor expanded
 
-precision eta_over_s(precision T, precision etabar_const);
+precision eta_over_s(precision T, hydro_parameters hydro);
 
 class transport_coefficients
 {

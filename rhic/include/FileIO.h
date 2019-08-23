@@ -4,7 +4,9 @@
 
 #include "Parameters.h"
 
-void output_dynamical_variables(double t, int nx, int ny, int nz, double dt, double dx, double dy, double dz, initial_condition_parameters initial, double etabar);
+int central_index(lattice_parameters lattice);	
+
+void output_dynamical_variables(double t, double dt, lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro);
 
 
 #endif

@@ -5,13 +5,13 @@
 #include "../include/EquationOfState.h"
 
 
-precision energy_density_cutoff(precision e)
+precision energy_density_cutoff(precision e_min, precision e)
 {
-	precision e_min = E_MIN;
-	precision e_cutoff = fmax(0.0, e);
+	precision e_cut = fmax(0., e);
 
-	// function approaches e_min exponentially as e -> 0 (avoids discontinuites in energy profile)
-	return e_cutoff  +  e_min * exp(- e_cutoff / e_min);
+	return e_cut  +  e_min * exp(- e_cut / e_min);	// regulated energy density asymptotes to e_min 
+													// as e -> 0 (avoids discontinuites in energy profile)
+
 	//return fmax(e_min, e);
 }
 
