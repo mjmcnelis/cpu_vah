@@ -17,6 +17,7 @@
 #include "../include/Parameters.h"
 #include "../include/Print.h"
 #include "../include/Hydrodynamics.h"
+#include "../include/FileIO.h"
 
 int main()
 {
@@ -24,11 +25,16 @@ int main()
 	initial_condition_parameters initial = load_initial_condition_parameters();
 	hydro_parameters hydro = load_hydro_parameters();
 
-	print_hydro_mode(hydro);
-
-	run_hydro(lattice, initial, hydro);		// main function
-
-	printf("\nFinished hydro\n");
+	if(hydro.run_hydro)
+	{
+		print_hydro_mode(hydro);
+		run_hydro(lattice, initial, hydro);		// main function
+	}
+	else
+	{
+		output_semi_analytic_solution_if_any(lattice, initial, hydro);
+	}
+		
 	return 0;
 }
 

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
+#include <libconfig.h>
 #include "../include/Parameters.h"
 using namespace std;
 
@@ -127,25 +128,27 @@ hydro_parameters load_hydro_parameters()
 
 	hydro_parameters hydro;
 
-	getIntegerProperty(&cfg,"test_hydro",				&hydro.test_hydro);
+	getIntegerProperty(&cfg,"run_hydro",				&hydro.run_hydro);
 	getDoubleProperty(&cfg, "tau_initial", 				&hydro.tau_initial);
 	getIntegerProperty(&cfg,"temperature_etas", 		&hydro.temperature_etas);
 	getDoubleProperty(&cfg, "constant_etas", 			&hydro.constant_etas);
 	getDoubleProperty(&cfg, "freezeout_temperature_GeV",&hydro.freezeout_temperature_GeV);
 	getDoubleProperty(&cfg, "flux_limiter",				&hydro.flux_limiter);
 	getDoubleProperty(&cfg, "energy_min",				&hydro.energy_min);
+	getDoubleProperty(&cfg, "plpt_ratio_initial",		&hydro.plpt_ratio_initial);
 
 	config_destroy(&cfg);
 
 	printf("Hydro parameters:");
 	printf("\n-----------------\n");
-	printf("test_hydro                = %d\n",		hydro.test_hydro);
+	printf("run_hydro                 = %d\n",		hydro.run_hydro);
 	printf("tau_initial               = %.3g\n",	hydro.tau_initial);
 	printf("temperature_etas          = %d\n", 		hydro.temperature_etas);
 	printf("constant_etas             = %.3g\n", 	hydro.constant_etas);
 	printf("freezeout_temperature_GeV = %.3f\n", 	hydro.freezeout_temperature_GeV);
 	printf("flux_limiter              = %.3g\n", 	hydro.flux_limiter);
 	printf("energy_min                = %.2e\n", 	hydro.energy_min);
+	printf("plpt_ratio_initial        = %.2g\n", 	hydro.plpt_ratio_initial);
 	printf("\n");
 
 	return hydro;

@@ -34,6 +34,8 @@ hydro: $(EXE)
 	echo "Running hydro: $(EXE)"
 	rm -rf output
 	mkdir output
+	rm -rf semi_analytic
+	mkdir semi_analytic
 	$(DIR_MAIN)$(EXE)
 
 clean:

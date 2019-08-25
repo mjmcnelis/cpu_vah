@@ -68,12 +68,12 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 		{
 			print_hydro_center(n, t, central_index(lattice));
 
-			if(hydro.test_hydro) output_dynamical_variables(t, dt_prev, lattice, initial, hydro);	
+			if(hydro.run_hydro == 1) output_dynamical_variables(t, dt_prev, lattice, initial, hydro);	
 
 
 			if(all_cells_below_freezeout_temperature(lattice, hydro)) 	// replace with freezeout finder
 			{
-				printf("\nAll cells below freezeout temperature.\n\n"); break;
+				printf("\nAll cells below freezeout temperature\n\n"); break;
 			}
 		}
 
@@ -96,6 +96,8 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 	print_run_time(duration, steps, lattice);
 
 	free_memory();
+
+	printf("\nFinished hydro\n");
 }
 
 

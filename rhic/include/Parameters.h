@@ -2,13 +2,6 @@
 #ifndef PARAMETERS_H_
 #define PARAMETERS_H_
 
-#include <libconfig.h>
-
-void getIntegerProperty(config_t * cfg, const char * name, int * value);
-
-void getDoubleProperty(config_t * cfg, const char * name, double * value);
-
-
 typedef struct
 {
 	int lattice_points_x;
@@ -48,13 +41,14 @@ typedef struct
 
 typedef struct
 {
-	int test_hydro;
+	int run_hydro;
 	double tau_initial;
 	int temperature_etas;
 	double constant_etas;
 	double freezeout_temperature_GeV;
 	double flux_limiter;
 	double energy_min;
+	double plpt_ratio_initial;
 
 } hydro_parameters;
 

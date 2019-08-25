@@ -19,7 +19,7 @@ void print_line()
 void print_hydro_mode(hydro_parameters hydro)
 {
 	string mode = "Running";
-	if(hydro.test_hydro) mode = "Testing";
+	if(hydro.run_hydro == 1) mode = "Testing";
 	
 #ifdef ANISO_HYDRO
 	printf("\n:::::::::::::::::::::::::::::::::::::::::::\n");
