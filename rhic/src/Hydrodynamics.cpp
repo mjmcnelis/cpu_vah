@@ -49,17 +49,17 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 	precision dt = lattice.fixed_time_step;				// starting time step
 
 	if(lattice.adaptive_time_step) dt = lattice.min_time_step;
-	
+
 	precision dt_prev = dt;								// previous time step
 
-	print_parameters(lattice, hydro);					
+	print_parameters(lattice, hydro);
 	allocate_memory(lattice);
 
 	precision t = hydro.tau_initial;					// initial longitudinal proper time
 	set_initial_conditions(t, lattice, initial, hydro);	// initial conditions for (q, e, u)
 	set_ghost_cells(q, e, u, lattice);					// initialize ghost cells in (q, e, u)
 
-	double steps = 0;	
+	double steps = 0;
 	clock_t start = clock();
 
 	for(int n = 0; n <= lattice.max_number_of_time_steps; n++)	// fluid dynamic evolution
@@ -68,7 +68,7 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 		{
 			print_hydro_center(n, t, central_index(lattice));
 
-			if(hydro.run_hydro == 1) output_dynamical_variables(t, dt_prev, lattice, initial, hydro);	
+			if(hydro.run_hydro == 1) output_dynamical_variables(t, dt_prev, lattice, initial, hydro);
 
 
 			if(all_cells_below_freezeout_temperature(lattice, hydro)) 	// replace with freezeout finder

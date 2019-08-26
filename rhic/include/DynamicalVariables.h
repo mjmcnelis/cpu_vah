@@ -132,7 +132,7 @@ void set_current_hydro_variables();
 void swap_fluid_velocity(fluid_velocity ** arr1, fluid_velocity ** arr2);
 
 // memory
-void allocate_memory(lattice_parameters lattice);	
+void allocate_memory(lattice_parameters lattice);
 void free_memory();
 
 #endif

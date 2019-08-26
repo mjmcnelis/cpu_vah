@@ -283,7 +283,7 @@ void evolve_hydro_one_time_step(precision t, precision dt, precision dt_prev, la
 
 	// regulate dissipative components of qI
 #ifdef ANISO_HYDRO
-	regulate_residual_currents(t, qI, e, uI, lattice);
+	regulate_residual_currents(t, qI, e, uI, lattice, hydro);
 #else
 	regulate_viscous_currents(t, qI, e, uI, lattice);
 #endif
@@ -311,7 +311,7 @@ void evolve_hydro_one_time_step(precision t, precision dt, precision dt_prev, la
 
 	// regulate residual components of Q
 #ifdef ANISO_HYDRO
-	regulate_residual_currents(t, Q, e, u, lattice);
+	regulate_residual_currents(t, Q, e, u, lattice, hydro);
 #else
 	regulate_viscous_currents(t, Q, e, u, lattice);
 #endif

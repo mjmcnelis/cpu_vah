@@ -13,20 +13,24 @@ inline precision sign(precision x)
 	else return 0.;
 }
 
+
 inline precision minmod(precision x, precision y)
 {
 	return (sign(x) + sign(y)) * fmin(fabs(x), fabs(y)) / 2.;
 }
+
 
 inline precision minmod3(precision x, precision y, precision z)
 {
    return minmod(x, minmod(y, z));
 }
 
+
 precision approximate_derivative(precision qm, precision q, precision qp, precision Theta)
 {
 	return minmod3(Theta * (q - qm), (qp - qm) / 2., Theta * (qp - q));
 }
+
 
 precision compute_max_local_propagation_speed(const precision * const __restrict__ v_data, precision v, precision Theta)
 {
@@ -51,6 +55,7 @@ precision compute_max_local_propagation_speed(const precision * const __restrict
 
 	return fmax(ap, am);	// max local speed
 }
+
 
 void flux_terms(precision * const __restrict__ Hp, precision * const __restrict__ Hm, const precision * const __restrict__ q_data, const precision * const __restrict__ q1_data, const precision * const __restrict__ q2_data, const precision * const __restrict__ v_data, precision v, precision Theta)
 {

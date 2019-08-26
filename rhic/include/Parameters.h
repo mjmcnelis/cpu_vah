@@ -15,8 +15,8 @@ typedef struct
 	double fixed_time_step;
 
 	int output_period;
-	int adaptive_time_step;
 
+	int adaptive_time_step;
 	double min_time_step;
 
 } lattice_parameters;
@@ -42,13 +42,24 @@ typedef struct
 typedef struct
 {
 	int run_hydro;
+
 	double tau_initial;
+	double plpt_ratio_initial;
+
 	int temperature_etas;
 	double constant_etas;
+
 	double freezeout_temperature_GeV;
 	double flux_limiter;
+
 	double energy_min;
-	double plpt_ratio_initial;
+	double pressure_min;
+
+	int regulation_scheme;
+	int reprojection;
+
+	double rho_max;
+	double xi0;
 
 } hydro_parameters;
 

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
+#include <math.h>
 #include <libconfig.h>
 #include "../include/Parameters.h"
 using namespace std;
@@ -130,12 +131,17 @@ hydro_parameters load_hydro_parameters()
 
 	getIntegerProperty(&cfg,"run_hydro",				&hydro.run_hydro);
 	getDoubleProperty(&cfg, "tau_initial", 				&hydro.tau_initial);
+	getDoubleProperty(&cfg, "plpt_ratio_initial",		&hydro.plpt_ratio_initial);
 	getIntegerProperty(&cfg,"temperature_etas", 		&hydro.temperature_etas);
 	getDoubleProperty(&cfg, "constant_etas", 			&hydro.constant_etas);
 	getDoubleProperty(&cfg, "freezeout_temperature_GeV",&hydro.freezeout_temperature_GeV);
 	getDoubleProperty(&cfg, "flux_limiter",				&hydro.flux_limiter);
 	getDoubleProperty(&cfg, "energy_min",				&hydro.energy_min);
-	getDoubleProperty(&cfg, "plpt_ratio_initial",		&hydro.plpt_ratio_initial);
+	getDoubleProperty(&cfg, "pressure_min",				&hydro.pressure_min);
+	getIntegerProperty(&cfg,"regulation_scheme", 		&hydro.regulation_scheme);
+	getIntegerProperty(&cfg,"reprojection", 			&hydro.reprojection);
+	getDoubleProperty(&cfg, "rho_max",					&hydro.rho_max);
+	getDoubleProperty(&cfg, "xi0",						&hydro.xi0);
 
 	config_destroy(&cfg);
 
@@ -143,13 +149,24 @@ hydro_parameters load_hydro_parameters()
 	printf("\n-----------------\n");
 	printf("run_hydro                 = %d\n",		hydro.run_hydro);
 	printf("tau_initial               = %.3g\n",	hydro.tau_initial);
+	printf("plpt_ratio_initial        = %.2g\n", 	hydro.plpt_ratio_initial);
 	printf("temperature_etas          = %d\n", 		hydro.temperature_etas);
 	printf("constant_etas             = %.3g\n", 	hydro.constant_etas);
 	printf("freezeout_temperature_GeV = %.3f\n", 	hydro.freezeout_temperature_GeV);
 	printf("flux_limiter              = %.3g\n", 	hydro.flux_limiter);
-	printf("energy_min                = %.2e\n", 	hydro.energy_min);
-	printf("plpt_ratio_initial        = %.2g\n", 	hydro.plpt_ratio_initial);
+	printf("energy_min                = %.1e\n", 	hydro.energy_min);
+	printf("pressure_min              = %.1e\n", 	hydro.pressure_min);
+	printf("regulation_scheme         = %d\n", 		hydro.regulation_scheme);
+	printf("reprojection              = %d\n", 		hydro.reprojection);
+	printf("rho_max                   = %.2f\n", 	hydro.rho_max);
+	printf("xi0                       = %.2f\n", 	hydro.xi0);
 	printf("\n");
+
+	if(fabs(hydro.flux_limiter - 1.5) > 0.5)
+	{
+		printf("load_hydro_parameters error: flux_limiter = %.3g is out of bounds\n", hydro.flux_limiter);
+		exit(-1);
+	}
 
 	return hydro;
 }
