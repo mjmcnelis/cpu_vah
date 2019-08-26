@@ -112,7 +112,7 @@ void set_equilibrium_initial_condition(int nx, int ny, int nz)
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
 				precision e_s = e[s];
-				precision p_s = equilibriumPressure(e_s);
+				precision p_s = equilibriumPressure(e_s);		// use plpt parameter
 
 			#ifdef ANISO_HYDRO
 				q[s].pl = p_s;		// set (pl, pt) to equilibium pressure
@@ -153,8 +153,8 @@ void set_equilibrium_initial_condition(int nx, int ny, int nz)
 // Constant initial energy density profile (Bjorken)
 void set_Bjorken_energy_density_and_flow_profile(int nx, int ny, int nz, initial_condition_parameters initial, hydro_parameters hydro)
 {
-	precision T0 = initial.initialCentralTemperatureGeV;		// central temperature (GeV)
-	precision e0 = equilibriumEnergyDensity(T0 / hbarc);		// energy density
+	precision T0 = initial.initialCentralTemperatureGeV;								// central temperature (GeV)
+	precision e0 = equilibriumEnergyDensity(T0 / hbarc, hydro.conformal_eos_prefactor);	// energy density
 
 	precision e_min = hydro.energy_min;
 
@@ -204,8 +204,8 @@ void set_Glauber_energy_density_and_flow_profile(int nx, int ny, int nz, double 
 {
 	int initialConditionType = initial.initialConditionType;
 
-	double T0 = initial.initialCentralTemperatureGeV;		// central temperature (GeV)
-	double e0 = equilibriumEnergyDensity(T0 / hbarc);		// energy density scale factor
+	double T0 = initial.initialCentralTemperatureGeV;									// central temperature (GeV)
+	double e0 = equilibriumEnergyDensity(T0 / hbarc, hydro.conformal_eos_prefactor);	// energy density scale factor
 
 	precision e_min = hydro.energy_min;
 
@@ -256,6 +256,7 @@ void set_ideal_gubser_energy_density_and_flow_profile(int nx, int ny, int nz, do
 	double t = hydro.tau_initial;								// initial longitudinal proper time
 	double T0 = initial.initialCentralTemperatureGeV / hbarc;	// central temperature (fm)
 
+	precision conformal_eos_prefactor = hydro.conformal_eos_prefactor;
 	precision e_min = hydro.energy_min;
 
 	double q  = 1.;												// inverse length size (hard coded)
@@ -290,7 +291,7 @@ void set_ideal_gubser_energy_density_and_flow_profile(int nx, int ny, int nz, do
 			// temperature profile
 			precision T = (T0_hat / t) * pow(2. * q * t, 2./3.) / pow(1.  +  2. * q2 * (t2 + r2)  +  q4 * (t2 - r2) * (t2 - r2), 1./3.);
 
-			precision e_s = equilibriumEnergyDensity(T);
+			precision e_s = equilibriumEnergyDensity(T, conformal_eos_prefactor);
 
 			double ux = sinh(kappa) * x / r;
 			double uy = sinh(kappa) * y / r;
@@ -376,12 +377,12 @@ void set_aniso_gubser_energy_density_and_flow_profile(int nx, int ny, int nz, do
 	double  e_hat[rho_pts];
 	double pl_hat[rho_pts];
 
-	 e_hat[0] = EOS_FACTOR * pow(T0_hat, 4);
+	 e_hat[0] = equilibriumEnergyDensity(T0_hat, hydro.conformal_eos_prefactor);
 	pl_hat[0] = e_hat[0] * plpt_ratio / (2. + plpt_ratio);
 
 
 	// make a separate module (move rho_function too)
-	gubser_rho_evolution(e_hat, pl_hat, rho_array, rho_pts, drho, etas);
+	gubser_rho_evolution(e_hat, pl_hat, rho_array, rho_pts, drho, hydro);
 
 	// construct the cubic spline interpolations
 	gsl_spline * e_hat_spline;

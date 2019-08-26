@@ -73,7 +73,8 @@ precision equilibriumPressure(precision e)
 #endif
 }
 
-precision speedOfSoundSquared(precision e) {
+precision speedOfSoundSquared(precision e) 
+{
 #ifndef CONFORMAL_EOS
 	// Speed of sound from the Wuppertal-Budapest collaboration
 	double e1 = (double) e;
@@ -104,11 +105,12 @@ precision speedOfSoundSquared(precision e) {
 					+ 293.99144775704605 * e10 + 21.461303090563028 * e11
 					+ 0.09301685073435291 * e12 + 0.000024810902623582917 * e13);
 #else
-	return 1.0/3.0;
+	return 1./3.;
 #endif
 }
 
-precision effectiveTemperature(precision e) {
+precision effectiveTemperature(precision e, precision conformal_eos_prefactor) 
+{
 #ifndef CONFORMAL_EOS
 	// Effective temperature from the Wuppertal-Budapest collaboration
 	double e1 = (double) e;
@@ -135,11 +137,12 @@ precision effectiveTemperature(precision e) {
 					+ 1051.0730543534657 * e8 + 5.916312075925817 * e9
 					+ 0.003778342768228011 * e10 + 1.8472801679382593e-7 * e11);
 #else
-	return pow(e / EOS_FACTOR, 0.25);
+	return pow(e / conformal_eos_prefactor, 0.25);
 #endif
 }
 
-precision equilibriumEnergyDensity(precision T) {
+precision equilibriumEnergyDensity(precision T, precision conformal_eos_prefactor) 
+{
 #ifndef CONFORMAL_EOS
 	// Effective temperature from the Wuppertal-Budapest collaboration
 	double T1 = (double) T;
@@ -190,7 +193,7 @@ precision equilibriumEnergyDensity(precision T) {
 					- 33.58687934953277 * T20 + 3.2520554133126285 * T21
 					- 0.19647288043440464 * T22 + 0.005443394551264717 * T23);
 #else
-	return EOS_FACTOR * pow(T, 4.0);
+	return conformal_eos_prefactor * T * T * T * T;
 #endif
 }
 

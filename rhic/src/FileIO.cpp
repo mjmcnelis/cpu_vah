@@ -130,7 +130,7 @@ void output_residual_gradients(const hydro_variables * const __restrict__ q, con
 				get_fluid_velocity_neighbor_cells(u[simm], u[sim], u[sip], u[sipp], u[sjmm], u[sjm], u[sjp], u[sjpp], u[skmm], u[skm], u[skp], u[skpp], ui1, uj1, uk1, vxi, vyj, vnk, t2);
 
 				precision e_s = e[s];
-				precision T = effectiveTemperature(e_s);
+				precision T = effectiveTemperature(e_s, hydro.conformal_eos_prefactor);
 
 				precision etabar = eta_over_s(T, hydro);
 				precision tau_pi = (5. * etabar) / T;
@@ -208,7 +208,7 @@ void output_residual_shear_validity(const hydro_variables * const __restrict__ q
 
 	precision dx = lattice.lattice_spacing_x;
 	precision dy = lattice.lattice_spacing_y;
-	precision dz = lattice.lattice_spacing_eta;
+	precision dn = lattice.lattice_spacing_eta;
 
 	FILE *RpiInverse;
 	FILE *piu_ortho0, *piu_ortho1, *piu_ortho2, *piu_ortho3;
@@ -328,12 +328,14 @@ void output_residual_shear_validity(const hydro_variables * const __restrict__ q
 }
 
 
-void output_aniso_bjorken(const hydro_variables * const __restrict__ q, const precision * const e, double e0, double t, lattice_parameters lattice)
+void output_aniso_bjorken(const hydro_variables * const __restrict__ q, const precision * const e, double e0, double t, lattice_parameters lattice, hydro_parameters hydro)
 {
 #ifdef ANISO_HYDRO
 	int nx = lattice.lattice_points_x;
 	int ny = lattice.lattice_points_y;
 	int nz = lattice.lattice_points_eta;
+
+	precision conformal_eos_prefactor = hydro.conformal_eos_prefactor;
 
 	FILE *energy, *plptratio, *temperature, *aLplot, *Lambdaplot;
 
@@ -349,7 +351,7 @@ void output_aniso_bjorken(const hydro_variables * const __restrict__ q, const pr
 	precision pl = q[s].pl;
 	precision pt = (e_s - pl) / 2.;
 
-	precision T = effectiveTemperature(e_s) * hbarc;
+	precision T = effectiveTemperature(e_s, conformal_eos_prefactor) * hbarc;
 	precision aL = compute_conformal_aL(pl, e_s);
 	precision z = 1. / (aL * aL)  -  1.;
 	precision t_200 = 1.;
@@ -376,7 +378,7 @@ void output_aniso_bjorken(const hydro_variables * const __restrict__ q, const pr
 		t_200 = 2. + 0.6666666666666667*z - 0.1333333333333333*z2 + 0.05714285714285716*z3 - 0.031746031746031744*z4 + 0.020202020202020193*z5 - 0.013986013986013984*z6;
 	}
 
-	precision Lambda = pow(2. * e_s / (aL * aL * EOS_FACTOR * t_200), 0.25) * hbarc;
+	precision Lambda = pow(2. * e_s / (aL * aL * conformal_eos_prefactor * t_200), 0.25) * hbarc;
 
 	fprintf(energy, 	"%.3f\t%.8f\n", t, e_s / e0);
 	fprintf(plptratio, 	"%.3f\t%.8f\n", t, pl / pt);
@@ -580,9 +582,9 @@ void output_dynamical_variables(double t, double dt, lattice_parameters lattice,
 	if(initial_type == 1)
 	{
 		precision T0 = initial.initialCentralTemperatureGeV;
-		precision e0 = equilibriumEnergyDensity(T0 / hbarc);
+		precision e0 = equilibriumEnergyDensity(T0 / hbarc, hydro.conformal_eos_prefactor);
 
-		output_aniso_bjorken(q, e, e0, t, lattice);
+		output_aniso_bjorken(q, e, e0, t, lattice, hydro);
 	}
 	else if(initial_type == 2 || initial_type == 3)
 	{

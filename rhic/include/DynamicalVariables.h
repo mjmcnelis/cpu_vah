@@ -13,7 +13,7 @@
 
 //#define PIMUNU 					// name shared but different shear stresses (maybe isolate them)
 
-//#define VORTICITY				// include the vorticity source terms in the relaxation equations
+//#define VORTICITY				// include the vorticity source terms in the relaxation equations (make a hydro parameter)
 
 
 #ifdef ANISO_HYDRO

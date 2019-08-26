@@ -91,7 +91,8 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 
 // thermodynamic variables
 //-------------------------------------------------
-	precision T = effectiveTemperature(e);
+	precision conformal_eos_prefactor = hydro.conformal_eos_prefactor;
+	precision T = effectiveTemperature(e, conformal_eos_prefactor);
 	precision p = equilibriumPressure(e);
 
 	// shear and bulk viscosities
@@ -161,7 +162,7 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 #endif
 
 	transport_coefficients aniso;
-	aniso.compute_transport_coefficients(e, pl, pt);
+	aniso.compute_transport_coefficients(e, pl, pt, conformal_eos_prefactor);
 
 	// pl coefficients
 	precision zeta_LL = aniso.zeta_LL;
@@ -830,7 +831,7 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	precision vy = uy / ut;
 	precision vn = un / ut;
 
-	precision T = effectiveTemperature(e);
+	precision T = effectiveTemperature(e, hydro.conformal_eos_prefactor);
 	precision p = equilibriumPressure(e);
 	precision cs2 = speedOfSoundSquared(e);
 	

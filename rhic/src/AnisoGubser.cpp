@@ -3,9 +3,9 @@
 #include <stdio.h>
 #include <math.h>
 #include <cmath>
-
 #include "../include/EquationOfState.h"
 #include "../include/TransportCoefficients.h"
+#include "../include/Parameters.h"
 #include "../include/AnisoGubser.h"
 
 using namespace std;
@@ -16,19 +16,21 @@ double rho_function(double t, double r, double q)
 }
 
 
-double de_drho(double e, double pl, double rho, double etas)
+double de_drho(double e, double pl, double rho, hydro_parameters hydro)
 {
 	return (pl  -  3.*e) * tanh(rho);
 }
 
 
-double dpl_drho(double e, double pl, double rho, double etas)
+double dpl_drho(double e, double pl, double rho, hydro_parameters hydro)
 {
-	double T = effectiveTemperature(e);
+	double conformal_eos_prefactor = hydro.conformal_eos_prefactor;
+	double T = effectiveTemperature(e, conformal_eos_prefactor);
+	double etas = eta_over_s(T, hydro);
 	double taupiInv = T / (5. * etas);
 
 	transport_coefficients aniso;
-	aniso.compute_transport_coefficients(e, pl, (e - pl)/2.);
+	aniso.compute_transport_coefficients(e, pl, (e - pl)/2., conformal_eos_prefactor);
 
 	precision zeta_LL = aniso.zeta_LL;
 
@@ -37,7 +39,7 @@ double dpl_drho(double e, double pl, double rho, double etas)
 }
 
 
-void gubser_rho_evolution(double * e_hat, double * pl_hat, double * rho_array, int rho_pts, double drho, double etas)
+void gubser_rho_evolution(double * e_hat, double * pl_hat, double * rho_array, int rho_pts, double drho, hydro_parameters hydro)
 {
 	// RK4 time evolution
 	for(int i = 1; i < rho_pts; i++)
@@ -47,17 +49,17 @@ void gubser_rho_evolution(double * e_hat, double * pl_hat, double * rho_array, i
 		double ep  =  e_hat[i - 1];
 		double plp = pl_hat[i - 1];
 
-		double de1  = drho *  de_drho(ep, plp, rho, etas);
-		double dpl1 = drho * dpl_drho(ep, plp, rho, etas);
+		double de1  = drho *  de_drho(ep, plp, rho, hydro);
+		double dpl1 = drho * dpl_drho(ep, plp, rho, hydro);
 
-		double de2  = drho *  de_drho(ep + de1/2., plp + dpl1/2., rho + drho/2., etas);
-		double dpl2 = drho * dpl_drho(ep + de1/2., plp + dpl1/2., rho + drho/2., etas);
+		double de2  = drho *  de_drho(ep + de1/2., plp + dpl1/2., rho + drho/2., hydro);
+		double dpl2 = drho * dpl_drho(ep + de1/2., plp + dpl1/2., rho + drho/2., hydro);
 
-		double de3  = drho *  de_drho(ep + de2/2., plp + dpl2/2., rho + drho/2., etas);
-		double dpl3 = drho * dpl_drho(ep + de2/2., plp + dpl2/2., rho + drho/2., etas);
+		double de3  = drho *  de_drho(ep + de2/2., plp + dpl2/2., rho + drho/2., hydro);
+		double dpl3 = drho * dpl_drho(ep + de2/2., plp + dpl2/2., rho + drho/2., hydro);
 
-		double de4  = drho *  de_drho(ep + de3, plp + dpl3, rho + drho, etas);
-		double dpl4 = drho * dpl_drho(ep + de3, plp + dpl3, rho + drho, etas);
+		double de4  = drho *  de_drho(ep + de3, plp + dpl3, rho + drho, hydro);
+		double dpl4 = drho * dpl_drho(ep + de3, plp + dpl3, rho + drho, hydro);
 
 		// RK4 update
 		e_hat[i]  = ep   +  (de1   +  2. * de2   +  2. * de3   +  de4)  / 6.;

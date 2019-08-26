@@ -98,7 +98,7 @@ class transport_coefficients
 
 		// have a root-solver here (it will be called in a root-finding kernel)
 
-		void compute_transport_coefficients(precision e, precision pl, precision pt);
+		void compute_transport_coefficients(precision e, precision pl, precision pt, precision conformal_eos_prefactor);
 		// my idea last night was to use PL-PT matching (conformal EOS)
 		// to propagate initial conditions instead of free-streaming
 		// vahydro captures free-streaming (the problem is starting too early, may need change of variables)

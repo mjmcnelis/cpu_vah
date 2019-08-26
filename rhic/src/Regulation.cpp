@@ -1,20 +1,15 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include <cmath>
 #include "../include/Projections.h"
 #include "../include/Regulation.h"
-using namespace std;
-
-#define XI0 	0.1						// regulation parameters
-#define RHO_MAX 5.0
-#define REGULATION_SCHEME 1				// 1 = new regulation scheme (old regulation otherwise)
 
 
 inline int linear_column_index(int i, int j, int k, int nx, int ny)
 {
 	return i  +  nx * (j  +  ny * k);
 }
+
 
 inline precision tanh_function(precision p)
 {
@@ -30,6 +25,7 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 	int nz = lattice.lattice_points_eta;
 
 	int regulation_scheme = hydro.regulation_scheme;
+	int reprojection = hydro.reprojection;
 	precision pressure_min = hydro.pressure_min;
 	precision xi0 = hydro.xi0;
 	precision rho_max = hydro.rho_max;
@@ -182,7 +178,6 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 						}
 
 						factor_W = tanh_function(rho_W);
-
 						break;
 					}
 					case 1:
@@ -209,16 +204,15 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 }
 
 
-void regulate_viscous_currents(precision t, hydro_variables * const __restrict__ q, precision * const __restrict__ e, const fluid_velocity * const __restrict__ u, lattice_parameters lattice)
+void regulate_viscous_currents(precision t, hydro_variables * const __restrict__ q, precision * const __restrict__ e, const fluid_velocity * const __restrict__ u, lattice_parameters lattice, hydro_parameters hydro)
 {
+#if (NUMBER_OF_VISCOUS_CURRENTS != 0)
 	int nx = lattice.lattice_points_x;
 	int ny = lattice.lattice_points_y;
 	int nz = lattice.lattice_points_eta;
 
-	// may change to adopt regulation of ttt, ttx, etc
-#if (NUMBER_OF_VISCOUS_CURRENTS != 0)
-	precision xi0 = XI0;
-	precision rho_max = RHO_MAX;
+	precision rho_max = hydro.rho_max;
+	precision xi0 = hydro.xi0;
 
 	precision t2 = t * t;
 	precision t4 = t2 * t2;
@@ -256,17 +250,10 @@ void regulate_viscous_currents(precision t, hydro_variables * const __restrict__
 
 				precision trpi = fabs(pitt  -  pixx  -  piyy  -  t2 * pinn);
 
-			#if (REGULATION_SCHEME == 1)
 				precision piu0 = fabs(pitt * ut  -  pitx * ux  -  pity * uy  -  t2 * pitn * un) / ut;
 				precision piu1 = fabs(pitx * ut  -  pixx * ux  -  pixy * uy  -  t2 * pixn * un) / ut;
 				precision piu2 = fabs(pity * ut  -  pixy * ux  -  piyy * uy  -  t2 * piyn * un) / ut;
 				precision piu3 = fabs(pitn * ut  -  pixn * ux  -  piyn * uy  -  t2 * pinn * un) * t / ut;
-			#else
-				precision piu0 = fabs(pitt * ut  -  pitx * ux  -  pity * uy  -  t2 * pitn * un);
-				precision piu1 = fabs(pitx * ut  -  pixx * ux  -  pixy * uy  -  t2 * pixn * un);
-				precision piu2 = fabs(pity * ut  -  pixy * ux  -  piyy * uy  -  t2 * piyn * un);
-				precision piu3 = fabs(pitn * ut  -  pixn * ux  -  piyn * uy  -  t2 * pinn * un) * t;
-			#endif
 
 				precision denom_pi = xi0 * rho_max * pi_mag;
 
@@ -279,10 +266,8 @@ void regulate_viscous_currents(precision t, hydro_variables * const __restrict__
 
 				precision rho_pi = fmax(a0, fmax(a1, fmax(a2, fmax(a3, fmax(a4, a5)))));
 
-				precision factor_pi;
-				if(rho_pi > 1.e-5) factor_pi = tanh(rho_pi) / rho_pi;
-				else factor_pi = 1.  -  rho_pi * rho_pi / 3.;
-
+				precision factor_pi = tanh_function(rho_pi);
+			
 				q[s].pitt = factor_pi * pitt;
 				q[s].pitx = factor_pi * pitx;
 				q[s].pity = factor_pi * pity;
@@ -297,12 +282,11 @@ void regulate_viscous_currents(precision t, hydro_variables * const __restrict__
 
 			#ifdef PI
 				precision Pi = q[s].Pi;
+
 				precision rho_bulk = fabs(Pi / (rho_max * Teq_mag));
 
-				precision factor_bulk;
-				if(rho_bulk > 1.e-5) factor_bulk = tanh(rho_bulk) / rho_bulk;
-				else factor_bulk = 1.  -  rho_bulk * rho_bulk / 3.;	// 2nd-order expansion
-
+				precision factor_bulk = tanh_function(rho_bulk);
+				
 				q[s].Pi = factor_bulk * Pi;
 			#endif
 			}

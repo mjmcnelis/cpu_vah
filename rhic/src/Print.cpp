@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string>
 #include "../include/Hydrodynamics.h"
+#include "../include/FileIO.h"
 #include "../include/FluxTerms.h"
 #include "../include/Precision.h"
 #include "../include/DynamicalVariables.h"
@@ -46,8 +47,10 @@ void print_run_time(double duration, double steps, lattice_parameters lattice)
 }
 
 
-void print_hydro_center(int n, double t, int s)
+void print_hydro_center(int n, double t, lattice_parameters lattice, hydro_parameters hydro)
 {	
+	int s = central_index(lattice);
+
 	if(n == 0)
 	{
 		printf("\tn\t|\tt (fm/c)\t|\tT (GeV)\t\t|\te (GeV/fm^3)\t|\tpeq (GeV/fm^3)\t|\tpl (GeV/fm^3)\t|\tpt (GeV/fm^3)\n");
@@ -55,7 +58,7 @@ void print_hydro_center(int n, double t, int s)
 	}
 	precision e_s = e[s] * hbarc;
 	precision p = equilibriumPressure(e[s]) * hbarc;
-	precision T = effectiveTemperature(e[s]) * hbarc;
+	precision T = effectiveTemperature(e[s], hydro.conformal_eos_prefactor) * hbarc;
 #ifdef ANISO_HYDRO
 	precision pl  = q[s].pl * hbarc;
 	#if (PT_MATCHING == 1)

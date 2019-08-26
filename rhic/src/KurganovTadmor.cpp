@@ -285,7 +285,7 @@ void evolve_hydro_one_time_step(precision t, precision dt, precision dt_prev, la
 #ifdef ANISO_HYDRO
 	regulate_residual_currents(t, qI, e, uI, lattice, hydro);
 #else
-	regulate_viscous_currents(t, qI, e, uI, lattice);
+	regulate_viscous_currents(t, qI, e, uI, lattice, hydro);
 #endif
 
 	dt_prev = dt;
@@ -313,7 +313,7 @@ void evolve_hydro_one_time_step(precision t, precision dt, precision dt_prev, la
 #ifdef ANISO_HYDRO
 	regulate_residual_currents(t, Q, e, u, lattice, hydro);
 #else
-	regulate_viscous_currents(t, Q, e, u, lattice);
+	regulate_viscous_currents(t, Q, e, u, lattice, hydro);
 #endif
 
 	// set ghost cells for Q, u, e,

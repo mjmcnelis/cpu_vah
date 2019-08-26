@@ -7,17 +7,17 @@ typedef struct
 	int lattice_points_x;
 	int lattice_points_y;
 	int lattice_points_eta;
-	int max_number_of_time_steps;
-
 	double lattice_spacing_x;
 	double lattice_spacing_y;
 	double lattice_spacing_eta;
+
+	int max_time_steps;
+	double output_interval;
+	
 	double fixed_time_step;
 
-	int output_period;
-
 	int adaptive_time_step;
-	double min_time_step;
+	double min_time_step;	
 
 } lattice_parameters;
 
@@ -46,6 +46,8 @@ typedef struct
 	double tau_initial;
 	double plpt_ratio_initial;
 
+	double conformal_eos_prefactor;	 // e = conformal_eos_prefactor * T^4 
+
 	int temperature_etas;
 	double constant_etas;
 
@@ -64,7 +66,7 @@ typedef struct
 } hydro_parameters;
 
 
-lattice_parameters load_lattice_parameters();
+lattice_parameters load_lattice_parameters(hydro_parameters hydro);
 initial_condition_parameters load_initial_condition_parameters();
 hydro_parameters load_hydro_parameters();
 

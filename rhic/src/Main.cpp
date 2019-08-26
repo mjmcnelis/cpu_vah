@@ -12,8 +12,6 @@
 |				| simulation of a heavy-ion collision
 -------------------------------------------------------
  */
-#include <stdlib.h>
-#include <stdio.h>
 #include "../include/Parameters.h"
 #include "../include/Print.h"
 #include "../include/Hydrodynamics.h"
@@ -21,10 +19,10 @@
 
 int main()
 {
-	lattice_parameters lattice = load_lattice_parameters();
-	initial_condition_parameters initial = load_initial_condition_parameters();
 	hydro_parameters hydro = load_hydro_parameters();
-
+	lattice_parameters lattice = load_lattice_parameters(hydro);
+	initial_condition_parameters initial = load_initial_condition_parameters();
+	
 	if(hydro.run_hydro)
 	{
 		print_hydro_mode(hydro);

@@ -149,7 +149,7 @@ void transport_coefficients::compute_hypergeometric_functions(precision z)
 }
 
 
-void transport_coefficients::compute_transport_coefficients(precision e, precision pl, precision pt)
+void transport_coefficients::compute_transport_coefficients(precision e, precision pl, precision pt, precision conformal_eos_prefactor)
 {
 #ifdef CONFORMAL_EOS
 	precision x   = pl / e;
@@ -236,10 +236,10 @@ void transport_coefficients::compute_transport_coefficients(precision e, precisi
 
 	compute_hypergeometric_functions(z);
 
-	precision Lambda4 = 2. * e / (aL2 * EOS_FACTOR * t_200);
+	precision Lambda4 = 2. * e / (aL2 * conformal_eos_prefactor * t_200);
 	precision Lambda2 = sqrt(Lambda4);
 
-	precision prefactor = EOS_FACTOR * Lambda4 / 2.;
+	precision prefactor = conformal_eos_prefactor * Lambda4 / 2.;
 
 	// anisotropic functions
 	precision I_240 = prefactor * t_240 * aL2;
