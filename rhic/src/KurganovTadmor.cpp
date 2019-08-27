@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <math.h>
+#include "../include/Macros.h"
 #include "../include/Precision.h"
 #include "../include/DynamicalVariables.h"
 #include "../include/GhostCells.h"
@@ -320,7 +321,8 @@ void evolve_hydro_one_time_step(precision t, precision dt, precision dt_prev, la
 	set_ghost_cells(Q, e, u, lattice);
 
 	// swap q and Q
-	set_current_hydro_variables();
+	//set_current_hydro_variables();
+	swap_hydro_variables(&q, &Q);
 }
 
 

@@ -1,9 +1,9 @@
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
-#include <math.h> // for math functions
+#include <math.h> 
 #include <cmath>
+#include "../include/Macros.h"
 #include "../include/TransportCoefficients.h"
 #include "../include/DynamicalVariables.h"
 #include "../include/EquationOfState.h"

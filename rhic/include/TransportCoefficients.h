@@ -3,6 +3,7 @@
 #define TRANSPORTCOEFFICIENTS_H_
 
 #include "Precision.h"
+#include "Macros.h"
 #include "DynamicalVariables.h"
 #include "Parameters.h"
 

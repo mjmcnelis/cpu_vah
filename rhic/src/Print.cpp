@@ -1,9 +1,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string>
+#include "../include/Macros.h"
 #include "../include/Hydrodynamics.h"
 #include "../include/FileIO.h"
-#include "../include/FluxTerms.h"
 #include "../include/Precision.h"
 #include "../include/DynamicalVariables.h"
 #include "../include/Parameters.h"
@@ -12,8 +12,8 @@ using namespace std;
 
 void print_line()
 {
-	printf("-------------------------------------------------------------------------------");
-	printf("-------------------------------------------------------------------------------\n");
+	printf("--------------------------------------------------------------------------------");
+	printf("--------------------------------------------------------------------------------\n");
 }
 
 

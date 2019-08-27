@@ -2,33 +2,12 @@
 #ifndef DYNAMICALVARIABLES_H_
 #define DYNAMICALVARIABLES_H_
 
+#include "Macros.h"
 #include "EquationOfState.h"
 #include "Precision.h"
-#include "Parameters.h"
+#include "Parameters.h"	
 
-// should have a macros.h (only for tunable macro parameters?)
-
-#define ANISO_HYDRO				// comment to run 2nd order viscous hydrodynamics
-								// (for cross-checking vahydro in limit of small viscosity)
-
-//#define PIMUNU 					// name shared but different shear stresses (maybe isolate them)
-
-//#define VORTICITY				// include the vorticity source terms in the relaxation equations (make a hydro parameter)
-
-
-#ifdef ANISO_HYDRO
-	#ifdef CONFORMAL_EOS
-		#define PT_MATCHING 0
-	#else
-		#define PT_MATCHING 1
-	#endif
-	//#define WTZMU 			// uncomment to turn on WTz (comment for 2+1d simulations b/c it's zero)
-#else
-	#ifndef CONFORMAL_EOS
-		#define PI
-	#endif
-#endif
-
+// try to eliminate "_SCALAR" macros
 
 #ifdef PIMUNU
 	#define PIMUNU_SCALAR 1
@@ -57,6 +36,7 @@
 
 #define NUMBER_OF_RESIDUAL_CURRENTS (PIMUNU_COMPONENTS + WTZMU_COMPONENTS)
 #define NUMBER_OF_VISCOUS_CURRENTS (PIMUNU_COMPONENTS + PI_COMPONENTS)
+
 
 #ifdef ANISO_HYDRO
 	#define NUMBER_CONSERVED_VARIABLES (5 + PT_MATCHING + NUMBER_OF_RESIDUAL_CURRENTS)
@@ -112,6 +92,7 @@ typedef struct
 	precision ux;
 	precision uy;
 	precision un;
+
 } fluid_velocity;
 
 
@@ -125,11 +106,9 @@ extern hydro_variables *q, *Q, *qI;
 extern fluid_velocity *u, *up, *uI;
 extern precision *e;
 
-// swap q <-> Q
-void set_current_hydro_variables();
-
-// swap u <-> up
-void swap_fluid_velocity(fluid_velocity ** arr1, fluid_velocity ** arr2);
+// swap variables
+void swap_hydro_variables(hydro_variables ** hydro_1, hydro_variables ** hydro_2);
+void swap_fluid_velocity(fluid_velocity ** velocity_1, fluid_velocity ** velocity_2);
 
 // memory
 void allocate_memory(lattice_parameters lattice);

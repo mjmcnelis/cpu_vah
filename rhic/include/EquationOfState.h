@@ -4,8 +4,6 @@
 
 #include "Precision.h"
 
-#define CONFORMAL_EOS
-
 precision energy_density_cutoff(precision e_min, precision e);
 
 precision equilibriumPressure(precision e);

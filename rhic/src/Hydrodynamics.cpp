@@ -43,63 +43,87 @@ bool all_cells_below_freezeout_temperature(lattice_parameters lattice, hydro_par
 			}
 		}
 	}
+	printf("\nAll cells below freezeout temperature\n\n");
 	return true;
 }
 
 
 
-void test_output(lattice_parameters lattice, hydro_parameters hydro)
-{
-	precision dt_start = lattice.fixed_time_step;
-	if(lattice.adaptive_time_step) dt_start = lattice.min_time_step;
+// void test_output(lattice_parameters lattice, hydro_parameters hydro)
+// {
+// 	precision dt_start = lattice.fixed_time_step;
+// 	if(lattice.adaptive_time_step) dt_start = lattice.min_time_step;
 
-	precision dt = dt_start;
-	precision dt_out = lattice.output_interval;
+// 	precision dt = dt_start;
+// 	precision dt_out = lattice.output_interval;
+// 	precision dt_min = lattice.min_time_step;
+
+// 	precision t = hydro.tau_initial;
+// 	precision t_out = t;
+
+// 	cout << "\n0\t" << t << "\t" << dt << "\t" << t_out + dt_out << endl;
+
+// 	for(int n = 0; n <= 200; n++)
+// 	{	
+// 		dt = dt_start;
+
+// 		if(t + dt_eps < t_out + dt_out)
+// 		{
+// 			if(t + dt > t_out + dt_out)
+// 			{
+// 				dt = fmax(dt_min, t_out + dt_out - t);		// should be incorporated in next time step
+// 			}
+// 		}
+		
+// 		cout << n << "\t" << t << "\t" << dt << "\t" << t_out + dt_out << endl;
+
+// 		if(fabs(t - t_out - dt_out) < dt_eps)
+// 		{
+// 			t_out += dt_out;
+// 		}
+		
+// 		t += dt;
+		
+// 	}
+// 	exit(-1);
+// }
+
+
+precision set_time_step(int n, precision t, precision dt_prev, precision t_next_output, lattice_parameters lattice, hydro_parameters hydro)
+{
+	precision dt;
+
 	precision dt_min = lattice.min_time_step;
 
-	precision t = hydro.tau_initial;
-	precision t_out = t;
+	if(lattice.adaptive_time_step)			// adaptive time step
+	{
+		dt = lattice.min_time_step;
 
-	cout << "\n0\t" << t << "\t" << dt << "\t" << t_out + dt_out << endl;
-
-	print_hydro_center(0, t, lattice, hydro);
-
-	for(int n = 0; n <= 200; n++)
-	{	
-		dt = dt_start;
-
-		if(t + dt_eps < t_out + dt_out)
+		if(n > 0)
 		{
-			if(t + dt > t_out + dt_out)
-			{
-				dt = fmax(dt_min, t_out + dt_out - t);		// should be incorporated in next time step
-			}
-		}
-		
-		cout << n << "\t" << t << "\t" << dt << "\t" << t_out + dt_out << endl;
+			// compute the Euler step here (somehow need to recycle it)
 
-		if(fabs(t - t_out - dt_out) < dt_eps)
-		{
-			//print_hydro_center(n, t, lattice, hydro);
-			t_out += dt_out;
+			// euler step
+			// compute adaptive time step
 		}
-		
-		t += dt;
-		
 	}
-	exit(-1);
+	else 									// fixed time step								
+	{
+		dt = lattice.fixed_time_step;		
+	}
+	if(hydro.run_hydro == 1)				// adjust dt only for timed hydro outputs
+	{
+		if(t + dt_eps < t_next_output)		
+		{
+			if(t + dt > t_next_output)
+			{
+				dt = fmax(dt_min, t_next_output - t);		
+			}
+		} 
+	}
+	
+	return dt;
 }
-
-
-precision set_time_step(int n, precision t_current, precision dt_prev, precision t_next_output, lattice_parameters lattice)
-{
-	if(n == 0) return dt_prev;
-
-
-}
-
-
-
 
 
 void run_hydro(lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro)
@@ -120,39 +144,52 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 	set_initial_conditions(t, lattice, initial, hydro);	// initial conditions for (q, e, u)
 	set_ghost_cells(q, e, u, lattice);					// initialize ghost cells in (q, e, u)
 
-
-	precision t_out = t;
+	precision t_out = t;								// output times
 	precision dt_out = lattice.output_interval;
 
 	double steps = 0;
 	clock_t start = clock();
 
-	print_hydro_center(0, t, lattice, hydro);
 
-	for(int n = 0; n <= lattice.max_time_steps; n++)	// fluid dynamic evolution
+	// fluid dynamic evolution
+	//----------------------------------------------------------
+	for(int n = 0; n <= lattice.max_time_steps; n++)	
 	{
-		dt = set_time_step(n, t, dt_prev, t_out + dt_out, lattice);
+		dt = set_time_step(n, t, dt_prev, t_out + dt_out, lattice, hydro);
 
-		if(fabs(t - t_out - dt_out) < dt_eps)
+		if(hydro.run_hydro == 1)		// outputs hydro data at regular time intervals
 		{
-			print_hydro_center(n, t, lattice, hydro);
-
-			if(hydro.run_hydro == 1) output_dynamical_variables(t, dt_prev, lattice, initial, hydro);
-
-
-			if(all_cells_below_freezeout_temperature(lattice, hydro)) 	// replace with freezeout finder
+			if(n == 0) 
 			{
-				printf("\nAll cells below freezeout temperature\n\n"); 
-				break;
+				print_hydro_center(n, t, lattice, hydro);
+				output_dynamical_variables(t, dt_prev, lattice, initial, hydro);
 			}
 
+			if(fabs(t - t_out - dt_out) < dt_eps)
+			{
+				print_hydro_center(n, t, lattice, hydro);
+				output_dynamical_variables(t, dt_prev, lattice, initial, hydro);
 
-			t_out += dt_out;
+				if(all_cells_below_freezeout_temperature(lattice, hydro)) break;
+				
+				t_out += dt_out;
+			}
+		}
+		else if(hydro.run_hydro == 2)	// finding the freezeout surface
+		{
+			//if(n % hydro.freezeout_frequency == 0)
+			if(n % 10 == 0)
+			{
+				print_hydro_center(n, t, lattice, hydro);
+
+				if(all_cells_below_freezeout_temperature(lattice, hydro)) break; 	// replace with freezeout finder
+			}
 		}
 
 		evolve_hydro_one_time_step(t, dt, dt_prev, lattice, hydro);
 
 		t += dt;
+
 		dt_prev = dt;
 
 		// if(lattice.adaptive_time_step)
@@ -164,6 +201,8 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 		// }
 		steps++;
 	}
+	//----------------------------------------------------------
+
 
 	double duration = (clock() - start) / (double)CLOCKS_PER_SEC;
 	print_run_time(duration, steps, lattice);

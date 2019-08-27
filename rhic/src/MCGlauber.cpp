@@ -1,20 +1,12 @@
-/*
- * MonteCarloGlauberModel.c
- *
- *  Created on: Oct 22, 2015
- *      Author: bazow
- */
-
-#include "../include/OpticalGlauber.h"
-#include "../include/MCGlauber.h"
-#include "../include/Parameters.h"
 #include <stdlib.h>
 #include <iostream>
 #include <random>
-
+//#include <gsl/gsl_integration.h>
+#include "../include/OpticalGlauber.h"
+#include "../include/MCGlauber.h"
+#include "../include/Parameters.h"
 using namespace std;
 
-//#include <gsl/gsl_integration.h>
 
 const double SIG0 = 0.46;			// gaussian width
 const double two_pi = 2.0 * M_PI;

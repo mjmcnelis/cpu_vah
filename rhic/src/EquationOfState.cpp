@@ -1,8 +1,7 @@
-
-#include <math.h> // for math functions
+#include <math.h>
 #include <cmath>
+#include "../include/Macros.h"
 #include "../include/Precision.h"
-#include "../include/EquationOfState.h"
 
 
 precision energy_density_cutoff(precision e_min, precision e)
@@ -11,7 +10,6 @@ precision energy_density_cutoff(precision e_min, precision e)
 
 	return e_cut  +  e_min * exp(- e_cut / e_min);	// regulated energy density asymptotes to e_min 
 													// as e -> 0 (avoids discontinuites in energy profile)
-
 	//return fmax(e_min, e);
 }
 

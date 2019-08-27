@@ -1,7 +1,5 @@
-
 #include <stdlib.h>
 #include <math.h>
-#include "../include/FluxTerms.h"
 #include "../include/Precision.h"
 #include "../include/DynamicalVariables.h"
 

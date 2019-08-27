@@ -1,11 +1,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include "../include/FileIO.h"
 #include "../include/Parameters.h"
 #include "../include/Precision.h"
-#include "../include/DynamicalVariables.h"
+#include "../include/Macros.h"
 #include "../include/EquationOfState.h"
+#include "../include/DynamicalVariables.h"
 #include "../include/TransportCoefficients.h"
 #include "../include/Projections.h"
 #include "../include/NeighborCells.h"

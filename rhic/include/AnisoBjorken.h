@@ -1,3 +1,4 @@
+
 #ifndef ANISOBJORKEN
 #define ANISOBJORKEN
 

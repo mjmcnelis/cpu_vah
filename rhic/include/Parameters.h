@@ -2,6 +2,35 @@
 #ifndef PARAMETERS_H_
 #define PARAMETERS_H_
 
+
+typedef struct
+{
+	int run_hydro;
+
+	double tau_initial;
+	double plpt_ratio_initial;
+
+	double conformal_eos_prefactor;	 // e = conformal_eos_prefactor * T^4 
+
+	int temperature_etas;
+	double constant_etas;
+
+	double freezeout_temperature_GeV;
+	double flux_limiter;
+	int include_vorticity;
+
+	double energy_min;
+	double pressure_min;
+
+	int regulation_scheme;
+	int reprojection;
+
+	double rho_max;
+	double xi0;
+
+} hydro_parameters;
+
+
 typedef struct
 {
 	int lattice_points_x;
@@ -17,7 +46,7 @@ typedef struct
 	double fixed_time_step;
 
 	int adaptive_time_step;
-	double min_time_step;	
+	double min_time_step;		// minimum time step set for the program
 
 } lattice_parameters;
 
@@ -39,36 +68,9 @@ typedef struct
 } initial_condition_parameters;
 
 
-typedef struct
-{
-	int run_hydro;
-
-	double tau_initial;
-	double plpt_ratio_initial;
-
-	double conformal_eos_prefactor;	 // e = conformal_eos_prefactor * T^4 
-
-	int temperature_etas;
-	double constant_etas;
-
-	double freezeout_temperature_GeV;
-	double flux_limiter;
-
-	double energy_min;
-	double pressure_min;
-
-	int regulation_scheme;
-	int reprojection;
-
-	double rho_max;
-	double xi0;
-
-} hydro_parameters;
-
-
+hydro_parameters load_hydro_parameters();
 lattice_parameters load_lattice_parameters(hydro_parameters hydro);
 initial_condition_parameters load_initial_condition_parameters();
-hydro_parameters load_hydro_parameters();
 
 #endif
 

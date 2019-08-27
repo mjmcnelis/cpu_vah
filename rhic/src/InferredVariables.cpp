@@ -3,16 +3,12 @@
 #include <iostream>
 #include <math.h>
 #include <cmath>
-#include "../include/InferredVariables.h"
 #include "../include/Precision.h"
+#include "../include/Macros.h"
 #include "../include/DynamicalVariables.h"
 #include "../include/Parameters.h"
-#include "../include/EquationOfState.h"
-#include "../include/Projections.h"
-
+#include "../include/EquationOfState.h"		
 using namespace std;
-
-#define TEST_TMUNU 0		// 1 for testing reproduction of t^{\tau\mu}
 
 double ttt_error = 1.e-13;
 double ttx_error = 1.e-13;
@@ -30,15 +26,12 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 
 void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u, precision t, lattice_parameters lattice, hydro_parameters hydro)
 {
+#ifdef ANISO_HYDRO
 	int nx = lattice.lattice_points_x;
 	int ny = lattice.lattice_points_y;
 	int nz = lattice.lattice_points_eta;
 
 	precision e_min = hydro.energy_min;
-
-#ifdef ANISO_HYDRO
-
-	//precision eps = 1.e-5;		// cutoff to enforce positivity of "proposed solution" for energy density
 
 	precision t2 = t * t;
 	precision t4 = t2 * t2;
@@ -56,24 +49,33 @@ void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict
 				precision tty = q[s].tty;
 				precision ttn = q[s].ttn;
 				precision pl  = q[s].pl;
+
 			#if (PT_MATCHING == 1)
 				precision pt  = q[s].pt;
 			#endif
+
 			#ifdef PIMUNU
 				precision pitt = q[s].pitt;
 				precision pitx = q[s].pitx;
 				precision pity = q[s].pity;
 				precision pitn = q[s].pitn;
 			#else
-				precision pitt = 0, pitx = 0, pity = 0, pitn = 0;
+				precision pitt = 0;
+				precision pitx = 0;
+				precision pity = 0;
+				precision pitn = 0;
 			#endif
+
 			#ifdef WTZMU
 				precision WtTz = q[s].WtTz;
 				precision WxTz = q[s].WxTz;
 				precision WyTz = q[s].WyTz;
 				precision WnTz = q[s].WnTz;
 			#else
-				precision WtTz = 0, WxTz = 0, WyTz = 0, WnTz = 0;
+				precision WtTz = 0;
+				precision WxTz = 0;
+				precision WyTz = 0;
+				precision WnTz = 0;
 			#endif
 
 				precision kt = ttt  -  pitt;			// [fm^-4]
@@ -136,7 +138,7 @@ void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict
 					exit(-1);
 				}
 
-			#if (TEST_TMUNU == 1)
+			#ifdef TEST_TTAUMU
 				ut_s = sqrt(1.  +  ux_s * ux_s  +  uy_s * uy_s  +  t2 * un_s * un_s);
 				precision utperp_s = sqrt(1.  +  ux_s * ux_s  +  uy_s * uy_s);
 				precision zt_s = t * un_s / utperp_s;
@@ -198,7 +200,10 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 				precision pity = q[s].pity;
 				precision pitn = q[s].pitn;
 			#else
-				precision pitt = 0, pitx = 0, pity = 0, pitn = 0;
+				precision pitt = 0;
+				precision pitx = 0;
+				precision pity = 0;
+				precision pitn = 0;
 			#endif
 			#ifdef PI
 				precision Pi = q[s].Pi;
@@ -211,10 +216,10 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 				precision My = tty  -  pity;
 				precision Mn = ttn  -  pitn;
 
-				precision M2 = Mx * Mx  +  My * My  +  t2 * Mn * Mn;
+				precision M_squared = Mx * Mx  +  My * My  +  t2 * Mn * Mn;
 
-			#ifdef CONFORMAL_EOS
-				precision e_s = energy_density_cutoff(e_min, - Mt  +  sqrt(fabs(4. * Mt * Mt  -  3. * M2)));
+			#ifndef PI
+				precision e_s = energy_density_cutoff(e_min, - Mt  +  sqrt(fabs(4. * Mt * Mt  -  3. * M_squared)));
 			#else
 				// add root-solving algorithm (use a function)
 				// initial guess (need ePrev)
@@ -236,7 +241,7 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 					exit(-1);
 				}
 
-			#if (TEST_TMUNU == 1)
+			#ifdef TEST_TTAUMU
 				ut_s = sqrt(1.  +  ux_s * ux_s  +  uy_s * uy_s  +  t2 * un_s * un_s);
 
 				precision dttt = fabs((e_s + p + Pi) * ut_s * ut_s  -  (p + Pi)  +  pitt  -  ttt);

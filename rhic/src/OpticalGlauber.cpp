@@ -1,14 +1,6 @@
-/*
- * GlauberModel.c
- *
- *  Created on: Oct 22, 2015
- *      Author: bazow
- */
-
+#include <gsl/gsl_integration.h>
 #include "../include/OpticalGlauber.h"
 #include "../include/Parameters.h"
-
-#include <gsl/gsl_integration.h>
 
 const double n0 = 0.17; 				// nuclear density in fm^(-3)
 const double d = 0.54; 					// nuclear thickness in fm

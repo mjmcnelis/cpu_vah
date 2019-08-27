@@ -1,73 +1,61 @@
-
 #include <stdlib.h>
-#include <iostream>
-#include <math.h>
 #include "../include/Precision.h"
 #include "../include/DynamicalVariables.h"
 #include "../include/Parameters.h"
-using namespace std;
+
 
 hydro_variables *q, *Q, *qI;
 fluid_velocity *u, *up, *uI;
 precision *e;
 
-inline int linear_column_index(int i, int j, int k, int nx, int ny)
-{
-	return i  +  nx * (j  +  ny * k);
-}
 
 void allocate_memory(lattice_parameters lattice)
 {
-	// allocate memory for computational grid points
+	// allocate memory for the dynamical variables
 
-	// physical grid points
-	int nx = lattice.lattice_points_x;
+	int nx = lattice.lattice_points_x;		// physical grid points
 	int ny = lattice.lattice_points_y;
 	int nz = lattice.lattice_points_eta;
-
-	// computational grid points = physical + ghost + white
-	int ncx = nx + 4;
+	
+	int ncx = nx + 4;						// computational grid points = physical + ghost + white
 	int ncy = ny + 4;
 	int ncz = nz + 4;
 
-	// size of each array
-	int len = ncx * ncy * ncz;	
+	int length = ncx * ncy * ncz;			// size of each array
 
 	size_t bytes = sizeof(precision);
 
-	e = (precision *)calloc(len, bytes);
+	e = (precision *)calloc(length, bytes);	
 
-	u  = (fluid_velocity *)calloc(len, sizeof(fluid_velocity));
-	up = (fluid_velocity *)calloc(len, sizeof(fluid_velocity));
-	uI = (fluid_velocity *)calloc(len, sizeof(fluid_velocity));
+	u  = (fluid_velocity *)calloc(length, sizeof(fluid_velocity));
+	up = (fluid_velocity *)calloc(length, sizeof(fluid_velocity));
+	uI = (fluid_velocity *)calloc(length, sizeof(fluid_velocity));
 
-	q  = (hydro_variables *)calloc(len, sizeof(hydro_variables));
-	Q  = (hydro_variables *)calloc(len, sizeof(hydro_variables));
-	qI = (hydro_variables *)calloc(len, sizeof(hydro_variables));
+	q  = (hydro_variables *)calloc(length, sizeof(hydro_variables));
+	Q  = (hydro_variables *)calloc(length, sizeof(hydro_variables));
+	qI = (hydro_variables *)calloc(length, sizeof(hydro_variables));
 }
 
-void swap_hydro_variables(hydro_variables **arr1, hydro_variables **arr2)
+
+void swap_hydro_variables(hydro_variables ** hydro_1, hydro_variables ** hydro_2)
 {
-	hydro_variables *tmp = *arr1;
-	*arr1 = *arr2;
-	*arr2 = tmp;
+	hydro_variables * hydro_temp = *hydro_1;		// swap hydro_1 <-> hydro_2
+	*hydro_1 = *hydro_2;
+	*hydro_2 = hydro_temp;
 }
 
-void set_current_hydro_variables()
+
+void swap_fluid_velocity(fluid_velocity ** velocity_1, fluid_velocity ** velocity_2)
 {
-	swap_hydro_variables(&q, &Q);
+	fluid_velocity * velocity_temp = *velocity_1;	// swap velocity_1 <-> velocity_2
+	*velocity_1 = *velocity_2;
+	*velocity_2 = velocity_temp;
 }
 
-void swap_fluid_velocity(fluid_velocity **arr1, fluid_velocity **arr2)
-{
-	fluid_velocity *tmp = *arr1;
-	*arr1 = *arr2;
-	*arr2 = tmp;
-}
 
 void free_memory()
 {
-	free(e);
+	free(e);	
 	free(u);
 	free(up);
 	free(uI);

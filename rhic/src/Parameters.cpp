@@ -64,6 +64,7 @@ hydro_parameters load_hydro_parameters()
 	getDoubleProperty(&cfg, "constant_etas", 			&hydro.constant_etas);
 	getDoubleProperty(&cfg, "freezeout_temperature_GeV",&hydro.freezeout_temperature_GeV);
 	getDoubleProperty(&cfg, "flux_limiter",				&hydro.flux_limiter);
+	getIntegerProperty(&cfg,"include_vorticity", 		&hydro.include_vorticity);
 	getDoubleProperty(&cfg, "energy_min",				&hydro.energy_min);
 	getDoubleProperty(&cfg, "pressure_min",				&hydro.pressure_min);
 	getIntegerProperty(&cfg,"regulation_scheme", 		&hydro.regulation_scheme);
@@ -86,6 +87,7 @@ hydro_parameters load_hydro_parameters()
 	printf("constant_etas             = %.3g\n", 	hydro.constant_etas);
 	printf("freezeout_temperature_GeV = %.3f\n", 	hydro.freezeout_temperature_GeV);
 	printf("flux_limiter              = %.3g\n", 	hydro.flux_limiter);
+	printf("include_vorticity         = %d\n", 		hydro.include_vorticity);
 	printf("energy_min                = %.1e\n", 	hydro.energy_min);
 	printf("pressure_min              = %.1e\n", 	hydro.pressure_min);
 	printf("regulation_scheme         = %d\n", 		hydro.regulation_scheme);

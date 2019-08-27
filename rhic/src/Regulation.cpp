@@ -1,8 +1,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include "../include/Macros.h"
+#include "../include/DynamicalVariables.h"
 #include "../include/Projections.h"
-#include "../include/Regulation.h"
 
 
 inline int linear_column_index(int i, int j, int k, int nx, int ny)

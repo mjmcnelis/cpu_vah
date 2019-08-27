@@ -1,8 +1,5 @@
-#include <iostream>
-#include "../include/GhostCells.h"
 #include "../include/Precision.h"
 #include "../include/DynamicalVariables.h"
-using namespace std;
 
 
 inline int linear_column_index(int i, int j, int k, int nx, int ny)
@@ -11,9 +8,9 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 }
 
 
-void ghost_cell_BC(hydro_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u, int s, int sBC)
+void set_ghost_cell_boundary_conditions(hydro_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u, int s, int sBC)
 {
-	e[s] = e[sBC];	// set the ghost cell boundary conditions
+	e[s] = e[sBC];	
 	u[s] = u[sBC];
 	q[s] = q[sBC];	// s = ghost cell index	 |	sBC = physical cell at boundary index
 }
@@ -34,14 +31,14 @@ void set_ghost_cells(hydro_variables * const __restrict__ q, precision * const _
 			{
 				int s   = linear_column_index(i, j, k, nx + 4, ny + 4);
 				int sBC = linear_column_index(2, j, k, nx + 4, ny + 4);
-				ghost_cell_BC(q, e, u, s, sBC);
+				set_ghost_cell_boundary_conditions(q, e, u, s, sBC);
 			}
 
 			for(int i = nx + 2; i <= nx + 3; i++)	// set right ghost cells (x)
 			{
 				int s   = linear_column_index(     i, j, k, nx + 4, ny + 4);
 				int sBC = linear_column_index(nx + 1, j, k, nx + 4, ny + 4);
-				ghost_cell_BC(q, e, u, s, sBC);
+				set_ghost_cell_boundary_conditions(q, e, u, s, sBC);
 			}
 		}
 	}
@@ -55,14 +52,14 @@ void set_ghost_cells(hydro_variables * const __restrict__ q, precision * const _
 			{
 				int s   = linear_column_index(i, j, k, nx + 4, ny + 4);
 				int sBC = linear_column_index(i, 2, k, nx + 4, ny + 4);
-				ghost_cell_BC(q, e, u, s, sBC);
+				set_ghost_cell_boundary_conditions(q, e, u, s, sBC);
 			}
 
 			for(int j = ny + 2; j <= ny + 3; j++)	// set right ghost cells (y)
 			{
 				int s   = linear_column_index(i,      j, k, nx + 4, ny + 4);
 				int sBC = linear_column_index(i, ny + 1, k, nx + 4, ny + 4);
-				ghost_cell_BC(q, e, u, s, sBC);
+				set_ghost_cell_boundary_conditions(q, e, u, s, sBC);
 			}
 		}
 
@@ -72,14 +69,14 @@ void set_ghost_cells(hydro_variables * const __restrict__ q, precision * const _
 			{
 				int s   = linear_column_index(i, j, k, nx + 4, ny + 4);
 				int sBC = linear_column_index(i, j, 2, nx + 4, ny + 4);
-				ghost_cell_BC(q, e, u, s, sBC);
+				set_ghost_cell_boundary_conditions(q, e, u, s, sBC);
 			}
 
 			for(int k = nz + 2; k <= nz + 3; k++)	// set right ghost cells (z)
 			{
 				int s   = linear_column_index(i, j,      k, nx + 4, ny + 4);
 				int sBC = linear_column_index(i, j, nz + 1, nx + 4, ny + 4);
-				ghost_cell_BC(q, e, u, s, sBC);
+				set_ghost_cell_boundary_conditions(q, e, u, s, sBC);
 			}
 		}
 	}

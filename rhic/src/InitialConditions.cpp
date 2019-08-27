@@ -4,6 +4,8 @@
 #include <cmath>
 #include <iostream>
 #include <algorithm>
+#include "../include/Macros.h"
+#include "../include/Hydrodynamics.h"
 #include "../include/DynamicalVariables.h"
 #include "../include/InitialConditions.h"
 #include "../include/Precision.h"
@@ -19,15 +21,13 @@ using namespace std;
 
 #define THETA_FUNCTION(X) ((double)X < (double)0 ? (double)0 : (double)1)
 
-const double hbarc = 0.197326938;
-
 
 inline int linear_column_index(int i, int j, int k, int nx, int ny)
 {
 	return i  +  nx * (j  +  ny * k);
 }
 
-// initialize (ttt, ttx, tty, ttn)
+// initialize (ttt, ttx, tty, ttn) need to change the names
 void set_initial_hydro_variables(double t, int nx, int ny, int nz)
 {
 	for(int k = 2; k < nz + 2; k++)
@@ -66,7 +66,10 @@ void set_initial_hydro_variables(double t, int nx, int ny, int nz)
 				precision pity = q[s].pity;
 				precision pitn = q[s].pitn;
 			#else
-				precision pitt = 0, pitx = 0, pity = 0, pitn = 0;
+				precision pitt = 0;
+				precision pitx = 0;
+				precision pity = 0; 
+				precision pitn = 0;
 			#endif
 
 			#ifdef WTZMU
@@ -75,7 +78,10 @@ void set_initial_hydro_variables(double t, int nx, int ny, int nz)
 				precision WyTz = q[s].WyTz;
 				precision WnTz = q[s].WnTz;
 			#else
-				precision WtTz = 0, WxTz = 0, WyTz = 0, WnTz = 0;
+				precision WtTz = 0;
+				precision WxTz = 0;
+				precision WyTz = 0;
+				precision WnTz = 0;
 			#endif
 
 			#ifdef PI
@@ -150,11 +156,13 @@ void set_equilibrium_initial_condition(int nx, int ny, int nz)
 }
 
 
-// Constant initial energy density profile (Bjorken)
+// constant initial energy density profile (Bjorken)
 void set_Bjorken_energy_density_and_flow_profile(int nx, int ny, int nz, initial_condition_parameters initial, hydro_parameters hydro)
 {
-	precision T0 = initial.initialCentralTemperatureGeV;								// central temperature (GeV)
-	precision e0 = equilibriumEnergyDensity(T0 / hbarc, hydro.conformal_eos_prefactor);	// energy density
+	precision conformal_eos_prefactor = hydro.conformal_eos_prefactor;
+
+	precision T0 = initial.initialCentralTemperatureGeV;							// central temperature (GeV)
+	precision e0 = equilibriumEnergyDensity(T0 / hbarc, conformal_eos_prefactor);	// energy density
 
 	precision e_min = hydro.energy_min;
 
@@ -167,12 +175,12 @@ void set_Bjorken_energy_density_and_flow_profile(int nx, int ny, int nz, initial
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
 				e[s] = energy_density_cutoff(e_min, e0);
-				u[s].ux = 0;
+
+				u[s].ux = 0;	// zero fluid velocity
 				u[s].uy = 0;
 				u[s].un = 0;
-
-				// also initialize up = u
-				up[s].ux = 0;
+				
+				up[s].ux = 0;	// also initialize up = u
 				up[s].uy = 0;
 				up[s].un = 0;
 			}
@@ -235,12 +243,11 @@ void set_Glauber_energy_density_and_flow_profile(int nx, int ny, int nz, double 
 
 				e[s] = energy_density_cutoff(e_min, e_s);
 
-				// default initial flow to zero
-				u[s].ux = 0.0;
+				u[s].ux = 0.0;		// zero initial velocity
 				u[s].uy = 0.0;
 				u[s].un = 0.0;
 
-				up[s].ux = 0.0;
+				up[s].ux = 0.0;		// also set up = u
 				up[s].uy = 0.0;
 				up[s].un = 0.0;
 			}
@@ -501,7 +508,7 @@ void set_aniso_gubser_energy_density_and_flow_profile(int nx, int ny, int nz, do
 //	4 - Optical Glauber
 //	5 - MC Glauber
 //////////////////////////////////////
-void set_initial_conditions(double t, lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro)
+void set_initial_conditions(precision t, lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro)
 {
 	int nx = lattice.lattice_points_x;
 	int ny = lattice.lattice_points_x;
