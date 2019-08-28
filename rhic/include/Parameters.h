@@ -13,6 +13,8 @@ typedef struct
 	double conformal_eos_prefactor;	 // e = conformal_eos_prefactor * T^4 
 
 	int temperature_etas;
+	double etas_min;
+	double etas_slope;
 	double constant_etas;
 
 	double freezeout_temperature_GeV;
@@ -64,6 +66,8 @@ typedef struct
 	// longitudinal energy density profile parameters
 	double rapidityVariance; 	// \sigma^{2}_{\eta}
 	double rapidityMean; 		// flat region around \ets_s = 0
+
+	double T_hat_initial;
 
 } initial_condition_parameters;
 

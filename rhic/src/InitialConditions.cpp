@@ -27,8 +27,8 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 	return i  +  nx * (j  +  ny * k);
 }
 
-// initialize (ttt, ttx, tty, ttn) need to change the names
-void set_initial_hydro_variables(double t, int nx, int ny, int nz)
+
+void set_initial_T_taumu_variables(double t, int nx, int ny, int nz)
 {
 	for(int k = 2; k < nz + 2; k++)
 	{
@@ -51,11 +51,13 @@ void set_initial_hydro_variables(double t, int nx, int ny, int nz)
 				precision zn = ut / t / utperp;
 
 				precision pl = q[s].pl;
+
 			#if (PT_MATCHING == 1)
 				precision pt = q[s].pt;
 			#else
 				precision pt = (e_s - pl) / 2.;
 			#endif
+
 			#else
 				precision p = equilibriumPressure(e_s);
 			#endif
@@ -106,9 +108,11 @@ void set_initial_hydro_variables(double t, int nx, int ny, int nz)
 	}
 }
 
-// initialize viscous part of Tmunu to zero
-void set_equilibrium_initial_condition(int nx, int ny, int nz)
+
+void set_anisotropic_initial_condition(int nx, int ny, int nz, hydro_parameters hydro)
 {
+	precision plpt_ratio = hydro.plpt_ratio_initial;
+
 	for(int k = 2; k < nz + 2; k++)
 	{
 		for(int j = 2; j < ny + 2; j++)
@@ -118,13 +122,14 @@ void set_equilibrium_initial_condition(int nx, int ny, int nz)
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
 				precision e_s = e[s];
-				precision p_s = equilibriumPressure(e_s);		// use plpt parameter
 
 			#ifdef ANISO_HYDRO
-				q[s].pl = p_s;		// set (pl, pt) to equilibium pressure
+				q[s].pl = e_s * plpt_ratio / (2. + plpt_ratio);		// conformal approximation
+
 			#if (PT_MATCHING == 1)
-				q[s].pt = p_s;
+				q[s].pt = e_s / (2. + plpt_ratio);
 			#endif
+
 			#endif
 
 			#ifdef PIMUNU
@@ -148,7 +153,7 @@ void set_equilibrium_initial_condition(int nx, int ny, int nz)
 			#endif
 
 		  	#ifdef PI
-		  		q[s].Pi = 0;
+		  		q[s].Pi = e_s / 3.  -  equilibriumPressure(e_s);	// switching from conformal eos to lattice 
 		  	#endif
 			}
 		}
@@ -536,22 +541,23 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 			printf("(fluid velocity and viscous pressures initialized to zero)\n\n");
 
 			set_Bjorken_energy_density_and_flow_profile(nx, ny, nz, initial, hydro);
-			set_equilibrium_initial_condition(nx, ny, nz);
-			set_initial_hydro_variables(t, nx, ny, nz);
+			set_anisotropic_initial_condition(nx, ny, nz, hydro);
+			set_initial_T_taumu_variables(t, nx, ny, nz);
 
 			break;
 		}
 		case 2:
 		{
-			printf("Ideal Gubser\n\n");
-		#ifndef CONFORMAL_EOS
-			printf("\nGubser initial condition error: CONFORMAL_EOS not defined in /rhic/include/EquationOfState.h, exiting...\n");
+			printf("Ideal Gubser (temporarily out of commission)\n\n");		// should get rid of this (or change it to a viscous Gubser)
 			exit(-1);
-		#endif
+		// #ifndef CONFORMAL_EOS
+		// 	printf("\nGubser initial condition error: CONFORMAL_EOS not defined in /rhic/include/EquationOfState.h, exiting...\n");
+		// 	exit(-1);
+		// #endif
 
-			set_ideal_gubser_energy_density_and_flow_profile(nx, ny, nz, dt, dx, dy, dz, initial, hydro);
-			set_equilibrium_initial_condition(nx, ny, nz);
-			set_initial_hydro_variables(t, nx, ny, nz);
+		// 	set_ideal_gubser_energy_density_and_flow_profile(nx, ny, nz, dt, dx, dy, dz, initial, hydro);
+		// 	set_anisotropic_initial_condition(nx, ny, nz);
+		// 	set_initial_T_taumu_variables(t, nx, ny, nz);
 
 			break;
 		}
@@ -568,7 +574,7 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 		#endif
 
 			set_aniso_gubser_energy_density_and_flow_profile(nx, ny, nz, dt, dx, dy, dz, hydro);
-			set_initial_hydro_variables(t, nx, ny, nz);
+			set_initial_T_taumu_variables(t, nx, ny, nz);
 
 			break;
 		}
@@ -577,8 +583,8 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 			printf("Optical Glauber (fluid velocity and viscous pressures initialized to zero)\n\n");
 
 			set_Glauber_energy_density_and_flow_profile(nx, ny, nz, dx, dy, dz, initial, hydro);
-			set_equilibrium_initial_condition(nx, ny, nz);
-			set_initial_hydro_variables(t, nx, ny, nz);
+			set_anisotropic_initial_condition(nx, ny, nz, hydro);
+			set_initial_T_taumu_variables(t, nx, ny, nz);
 
 			break;
 		}
@@ -588,8 +594,8 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 			printf("MC Glauber");
 			set_Glauber_energy_density_and_flow_profile(nx, ny, nz, dx, dy, dz, initial, hydro);
 			printf("(fluid velocity and viscous pressures initialized to zero)\n\n");
-			set_equilibrium_initial_condition(nx, ny, nz);
-			set_initial_hydro_variables(t, nx, ny, nz);
+			set_anisotropic_initial_condition(nx, ny, nz, hydro);
+			set_initial_T_taumu_variables(t, nx, ny, nz);
 
 			break;
 		}

@@ -61,6 +61,8 @@ hydro_parameters load_hydro_parameters()
 	getDoubleProperty(&cfg, "plpt_ratio_initial",		&hydro.plpt_ratio_initial);
 	getDoubleProperty(&cfg, "quark_flavors",			&quark_flavors);
 	getIntegerProperty(&cfg,"temperature_etas", 		&hydro.temperature_etas);
+	getDoubleProperty(&cfg, "etas_min", 				&hydro.etas_min);
+	getDoubleProperty(&cfg, "etas_slope", 				&hydro.etas_slope);
 	getDoubleProperty(&cfg, "constant_etas", 			&hydro.constant_etas);
 	getDoubleProperty(&cfg, "freezeout_temperature_GeV",&hydro.freezeout_temperature_GeV);
 	getDoubleProperty(&cfg, "flux_limiter",				&hydro.flux_limiter);
@@ -84,6 +86,8 @@ hydro_parameters load_hydro_parameters()
 	printf("quark_flavors             = %.1f\n", 	quark_flavors);
 	printf("conformal_eos_prefactor   = %.6g\n", 	hydro.conformal_eos_prefactor);
 	printf("temperature_etas          = %d\n", 		hydro.temperature_etas);
+	printf("etas_min                  = %.3g\n", 	hydro.etas_min);
+	printf("etas_slope                = %.3g\n", 	hydro.etas_slope);
 	printf("constant_etas             = %.3g\n", 	hydro.constant_etas);
 	printf("freezeout_temperature_GeV = %.3f\n", 	hydro.freezeout_temperature_GeV);
 	printf("flux_limiter              = %.3g\n", 	hydro.flux_limiter);
@@ -181,7 +185,7 @@ initial_condition_parameters load_initial_condition_parameters()
 	config_t cfg;
 	config_init(&cfg);
 
-	char fname[255] = "parameters/ic.properties";
+	char fname[255] = "parameters/initial.properties";
 	if(!config_read_file(&cfg, fname))
 	{
 		fprintf(stderr, "No configuration file  %s found for initial condition parameters - %s.\n", fname, config_error_text(&cfg));
@@ -199,6 +203,7 @@ initial_condition_parameters load_initial_condition_parameters()
 	getDoubleProperty(&cfg,	"fractionOfBinaryCollisions", 	&initial.fractionOfBinaryCollisions);
 	getDoubleProperty(&cfg, "rapidityVariance", 			&initial.rapidityVariance);
 	getDoubleProperty(&cfg, "rapidityMean", 				&initial.rapidityMean);
+	getDoubleProperty(&cfg, "T_hat_initial", 				&initial.T_hat_initial);
 
 	config_destroy(&cfg);
 
@@ -212,6 +217,7 @@ initial_condition_parameters load_initial_condition_parameters()
 	printf("fractionOfBinaryCollisions   = %.3g\n", initial.fractionOfBinaryCollisions);
 	printf("rapidityVariance             = %.3g\n", initial.rapidityVariance);
 	printf("rapidityMean                 = %.3g\n", initial.rapidityMean);
+	printf("T_hat_initial                = %.6g\n", initial.T_hat_initial);
 	printf("\n");
 
 	return initial;

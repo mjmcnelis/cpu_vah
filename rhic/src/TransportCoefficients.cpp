@@ -4,6 +4,7 @@
 #include <math.h> 
 #include <cmath>
 #include "../include/Macros.h"
+#include "../include/Hydrodynamics.h"
 #include "../include/TransportCoefficients.h"
 #include "../include/DynamicalVariables.h"
 #include "../include/EquationOfState.h"
@@ -17,11 +18,11 @@ double dpt_error = 1.e-7;
 
 precision eta_over_s(precision T, hydro_parameters hydro)
 {
-	if(hydro.temperature_etas)
+	if(hydro.temperature_etas)								// temperature dependent piecewise parameterization
 	{
-		precision etas_min = 0.08;					// this should be in a separate parameters file
-		precision etas_slope = 0.85 / 5.067731;
-		precision Tc = 0.154 * 5.067731;
+		precision etas_min = hydro.etas_min;				// etas value for T < Tc
+		precision etas_slope = hydro.etas_slope * hbarc;	// etas slope (converted to fm)
+		precision Tc = 0.154 / hbarc;						// psuedocritical temperature (fm^-1)
 
 		return fmax(etas_min, etas_min  +  etas_slope * (T - Tc));
 	}

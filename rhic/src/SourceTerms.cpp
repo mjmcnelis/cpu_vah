@@ -545,13 +545,13 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	Xi_2.double_transverse_project_tensor(Itt, Itx, Ity, Itn, Ixx, Ixy, Ixn, Iyy, Iyn, Inn);
 
 	// Christofel terms: G_\pi^{\mu\nu} = 2 . u^\alpha . \Gamma^{(\mu}_{\alpha\beta} . \pi_T^{\beta\nu)}
-	precision Gtt_pi = 2. * tun * pitn;
-	precision Gtx_pi = tun * pixn;
-	precision Gty_pi = tun * piyn;
-	precision Gtn_pi = tun * pinn  +  (ut * pitn  +  un * pitt) / t;
-	precision Gxn_pi = (ut * pixn  +  un * pitx) / t;
-	precision Gyn_pi = (ut * piyn  +  un * pity) / t;
-	precision Gnn_pi = 2. * (ut * pinn  +  un * pitn) / t;		// fixed factor of 2 bug on 7/23
+	precision Gtt = 2. * tun * pitn;
+	precision Gtx = tun * pixn;
+	precision Gty = tun * piyn;
+	precision Gtn = tun * pinn  +  (ut * pitn  +  un * pitt) / t;
+	precision Gxn = (ut * pixn  +  un * pitx) / t;
+	precision Gyn = (ut * piyn  +  un * pity) / t;
+	precision Gnn = 2. * (ut * pinn  +  un * pitn) / t;		// fixed factor of 2 bug on 7/23
 
 	// pi_T^{\mu\alpha} . a_\alpha
 	precision piat = pitt * at  -  pitx * ax  -  pity * ay  -  t2 * pitn * an;
@@ -566,16 +566,16 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	precision piDzn = pitn * D_zt  -  t2 * pinn * D_zn;
 
 	// Product rule terms: P^{\mu\nu} = 2.(- u^{(\mu} . \pi_{\nu)\alpha} . a_\alpha  +  z^{(\mu} . \pi_{\nu)\alpha} . \dot{z}_\alpha)
-	precision Ptt_pi = 2. * (- ut * piat  +  zt * piDzt);
-	precision Ptx_pi = - ut * piax  -  ux * piat  +  zt * piDzx;
-	precision Pty_pi = - ut * piay  -  uy * piat  +  zt * piDzy;
-	precision Ptn_pi = - ut * pian  -  un * piat  +  zt * piDzn  +  zn * piDzt;
-	precision Pxx_pi = - 2. * ux * piax;
-	precision Pxy_pi = - ux * piay  -  uy * piax;
-	precision Pxn_pi = - ux * pian  -  un * piax  +  zn * piDzx;	// don't see anything wrong with this
-	precision Pyy_pi = - 2. * uy * piay;
-	precision Pyn_pi = - uy * pian  -  un * piay  +  zn * piDzy;
-	precision Pnn_pi = 2. * (- un * pian  +  zn * piDzn);
+	precision Ptt = 2. * (- ut * piat  +  zt * piDzt);
+	precision Ptx = - ut * piax  -  ux * piat  +  zt * piDzx;
+	precision Pty = - ut * piay  -  uy * piat  +  zt * piDzy;
+	precision Ptn = - ut * pian  -  un * piat  +  zt * piDzn  +  zn * piDzt;
+	precision Pxx = - 2. * ux * piax;
+	precision Pxy = - ux * piay  -  uy * piax;
+	precision Pxn = - ux * pian  -  un * piax  +  zn * piDzx;	// don't see anything wrong with this
+	precision Pyy = - 2. * uy * piay;
+	precision Pyn = - uy * pian  -  un * piay  +  zn * piDzy;
+	precision Pnn = 2. * (- un * pian  +  zn * piDzn);
 
 #else
 	precision pi_sT = 0;
@@ -638,79 +638,73 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	precision lambda_piTW = aniso.lambda_piTW;
 
 	// gradient terms in dWTz (some are unprojected)
-	precision It_W1 = 2. * eta_uW * Dz_ut;
-	precision Ix_W1 = 2. * eta_uW * Dz_ux;
-	precision Iy_W1 = 2. * eta_uW * Dz_uy;
-	precision In_W1 = 2. * eta_uW * Dz_un;
+	precision It = 2. * eta_uW * Dz_ut;
+	precision Ix = 2. * eta_uW * Dz_ux;
+	precision Iy = 2. * eta_uW * Dz_uy;
+	precision In = 2. * eta_uW * Dz_un;
 
-	precision It_W2 = 2. * eta_TW * z_NabTt_u;
-	precision Ix_W2 = 2. * eta_TW * z_NabTx_u;
-	precision Iy_W2 = 2. * eta_TW * z_NabTy_u;
-	precision In_W2 = 2. * eta_TW * z_NabTn_u;
+	It -= 2. * eta_TW * z_NabTt_u;
+	Ix -= 2. * eta_TW * z_NabTx_u;
+	Iy -= 2. * eta_TW * z_NabTy_u;
+	In -= 2. * eta_TW * z_NabTn_u;
 
-	precision It_W3 = tau_zW * D_zt;
-	precision In_W3 = tau_zW * D_zn;
-
-#ifdef PIMUNU
-	precision It_W4 = pitt * D_zt  -  t2 * pitn * D_zn;
-	precision In_W4 = pitn * D_zt  -  t2 * pinn * D_zn;
-#else
-	precision It_W4 = 0, In_W4 = 0;
-#endif
-
-	precision It_W5 = delta_WW * WtTz * thetaT;
-	precision Ix_W5 = delta_WW * WxTz * thetaT;
-	precision Iy_W5 = delta_WW * WyTz * thetaT;
-	precision In_W5 = delta_WW * WnTz * thetaT;
-
-	precision It_W6 = lambda_WuW * WtTz * thetaL;
-	precision Ix_W6 = lambda_WuW * WxTz * thetaL;
-	precision Iy_W6 = lambda_WuW * WyTz * thetaL;
-	precision In_W6 = lambda_WuW * WnTz * thetaL;
-
-	precision It_W7 = lambda_WTW * (sTtt * WtTz  -  sTtx * WxTz  -  sTty * WyTz  - t2 * sTtn * WnTz);
-	precision Ix_W7 = lambda_WTW * (sTtx * WtTz  -  sTxx * WxTz  -  sTxy * WyTz  - t2 * sTxn * WnTz);
-	precision Iy_W7 = lambda_WTW * (sTty * WtTz  -  sTxy * WxTz  -  sTyy * WyTz  - t2 * sTyn * WnTz);
-	precision In_W7 = lambda_WTW * (sTtn * WtTz  -  sTxn * WxTz  -  sTyn * WyTz  - t2 * sTnn * WnTz);
-
-	precision It_W8 = 0;		// keep vorticity term zero for now..
-	precision Ix_W8 = 0;
-	precision Iy_W8 = 0;
-	precision In_W8 = 0;
+	It -= tau_zW * D_zt;
+	In -= tau_zW * D_zn;
 
 #ifdef PIMUNU
-	precision It_W9 = lambda_piuW * (pitt * Dz_ut  -  pitx * Dz_ux  -  pity * Dz_uy  -  t2 * pitn * Dz_un);
-	precision Ix_W9 = lambda_piuW * (pitx * Dz_ut  -  pixx * Dz_ux  -  pixy * Dz_uy  -  t2 * pixn * Dz_un);
-	precision Iy_W9 = lambda_piuW * (pity * Dz_ut  -  pixy * Dz_ux  -  piyy * Dz_uy  -  t2 * piyn * Dz_un);
-	precision In_W9 = lambda_piuW * (pitn * Dz_ut  -  pixn * Dz_ux  -  piyn * Dz_uy  -  t2 * pinn * Dz_un);
-
-	precision It_W10 = lambda_piTW * (pitt * z_NabTt_u  -  pitx * z_NabTx_u  -  pity * z_NabTy_u  -  t2 * pitn * z_NabTn_u);
-	precision Ix_W10 = lambda_piTW * (pitx * z_NabTt_u  -  pixx * z_NabTx_u  -  pixy * z_NabTy_u  -  t2 * pixn * z_NabTn_u);
-	precision Iy_W10 = lambda_piTW * (pity * z_NabTt_u  -  pixy * z_NabTx_u  -  piyy * z_NabTy_u  -  t2 * piyn * z_NabTn_u);
-	precision In_W10 = lambda_piTW * (pitn * z_NabTt_u  -  pixn * z_NabTx_u  -  piyn * z_NabTy_u  -  t2 * pinn * z_NabTn_u);
-#else
-	precision It_W9 = 0, Ix_W9 = 0, Iy_W9 = 0, In_W9 = 0;
-	precision It_W10 = 0, Ix_W10 = 0, Iy_W10 = 0, In_W10 = 0;
+	It -= pitt * D_zt  -  t2 * pitn * D_zn;
+	In -= pitn * D_zt  -  t2 * pinn * D_zn;
 #endif
 
-	precision It_W = It_W1  -  It_W2  -  It_W3  -  It_W4  +  It_W5  -  It_W6  +  It_W7  +  It_W8  +  It_W9  -  It_W10;
-	precision Ix_W = Ix_W1  -  Ix_W2  			   		  +  Ix_W5  -  Ix_W6  +  Ix_W7  +  Ix_W8  +  Ix_W9  -  Ix_W10;
-	precision Iy_W = Iy_W1  -  Iy_W2  			 		  +  Iy_W5  -  Iy_W6  +  Iy_W7  +  Iy_W8  +  Iy_W9  -  Iy_W10;
-	precision In_W = In_W1  -  In_W2  -  In_W3  -  In_W4  +  In_W5  -  In_W6  +  In_W7  +  In_W8  +  In_W9  -  In_W10;
-	Xi.transverse_project_vector(It_W, Ix_W, Iy_W, In_W);
+	It += delta_WW * WtTz * thetaT;
+	Ix += delta_WW * WxTz * thetaT;
+	Iy += delta_WW * WyTz * thetaT;
+	In += delta_WW * WnTz * thetaT;
+
+	It -= lambda_WuW * WtTz * thetaL;
+	Ix -= lambda_WuW * WxTz * thetaL;
+	Iy -= lambda_WuW * WyTz * thetaL;
+	In -= lambda_WuW * WnTz * thetaL;
+
+	It += lambda_WTW * (sTtt * WtTz  -  sTtx * WxTz  -  sTty * WyTz  - t2 * sTtn * WnTz);
+	Ix += lambda_WTW * (sTtx * WtTz  -  sTxx * WxTz  -  sTxy * WyTz  - t2 * sTxn * WnTz);
+	Iy += lambda_WTW * (sTty * WtTz  -  sTxy * WxTz  -  sTyy * WyTz  - t2 * sTyn * WnTz);
+	In += lambda_WTW * (sTtn * WtTz  -  sTxn * WxTz  -  sTyn * WyTz  - t2 * sTnn * WnTz);
+
+	if(hydro.include_vorticity)
+	{
+		It += 0.;		// haven't worked out vorticity terms yet 
+		Ix += 0.;
+		Iy += 0.;
+		In += 0.;
+	}
+
+#ifdef PIMUNU
+	It += lambda_piuW * (pitt * Dz_ut  -  pitx * Dz_ux  -  pity * Dz_uy  -  t2 * pitn * Dz_un);
+	Ix += lambda_piuW * (pitx * Dz_ut  -  pixx * Dz_ux  -  pixy * Dz_uy  -  t2 * pixn * Dz_un);
+	Iy += lambda_piuW * (pity * Dz_ut  -  pixy * Dz_ux  -  piyy * Dz_uy  -  t2 * piyn * Dz_un);
+	In += lambda_piuW * (pitn * Dz_ut  -  pixn * Dz_ux  -  piyn * Dz_uy  -  t2 * pinn * Dz_un);
+
+	It -= lambda_piTW * (pitt * z_NabTt_u  -  pitx * z_NabTx_u  -  pity * z_NabTy_u  -  t2 * pitn * z_NabTn_u);
+	Ix -= lambda_piTW * (pitx * z_NabTt_u  -  pixx * z_NabTx_u  -  pixy * z_NabTy_u  -  t2 * pixn * z_NabTn_u);
+	Iy -= lambda_piTW * (pity * z_NabTt_u  -  pixy * z_NabTx_u  -  piyy * z_NabTy_u  -  t2 * piyn * z_NabTn_u);
+	In -= lambda_piTW * (pitn * z_NabTt_u  -  pixn * z_NabTx_u  -  piyn * z_NabTy_u  -  t2 * pinn * z_NabTn_u);
+#endif
+
+	Xi.transverse_project_vector(It, Ix, Iy, In);
 
 	// Christofel terms (G_W^\mu  =  u^\alpha . \Gamma^\mu_{\alpha\beta} . WTz^\mu)
-	precision Gt_W = tun * WnTz;
-	precision Gn_W = (ut * WnTz  +  un * WtTz) / t;
+	precision Gt = tun * WnTz;
+	precision Gn = (ut * WnTz  +  un * WtTz) / t;
 
 	// product rule terms (P_W^\mu  =  - u^\mu . Wtz^\nu . a_\nu  +  z^\mu . Wtz^\nu . Dz_\nu)
 	precision WTza  = WtTz * at  -  WxTz * ax  -  WyTz * ay  -  t2 * WnTz * an;
 	precision WTzDz = WtTz * D_zt  -  t2 * WnTz * D_zn;
 
-	precision Pt_W = - ut * WTza  +  zt * WTzDz;
-	precision Px_W = - ux * WTza;
-	precision Py_W = - uy * WTza;
-	precision Pn_W = - un * WTza  +  zn * WTzDz;
+	precision Pt = - ut * WTza  +  zt * WTzDz;
+	precision Px = - ux * WTza;
+	precision Py = - uy * WTza;
+	precision Pn = - un * WTza  +  zn * WTzDz;
 #else
 	precision Wtt = 0, Wtx = 0, Wty = 0, Wtn = 0, Wxn = 0, Wyn = 0, Wnn = 0;
 	precision dWtt_dx = 0, dWtt_dy = 0, dWtt_dn = 0, dWtx_dx = 0, dWtx_dy = 0, dWtx_dn = 0, dWty_dx = 0, dWty_dy = 0, dWty_dn = 0, dWtn_dx = 0, dWtn_dy = 0, dWtn_dn = 0, dWxn_dx = 0,dWxn_dn = 0, dWyn_dy = 0, dWyn_dn = 0, dWnn_dn = 0;
@@ -763,16 +757,16 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 
 	// piT relaxation equation (checked it, looks ok)
 #ifdef PIMUNU
-	precision dpitt = - pitt * taupiInv  +  Itt  +  Ptt_pi  -  Gtt_pi;
-	precision dpitx = - pitx * taupiInv  +  Itx  +  Ptx_pi  -  Gtx_pi;
-	precision dpity = - pity * taupiInv  +  Ity  +  Pty_pi  -  Gty_pi;
-	precision dpitn = - pitn * taupiInv  +  Itn  +  Ptn_pi  -  Gtn_pi;
-	precision dpixx = - pixx * taupiInv  +  Ixx  +  Pxx_pi;
-	precision dpixy = - pixy * taupiInv  +  Ixy  +  Pxy_pi;
-	precision dpixn = - pixn * taupiInv  +  Ixn  +  Pxn_pi  -  Gxn_pi;
-	precision dpiyy = - piyy * taupiInv  +  Iyy  +  Pyy_pi;
-	precision dpiyn = - piyn * taupiInv  +  Iyn  +  Pyn_pi  -  Gyn_pi;
-	precision dpinn = - pinn * taupiInv  +  Inn  +  Pnn_pi  -  Gnn_pi;
+	precision dpitt = - pitt * taupiInv  +  Itt  +  Ptt  -  Gtt;
+	precision dpitx = - pitx * taupiInv  +  Itx  +  Ptx  -  Gtx;
+	precision dpity = - pity * taupiInv  +  Ity  +  Pty  -  Gty;
+	precision dpitn = - pitn * taupiInv  +  Itn  +  Ptn  -  Gtn;
+	precision dpixx = - pixx * taupiInv  +  Ixx  +  Pxx;
+	precision dpixy = - pixy * taupiInv  +  Ixy  +  Pxy;
+	precision dpixn = - pixn * taupiInv  +  Ixn  +  Pxn  -  Gxn;
+	precision dpiyy = - piyy * taupiInv  +  Iyy  +  Pyy;
+	precision dpiyn = - piyn * taupiInv  +  Iyn  +  Pyn  -  Gyn;
+	precision dpinn = - pinn * taupiInv  +  Inn  +  Pnn  -  Gnn;
 
 	S[a] = dpitt / ut  +  div_v * pitt;		a++;
 	S[a] = dpitx / ut  +  div_v * pitx;		a++;
@@ -788,10 +782,10 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 
 	// WTz relaxation equation
 #ifdef WTZMU
-	precision dWtTz = - WtTz * taupiInv  +  It_W  +  Pt_W  -  Gt_W;
-	precision dWxTz = - WxTz * taupiInv  +  Ix_W  +  Px_W;
-	precision dWyTz = - WyTz * taupiInv  +  Iy_W  +  Py_W;
-	precision dWnTz = - WnTz * taupiInv  +  In_W  +  Pn_W  -  Gn_W;
+	precision dWtTz = - WtTz * taupiInv  +  It  +  Pt  -  Gt;
+	precision dWxTz = - WxTz * taupiInv  +  Ix  +  Px;
+	precision dWyTz = - WyTz * taupiInv  +  Iy  +  Py;
+	precision dWnTz = - WnTz * taupiInv  +  In  +  Pn  -  Gn;
 
 	S[a] = dWtTz / ut  +  div_v * WtTz;		a++;
 	S[a] = dWxTz / ut  +  div_v * WxTz;		a++;

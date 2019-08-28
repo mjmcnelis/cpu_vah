@@ -11,6 +11,7 @@
 #include "../include/Parameters.h"
 using namespace std;
 
+const double dt_eps = 1.e-8;
 
 double de_dt(double e, double pl, double t, hydro_parameters hydro)
 {
@@ -38,6 +39,23 @@ double dpl_dt(double e, double pl, double t, hydro_parameters hydro)
 }
 
 
+double set_time_step(double t, double t_next_output, lattice_parameters lattice)
+{
+	double dt = lattice.min_time_step;
+
+	if(t + dt_eps < t_next_output)		
+	{
+		if(t + dt > t_next_output)
+		{
+			//dt = fmax(dt_eps, t_next_output - t);
+			dt = fmax(dt, t_next_output - t);
+		}
+	} 	
+	return dt;
+}
+
+
+
 void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro)
 {
 	// using a highly accurate 4th order numerical solution (fixed time step)
@@ -46,31 +64,46 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 	double t  = hydro.tau_initial;												// initial time
 	double T0  = initial.initialCentralTemperatureGeV;							// initial temperature
 
+	double dt = lattice.min_time_step;											// use minimum time step ~ 100x smaller than t0 
+	int decimal = - log10(dt);													// setprecision value for t output
+
+	precision t_out = t;														// output times
+	precision dt_out = lattice.output_interval;
+
 	double conformal_eos_prefactor = hydro.conformal_eos_prefactor;
 	double e0 = equilibriumEnergyDensity(T0 / hbarc, conformal_eos_prefactor);	// initial energy density
 
-	double dt = pow(10., round(log10(t)) - 2.);									// time step ~ 100x smaller than t0 
-																				// (rounded to nearest decimal)
 	double plpt_ratio = hydro.plpt_ratio_initial;								// initial pl/pt ratio
 
 	double e = e0;
-	double pl = e0 * plpt_ratio / (2. + plpt_ratio);
+	double pl = e0 * plpt_ratio / (2. + plpt_ratio);							// using the conformal formula I think 
 	
 	double T_freeze = hydro.freezeout_temperature_GeV;
 	double e_freeze = equilibriumEnergyDensity(T_freeze / hbarc, conformal_eos_prefactor);
 
-	ofstream e_e0, pl_pt;
-	e_e0.open("semi_analytic/e_e0_aniso_bjorken.dat", ios::out);
-	pl_pt.open("semi_analytic/pl_pt_aniso_bjorken.dat", ios::out);
+	ofstream e_e0_plot;
+	ofstream pl_pt_plot;
+	e_e0_plot.open("semi_analytic/e_e0_aniso_bjorken.dat", ios::out);
+	pl_pt_plot.open("semi_analytic/pl_pt_aniso_bjorken.dat", ios::out);
+
+	e_e0_plot  << fixed << setprecision(decimal) << t << "\t" << scientific << setprecision(8) << 1.0 << endl;
+	pl_pt_plot << fixed << setprecision(decimal) << t << "\t" << scientific << setprecision(8) << plpt_ratio << endl;
 
 	while(true)
 	{
+		set_time_step(t, t_out + dt_out, lattice);
+
 		double pt = (e - pl) / 2.;	// temporary
 
-		e_e0  << setprecision(8) << t << "\t" << e / e0 << endl;
-		pl_pt << setprecision(8) << t << "\t" << pl / pt << endl;
+		if(fabs(t - t_out - dt_out) < dt_eps)
+		{
+			e_e0_plot  << fixed << setprecision(decimal) << t << "\t" << scientific << setprecision(8) << e / e0 << endl;
+			pl_pt_plot << fixed << setprecision(decimal) << t << "\t" << scientific << setprecision(8) << pl / pt << endl;
 
-		if(e < e_freeze) break;
+			t_out += dt_out;
+
+			if(e < e_freeze) break;
+		}
 
 		double ek1  = dt *  de_dt(e, pl, t, hydro);
 		double plk1 = dt * dpl_dt(e, pl, t, hydro);
@@ -90,8 +123,8 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 		t += dt;
 	}
 
-	e_e0.close();
-	pl_pt.close();
+	e_e0_plot.close();
+	pl_pt_plot.close();
 }
 
 

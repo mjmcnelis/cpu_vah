@@ -11,7 +11,7 @@
 #include "../include/NeighborCells.h"
 #include "../include/Hydrodynamics.h"
 #include "../include/AnisoBjorken.h"
-
+#include "../include/AnisoGubser.h"
 
 inline int linear_column_index(int i, int j, int k, int nx, int ny)
 {
@@ -605,14 +605,21 @@ void output_semi_analytic_solution_if_any(lattice_parameters lattice, initial_co
 {
 	switch(initial.initialConditionType)
 	{
-		case 1:	// anisotropic Bjorken
+		case 1:		// anisotropic Bjorken
 		{
 			printf("\nRunning semi-analytic anisotropic Bjorken solution...\n");
 			run_semi_analytic_aniso_bjorken(lattice, initial, hydro);
 			break;
 		}
+		case 3:		// anisotropic Gubser
+		{
+			printf("\nRunning semi-analytic anisotropic Gubser solution...\n");
+			run_semi_analytic_aniso_gubser(lattice, initial, hydro);
+			break;
+		}
 		default:
 		{
+			printf("\nNo semi-analytic solution to run...\n");
 			break;
 		}
 	}
