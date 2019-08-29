@@ -70,7 +70,7 @@ void set_initial_T_taumu_variables(double t, int nx, int ny, int nz)
 			#else
 				precision pitt = 0;
 				precision pitx = 0;
-				precision pity = 0; 
+				precision pity = 0;
 				precision pitn = 0;
 			#endif
 
@@ -153,7 +153,7 @@ void set_anisotropic_initial_condition(int nx, int ny, int nz, hydro_parameters 
 			#endif
 
 		  	#ifdef PI
-		  		q[s].Pi = e_s / 3.  -  equilibriumPressure(e_s);	// switching from conformal eos to lattice 
+		  		q[s].Pi = e_s / 3.  -  equilibriumPressure(e_s);	// switching from conformal eos to lattice
 		  	#endif
 			}
 		}
@@ -184,7 +184,7 @@ void set_Bjorken_energy_density_and_flow_profile(int nx, int ny, int nz, initial
 				u[s].ux = 0;	// zero fluid velocity
 				u[s].uy = 0;
 				u[s].un = 0;
-				
+
 				up[s].ux = 0;	// also initialize up = u
 				up[s].uy = 0;
 				up[s].un = 0;
@@ -526,7 +526,7 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 	precision dt = lattice.fixed_time_step;
 
 	if(lattice.adaptive_time_step) dt = lattice.min_time_step;
-	
+
 	printf("\nInitial conditions = ");
 	switch(initial.initialConditionType)
 	{

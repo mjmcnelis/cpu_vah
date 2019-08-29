@@ -12,8 +12,7 @@
 #include "../include/AnisoGubser.h"
 using namespace std;
 
-const double eps = 1.e-5;
-const double drho_default = 1.e-4;
+
 
 double rho_function(double t, double r, double q)
 {
@@ -38,7 +37,7 @@ double dpl_drho(double e, double pl, double rho, hydro_parameters hydro)
 	aniso.compute_transport_coefficients(e, pl, (e - pl)/2., conformal_eos_prefactor);
 
 	return - taupiInv * (pl - e/3.)  -  (4. * pl  +  aniso.zeta_LL) * tanh(rho);
-	
+
 }
 
 
@@ -79,7 +78,7 @@ void run_semi_analytic_aniso_gubser(lattice_parameters lattice, initial_conditio
 
 	double t = hydro.tau_initial;					// initial longitudinal proper time
 
-	double dt_out = lattice.output_interval;		// output times 
+	double dt_out = lattice.output_interval;		// output times
 
 	double q0 = 1.0;								// inverse length size (hard coded)
 	double T0_hat = initial.T_hat_initial;			// value hard coded in parameters/initial.properties
@@ -101,18 +100,20 @@ void run_semi_analytic_aniso_gubser(lattice_parameters lattice, initial_conditio
     double rho0 = rho_function(t, r_max, q0);				// min rho at transverse corner
 	double rhoP = rho_function(t, 0, q0);					// max rho at center
 
-	int rho_pts = ceil(fabs((rhoP - rho0) / drho_default));
+	double drho = 0.0001;
 
-	double drho = fabs((rhoP - rho0) / ((double)rho_pts - 1.));
+	int rho_pts = ceil(fabs((rhoP - rho0) / drho));
+
+	drho = fabs((rhoP - rho0) / ((double)rho_pts - 1.));
 
 	double rho_array[rho_pts];
 
-	for(int j = 0; j < rho_pts; j++) 
+	for(int j = 0; j < rho_pts; j++)
 	{
 		rho_array[j] = rho0  +  j * drho;
 	}
 
-	double  e_hat[rho_pts];									
+	double  e_hat[rho_pts];
 	double pl_hat[rho_pts];
 
 	 e_hat[0] = equilibriumEnergyDensity(T0_hat, hydro.conformal_eos_prefactor);
@@ -120,7 +121,7 @@ void run_semi_analytic_aniso_gubser(lattice_parameters lattice, initial_conditio
 
 	gubser_rho_evolution(e_hat, pl_hat, rho_array, rho_pts, drho, hydro);
 
-	gsl_spline * e_hat_spline;								// construct the cubic spline interpolations
+	gsl_spline * e_hat_spline;		// construct the cubic spline interpolations
 	gsl_spline * pl_hat_spline;
 
 	e_hat_spline = gsl_spline_alloc(gsl_interp_cspline, rho_pts);
@@ -129,24 +130,29 @@ void run_semi_analytic_aniso_gubser(lattice_parameters lattice, initial_conditio
 	gsl_spline_init(e_hat_spline, rho_array, e_hat, rho_pts);
 	gsl_spline_init(pl_hat_spline, rho_array, pl_hat, rho_pts);
 
-	gsl_interp_accel * accel = gsl_interp_accel_alloc();
 
-	
+
 	// freezeout conditions
 	double T_freeze = hydro.freezeout_temperature_GeV;
 	double e_freeze = equilibriumEnergyDensity(T_freeze / hbarc, hydro.conformal_eos_prefactor);
 
-	printf("%lf\n", e_freeze);
+	double eps = 1.e-5;
+
+	//t += dt_out;
 
 	while(true)
-	{	
-		FILE *energy, *plptratio;
-		char fname1[255], fname2[255];
+	{
+		gsl_interp_accel * accel = gsl_interp_accel_alloc();
+
+		FILE *energy;
+		FILE *plptratio;
+		char fname1[255];
+		char fname2[255];
 
 		sprintf(fname1, "semi_analytic/e_gubser_%.3f.dat", t);
 		sprintf(fname2, "semi_analytic/plpt_ratio_gubser_%.3f.dat", t);
-		
-		energy      = fopen(fname1, "w");
+
+		energy 		= fopen(fname1, "w");
 		plptratio 	= fopen(fname2, "w");
 
 		bool below_freezeout_surface = true;
@@ -155,27 +161,21 @@ void run_semi_analytic_aniso_gubser(lattice_parameters lattice, initial_conditio
 		{
 			double x = (i - 2. - (nx - 1.)/2.) * dx;
 
-			for(int j = 2; j < ny + 2; j++)
-			{
-				double y = (j - 2. - (ny - 1.)/2.) * dy;
-				double r = sqrt(x * x  +  y * y);
+			double rho = rho_function(t, fabs(x), q0);
 
-				double rho = rho_function(t, r, q0);
+			rho = fmax(rho0, fmin(rho, rhoP - eps));
 
-				rho = fmax(rho0, fmin(rho, rhoP - eps));
+			double e_r  = gsl_spline_eval(e_hat_spline,  rho, accel) / (t * t * t * t);
+			double pl = gsl_spline_eval(pl_hat_spline, rho, accel) / (t * t * t * t);
 
-				double e  = gsl_spline_eval(e_hat_spline,  rho, accel) / (t * t * t * t);
-				double pl = gsl_spline_eval(pl_hat_spline, rho, accel) / (t * t * t * t);
-			
-				// write to file
-				fprintf(energy, 	"%.3f\t%.3f\t%.8f\n", x, y, e);
-				fprintf(plptratio,	"%.3f\t%.3f\t%.8f\n", x, y, 2. * pl / (e - pl));
+			double T = effectiveTemperature(e_r, hydro.conformal_eos_prefactor);
 
-				if(e > e_freeze) below_freezeout_surface = false;
+			if((i - 2 == (nx - 1) / 2)) printf("%lf\t%lf\t%lf\n", t, e_r * hbarc, T * hbarc);
 
-				// I also want to compute the initial central energy density
+			fprintf(energy, 	"%.3f\t%.8f\n", x, e_r);
+			fprintf(plptratio,	"%.3f\t%.8f\n", x, 2. * pl / (e_r - pl));
 
-			}
+			if(e_r > e_freeze) below_freezeout_surface = false;
 		}
 
 		fclose(energy);
@@ -184,11 +184,13 @@ void run_semi_analytic_aniso_gubser(lattice_parameters lattice, initial_conditio
 		if(below_freezeout_surface) break;
 
 		t += dt_out;
+
+		gsl_interp_accel_free(accel);
 	}
-	
+
 	gsl_spline_free(e_hat_spline);
 	gsl_spline_free(pl_hat_spline);
-	gsl_interp_accel_free(accel);
+
 }
 
 
