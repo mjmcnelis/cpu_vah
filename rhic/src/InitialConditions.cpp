@@ -12,6 +12,7 @@
 #include "../include/Parameters.h"
 #include "../include/OpticalGlauber.h"
 #include "../include/MCGlauber.h"
+#include "../include/AnisoBjorken.h"
 #include "../include/AnisoGubser.h"
 #include "../include/EquationOfState.h"
 #include <gsl/gsl_errno.h>
@@ -337,70 +338,42 @@ void set_ideal_gubser_energy_density_and_flow_profile(int nx, int ny, int nz, do
 
 
 // initial conditions for the anisotropic hydro Gubser flow test
-// initial Gubser profile different than the "usual" gubser test
-void set_aniso_gubser_energy_density_and_flow_profile(int nx, int ny, int nz, double dt, double dx, double dy, double dz, hydro_parameters hydro)
+void set_aniso_gubser_energy_density_and_flow_profile(double T0_hat, int nx, int ny, int nz, double dt, double dx, double dy, double dz, hydro_parameters hydro, initial_condition_parameters initial)
 {
 #ifdef ANISO_HYDRO
-	double t    = hydro.tau_initial;		// initial longitudinal proper time
+	double t = hydro.tau_initial;					// initial longitudinal proper time
 
+	double q0 = initial.q_gubser;					// inverse length size
+	double plpt_ratio = hydro.plpt_ratio_initial;	// initial plpt ratio at transverse corner of grid 
 
-	double etas = hydro.constant_etas;		// shear viscosity  (NOTE: needs update!)
+	double x2_max = pow((nx - 1.) * dx / 2., 2);
+	double y2_max = pow((ny - 1.) * dy / 2., 2);
 
+	double r_max = sqrt(x2_max + y2_max);			// distance to transverse cornerx
 
+    double rho0 = rho_function(t, r_max, q0);		// min rho at transverse corner
+	double rhoP = rho_function(t, 0, q0);			// max rho at center
 
-	precision e_min = hydro.energy_min;
+	int rho_pts = ceil(fabs((rhoP - rho0) / drho_default));
 
-
-
-	double q0 = 1.0;						// inverse length size (hard coded)
-	double plpt_ratio = 0.01;				// initial plpt ratio at transverse corner of grid (hard coded)
-
-	// initial T_hat hard coded so that initial central temperature = 0.6 GeV
-	//double T0_hat = 0.0455468;   			// plpt_ratio = 1.0
-	//double T0_hat = 0.04296357;			// plpt_ratio = 0.01  (x,y = 5fm  x 5fm)
-	//double T0_hat = 0.0328418;			// plpt_ratio = 0.01  (x,y = 6fm  x 6fm)
-	double T0_hat = 0.0261391;	  			// low plpt ratio (x,y = 7fm x 7fm)
-	//double T0_hat = 0.01537397;	  		// plpt_ratio = 0.01  (x,y = 10fm x 10fm)
-	//double T0_hat = 0.01171034;	  		// plpt_ratio = 0.01  (x,y = 12fm x 12fm)
-
-	double x_max = (nx - 1.) * dx / 2.;
-	double y_max = (ny - 1.) * dy / 2.;
-
-	// distance to transverse corner
-	double r_max = sqrt(x_max * x_max  +  y_max * y_max);
-
-    double rho0 = rho_function(t, r_max, q0);	// min rho at transverse corner
-	double rhoP = rho_function(t, 0, q0);		// max rho at center
-
-	double drho = 0.0001;
-
-	int rho_pts = ceil(fabs((rhoP - rho0) / drho));
-
-	drho = fabs((rhoP - rho0) / ((double)rho_pts - 1.));
+	double drho = fabs((rhoP - rho0) / ((double)rho_pts - 1.));
 
 	double rho_array[rho_pts];
 
-	for(int j = 0; j < rho_pts; j++)
-	{
-		rho_array[j] = rho0  +  j * drho;
-	}
+	for(int j = 0; j < rho_pts; j++) rho_array[j] = rho0  +  j * drho;
 
-	// pass the e, pl rho_arrays in a module function
 	double  e_hat[rho_pts];
 	double pl_hat[rho_pts];
 
 	 e_hat[0] = equilibriumEnergyDensity(T0_hat, hydro.conformal_eos_prefactor);
 	pl_hat[0] = e_hat[0] * plpt_ratio / (2. + plpt_ratio);
 
+	gubser_rho_evolution(e_hat, pl_hat, rho_array, rho_pts, drho, t, hydro);
 
-	// make a separate module (move rho_function too)
-	gubser_rho_evolution(e_hat, pl_hat, rho_array, rho_pts, drho, hydro);
-
-	// construct the cubic spline interpolations
-	gsl_spline * e_hat_spline;
+	gsl_spline * e_hat_spline;						// construct the cubic spline interpolations
 	gsl_spline * pl_hat_spline;
 
-	e_hat_spline = gsl_spline_alloc(gsl_interp_cspline, rho_pts);
+	 e_hat_spline = gsl_spline_alloc(gsl_interp_cspline, rho_pts);
 	pl_hat_spline = gsl_spline_alloc(gsl_interp_cspline, rho_pts);
 
 	gsl_spline_init(e_hat_spline, rho_array, e_hat, rho_pts);
@@ -410,7 +383,6 @@ void set_aniso_gubser_energy_density_and_flow_profile(int nx, int ny, int nz, do
 
 	double eps = 1.e-5;
 
-	// loop over physical grid points
 	for(int i = 2; i < nx + 2; i++)
 	{
 		double x = (i - 2. - (nx - 1.)/2.) * dx;
@@ -423,17 +395,12 @@ void set_aniso_gubser_energy_density_and_flow_profile(int nx, int ny, int nz, do
 
 			double rho = rho_function(t, r, q0);
 
-			// if(!(rho >= rho0 && rho < rhoP))
-			// {
-			// 	printf("Error: rho = %lf out of interval [%lf, %lf)\n", rho, rho0, rhoP);
-			// }
 			rho = fmax(rho0, fmin(rho, rhoP - eps));
 
 			// evaluate anisotropic profile
 			double e_s  = gsl_spline_eval(e_hat_spline,  rho, accel) / (t * t * t * t);
 			double pl_s = gsl_spline_eval(pl_hat_spline, rho, accel) / (t * t * t * t);
 			double pt_s = (e_s - pl_s) / 2.;
-
 
 			double kappa   = atanh(2. * q0 * q0 * t * r / (1.  +  q0 * q0 * (t * t  +  r * r)));
 			double kappa_p = atanh(2. * q0 * q0 * (t - dt) * r / (1.  +  q0 * q0 * ((t - dt) * (t - dt)  +  r * r)));
@@ -444,30 +411,29 @@ void set_aniso_gubser_energy_density_and_flow_profile(int nx, int ny, int nz, do
 				exit(-1);
 			}
 
-			// initial flow profile
 			double ux = sinh(kappa) * x / r;
 			double uy = sinh(kappa) * y / r;
 
 			double ux_p = sinh(kappa_p) * x / r;
 			double uy_p = sinh(kappa_p) * y / r;
 
-			if(std::isnan(ux)) ux = 0;		// remove 0/0 nan
+			if(std::isnan(ux)) ux = 0;		
 			if(std::isnan(uy)) uy = 0;
 
 			if(std::isnan(ux_p)) ux_p = 0;
 			if(std::isnan(uy_p)) uy_p = 0;
 
-
 			for(int k = 2; k < nz + 2; k++)
 			{
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
-				e[s] = energy_density_cutoff(e_min, e_s);
+				e[s] = energy_density_cutoff(hydro.energy_min, e_s);
 
 				q[s].pl = pl_s;
 			#if (PT_MATCHING == 1)
 				q[s].pt = pt_s;
 			#endif
+
 			#ifdef PIMUNU
 		  		q[s].pitt = 0;
 		  		q[s].pitx = 0;
@@ -480,6 +446,7 @@ void set_aniso_gubser_energy_density_and_flow_profile(int nx, int ny, int nz, do
 		  		q[s].piyn = 0;
 		  		q[s].pinn = 0;
 			#endif
+
 			#ifdef WTZMU
 		  		q[s].WtTz = 0;
 		  		q[s].WxTz = 0;
@@ -540,6 +507,9 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 		#endif
 			printf("(fluid velocity and viscous pressures initialized to zero)\n\n");
 
+			printf("\nRunning semi-analytic anisotropic Bjorken solution...\n");
+			run_semi_analytic_aniso_bjorken(lattice, initial, hydro);
+
 			set_Bjorken_energy_density_and_flow_profile(nx, ny, nz, initial, hydro);
 			set_anisotropic_initial_condition(nx, ny, nz, hydro);
 			set_initial_T_taumu_variables(t, nx, ny, nz);
@@ -564,16 +534,19 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 		case 3:
 		{
 		#ifndef ANISO_HYDRO
-			printf("Aniso Gubser error: ANISO_HYDRO not defined in /rhic/include/DynamicalVariables.h, exiting...\n");
+			printf("Aniso Gubser error: ANISO_HYDRO not defined in /rhic/include/Marcos.h, exiting...\n");
 			exit(-1);
 		#endif
 			printf("Anisotropic Gubser (residual shear stress initialized to zero)\n\n");
 		#ifndef CONFORMAL_EOS
-			printf("\nGubser initial condition error: CONFORMAL_EOS not defined in /rhic/include/EquationOfState.h, exiting...\n");
+			printf("\nGubser initial condition error: CONFORMAL_EOS not defined in /rhic/include/Marcos.h, exiting...\n");
 			exit(-1);
 		#endif
 
-			set_aniso_gubser_energy_density_and_flow_profile(nx, ny, nz, dt, dx, dy, dz, hydro);
+			printf("Running semi-analytic anisotropic Gubser solution...\n\n");
+			double T0_hat = run_semi_analytic_aniso_gubser(lattice, initial, hydro);
+
+			set_aniso_gubser_energy_density_and_flow_profile(T0_hat, nx, ny, nz, dt, dx, dy, dz, hydro, initial);
 			set_initial_T_taumu_variables(t, nx, ny, nz);
 
 			break;

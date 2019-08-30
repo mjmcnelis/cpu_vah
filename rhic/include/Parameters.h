@@ -67,7 +67,7 @@ typedef struct
 	double rapidityVariance; 	// \sigma^{2}_{\eta}
 	double rapidityMean; 		// flat region around \ets_s = 0
 
-	double T_hat_initial;
+	double q_gubser;
 
 } initial_condition_parameters;
 

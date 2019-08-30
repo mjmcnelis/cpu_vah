@@ -614,7 +614,7 @@ void output_semi_analytic_solution_if_any(lattice_parameters lattice, initial_co
 		case 3:		// anisotropic Gubser
 		{
 			printf("\nRunning semi-analytic anisotropic Gubser solution...\n");
-			run_semi_analytic_aniso_gubser(lattice, initial, hydro);
+			double T0_hat = run_semi_analytic_aniso_gubser(lattice, initial, hydro);
 			break;
 		}
 		default:

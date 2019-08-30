@@ -6,6 +6,7 @@
 #include "../include/Parameters.h"
 using namespace std;
 
+
 void getIntegerProperty(config_t * cfg, const char * name, int * value)
 {
 	config_lookup_int(cfg, name, value);
@@ -39,7 +40,6 @@ double compute_conformal_prefactor(double flavors)
 }
 
 
-
 hydro_parameters load_hydro_parameters()
 {
 	config_t cfg;
@@ -57,20 +57,27 @@ hydro_parameters load_hydro_parameters()
 	double quark_flavors;
 
 	getIntegerProperty(&cfg,"run_hydro",				&hydro.run_hydro);
+
 	getDoubleProperty(&cfg, "tau_initial", 				&hydro.tau_initial);
 	getDoubleProperty(&cfg, "plpt_ratio_initial",		&hydro.plpt_ratio_initial);
 	getDoubleProperty(&cfg, "quark_flavors",			&quark_flavors);
+
 	getIntegerProperty(&cfg,"temperature_etas", 		&hydro.temperature_etas);
+
 	getDoubleProperty(&cfg, "etas_min", 				&hydro.etas_min);
 	getDoubleProperty(&cfg, "etas_slope", 				&hydro.etas_slope);
 	getDoubleProperty(&cfg, "constant_etas", 			&hydro.constant_etas);
 	getDoubleProperty(&cfg, "freezeout_temperature_GeV",&hydro.freezeout_temperature_GeV);
 	getDoubleProperty(&cfg, "flux_limiter",				&hydro.flux_limiter);
+
 	getIntegerProperty(&cfg,"include_vorticity", 		&hydro.include_vorticity);
+
 	getDoubleProperty(&cfg, "energy_min",				&hydro.energy_min);
 	getDoubleProperty(&cfg, "pressure_min",				&hydro.pressure_min);
+
 	getIntegerProperty(&cfg,"regulation_scheme", 		&hydro.regulation_scheme);
 	getIntegerProperty(&cfg,"reprojection", 			&hydro.reprojection);
+
 	getDoubleProperty(&cfg, "rho_max",					&hydro.rho_max);
 	getDoubleProperty(&cfg, "xi0",						&hydro.xi0);
 
@@ -134,14 +141,17 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro)
 	getIntegerProperty(&cfg, "lattice_points_x", 		&lattice.lattice_points_x);
 	getIntegerProperty(&cfg, "lattice_points_y", 		&lattice.lattice_points_y);
 	getIntegerProperty(&cfg, "lattice_points_eta", 		&lattice.lattice_points_eta);
+
 	getDoubleProperty(&cfg,  "lattice_spacing_x", 		&lattice.lattice_spacing_x);
 	getDoubleProperty(&cfg,  "lattice_spacing_y", 		&lattice.lattice_spacing_y);
 	getDoubleProperty(&cfg,  "lattice_spacing_eta", 	&lattice.lattice_spacing_eta);
 
 	getIntegerProperty(&cfg, "max_time_steps",			&lattice.max_time_steps);
+
 	getDoubleProperty(&cfg,  "output_interval", 		&lattice.output_interval);
 
 	getDoubleProperty(&cfg,  "fixed_time_step", 		&lattice.fixed_time_step);
+
 	getIntegerProperty(&cfg, "adaptive_time_step", 		&lattice.adaptive_time_step);
 
 	config_destroy(&cfg);
@@ -203,7 +213,7 @@ initial_condition_parameters load_initial_condition_parameters()
 	getDoubleProperty(&cfg,	"fractionOfBinaryCollisions", 	&initial.fractionOfBinaryCollisions);
 	getDoubleProperty(&cfg, "rapidityVariance", 			&initial.rapidityVariance);
 	getDoubleProperty(&cfg, "rapidityMean", 				&initial.rapidityMean);
-	getDoubleProperty(&cfg, "T_hat_initial", 				&initial.T_hat_initial);
+	getDoubleProperty(&cfg, "q_gubser", 					&initial.q_gubser);
 
 	config_destroy(&cfg);
 
@@ -217,7 +227,7 @@ initial_condition_parameters load_initial_condition_parameters()
 	printf("fractionOfBinaryCollisions   = %.3g\n", initial.fractionOfBinaryCollisions);
 	printf("rapidityVariance             = %.3g\n", initial.rapidityVariance);
 	printf("rapidityMean                 = %.3g\n", initial.rapidityMean);
-	printf("T_hat_initial                = %.6g\n", initial.T_hat_initial);
+	printf("q_gubser                     = %.3g\n", initial.q_gubser);
 	printf("\n");
 
 	return initial;

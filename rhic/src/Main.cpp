@@ -31,7 +31,7 @@ int main(int argc, char **argv)
 		print_hydro_mode(hydro);
 		run_hydro(lattice, initial, hydro);		// main function
 
-		output_semi_analytic_solution_if_any(lattice, initial, hydro);
+		//output_semi_analytic_solution_if_any(lattice, initial, hydro);
 	}
 	else
 	{
