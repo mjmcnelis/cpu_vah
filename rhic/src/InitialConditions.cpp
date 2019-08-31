@@ -543,7 +543,14 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 			exit(-1);
 		#endif
 
+			if(hydro.temperature_etas)
+			{
+				printf("Gubser initial condition error: temperature dependent eta/s breaks conformal invariance\n");
+				exit(-1);
+			}
+
 			printf("Running semi-analytic anisotropic Gubser solution...\n\n");
+
 			double T0_hat = run_semi_analytic_aniso_gubser(lattice, initial, hydro);
 
 			set_aniso_gubser_energy_density_and_flow_profile(T0_hat, nx, ny, nz, dt, dx, dy, dz, hydro, initial);

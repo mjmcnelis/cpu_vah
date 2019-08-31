@@ -6,16 +6,10 @@
 #include "DynamicalVariables.h"
 #include "Parameters.h"
 
-typedef struct
-{
-	precision dt_CFL;		// CFL bound
-	precision dt_micro;		// relaxation time scale  (need to update eventually)
-	precision dt_rate;		// hydro variables' evolution rate
+precision compute_adaptive_time_step(precision t, precision dt_CFL, precision dt_source, precision dt_min);
 
-} hydro_time_scales;
+precision compute_dt_CFL(precision t, lattice_parameters lattice, hydro_parameters hydro);
 
-precision set_time_step(hydro_time_scales dt_hydro, precision dt_min);
-
-hydro_time_scales compute_hydro_time_scales(precision t, const hydro_variables * const __restrict__ q, const precision * const __restrict__ e, const fluid_velocity * const __restrict__ u, const fluid_velocity * const __restrict__ up, int nx, int ny, int nz, precision dt, precision dt_prev, precision dx, precision dy, precision dn, precision etabar_const, precision dt_min, hydro_parameters hydro);
+precision compute_dt_source(const hydro_variables * const __restrict__ q_prev, const hydro_variables * const __restrict__ q, const hydro_variables * const __restrict__ f, precision dt_prev, lattice_parameters lattice);
 
 #endif

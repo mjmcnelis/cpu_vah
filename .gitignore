@@ -1,5 +1,7 @@
 build
 output
 cpu-vah
+semi_analytic
+mathematica
 *.DS_Store
 

@@ -41,7 +41,7 @@ double dpl_drho(double e, double pl, double rho, double t, hydro_parameters hydr
 	double conformal_eos_prefactor = hydro.conformal_eos_prefactor;	
 	double T_hat = effectiveTemperature(e, conformal_eos_prefactor);
 
-	double etas = eta_over_s(T_hat / t, hydro);		// here need to pass T = T_hat / t (fm^-1)
+	double etas = hydro.constant_etas;	
 
 	double taupiInv = T_hat / (5. * etas);
 

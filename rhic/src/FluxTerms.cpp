@@ -51,7 +51,7 @@ precision compute_max_local_propagation_speed(const precision * const __restrict
 	precision ap = fmax(vLp, vRp);	// a_{i+1/2}
 	precision am = fmax(vLm, vRm);	// a_{i-1/2}
 
-	return fmax(ap, am);	// max local speed
+	return fmax(ap, am);			// max local speed
 }
 
 
