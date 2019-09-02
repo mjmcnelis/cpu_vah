@@ -154,9 +154,12 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro)
 
 	getIntegerProperty(&cfg, "adaptive_time_step", 		&lattice.adaptive_time_step);
 
+	getDoubleProperty(&cfg,  "delta_0", 				&lattice.delta_0);
+	getDoubleProperty(&cfg,  "alpha",			 		&lattice.alpha);
+
 	config_destroy(&cfg);
 
-	lattice.min_time_step = pow(10., round(log10(hydro.tau_initial)) - 2.);		// min time step ~ 100x smaller than t0 
+	lattice.min_time_step = pow(10., round(log10(hydro.tau_initial)) - 2.);		// min time step ~ 100x smaller than t0
 
 	printf("Lattice parameters:");
 	printf("\n-------------------\n");
@@ -166,19 +169,18 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro)
 	printf("lattice_spacing_x        = %.3g\n", lattice.lattice_spacing_x);
 	printf("lattice_spacing_y        = %.3g\n", lattice.lattice_spacing_y);
 	printf("lattice_spacing_eta      = %.3g\n", lattice.lattice_spacing_eta);
-
 	printf("max_time_steps           = %d\n", 	lattice.max_time_steps);
 	printf("output_interval          = %.2f\n", lattice.output_interval);
-
 	printf("fixed_time_step          = %.3g\n", lattice.fixed_time_step);
-
 	printf("adaptive_time_step       = %d\n", 	lattice.adaptive_time_step);
 	printf("min_time_step            = %.2e\n", lattice.min_time_step);
+	printf("delta_0                  = %.3e\n", lattice.delta_0);
+	printf("alpha                    = %.3g\n", lattice.alpha);
 	printf("\n");
 
 
 	double dt = lattice.fixed_time_step;						// dt = starting time step
-	if(lattice.adaptive_time_step) dt = lattice.min_time_step;		
+	if(lattice.adaptive_time_step) dt = lattice.min_time_step;
 
 	if(!starting_time_step_within_CFL_bound(dt, lattice))
 	{

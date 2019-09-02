@@ -10,6 +10,6 @@ precision compute_adaptive_time_step(precision t, precision dt_CFL, precision dt
 
 precision compute_dt_CFL(precision t, lattice_parameters lattice, hydro_parameters hydro);
 
-precision compute_dt_source(const hydro_variables * const __restrict__ q_prev, const hydro_variables * const __restrict__ q, const hydro_variables * const __restrict__ f, precision dt_prev, lattice_parameters lattice);
+precision compute_dt_source(precision t, const hydro_variables * const __restrict__ q_prev, const hydro_variables * const __restrict__ q, const hydro_variables * const __restrict__ f, precision dt_prev, lattice_parameters lattice);
 
 #endif

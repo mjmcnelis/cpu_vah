@@ -18,26 +18,22 @@
 #include "../include/Hydrodynamics.h"
 #include "../include/FileIO.h"
 
-int main(int argc, char **argv)
+int main()
 {
-	//int hydro_run = argv[1];
-
 	hydro_parameters hydro = load_hydro_parameters();
 	lattice_parameters lattice = load_lattice_parameters(hydro);
 	initial_condition_parameters initial = load_initial_condition_parameters();
-	
+
 	if(hydro.run_hydro)
 	{
 		print_hydro_mode(hydro);
 		run_hydro(lattice, initial, hydro);		// main function
-
-		//output_semi_analytic_solution_if_any(lattice, initial, hydro);
 	}
 	else
 	{
 		output_semi_analytic_solution_if_any(lattice, initial, hydro);
 	}
-		
+
 	return 0;
 }
 

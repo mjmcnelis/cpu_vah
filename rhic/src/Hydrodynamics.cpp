@@ -14,6 +14,7 @@
 #include "../include/AdaptiveTimeStep.h"
 using namespace std;
 
+const int freezeout_frequency = 10;
 const precision dt_eps = 1.e-8;
 
 inline int linear_column_index(int i, int j, int k, int nx, int ny)
@@ -49,7 +50,7 @@ bool all_cells_below_freezeout_temperature(lattice_parameters lattice, hydro_par
 
 
 precision set_the_time_step(int n, precision t, precision dt_prev, precision t_next_output, lattice_parameters lattice, hydro_parameters hydro)
-{	
+{
 	precision dt_min = lattice.min_time_step;
 
 	precision dt = lattice.fixed_time_step;		// default time step
@@ -62,26 +63,26 @@ precision set_the_time_step(int n, precision t, precision dt_prev, precision t_n
 		{
 			precision dt_CFL = compute_dt_CFL(t, lattice, hydro);
 
-			int update = 0;																// not updating qI with euler step 
+			int update = 0;																// not updating qI with euler step
 																						// just storing the source function
 			euler_step(t, q, qI, e, u, up, dt_prev, dt_prev, lattice, hydro, update);	// don't worry about regulating yet...
 
-			precision dt_source = compute_dt_source(Q, q, qI, dt_prev, lattice);
+			precision dt_source = compute_dt_source(t, Q, q, qI, dt_prev, lattice);
 
 			dt = compute_adaptive_time_step(t, dt_CFL, dt_source, dt_min);
 		}
 	}
 	if(hydro.run_hydro == 1)					// adjust dt further (for timed hydro outputs)
 	{
-		if(t + dt_eps < t_next_output)		
+		if(t + dt_eps < t_next_output)
 		{
 			if(t + dt > t_next_output)
 			{
-				dt = fmax(0.01 * dt_min, t_next_output - t);		
+				dt = fmax(0.1 * dt_min, t_next_output - t);
 			}
-		} 
+		}
 	}
-	
+
 	return dt;
 }
 
@@ -113,13 +114,13 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 
 	// fluid dynamic evolution
 	//----------------------------------------------------------
-	for(int n = 0; n <= lattice.max_time_steps; n++)	
+	for(int n = 0; n <= lattice.max_time_steps; n++)
 	{
 		dt = set_the_time_step(n, t, dt_prev, t_out + dt_out, lattice, hydro);
 
 		if(hydro.run_hydro == 1)		// outputs hydro data at regular time intervals
 		{
-			if(n == 0) 
+			if(n == 0)
 			{
 				print_hydro_center(n, t, lattice, hydro);
 				output_dynamical_variables(t, dt_prev, lattice, initial, hydro);
@@ -131,14 +132,13 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 				output_dynamical_variables(t, dt_prev, lattice, initial, hydro);
 
 				if(all_cells_below_freezeout_temperature(lattice, hydro)) break;
-				
+
 				t_out += dt_out;
 			}
 		}
 		else if(hydro.run_hydro == 2)	// finding the freezeout surface
 		{
-			//if(n % hydro.freezeout_frequency == 0)
-			if(n % 10 == 0)
+			if(n % freezeout_frequency == 0)
 			{
 				print_hydro_center(n, t, lattice, hydro);
 

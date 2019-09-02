@@ -10,7 +10,7 @@ typedef struct
 	double tau_initial;
 	double plpt_ratio_initial;
 
-	double conformal_eos_prefactor;	 // e = conformal_eos_prefactor * T^4 
+	double conformal_eos_prefactor;	 // e = conformal_eos_prefactor * T^4
 
 	int temperature_etas;
 	double etas_min;
@@ -44,11 +44,14 @@ typedef struct
 
 	int max_time_steps;
 	double output_interval;
-	
+
 	double fixed_time_step;
 
 	int adaptive_time_step;
 	double min_time_step;		// minimum time step set for the program
+
+	double delta_0;
+	double alpha;
 
 } lattice_parameters;
 

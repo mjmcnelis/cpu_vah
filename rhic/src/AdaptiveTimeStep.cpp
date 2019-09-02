@@ -9,10 +9,6 @@
 #include "../include/EquationOfState.h"
 #include "../include/TransportCoefficients.h"
 
-const precision delta_0 = 1.e-3;
-const precision alpha = 0.2;
-
-
 inline int linear_column_index(int i, int j, int k, int nx, int ny)
 {
 	return i  +  nx * (j  +  ny * k);
@@ -29,19 +25,19 @@ inline precision sign(precision x)
 
 precision compute_adaptive_time_step(precision t, precision dt_CFL, precision dt_source, precision dt_min)
 {
-	precision dt = fmin(dt_CFL, dt_source);			// currently have this 
+	precision dt = fmin(dt_CFL, dt_source);			// currently have this
 
 	//if(dt < dt_min) printf("compute_adaptive_time_step error: dt = %.3g < %.2g\n", dt, dt_min);
 
-	printf("compute_adaptive_time_step: %.3g\t%.3g\n", dt_CFL, dt_source);
-	
+	//printf("compute_adaptive_time_step: %.3g\t%.3g\n", dt_CFL, dt_source);
+
 	dt = 0.01 * dt_min * floor(100. * dt / dt_min);	// round dt to numerical precision (dt_min / 100)
 
 	dt = fmax(dt_min, dt);
 
 	FILE * dt_adaptive;
 	dt_adaptive = fopen("output/dt_adaptive.dat", "a");
-	fprintf(dt_adaptive, "%.4f\t%.8f\n", t, dt);
+	fprintf(dt_adaptive, "%.8f\t%.8f\n", t, dt);
 	fclose(dt_adaptive);
 
 	return dt;
@@ -106,14 +102,15 @@ precision compute_dt_CFL(precision t, lattice_parameters lattice, hydro_paramete
 				precision ay = compute_max_local_propagation_speed(vyj, uy / ut, Theta);
 				precision an = compute_max_local_propagation_speed(vnk, un / ut, Theta);
 
-				dt_CFL = fmin(dt_CFL, 0.125 * fmin(dx / ax, fmin(dy / ay, dn / an)));	// take the min wave propagation time 
+				dt_CFL = fmin(dt_CFL, 0.125 * fmin(dx / ax, fmin(dy / ay, dn / an)));	// take the min wave propagation time
 			}
 		}
 	}
-	FILE * CFL_bound;
-	CFL_bound = fopen("output/dt_CFL.dat", "a");
-	fprintf(CFL_bound, "%.4f\t%.8f\n", t, dt_CFL);
-	fclose(CFL_bound);
+
+	FILE * dt_CFL_bound;
+	dt_CFL_bound = fopen("output/dt_CFL.dat", "a");
+	fprintf(dt_CFL_bound, "%.4f\t%.8f\n", t, dt_CFL);
+	fclose(dt_CFL_bound);
 
 	return dt_CFL;
 }
@@ -121,10 +118,10 @@ precision compute_dt_CFL(precision t, lattice_parameters lattice, hydro_paramete
 
 hydro_variables compute_q_star(hydro_variables q, hydro_variables f, precision dt_old)
 {
-	hydro_variables q_star;					// add euler step using old time step 
+	hydro_variables q_star;		// add euler step using old time step
 
-	q_star.ttt = q.ttt  +  dt_old * f.ttt;		
-	q_star.ttx = q.ttx  +  dt_old * f.ttx;		
+	q_star.ttt = q.ttt  +  dt_old * f.ttt;
+	q_star.ttx = q.ttx  +  dt_old * f.ttx;
 	q_star.tty = q.tty  +  dt_old * f.tty;
 	q_star.ttn = q.ttn  +  dt_old * f.ttn;
 
@@ -160,9 +157,12 @@ hydro_variables compute_q_star(hydro_variables q, hydro_variables f, precision d
 }
 
 
-precision adaptive_method(precision qL, precision q, precision qR, precision f, precision dt2)
+precision adaptive_method(precision q_prev, precision q, precision q_star, precision f, precision dt2, precision delta_0)
 {
-	precision second_derivative = 2. * fabs(qL  -  2. * q  +  qR) / dt2;
+	// compute the adaptive time step to satisfy
+	// either the absolute and relative tolerance
+
+	precision second_derivative = 2. * fabs(q_prev  -  2. * q  +  q_star) / dt2;
 
 	precision dt_abs = sqrt(2. * delta_0 / second_derivative);
 
@@ -172,29 +172,58 @@ precision adaptive_method(precision qL, precision q, precision qR, precision f, 
 }
 
 
-precision predict_next_time_step(hydro_variables q_prev, hydro_variables q, hydro_variables q_star, hydro_variables f, precision dt_prev2)
-{	
-	precision dt = adaptive_method(q_prev.ttt, q.ttt, q_star.ttt, f.ttt, dt_prev2);
+precision predict_next_time_step(hydro_variables q_prev, hydro_variables q, hydro_variables q_star, hydro_variables f, precision dt_prev2, precision delta_0)
+{
+	// take the smallest adaptive time step of the hydro variables
 
-	dt =  fmin(dt, adaptive_method(q_prev.ttx, q.ttx, q_star.ttx, f.ttx, dt_prev2));
-	dt =  fmin(dt, adaptive_method(q_prev.tty, q.tty, q_star.tty, f.tty, dt_prev2));
-	dt =  fmin(dt, adaptive_method(q_prev.ttn, q.ttn, q_star.ttn, f.ttn, dt_prev2));
+	precision dt = adaptive_method(q_prev.ttt, q.ttt, q_star.ttt, f.ttt, dt_prev2, delta_0);
 
-	dt =  fmin(dt, adaptive_method(q_prev.pl,  q.pl,  q_star.pl,  f.pl,  dt_prev2));
+	dt =  fmin(dt, adaptive_method(q_prev.ttx, q.ttx, q_star.ttx, f.ttx, dt_prev2, delta_0));
+	dt =  fmin(dt, adaptive_method(q_prev.tty, q.tty, q_star.tty, f.tty, dt_prev2, delta_0));
+	dt =  fmin(dt, adaptive_method(q_prev.ttn, q.ttn, q_star.ttn, f.ttn, dt_prev2, delta_0));
 
-	// currently have so far..
+#ifdef ANISO_HYDRO
+	dt = fmin(dt, adaptive_method(q_prev.pl, q.pl, q_star.pl, f.pl, dt_prev2, delta_0));
+#if (PT_MATCHING == 1)
+	dt = fmin(dt, adaptive_method(q_prev.pt, q.pt, q_star.pt, f.pt, dt_prev2, delta_0));
+#endif
+#endif
+#ifdef PIMUNU
+	dt = fmin(dt, adaptive_method(q_prev.pitt, q.pitt, q_star.pitt, f.pitt, dt_prev2, delta_0));
+	dt = fmin(dt, adaptive_method(q_prev.pitx, q.pitx, q_star.pitx, f.pitx, dt_prev2, delta_0));
+	dt = fmin(dt, adaptive_method(q_prev.pity, q.pity, q_star.pity, f.pity, dt_prev2, delta_0));
+	dt = fmin(dt, adaptive_method(q_prev.pitn, q.pitn, q_star.pitn, f.pitn, dt_prev2, delta_0));
+	dt = fmin(dt, adaptive_method(q_prev.pixx, q.pixx, q_star.pixx, f.pixx, dt_prev2, delta_0));
+	dt = fmin(dt, adaptive_method(q_prev.pixy, q.pixy, q_star.pixy, f.pixy, dt_prev2, delta_0));
+	dt = fmin(dt, adaptive_method(q_prev.pixn, q.pixn, q_star.pixn, f.pixn, dt_prev2, delta_0));
+	dt = fmin(dt, adaptive_method(q_prev.piyy, q.piyy, q_star.piyy, f.piyy, dt_prev2, delta_0));
+	dt = fmin(dt, adaptive_method(q_prev.piyn, q.piyn, q_star.piyn, f.piyn, dt_prev2, delta_0));
+	dt = fmin(dt, adaptive_method(q_prev.pinn, q.pinn, q_star.pinn, f.pinn, dt_prev2, delta_0));
+#endif
+#ifdef WTZMU
+	dt = fmin(dt, adaptive_method(q_prev.WtTz, q.WtTz, q_star.WtTz, f.WtTz, dt_prev2, delta_0));
+	dt = fmin(dt, adaptive_method(q_prev.WxTz, q.WxTz, q_star.WxTz, f.WxTz, dt_prev2, delta_0));
+	dt = fmin(dt, adaptive_method(q_prev.WyTz, q.WyTz, q_star.WyTz, f.WyTz, dt_prev2, delta_0));
+	dt = fmin(dt, adaptive_method(q_prev.WnTz, q.WnTz, q_star.WnTz, f.WnTz, dt_prev2, delta_0));
+#endif
+#ifdef PI
+	dt = fmin(dt, adaptive_method(q_prev.Pi, q.Pi, q_star.Pi, f.Pi, dt_prev2, delta_0));
+#endif
 
 	return dt;
 }
 
 
-precision compute_dt_source(const hydro_variables * const __restrict__ q_prev, const hydro_variables * const __restrict__ q, const hydro_variables * const __restrict__ f, precision dt_prev, lattice_parameters lattice)
+precision compute_dt_source(precision t, const hydro_variables * const __restrict__ q_prev, const hydro_variables * const __restrict__ q, const hydro_variables * const __restrict__ f, precision dt_prev, lattice_parameters lattice)
 {
 	precision dt_source = 1./0.;
 
 	int nx = lattice.lattice_points_x;
 	int ny = lattice.lattice_points_y;
 	int nz = lattice.lattice_points_eta;
+
+	precision alpha = lattice.alpha;
+	precision delta_0 = lattice.delta_0;
 
 	precision dt_prev2 = dt_prev * dt_prev;
 
@@ -208,14 +237,19 @@ precision compute_dt_source(const hydro_variables * const __restrict__ q_prev, c
 
 				hydro_variables q_star = compute_q_star(q[s], f[s], dt_prev);
 
-				precision dt_next = predict_next_time_step(q_prev[s], q[s], q_star, f[s], dt_prev2);
+				precision dt_next = predict_next_time_step(q_prev[s], q[s], q_star, f[s], dt_prev2, delta_0);
 
 				dt_source = fmin(dt_source, dt_next);
 			}
 		}
 	}
 
-	return fmin((1. + alpha) * dt_prev, dt_source);
+	FILE * dt_predict;
+	dt_predict = fopen("output/dt_source.dat", "a");
+	fprintf(dt_predict, "%.4f\t%.8f\n", t, dt_source);
+	fclose(dt_predict);
+
+	return fmax((1. -  alpha / 2.) * dt_prev, fmin(dt_source, (1. + alpha) * dt_prev));
 }
 
 

@@ -5,7 +5,7 @@
 // macro parameters to fix equation of state and hydrodynamic variables at compile time
 
 // should I remove CONFORMAL_EOS so I can switch? (worry about it later)
-// it's only used for pt matching and pi 
+// it's only used for pt matching and pi
 
 #define CONFORMAL_EOS			// use conformal equation of state (comment to use lattice QCD)
 
