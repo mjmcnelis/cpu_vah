@@ -49,7 +49,7 @@ bool all_cells_below_freezeout_temperature(lattice_parameters lattice, hydro_par
 }
 
 
-precision set_the_time_step(int n, precision t, precision dt_prev, precision t_next_output, lattice_parameters lattice, hydro_parameters hydro)
+precision set_the_time_step(int n, precision t, precision dt_prev, precision t_next_output, lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro)
 {
 	precision dt_min = lattice.min_time_step;
 
@@ -72,7 +72,7 @@ precision set_the_time_step(int n, precision t, precision dt_prev, precision t_n
 			dt = compute_adaptive_time_step(t, dt_CFL, dt_source, dt_min);
 		}
 	}
-	if(hydro.run_hydro == 1)					// adjust dt further (for timed hydro outputs)
+	if(hydro.run_hydro == 1 && initial.initialConditionType != 1)						// adjust dt further (for timed hydro outputs, except Bjorken)
 	{
 		if(t + dt_eps < t_next_output)
 		{
@@ -116,17 +116,18 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 	//----------------------------------------------------------
 	for(int n = 0; n <= lattice.max_time_steps; n++)
 	{
-		dt = set_the_time_step(n, t, dt_prev, t_out + dt_out, lattice, hydro);
+		dt = set_the_time_step(n, t, dt_prev, t_out + dt_out, lattice, initial, hydro);
 
 		if(hydro.run_hydro == 1)		// outputs hydro data at regular time intervals
 		{
-			if(n == 0)
+			if(n == 0 || initial.initialConditionType == 1)
 			{
 				print_hydro_center(n, t, lattice, hydro);
 				output_dynamical_variables(t, dt_prev, lattice, initial, hydro);
-			}
 
-			if(fabs(t - t_out - dt_out) < dt_eps)
+				if(all_cells_below_freezeout_temperature(lattice, hydro)) break;
+			}
+			else if(fabs(t - t_out - dt_out) < dt_eps)
 			{
 				print_hydro_center(n, t, lattice, hydro);
 				output_dynamical_variables(t, dt_prev, lattice, initial, hydro);

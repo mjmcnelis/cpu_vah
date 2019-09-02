@@ -67,9 +67,6 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 	double dt = lattice.min_time_step;											// use minimum time step ~ 100x smaller than t0 
 	int decimal = - log10(dt);													// setprecision value for t output
 
-	precision t_out = t;														// output times
-	precision dt_out = lattice.output_interval;
-
 	double conformal_eos_prefactor = hydro.conformal_eos_prefactor;
 	double e0 = equilibriumEnergyDensity(T0 / hbarc, conformal_eos_prefactor);	// initial energy density
 
@@ -86,21 +83,16 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 	e_e0_plot.open("semi_analytic/e_e0_aniso_bjorken.dat", ios::out);
 	pl_pt_plot.open("semi_analytic/pl_pt_aniso_bjorken.dat", ios::out);
 
-	e_e0_plot  << fixed << setprecision(decimal) << t << "\t" << scientific << setprecision(8) << 1.0 << endl;
-	pl_pt_plot << fixed << setprecision(decimal) << t << "\t" << scientific << setprecision(8) << plpt_ratio << endl;
+	int steps = 0;
 
 	while(true)
 	{
-		set_time_step(t, t_out + dt_out, lattice);
-
 		double pt = (e - pl) / 2.;	// temporary
 
-		if(fabs(t - t_out - dt_out) < dt_eps)
+		if(steps % 1 == 0)
 		{
-			e_e0_plot  << fixed << setprecision(decimal) << t << "\t" << scientific << setprecision(8) << e / e0 << endl;
-			pl_pt_plot << fixed << setprecision(decimal) << t << "\t" << scientific << setprecision(8) << pl / pt << endl;
-
-			t_out += dt_out;
+			e_e0_plot  << fixed << setprecision(decimal + 1) << t << "\t" << scientific << setprecision(12) << e / e0 << endl;
+			pl_pt_plot << fixed << setprecision(decimal + 1) << t << "\t" << scientific << setprecision(12) << pl / pt << endl;
 
 			if(e < e_freeze) break;
 		}
@@ -121,6 +113,8 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 		pl += (plk1  +  2. * plk2  +  2. * plk3  +  plk4) / 6.;		
 
 		t += dt;
+
+		steps++;
 	}
 
 	e_e0_plot.close();

@@ -380,11 +380,11 @@ void output_aniso_bjorken(const hydro_variables * const __restrict__ q, const pr
 
 	precision Lambda = pow(2. * e_s / (aL * aL * conformal_eos_prefactor * t_200), 0.25) * hbarc;
 
-	fprintf(energy, 	"%.3f\t%.8f\n", t, e_s / e0);
-	fprintf(plptratio, 	"%.3f\t%.8f\n", t, pl / pt);
-	fprintf(temperature,"%.3f\t%.8f\n", t, T);
-	fprintf(aLplot,		"%.3f\t%.8f\n", t, aL);
-	fprintf(Lambdaplot,	"%.3f\t%.8f\n", t, Lambda);
+	fprintf(energy, 	"%.5f\t%.12f\n", t, e_s / e0);
+	fprintf(plptratio, 	"%.5f\t%.12f\n", t, pl / pt);
+	fprintf(temperature,"%.5f\t%.12f\n", t, T);
+	fprintf(aLplot,		"%.5f\t%.12f\n", t, aL);
+	fprintf(Lambdaplot,	"%.5f\t%.12f\n", t, Lambda);
 
 	fclose(energy);
 	fclose(plptratio);
@@ -410,10 +410,10 @@ void output_gubser(const hydro_variables * const __restrict__ q, const fluid_vel
 	char fname1[255], fname2[255];
 	char fname3[255], fname4[255];
 
-	sprintf(fname1, "output/e_%.3f.dat", t);
-	sprintf(fname2, "output/plpt_%.3f.dat", t);
-	sprintf(fname3, "output/ux_%.3f.dat", t);
-	sprintf(fname4, "output/ur_%.3f.dat", t);
+	sprintf(fname1, "output/e_%.5f.dat", t);
+	sprintf(fname2, "output/plpt_%.5f.dat", t);
+	sprintf(fname3, "output/ux_%.5f.dat", t);
+	sprintf(fname4, "output/ur_%.5f.dat", t);
 
 	energy      = fopen(fname1, "w");
 	plptratio 	= fopen(fname2, "w");
@@ -463,10 +463,10 @@ void output_gubser(const hydro_variables * const __restrict__ q, const fluid_vel
 
 				precision pt = (e_s - pl) / 2.;
 
-				fprintf(energy, 	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, e_s);
-				fprintf(plptratio,	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, pl / pt);
-				fprintf(uxplot, 	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, ux);
-				fprintf(urplot, 	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, ur);
+				fprintf(energy, 	"%.5f\t%.3f\t%.3f\t%.8f\n", x, y, z, e_s);
+				fprintf(plptratio,	"%.5f\t%.3f\t%.3f\t%.8f\n", x, y, z, pl / pt);
+				fprintf(uxplot, 	"%.5f\t%.3f\t%.3f\t%.8f\n", x, y, z, ux);
+				fprintf(urplot, 	"%.5f\t%.3f\t%.3f\t%.8f\n", x, y, z, ur);
 			}
 		}
 	}

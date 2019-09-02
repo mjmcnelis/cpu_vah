@@ -508,8 +508,9 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 			printf("(fluid velocity and viscous pressures initialized to zero)\n\n");
 
 			printf("\nRunning semi-analytic anisotropic Bjorken solution...\n");
+			
 			run_semi_analytic_aniso_bjorken(lattice, initial, hydro);
-
+			
 			set_Bjorken_energy_density_and_flow_profile(nx, ny, nz, initial, hydro);
 			set_anisotropic_initial_condition(nx, ny, nz, hydro);
 			set_initial_T_taumu_variables(t, nx, ny, nz);
