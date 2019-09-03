@@ -14,6 +14,9 @@
 #include "../include/AdaptiveTimeStep.h"
 using namespace std;
 
+bool after_output = false;
+precision dt_after_output;
+
 const int freezeout_frequency = 10;
 const precision dt_eps = 1.e-8;
 
@@ -74,11 +77,20 @@ precision set_the_time_step(int n, precision t, precision dt_prev, precision t_n
 	}
 	if(hydro.run_hydro == 1 && initial.initialConditionType != 1)						// adjust dt further (for timed hydro outputs, except Bjorken)
 	{
-		if(t + dt_eps < t_next_output)
+		if(after_output)
+		{
+			dt = dt_after_output;
+			after_output = false;
+		}
+		else if(t + dt_eps < t_next_output)
 		{
 			if(t + dt > t_next_output)
 			{
-				dt = fmax(0.1 * dt_min, t_next_output - t);
+				dt = fmax(0.001 * dt_min, t_next_output - t);
+
+				dt_after_output = dt_prev;
+
+				after_output = true;
 			}
 		}
 	}
