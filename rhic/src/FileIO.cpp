@@ -463,7 +463,7 @@ void output_gubser(const hydro_variables * const __restrict__ q, const fluid_vel
 
 				precision pt = (e_s - pl) / 2.;
 
-				fprintf(energy, 	"%.5f\t%.3f\t%.3f\t%.8f\n", x, y, z, e_s);
+				fprintf(energy, 	"%.5f\t%.3f\t%.3f\t%.8f\n", x, y, z, e_s * hbarc);	// GeV / fm^3
 				fprintf(plptratio,	"%.5f\t%.3f\t%.3f\t%.8f\n", x, y, z, pl / pt);
 				fprintf(uxplot, 	"%.5f\t%.3f\t%.3f\t%.8f\n", x, y, z, ux);
 				fprintf(urplot, 	"%.5f\t%.3f\t%.3f\t%.8f\n", x, y, z, ur);

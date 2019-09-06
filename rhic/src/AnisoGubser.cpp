@@ -235,7 +235,7 @@ double run_semi_analytic_aniso_gubser(lattice_parameters lattice, initial_condit
 			double e  = gsl_spline_eval(e_hat_spline,  rho, accel) / (t * t * t * t);
 			double pl = gsl_spline_eval(pl_hat_spline, rho, accel) / (t * t * t * t);
 
-			fprintf(energy, 	"%.3f\t%.8f\n", x, e);
+			fprintf(energy, 	"%.3f\t%.8f\n", x, e * hbarc);
 			fprintf(plptratio,	"%.3f\t%.8f\n", x, 2. * pl / (e - pl));
 
 			if(e > e_freeze) below_freezeout_surface = false;
