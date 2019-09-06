@@ -213,11 +213,11 @@ inline precision second_derivative_squared(precision q_prev, precision q, precis
 }
 
 
-precision compute_second_derivative_norm(hydro_variables q_prev, hydro_variables q, hydro_variables q_star)
+precision compute_second_derivative_norm(hydro_variables q_prev, hydro_variables q, hydro_variables q_star, precision dt_prev)
 {
-	precision norm2 = (	second_derivative_squared(q_prev.ttt, q.ttt, q_star.ttt) 	+ 
-						second_derivative_squared(q_prev.ttx, q.ttx, q_star.ttx)	+
-						second_derivative_squared(q_prev.tty, q.tty, q_star.tty)	+
+	precision norm2 = (	second_derivative_squared(q_prev.ttt, q.ttt, q_star.ttt) + 
+						second_derivative_squared(q_prev.ttx, q.ttx, q_star.ttx) +
+						second_derivative_squared(q_prev.tty, q.tty, q_star.tty) +
 						second_derivative_squared(q_prev.ttn, q.ttn, q_star.ttn));
 
 #ifdef ANISO_HYDRO
@@ -248,7 +248,7 @@ precision compute_second_derivative_norm(hydro_variables q_prev, hydro_variables
 	norm2 += second_derivative_squared(q_prev.Pi, q.Pi, q_star.Pi);
 #endif
 
-	return sqrt(norm2);
+	return sqrt(norm2) / (dt_prev * dt_prev);
 }
 
 
@@ -278,40 +278,83 @@ precision dot_product(hydro_variables q, hydro_variables f)
 
 
 
-precision adaptive_method_norm(precision q_norm2, precision f_norm2, precision second_derivative_norm, precision q_dot_f, precision dt_prev, precision delta_0)
+precision adaptive_method_norm(precision q_norm2, precision f_norm2, precision second_derivative_norm, precision q_dot_f, precision delta_0)
 {
-	precision tolerance = delta_0 * fmax(1.0, sqrt(q_norm2));
-	return dt_prev * sqrt(tolerance / second_derivative_norm);			// use a more exact formula 
+	//precision tolerance = delta_0 * fmax(1.0, sqrt(q_norm2));
+	precision dt_abs = sqrt(delta_0 / second_derivative_norm);
+
+	precision dt_abs2 = dt_abs * dt_abs;
+	precision dt_abs4 = dt_abs2 * dt_abs2;
+
+	precision c = f_norm2 * dt_abs4;				// quartic equation: x^4 - c.x^2 - b.x - a = 0  (x = dt_rel)
+	precision b = 2. * q_dot_f * dt_abs4;				
+	precision a = q_norm2 * dt_abs4;
+
+	precision y0, y1, y2;							// resolvent cubic equation: y^3 + d.y^2 + e.y + f = 0  (a,b,c)
+	int cubic_roots = gsl_poly_solve_cubic(-2. * c,  c * c  +  4 * a,  - b * b, &y0, &y1, &y2);		
+
+	if(y0 > 0)										// take the greatest positive solution (see gsl manual)
+	{
+		//printf("%.6g\t%.6g\t%.6g\n", y0, y1, y2);
+		//exit(-1);
+
+		precision u = sqrt(y0);						// quartic equation factored:
+		precision t = (y0  -  c  -  b / u) / 2.;	// x^4 - c.x^2 - b.x - a = (x^2 - u.x + t)(x^2 + u.x + v)
+		precision v = (y0  -  c  +  b / u) / 2.;
+
+		precision discriminant_1 = y0  -  4. * t;
+		precision discriminant_2 = y0  -  4. * v;
+
+		precision dt_rel = dt_abs;
+
+		if(discriminant_1 > 0)
+		{
+			dt_rel = fmax(dt_rel, (u + sqrt(discriminant_1)) / 2.);
+		}
+		if(discriminant_2 > 0)
+		{
+			dt_rel = fmax(dt_rel, (-u + sqrt(discriminant_2)) / 2.);
+		}
+		return dt_rel;
+	}
+	
+	return dt_abs; 
 
 
 
-	/*
-	precision dt_abs2 = dt_prev * dt_prev * delta_0 / second_derivative_norm;
+	//return sqrt(tolerance / second_derivative_norm);			// use a more exact formula 
 
-	precision dt_abs = sqrt(dt_abs2);
+
+
+
+
+	
+	// precision dt_abs2 = delta_0 / second_derivative_norm;
+
+	// precision dt_abs = sqrt(dt_abs2);
 
 	// solve equation: a.x^4 + b.x^2 + c.x + d = 0 (x = dt_rel)		this is too slow?...
-	precision coefficients[5] = {- q_norm2, - 2 * q_dot_f, - f_norm2, 0, 1. / (dt_abs2 * dt_abs2)};			
-	precision complex_solution[8];
+	// precision coefficients[5] = {- q_norm2, - 2 * q_dot_f, - f_norm2, 0, 1. / (dt_abs2 * dt_abs2)};			
+	// precision complex_solution[8];
 
-	gsl_poly_complex_workspace * work = gsl_poly_complex_workspace_alloc(5);
-	gsl_poly_complex_solve(coefficients, 5, work, complex_solution);
-	gsl_poly_complex_workspace_free(work);
+	// gsl_poly_complex_workspace * work = gsl_poly_complex_workspace_alloc(5);
+	// gsl_poly_complex_solve(coefficients, 5, work, complex_solution);
+	// gsl_poly_complex_workspace_free(work);
 						
-	for(int i = 0; i < 4; i++)								// isolate complex and negative real solutions
-	{
-		if(fabs(complex_solution[2 * i + 1]) < 1.e-8)		
-		{
-			precision dt_rel = complex_solution[2 * i];
+	// for(int i = 0; i < 4; i++)								// isolate complex and negative real solutions
+	// {
+	// 	if(fabs(complex_solution[2 * i + 1]) < 1.e-8)		
+	// 	{
+	// 		precision dt_rel = complex_solution[2 * i];
 
-			if(dt_rel > 0) return fmax(dt_abs, dt_rel);	
-		}
-	}
+	// 		if(dt_rel > 0) return fmax(dt_abs, dt_rel);	
+	// 	}
+	// }
 
-	printf("adaptive_method_norm error: no dt_rel solution found\n");
+	// printf("adaptive_method_norm error: no dt_rel solution found\n");
 
-	return dt_abs;
-	*/
+	// return dt_abs;
+	
 }
 
 
@@ -390,15 +433,15 @@ precision compute_dt_source(precision t, const hydro_variables * const __restric
 
 				hydro_variables q_star = compute_q_star(q[s], f[s], dt_prev);
 
-				precision q_norm = compute_hydro_norm2(q_star);
+				//precision q_norm = compute_hydro_norm2(q_star);
 
-				//precision q_norm = compute_hydro_norm2(q[s]);
+				precision q_norm = compute_hydro_norm2(q[s]);
 				precision f_norm = compute_hydro_norm2(f[s]);
 				precision q_dot_f = dot_product(q[s], f[s]);
 
-				precision second_derivative_norm = compute_second_derivative_norm(q_prev[s], q[s], q_star);
+				precision second_derivative_norm = compute_second_derivative_norm(q_prev[s], q[s], q_star, dt_prev);
 
-				precision dt_next = adaptive_method_norm(q_norm, f_norm, second_derivative_norm, q_dot_f, dt_prev, delta_0);
+				precision dt_next = adaptive_method_norm(q_norm, f_norm, second_derivative_norm, q_dot_f, delta_0);
 
 				//precision dt_next = predict_next_time_step(q_prev[s], q[s], q_star, f[s], dt_prev, delta_0);
 
