@@ -10,6 +10,7 @@
 #include "../include/EquationOfState.h"
 #include "../include/TransportCoefficients.h"
 
+const precision sqrt_variables = sqrt(NUMBER_CONSERVED_VARIABLES);
 
 inline int linear_column_index(int i, int j, int k, int nx, int ny)
 {
@@ -268,9 +269,9 @@ precision dot_product(hydro_variables q, hydro_variables f)
 
 precision adaptive_method_norm(precision q_norm2, precision f_norm2, precision second_derivative_norm, precision q_dot_f, precision delta_0)
 {
-	precision dt_abs = sqrt(delta_0 / second_derivative_norm);
+	precision dt_abs = sqrt(delta_0 * sqrt_variables / second_derivative_norm);
 
-	precision dt_abs2 = dt_abs * dt_abs;
+	precision dt_abs2 = dt_abs * dt_abs / sqrt_variables;	// additionally divide out sqrt_variables
 	precision dt_abs4 = dt_abs2 * dt_abs2;
 
 	precision c = f_norm2 * dt_abs4;				// quartic equation: x^4 - c.x^2 - b.x - a = 0  (x = dt_rel)

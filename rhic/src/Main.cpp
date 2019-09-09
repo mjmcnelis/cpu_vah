@@ -12,6 +12,9 @@
 |				| simulation of a heavy-ion collision
 -------------------------------------------------------
  */
+
+// only ~ 6300 lines of code
+
 #include <iostream>
 #include "../include/Parameters.h"
 #include "../include/Print.h"
