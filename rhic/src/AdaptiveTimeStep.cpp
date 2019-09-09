@@ -10,6 +10,8 @@
 #include "../include/EquationOfState.h"
 #include "../include/TransportCoefficients.h"
 
+#define ADAPTIVE_FILE
+
 const precision sqrt_variables = sqrt(NUMBER_CONSERVED_VARIABLES);
 
 inline int linear_column_index(int i, int j, int k, int nx, int ny)
@@ -32,10 +34,12 @@ precision compute_adaptive_time_step(precision t, precision dt_CFL, precision dt
 
 	dt = fmax(dt_min, dt);
 
+#ifdef ADAPTIVE_FILE
 	FILE * dt_adaptive;
 	dt_adaptive = fopen("output/dt_adaptive.dat", "a");
 	fprintf(dt_adaptive, "%.8f\t%.8f\n", t, dt);
 	fclose(dt_adaptive);
+#endif
 
 	return dt;
 }
@@ -104,10 +108,12 @@ precision compute_dt_CFL(precision t, lattice_parameters lattice, hydro_paramete
 		}
 	}
 
+#ifdef ADAPTIVE_FILE
 	FILE * dt_CFL_bound;
 	dt_CFL_bound = fopen("output/dt_CFL.dat", "a");
 	fprintf(dt_CFL_bound, "%.4f\t%.8f\n", t, dt_CFL);
 	fclose(dt_CFL_bound);
+#endif
 
 	return dt_CFL;
 }
@@ -152,6 +158,7 @@ hydro_variables compute_q_star(hydro_variables q, hydro_variables f, precision d
 
 	return q_star;
 }
+
 
 precision compute_hydro_norm2(hydro_variables q)		// I should be adding things with the same dimension...(which time to use?)
 {
@@ -198,13 +205,15 @@ precision compute_hydro_norm2(hydro_variables q)		// I should be adding things w
 }
 
 
-inline precision second_derivative_squared(precision q_prev, precision q, precision q_star)
+precision second_derivative_squared(precision q_prev, precision q, precision q_star)
 {
-	return (q_prev  -  2. * q  +  q_star) * (q_prev  -  2. * q  +  q_star);		// left out prefactor 2 / dt_prev^2
+	precision second_derivative = q_prev  -  2. * q  +  q_star;
+
+	return second_derivative * second_derivative;		// left out prefactor 2 / dt_prev^2
 }
 
 
-precision compute_second_derivative_norm(hydro_variables q_prev, hydro_variables q, hydro_variables q_star, precision dt_prev)
+precision compute_second_derivative_norm(hydro_variables q_prev, hydro_variables q, hydro_variables q_star)
 {
 	precision norm2 = (	second_derivative_squared(q_prev.ttt, q.ttt, q_star.ttt) +
 						second_derivative_squared(q_prev.ttx, q.ttx, q_star.ttx) +
@@ -239,7 +248,7 @@ precision compute_second_derivative_norm(hydro_variables q_prev, hydro_variables
 	norm2 += second_derivative_squared(q_prev.Pi, q.Pi, q_star.Pi);
 #endif
 
-	return sqrt(norm2) / (dt_prev * dt_prev);
+	return sqrt(norm2);
 }
 
 
@@ -267,9 +276,9 @@ precision dot_product(hydro_variables q, hydro_variables f)
 }
 
 
-precision adaptive_method_norm(precision q_norm2, precision f_norm2, precision second_derivative_norm, precision q_dot_f, precision delta_0)
+precision adaptive_method_norm(precision q_norm2, precision f_norm2, precision second_derivative_norm, precision q_dot_f, precision dt_prev, precision delta_0)
 {
-	precision dt_abs = sqrt(delta_0 * sqrt_variables / second_derivative_norm);
+	precision dt_abs = dt_prev * sqrt(delta_0 * sqrt_variables / second_derivative_norm);
 
 	precision dt_abs2 = dt_abs * dt_abs / sqrt_variables;	// additionally divide out sqrt_variables
 	precision dt_abs4 = dt_abs2 * dt_abs2;
@@ -279,17 +288,16 @@ precision adaptive_method_norm(precision q_norm2, precision f_norm2, precision s
 	precision a = q_norm2 * dt_abs4;
 
 
-	precision y0, y1, y2;							// resolvent cubic equation: y^3 + d.y^2 + e.y + f = 0  (a,b,c)
-	int cubic_roots = gsl_poly_solve_cubic(-2. * c,  c * c  +  4 * a,  - b * b, &y0, &y1, &y2);
+	precision y0, y1, y2;							// resolvent cubic equation: y^3 + d.y^2 + e.y + f = 0  (d,e,f)
+	int cubic_roots = gsl_poly_solve_cubic(-2. * c,  c * c  +  4. * a,  - b * b, &y0, &y1, &y2);
 
-	if(y0 > 0)										// take the greatest positive solution (see gsl manual)
+	if(y0 > 0.)										// take the greatest positive solution (see gsl manual)
 	{
 		precision u = sqrt(y0);						// quartic equation factored:
-		precision t = (y0  -  c  -  b / u) / 2.;	// x^4 - c.x^2 - b.x - a = (x^2 - u.x + t)(x^2 + u.x + v)
-		precision v = (y0  -  c  +  b / u) / 2.;
+													// x^4 - c.x^2 - b.x - a = (x^2 - u.x + t)(x^2 + u.x + v)
 
-		precision discriminant_1 = y0  -  4. * t;
-		precision discriminant_2 = y0  -  4. * v;
+		precision discriminant_1 = 2. * (c  +  b / u)  -  y0;
+		precision discriminant_2 = 2. * (c  -  b / u)  -  y0;
 
 		precision dt_rel = dt_abs;
 
@@ -305,31 +313,6 @@ precision adaptive_method_norm(precision q_norm2, precision f_norm2, precision s
 	}
 
 	return dt_abs;
-
-	/*
-	// solve equation: a.x^4 + b.x^2 + c.x + d = 0 (x = dt_rel)		this is too slow?...
-	precision coefficients[5] = {- q_norm2, - 2 * q_dot_f, - f_norm2, 0, 1. / (dt_abs2 * dt_abs2)};
-	precision complex_solution[8];
-
-	gsl_poly_complex_workspace * work = gsl_poly_complex_workspace_alloc(5);
-	gsl_poly_complex_solve(coefficients, 5, work, complex_solution);
-	gsl_poly_complex_workspace_free(work);
-
-	for(int i = 0; i < 4; i++)								// isolate complex and negative real solutions
-	{
-		if(fabs(complex_solution[2 * i + 1]) < 1.e-8)
-		{
-			precision dt_rel = complex_solution[2 * i];
-
-			if(dt_rel > 0) return fmax(dt_abs, dt_rel);
-		}
-	}
-
-	printf("adaptive_method_norm error: no dt_rel solution found\n");
-
-	return dt_abs;
-	*/
-
 }
 
 
@@ -358,21 +341,23 @@ precision compute_dt_source(precision t, const hydro_variables * const __restric
 				precision f_norm = compute_hydro_norm2(f[s]);
 				precision q_dot_f = dot_product(q[s], f[s]);
 
-				precision second_derivative_norm = compute_second_derivative_norm(q_prev[s], q[s], q_star, dt_prev);
+				precision second_derivative_norm = compute_second_derivative_norm(q_prev[s], q[s], q_star);
 
-				precision dt_next = adaptive_method_norm(q_norm, f_norm, second_derivative_norm, q_dot_f, delta_0);
+				precision dt_next = adaptive_method_norm(q_norm, f_norm, second_derivative_norm, q_dot_f, dt_prev, delta_0);
 
 				dt_source = fmin(dt_source, dt_next);
 			}
 		}
 	}
 
+#ifdef ADAPTIVE_FILE
 	FILE * dt_predict;
 	dt_predict = fopen("output/dt_source.dat", "a");
 	fprintf(dt_predict, "%.4f\t%.8f\n", t, dt_source);
 	fclose(dt_predict);
+#endif
 
-	return fmax((1. -  alpha / 2.) * dt_prev, fmin(dt_source, (1. + alpha) * dt_prev));
+	return fmax((1. -  alpha) * dt_prev, fmin(dt_source, (1. + alpha) * dt_prev));
 }
 
 

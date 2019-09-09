@@ -172,6 +172,8 @@ double run_semi_analytic_aniso_gubser(lattice_parameters lattice, initial_condit
 	double T0_hat = search_T0_hat(lattice, initial, hydro);	// initial Gubser temperature	
 	double plpt_ratio = hydro.plpt_ratio_initial;			// initial plpt ratio at transverse corner of grid
 
+	printf("T0_hat = %lf\n\n", T0_hat);
+
 	double r_max = (nx - 1.) * dx / sqrt(2.);				// distance to transverse corner
 
 	double T_freeze = hydro.freezeout_temperature_GeV;

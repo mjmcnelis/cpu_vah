@@ -159,7 +159,7 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro)
 
 	config_destroy(&cfg);
 
-	lattice.min_time_step = pow(10., round(log10(hydro.tau_initial)) - 2.);		// min time step ~ 100x smaller than t0
+	lattice.min_time_step = 5. * pow(10., round(log10(hydro.tau_initial)) - 2.);		// min time step ~ 20x smaller than t0
 
 	printf("Lattice parameters:");
 	printf("\n-------------------\n");

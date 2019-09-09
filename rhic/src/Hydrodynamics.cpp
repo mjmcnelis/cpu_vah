@@ -20,6 +20,7 @@ precision dt_after_output;
 const int freezeout_frequency = 10;
 const precision dt_eps = 1.e-8;
 
+
 inline int linear_column_index(int i, int j, int k, int nx, int ny)
 {
 	return i  +  nx * (j  +  ny * k);
@@ -70,8 +71,8 @@ precision set_the_time_step(int n, precision t, precision dt_prev, precision t_n
 																						// just storing the source function
 			euler_step(t, q, qI, e, u, up, dt_prev, dt_prev, lattice, hydro, update);	// don't worry about regulating yet...
 
-			precision dt_source = compute_dt_source(t, Q, q, qI, dt_prev, lattice);
-
+			precision dt_source = dt_source = compute_dt_source(t, Q, q, qI, dt_prev, lattice);;
+			
 			dt = compute_adaptive_time_step(t, dt_CFL, dt_source, dt_min);
 		}
 	}
