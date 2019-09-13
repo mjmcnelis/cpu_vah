@@ -123,7 +123,7 @@ const precision * const __restrict__ e, const fluid_velocity * const __restrict_
 
 				precision e_s = e[s];
 
-				precision ux = u[s].ux;		// current fluid velocity 
+				precision ux = u[s].ux;		// current fluid velocity
 				precision uy = u[s].uy;
 				precision un = u[s].un;
 				precision ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t2 * un * un);
@@ -161,7 +161,7 @@ const precision * const __restrict__ e, const fluid_velocity * const __restrict_
 				flux_terms(Hn_plus, Hn_minus, Qs, qk1, qk2, vnk, un / ut, Theta);
 
 				for(int n = 0; n < NUMBER_CONSERVED_VARIABLES; n++)
-				{	
+				{
 					if(update) 	// add euler step to Qs (usual time evolution)
 					{
 						Qs[n] += dt * (S[n]  +  (Hx_minus[n] - Hx_plus[n]) / dx  +  (Hy_minus[n] - Hy_plus[n]) / dy  +  (Hn_minus[n] - Hn_plus[n]) / dn);
@@ -217,8 +217,8 @@ void add_euler_step(const hydro_variables * const __restrict__ q, hydro_variable
  	int nx = lattice.lattice_points_x;
 	int ny = lattice.lattice_points_y;
 	int nz = lattice.lattice_points_eta;
- 	
-	for(int k = 2; k < nz + 2; k++)			
+
+	for(int k = 2; k < nz + 2; k++)
 	{
 		for(int j = 2; j < ny + 2; j++)
 		{
@@ -269,7 +269,7 @@ void runge_kutta2(const hydro_variables * const __restrict__ q, hydro_variables 
  	int nx = lattice.lattice_points_x;
 	int ny = lattice.lattice_points_y;
 	int nz = lattice.lattice_points_eta;
- 	
+
 	for(int k = 2; k < nz + 2; k++)			// 2nd order Runge-Kutta update
 	{
 		for(int j = 2; j < ny + 2; j++)
@@ -318,53 +318,50 @@ void runge_kutta2(const hydro_variables * const __restrict__ q, hydro_variables 
 
 void evolve_hydro_one_time_step(int n, precision t, precision dt, precision dt_prev, lattice_parameters lattice, hydro_parameters hydro, int update)
 {
-	if(lattice.adaptive_time_step)											// first intermediate euler step 
-	{																		// qI = q + dt.(S - dHx/dx - dHy/dy - dHn/dn)
-		if(n == 0)	
+	/*
+	if(lattice.adaptive_time_step)											// 1st intermediate euler step
+	{																		// Q = q + dt.(S - dHx/dx - dHy/dy - dHn/dn)
+		if(n == 0)
 		{
 			euler_step(t, q, qI, e, u, up, dt, dt_prev, lattice, hydro, update);
 		}
 		else
 		{
-			add_euler_step(q, qI, dt, lattice);																		
+			add_euler_step(q, qI, dt, lattice);
 		}
 	}
 	else
 	{
 		euler_step(t, q, qI, e, u, up, dt, dt_prev, lattice, hydro, update);
 	}
+	*/
+
+	int adaptive = 0;		// for now
+	int RK2 = 0;
+
+
+	// update qI, then update U, e via root solving, regulate Q (all inside the loop)
+	// the euler step will also return dt (dt = dt_prev is default)
+	euler_step(t, q, qI, e, up, u, uI, dt, dt_prev, lattice, hydro, adaptive, RK2);
 
 	t += dt;																// next intermediate time step
 
-#ifdef ANISO_HYDRO
-	set_inferred_variables_aniso_hydro(qI, e, uI, t, lattice, hydro);		// compute (uI, e)
-	regulate_residual_currents(t, qI, e, uI, lattice, hydro);				// regulate qI 
-#else
-	set_inferred_variables_viscous_hydro(qI, e, uI, t, lattice, hydro);
-	regulate_viscous_currents(t, qI, e, uI, lattice, hydro);
-#endif
+	set_ghost_cells(qI, e, uI, lattice);									// set ghost cells
 
-	set_ghost_cells(qI, e, uI, lattice);									// set (qI, uI, e) ghost cells
+	dt_prev = dt;															// update previous time step
 
-	dt_prev = dt;															// update previous time step 
+	adaptive = 0;
+	RK2 = 1;
 
-	euler_step(t, qI, Q, e, uI, u, dt, dt_prev, lattice, hydro, update);	// second intermediate euler step
-																			// Q = qI + dt.(S - dHx/dx - dHy/dy - dHn/dn)
-	runge_kutta2(q, Q, lattice);											// 2nd order runge kutta: Q = (q + Q) / 2
+	euler_step(t, qI, Q, e, u, uI, up, dt, dt_prev, lattice, hydro, adaptive, RK2);	// 2nd intermediate euler step and RK2 scheme
+																					// Q = q/2 + (qI + dt.(S - dHx/dx - dHy/dy - dHn/dn)) / 2
+	// I am updating Q again (does passing both variables work?)
+	// update Q, then update U, e via root solving, regulate Q
 
-	swap_fluid_velocity(&up, &u);											// swap up and u
-
-#ifdef ANISO_HYDRO
-	set_inferred_variables_aniso_hydro(Q, e, u, t, lattice, hydro);			// compute (u, e)
-	regulate_residual_currents(t, Q, e, u, lattice, hydro);					// regulate Q 
-#else
-	set_inferred_variables_viscous_hydro(Q, e, u, t, lattice, hydro);
-	regulate_viscous_currents(t, Q, e, u, lattice, hydro);
-#endif
-
-	set_ghost_cells(Q, e, u, lattice);										// set (Q, u, e) ghost cells
-	
+	swap_fluid_velocity(&u, &up);											// swap u and up
 	swap_hydro_variables(&q, &Q);											// swap q and Q
+
+	set_ghost_cells(q, e, u, lattice);										// set (q, u, e) ghost cells for next step
 }
 
 
