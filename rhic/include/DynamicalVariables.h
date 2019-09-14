@@ -5,7 +5,7 @@
 #include "Macros.h"
 #include "EquationOfState.h"
 #include "Precision.h"
-#include "Parameters.h"	
+#include "Parameters.h"
 
 // try to eliminate "_SCALAR" macros
 
@@ -104,7 +104,7 @@ typedef struct
 
 extern hydro_variables *q, *Q, *qI;
 extern fluid_velocity *u, *up, *uI;
-extern precision *e;
+extern precision *e, *E;
 
 // swap variables
 void swap_hydro_variables(hydro_variables ** hydro_1, hydro_variables ** hydro_2);

@@ -6,8 +6,9 @@
 #include "../include/Precision.h"
 #include "../include/Macros.h"
 #include "../include/DynamicalVariables.h"
+#include "../include/InferredVariables.h"
 #include "../include/Parameters.h"
-#include "../include/EquationOfState.h"		
+#include "../include/EquationOfState.h"
 using namespace std;
 
 double ttt_error = 1.e-13;
@@ -18,6 +19,134 @@ double ttn_error = 1.e-13;
 inline int linear_column_index(int i, int j, int k, int nx, int ny)
 {
 	return i  +  nx * (j  +  ny * k);
+}
+
+
+inferred_variables solve_inferred_variables_aniso_hydro(hydro_variables q_aniso, precision t, precision t2, precision t4, hydro_parameters hydro)
+{
+	inferred_variables root;
+
+	precision e_min = hydro.energy_min;
+
+	precision ttt = q_aniso.ttt;
+	precision ttx = q_aniso.ttx;
+	precision tty = q_aniso.tty;
+	precision ttn = q_aniso.ttn;
+	precision pl  = q_aniso.pl;
+
+#if (PT_MATCHING == 1)
+	precision pt  = q_aniso.pt;
+#endif
+#ifdef PIMUNU
+	precision pitt = q_aniso.pitt;
+	precision pitx = q_aniso.pitx;
+	precision pity = q_aniso.pity;
+	precision pitn = q_aniso.pitn;
+#else
+	precision pitt = 0;
+	precision pitx = 0;
+	precision pity = 0;
+	precision pitn = 0;
+#endif
+#ifdef WTZMU
+	precision WtTz = q_aniso.WtTz;
+	precision WxTz = q_aniso.WxTz;
+	precision WyTz = q_aniso.WyTz;
+	precision WnTz = q_aniso.WnTz;
+#else
+	precision WtTz = 0;
+	precision WxTz = 0;
+	precision WyTz = 0;
+	precision WnTz = 0;
+#endif
+
+	precision kt = ttt  -  pitt;			// [fm^-4]
+	precision kx = ttx  -  pitx;			// [fm^-4]
+	precision ky = tty  -  pity;			// [fm^-4]
+	precision kn = ttn  -  pitn;			// [fm^-5]
+
+	precision A = kn / (kt + pl);		  	// [fm^-1] (check these formulas)
+	precision B = WtTz / (t * (kt + pl));	// [fm^-1]
+
+	precision t2A2 = t2 * A * A;
+	precision t2B2 = t2 * B * B;
+
+	// figure out how to deal with this
+	precision F = (A  -  B * sqrt(fabs(1. + t2B2 - t2A2))) / (1. + t2B2);	// [fm^-1]
+	precision Ft = t * F;													// [1]
+	precision x = sqrt(fabs(1.  -  Ft * Ft));								// [1]
+
+	precision zt = Ft / x;					// [1]
+	precision zn = 1. / (x * t);			// [fm^-1]
+
+	precision Mt = kt  -  2. * WtTz * zt;
+	precision Mx = kx  -  WxTz * zt;
+	precision My = ky  -  WyTz * zt;
+	precision Mn = kn  -  WtTz * zn  -  WnTz * zt;
+
+	// solution for e
+#if (PT_MATCHING == 1)
+	precision Ltt = (pl - pt) * zt * zt;
+	precision ut_numerator = Mt  +  pt  -  Ltt;
+
+	precision e_s = energy_density_cutoff(e_min, Mt  -  Ltt  -  (Mx * Mx  +  My * My) / ut_numerator  -  t2 * Mn * Mn * ut_numerator / (Mt + pl) / (Mt + pl));
+
+	precision ut_numerator = Mt  +  pt  -  (pl - pt) * zt2;
+#else
+	precision zt2  = zt * zt;
+	precision ztzn = zt * zn;
+
+	// what a pain in the ass (so far testing shows it works though...)
+	precision a = 0.25 * t2 * ztzn * ztzn  +  0.5 * (1. + zt2) * (1.  -  0.5 * zt2);
+	precision b = 0.5 * t2 * Mn * ztzn  -  1.5 * t2 * pl * ztzn * ztzn  -  (0.5 * (1. + zt2) * (Mt - 1.5 * pl * zt2)  -  (1. - 0.5 * zt2) * (Mt - 0.5 * pl * (1. + 3. * zt2)));
+	precision c = Mx * Mx  +  My * My  +  t2 * Mn * Mn  -  1.5 * t2 * Mn * pl * ztzn  +  2.25 * t2 * pl * pl * ztzn * ztzn  -  (Mt - 0.5 * pl * (1. + 3. * zt2)) * (Mt - 1.5 * pl * zt2);
+
+	precision e_s = energy_density_cutoff(e_min, (sqrt(fabs(b * b  -  4. * a * c))  -  b) / (2. * a));
+
+	precision pt = (e_s - pl) / 2.;
+
+	precision ut_numerator = Mt  +  pt  -  (pl - pt) * zt2;
+#endif
+
+	// solution for u
+	precision ut_s = sqrt(fabs(ut_numerator / (e_s + pt)));
+	precision ux_s = Mx / ut_s / (e_s + pt);
+	precision uy_s = My / ut_s / (e_s + pt);
+	precision un_s = F * ut_s;
+
+	if(std::isnan(ut_s))
+	{
+		printf("\nget_inferred_variables_aniso_hydro error: u^mu = (%lf, %lf, %lf, %lf) is nan\n", ut_s, ux_s, uy_s, un_s);
+		exit(-1);
+	}
+
+#ifdef TEST_TTAUMU
+	ut_s = sqrt(1.  +  ux_s * ux_s  +  uy_s * uy_s  +  t2 * un_s * un_s);	// renormalize u
+	precision utperp_s = sqrt(1.  +  ux_s * ux_s  +  uy_s * uy_s);
+	precision zt_s = t * un_s / utperp_s;
+	precision zn_s = ut_s / (t * utperp_s);
+
+	precision dttt = fabs((e_s + pt) * ut_s * ut_s  -  pt  +  (pl - pt) * zt_s * zt_s  +  2. * WtTz * zt_s  +  pitt  -  ttt);
+	precision dttx = fabs((e_s + pt) * ut_s * ux_s  +  WxTz * zt_s  +  pitx  -  ttx);
+	precision dtty = fabs((e_s + pt) * ut_s * uy_s  +  WyTz * zt_s  +  pity  -  tty);
+	precision dttn = fabs((e_s + pt) * ut_s * un_s  +  (pl - pt) * zt_s * zn_s  +  WtTz * zn_s  +  WnTz * zt_s  +  pitn  -  ttn);
+
+	if(dttt > ttt_error || dttx > ttx_error || dtty > tty_error || dttn > ttn_error)
+	{
+		ttt_error = fmax(dttt, ttt_error);
+		ttx_error = fmax(dttx, ttx_error);
+		tty_error = fmax(dtty, tty_error);
+		ttn_error = fmax(dttn, ttn_error);
+		printf("get_inferred_variables_aniso_hydro: |dt^{tau/mu}| = (%.6g, %.6g, %.6g, %.6g)\n", ttt_error, ttx_error, tty_error, ttn_error);
+	}
+#endif
+
+	root.energy = e_s;
+	root.ux = ux_s;
+	root.uy = uy_s;
+	root.un = un_s;
+
+	return root;
 }
 
 // maybe need more quantitative way of checking convergence of iterations
@@ -121,8 +250,8 @@ void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict
 
 				precision e_s = energy_density_cutoff(e_min, (sqrt(fabs(b * b  -  4. * a * c))  -  b) / (2. * a));
 
-				precision pt = (e_s - pl) / 2.;		
-			
+				precision pt = (e_s - pl) / 2.;
+
 				precision ut_numerator = Mt  +  pt  -  (pl - pt) * zt2;
 			#endif
 
@@ -176,7 +305,7 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 	int nx = lattice.lattice_points_x;
 	int ny = lattice.lattice_points_y;
 	int nz = lattice.lattice_points_eta;
-	
+
 	precision e_min = hydro.energy_min;
 
 	precision t2 = t * t;

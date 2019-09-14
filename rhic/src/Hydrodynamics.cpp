@@ -68,11 +68,12 @@ precision set_the_time_step(int n, precision t, precision dt_prev, precision t_n
 			precision dt_CFL = compute_dt_CFL(t, lattice, hydro);
 
 			int update = 0;																// not updating qI with euler step
+			int RK2 = 0;
 																						// just storing the source function
-			euler_step(t, q, qI, e, u, up, dt_prev, dt_prev, lattice, hydro, update);	// don't worry about regulating yet...
+			euler_step(t, q, qI, e, E, up, u, uI, dt_prev, dt_prev, lattice, hydro, update, RK2);	// don't worry about regulating yet...
 
 			precision dt_source = dt_source = compute_dt_source(t, Q, q, qI, dt_prev, lattice);;
-			
+
 			dt = compute_adaptive_time_step(t, dt_CFL, dt_source, dt_min);
 		}
 	}

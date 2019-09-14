@@ -6,7 +6,7 @@
 
 hydro_variables *q, *Q, *qI;
 fluid_velocity *u, *up, *uI;
-precision *e;
+precision *e, *E;
 
 
 void allocate_memory(lattice_parameters lattice)
@@ -16,7 +16,7 @@ void allocate_memory(lattice_parameters lattice)
 	int nx = lattice.lattice_points_x;		// physical grid points
 	int ny = lattice.lattice_points_y;
 	int nz = lattice.lattice_points_eta;
-	
+
 	int ncx = nx + 4;						// computational grid points = physical + ghost + white
 	int ncy = ny + 4;
 	int ncz = nz + 4;
@@ -25,7 +25,8 @@ void allocate_memory(lattice_parameters lattice)
 
 	size_t bytes = sizeof(precision);
 
-	e = (precision *)calloc(length, bytes);	
+	e = (precision *)calloc(length, bytes);
+	E = (precision *)calloc(length, bytes);
 
 	u  = (fluid_velocity *)calloc(length, sizeof(fluid_velocity));
 	up = (fluid_velocity *)calloc(length, sizeof(fluid_velocity));
@@ -55,7 +56,7 @@ void swap_fluid_velocity(fluid_velocity ** velocity_1, fluid_velocity ** velocit
 
 void free_memory()
 {
-	free(e);	
+	free(e);
 	free(u);
 	free(up);
 	free(uI);
