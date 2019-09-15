@@ -14,6 +14,8 @@
 #include "../include/AdaptiveTimeStep.h"
 using namespace std;
 
+bool hit_CFL_bound = false;
+
 bool after_output = false;
 precision dt_after_output;
 
@@ -67,12 +69,16 @@ precision set_the_time_step(int n, precision t, precision dt_prev, precision t_n
 		{
 			precision dt_CFL = compute_dt_CFL(t, lattice, hydro);
 
-			int update = 0;																// not updating qI with euler step
-			int RK2 = 0;
-																						// just storing the source function
-			euler_step(t, q, qI, e, E, up, u, uI, dt_prev, dt_prev, lattice, hydro, update, RK2);	// don't worry about regulating yet...
+			precision dt_source = 1./0.;
 
-			precision dt_source = dt_source = compute_dt_source(t, Q, q, qI, dt_prev, lattice);;
+			if(!hit_CFL_bound)		// assumes that dt_source remains > dt_CFL after hit bound
+			{
+				euler_step(t, q, qI, e, up, u, dt_prev, dt_prev, lattice, hydro, 0, 0);		// compute source function
+
+				dt_source = compute_dt_source(t, Q, q, qI, dt_prev, lattice);
+
+				if(dt_source >= dt_CFL) hit_CFL_bound = true;
+			}
 
 			dt = compute_adaptive_time_step(t, dt_CFL, dt_source, dt_min);
 		}
@@ -120,10 +126,10 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 	precision t_out = t;								// output times
 	precision dt_out = lattice.output_interval;
 
+	printf("Running hydro simulation...\n\n");
+
 	double steps = 0;
 	clock_t start = clock();
-
-	printf("Running hydro simulation...\n\n");
 
 
 	// fluid dynamic evolution
@@ -163,7 +169,7 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 
 		int update = 1;
 
-		evolve_hydro_one_time_step(n, t, dt, dt_prev, lattice, hydro, update);
+		evolve_hydro_one_time_step(n, t, dt, dt_prev, lattice, hydro, update, hit_CFL_bound);
 
 		t += dt;
 

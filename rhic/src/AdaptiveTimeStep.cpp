@@ -103,7 +103,7 @@ precision compute_dt_CFL(precision t, lattice_parameters lattice, hydro_paramete
 				precision ay = compute_max_local_propagation_speed(vyj, uy / ut, Theta);
 				precision an = compute_max_local_propagation_speed(vnk, un / ut, Theta);
 
-				dt_CFL = fmin(dt_CFL, 0.125 * fmin(dx / ax, fmin(dy / ay, dn / an)));	// take the minimum wave propagation time
+				dt_CFL = fmin(dt_CFL, fmin(dx / ax, fmin(dy / ay, dn / an)));	// take the minimum wave propagation time
 			}
 		}
 	}
@@ -111,11 +111,11 @@ precision compute_dt_CFL(precision t, lattice_parameters lattice, hydro_paramete
 #ifdef ADAPTIVE_FILE
 	FILE * dt_CFL_bound;
 	dt_CFL_bound = fopen("output/dt_CFL.dat", "a");
-	fprintf(dt_CFL_bound, "%.4f\t%.8f\n", t, dt_CFL);
+	fprintf(dt_CFL_bound, "%.4f\t%.8f\n", t, dt_CFL / 8.);
 	fclose(dt_CFL_bound);
 #endif
 
-	return dt_CFL;
+	return dt_CFL / 8.;
 }
 
 
@@ -162,43 +162,22 @@ hydro_variables compute_q_star(hydro_variables q, hydro_variables f, precision d
 
 precision compute_hydro_norm2(hydro_variables q)		// I should be adding things with the same dimension...(which time to use?)
 {
-	precision ttt = q.ttt;
-	precision ttx = q.ttx;
-	precision tty = q.tty;
-	precision ttn = q.ttn;
-	precision norm2 = ttt * ttt  +  ttx * ttx  +  tty * tty  +  ttn * ttn;
+	precision norm2 = q.ttt * q.ttt  +  q.ttx * q.ttx  +  q.tty * q.tty  +  q.ttn * q.ttn;
 
 #ifdef ANISO_HYDRO
-	precision pl = q.pl;
-	norm2 += (pl * pl);
+	norm2 += (q.pl * q.pl);
 #if (PT_MATCHING == 1)
-	precision pt = q.pt;
-	norm2 += (pt * pt);
+	norm2 += (q.pt * q.pt);
 #endif
 #endif
 #ifdef PIMUNU
-	precision pitt = q.pitt;
-	precision pitx = q.pitx;
-	precision pity = q.pity;
-	precision pitn = q.pitn;
-	precision pixx = q.pixx;
-	precision pixy = q.pixy;
-	precision pixn = q.pixn;
-	precision piyy = q.piyy;
-	precision piyn = q.piyn;
-	precision pinn = q.pinn;
-	norm2 += (pitt * pitt  +  pitx * pitx  +  pity * pity  +  pitn * pitn  +  pixx * pixx  +  pixy * pixy  +  pixn * pixn  +  piyy * piyy  +  piyn * piyn  +  pinn * pinn);
+	norm2 += (q.pitt * q.pitt  +  q.pitx * q.pitx  +  q.pity * q.pity  +  q.pitn * q.pitn  +  q.pixx * q.pixx  +  q.pixy * q.pixy  +  q.pixn * q.pixn  +  q.piyy * q.piyy  +  q.piyn * q.piyn  +  q.pinn * q.pinn);
 #endif
 #ifdef WTZMU
-	precision WtTz = q.WtTz;
-	precision WxTz = q.WxTz;
-	precision WyTz = q.WyTz;
-	precision WnTz = q.WnTz;
-	norm2 += (WtTz * WtTz  +  WxTz * WxTz  +  WyTz * WyTz  +  WnTz * WnTz);
+	norm2 += (q.WtTz * q.WtTz  +  q.WxTz * q.WxTz  +  q.WyTz * q.WyTz  +  q.WnTz * q.WnTz);
 #endif
 #ifdef PI
-	precision Pi = q.Pi;
-	norm2 += (Pi * Pi);
+	norm2 += (q.Pi * q.Pi);
 #endif
 
 	return norm2;
@@ -207,9 +186,9 @@ precision compute_hydro_norm2(hydro_variables q)		// I should be adding things w
 
 precision second_derivative_squared(precision q_prev, precision q, precision q_star)
 {
-	precision second_derivative = q_prev  -  2. * q  +  q_star;
+	//precision second_derivative = q_prev  -  2. * q  +  q_star;
 
-	return second_derivative * second_derivative;		// left out prefactor 2 / dt_prev^2
+	return (q_prev  -  2. * q  +  q_star) * (q_prev  -  2. * q  +  q_star);		// left out prefactor 2 / dt_prev^2
 }
 
 
@@ -287,7 +266,6 @@ precision adaptive_method_norm(precision q_norm2, precision f_norm2, precision s
 	precision b = 2. * q_dot_f * dt_abs4;
 	precision a = q_norm2 * dt_abs4;
 
-
 	precision y0, y1, y2;							// resolvent cubic equation: y^3 + d.y^2 + e.y + f = 0  (d,e,f)
 	int cubic_roots = gsl_poly_solve_cubic(-2. * c,  c * c  +  4. * a,  - b * b, &y0, &y1, &y2);
 
@@ -295,7 +273,6 @@ precision adaptive_method_norm(precision q_norm2, precision f_norm2, precision s
 	{
 		precision u = sqrt(y0);						// quartic equation factored:
 													// x^4 - c.x^2 - b.x - a = (x^2 - u.x + t)(x^2 + u.x + v)
-
 		precision discriminant_1 = 2. * (c  +  b / u)  -  y0;
 		precision discriminant_2 = 2. * (c  -  b / u)  -  y0;
 

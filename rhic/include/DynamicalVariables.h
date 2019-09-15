@@ -104,7 +104,7 @@ typedef struct
 
 extern hydro_variables *q, *Q, *qI;
 extern fluid_velocity *u, *up, *uI;
-extern precision *e, *E;
+extern precision *e;
 
 // swap variables
 void swap_hydro_variables(hydro_variables ** hydro_1, hydro_variables ** hydro_2);

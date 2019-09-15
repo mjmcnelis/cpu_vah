@@ -6,7 +6,7 @@
 
 hydro_variables *q, *Q, *qI;
 fluid_velocity *u, *up, *uI;
-precision *e, *E;
+precision *e;
 
 
 void allocate_memory(lattice_parameters lattice)
@@ -26,7 +26,6 @@ void allocate_memory(lattice_parameters lattice)
 	size_t bytes = sizeof(precision);
 
 	e = (precision *)calloc(length, bytes);
-	E = (precision *)calloc(length, bytes);
 
 	u  = (fluid_velocity *)calloc(length, sizeof(fluid_velocity));
 	up = (fluid_velocity *)calloc(length, sizeof(fluid_velocity));

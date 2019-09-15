@@ -21,15 +21,15 @@ void print_hydro_mode(hydro_parameters hydro)
 {
 	string mode = "Running";
 	if(hydro.run_hydro == 1) mode = "Testing";
-	
+
 #ifdef ANISO_HYDRO
 	printf("\n:::::::::::::::::::::::::::::::::::::::::::\n");
 	printf(":::  %s viscous anisotropic hydro  :::\n", mode.c_str());
 	printf(":::::::::::::::::::::::::::::::::::::::::::\n\n");
-#else	
+#else
 	printf("\n:::::::::::::::::::::::::::::::::::::::::::\n");
 	printf(":::   %s second order viscous hydro   :::\n", mode.c_str());
-	printf(":::::::::::::::::::::::::::::::::::::::::::\n\n");	
+	printf(":::::::::::::::::::::::::::::::::::::::::::\n\n");
 #endif
 }
 
@@ -40,15 +40,15 @@ void print_run_time(double duration, double steps, lattice_parameters lattice)
 	int ny = lattice.lattice_points_y;
 	int nz = lattice.lattice_points_eta;
 
-	printf("Total time               = %.3g s\n", duration);
+	printf("Total time               = %.4g s\n", duration);
 	printf("Number of time steps     = %d\n", (int)steps);
-	printf("Average time/step        = %.3g ms\n", 1000. * duration / steps);
-	printf("Average time/cell/step   = %.3g ms\n", 1000. * duration / (nx * ny * nz * steps));
+	printf("Average time/step        = %.4g s\n", duration / steps);
+	printf("Average time/cell/step   = %.4g ms\n", 1000. * duration / (nx * ny * nz * steps));
 }
 
 
 void print_hydro_center(int n, double t, lattice_parameters lattice, hydro_parameters hydro)
-{	
+{
 	int s = central_index(lattice);
 
 	if(n == 0)
@@ -86,12 +86,12 @@ void print_parameters(lattice_parameters lattice, hydro_parameters hydro)
 	precision dt = lattice.fixed_time_step;
 	string time_step = "(fixed)";
 
-	if(lattice.adaptive_time_step) 
+	if(lattice.adaptive_time_step)
 	{
 		dt = lattice.min_time_step;
 		time_step = "(adaptive)";
 	}
-	
+
 	// lattice parameters
 	printf("Time resolution     = %.3g fm/c %s\n", dt, time_step.c_str());
 	printf("Spatial grid points = %d x %d x %d\n", nx, ny, nz);
