@@ -145,12 +145,18 @@ hydro_variables compute_q_star(hydro_variables q, hydro_variables f, precision d
 	q_star.pitt = q.pitt  +  dt_prev * f.pitt;
 	q_star.pitx = q.pitx  +  dt_prev * f.pitx;
 	q_star.pity = q.pity  +  dt_prev * f.pity;
+#ifndef BOOST_INVARIANT
 	q_star.pitn = q.pitn  +  dt_prev * f.pitn;
+#endif
 	q_star.pixx = q.pixx  +  dt_prev * f.pixx;
 	q_star.pixy = q.pixy  +  dt_prev * f.pixy;
+#ifndef BOOST_INVARIANT
 	q_star.pixn = q.pixn  +  dt_prev * f.pixn;
+#endif
 	q_star.piyy = q.piyy  +  dt_prev * f.piyy;
+#ifndef BOOST_INVARIANT
 	q_star.piyn = q.piyn  +  dt_prev * f.piyn;
+#endif
 	q_star.pinn = q.pinn  +  dt_prev * f.pinn;
 #endif
 #ifdef WTZMU
@@ -182,7 +188,10 @@ precision compute_hydro_norm2(hydro_variables q)		// I should be adding things w
 #endif
 #endif
 #ifdef PIMUNU
-	norm2 += (q.pitt * q.pitt  +  q.pitx * q.pitx  +  q.pity * q.pity  +  q.pitn * q.pitn  +  q.pixx * q.pixx  +  q.pixy * q.pixy  +  q.pixn * q.pixn  +  q.piyy * q.piyy  +  q.piyn * q.piyn  +  q.pinn * q.pinn);
+	norm2 += (q.pitt * q.pitt  +  q.pitx * q.pitx  +  q.pity * q.pity  +  q.pixx * q.pixx  +  q.pixy * q.pixy  +  q.piyy * q.piyy  +  q.pinn * q.pinn);
+#ifndef BOOST_INVARIANT
+	norm2 += (q.pitn * q.pitn  +  q.pixn * q.pixn  +  q.piyn * q.piyn);
+#endif
 #endif
 #ifdef WTZMU
 	norm2 += (q.WtTz * q.WtTz  +  q.WxTz * q.WxTz  +  q.WyTz * q.WyTz  +  q.WnTz * q.WnTz);
@@ -223,13 +232,15 @@ precision compute_second_derivative_norm(hydro_variables q_prev, hydro_variables
 	norm2 += (	second_derivative_squared(q_prev.pitt, q.pitt, q_star.pitt)	+
 				second_derivative_squared(q_prev.pitx, q.pitx, q_star.pitx)	+
 				second_derivative_squared(q_prev.pity, q.pity, q_star.pity)	+
-				second_derivative_squared(q_prev.pitn, q.pitn, q_star.pitn)	+
 				second_derivative_squared(q_prev.pixx, q.pixx, q_star.pixx)	+
 				second_derivative_squared(q_prev.pixy, q.pixy, q_star.pixy)	+
-				second_derivative_squared(q_prev.pixn, q.pixn, q_star.pixn)	+
 				second_derivative_squared(q_prev.piyy, q.piyy, q_star.piyy)	+
-				second_derivative_squared(q_prev.piyn, q.piyn, q_star.piyn)	+
 				second_derivative_squared(q_prev.pinn, q.pinn, q_star.pinn));
+#ifndef BOOST_INVARIANT
+	norm2 += (	second_derivative_squared(q_prev.pitn, q.pitn, q_star.pitn)	+
+				second_derivative_squared(q_prev.pixn, q.pixn, q_star.pixn)	+
+				second_derivative_squared(q_prev.piyn, q.piyn, q_star.piyn));
+#endif
 #endif
 #ifdef WTZMU
 	norm2 += (	second_derivative_squared(q_prev.WtTz, q.WtTz, q_star.WtTz)	+
@@ -260,7 +271,10 @@ precision dot_product(hydro_variables q, hydro_variables f)
 #endif
 #endif
 #ifdef PIMUNU
-	dot += (q.pitt * f.pitt  +  q.pitx * f.pitx  +  q.pity * f.pity  +  q.pitn * f.pitn  +  q.pixx * f.pixx  +  q.pixy * f.pixy  +  q.pixn * f.pixn  +  q.piyy * f.piyy  +  q.piyn * f.piyn  +  q.pinn * f.pinn);
+	dot += (q.pitt * f.pitt  +  q.pitx * f.pitx  +  q.pity * f.pity  +  q.pixx * f.pixx  +  q.pixy * f.pixy  +  q.piyy * f.piyy   +  q.pinn * f.pinn);
+#ifndef BOOST_INVARIANT
+	dot += (q.pitn * f.pitn  +  q.pixn * f.pixn  +  q.piyn * f.piyn);
+#endif
 #endif
 #ifdef WTZMU
 	dot += (q.WtTz * f.WtTz  +  q.WxTz * f.WxTz  +  q.WyTz * f.WyTz  +  q.WnTz * f.WnTz);
@@ -345,6 +359,8 @@ precision compute_dt_source(precision t, const hydro_variables * const __restric
 		}
 	}
 
+	dt_source = fmax((1. -  alpha) * dt_prev, fmin(dt_source, (1. + alpha) * dt_prev));
+
 #ifdef ADAPTIVE_FILE
 	FILE * dt_predict;
 	dt_predict = fopen("output/dt_source.dat", "a");
@@ -352,7 +368,7 @@ precision compute_dt_source(precision t, const hydro_variables * const __restric
 	fclose(dt_predict);
 #endif
 
-	return fmax((1. -  alpha) * dt_prev, fmin(dt_source, (1. + alpha) * dt_prev));
+	return dt_source;
 }
 
 

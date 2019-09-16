@@ -11,7 +11,7 @@ OPTIMIZATION   = -O3
 FLOWTRACE      =
 OPTIONS        =
 LINK_OPTIONS   =
-CFLAGS         = $(DEBUG) $(OPTIMIZATION) $(FLOWTRACE) $(OPTIONS)
+CFLAGS         = -std=c++11 $(DEBUG) $(OPTIMIZATION) $(FLOWTRACE) $(OPTIONS)
 
 LIBS     = -L /usr/local/lib -lm -lgsl -lgslcblas -lconfig -lc++
 INCLUDES = -I /usr/local/include -I rhic/include

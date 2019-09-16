@@ -213,25 +213,25 @@ void get_hydro_neighbor_cells(hydro_variables qm, hydro_variables qp, precision 
 
 	q[n]	 = qm.pity;
 	q[n + 1] = qp.pity;	n += 2;
-
+#ifndef BOOST_INVARIANT
 	q[n]	 = qm.pitn;
 	q[n + 1] = qp.pitn;	n += 2;
-
+#endif
 	q[n]	 = qm.pixx;
 	q[n + 1] = qp.pixx;	n += 2;
 
 	q[n]	 = qm.pixy;
 	q[n + 1] = qp.pixy;	n += 2;
-
+#ifndef BOOST_INVARIANT
 	q[n]	 = qm.pixn;
 	q[n + 1] = qp.pixn;	n += 2;
-
+#endif
 	q[n]	 = qm.piyy;
 	q[n + 1] = qp.piyy;	n += 2;
-
+#ifndef BOOST_INVARIANT
 	q[n]     = qm.piyn;
 	q[n + 1] = qp.piyn;	n += 2;
-
+#endif
 	q[n]	 = qm.pinn;
 	q[n + 1] = qp.pinn;	n += 2;
 #endif

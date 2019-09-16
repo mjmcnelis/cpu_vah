@@ -86,12 +86,24 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 				precision pitt = q[s].pitt;
 				precision pitx = q[s].pitx;
 				precision pity = q[s].pity;
+			#ifndef BOOST_INVARIANT
 				precision pitn = q[s].pitn;
+			#else
+				precision pitn = 0;
+			#endif
 				precision pixx = q[s].pixx;
 				precision pixy = q[s].pixy;
+			#ifndef BOOST_INVARIANT
 				precision pixn = q[s].pixn;
+			#else
+				precision pixn = 0;
+			#endif
 				precision piyy = q[s].piyy;
+			#ifndef BOOST_INVARIANT
 				precision piyn = q[s].piyn;
+			#else
+				precision piyn = 0;
+			#endif
 				precision pinn = q[s].pinn;
 
 				precision pi_mag = sqrt(fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
@@ -148,12 +160,18 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 				q[s].pitt = factor_pi * pitt;
 				q[s].pitx = factor_pi * pitx;
 				q[s].pity = factor_pi * pity;
+			#ifndef BOOST_INVARIANT
 				q[s].pitn = factor_pi * pitn;
+			#endif
 				q[s].pixx = factor_pi * pixx;
 				q[s].pixy = factor_pi * pixy;
+			#ifndef BOOST_INVARIANT
 				q[s].pixn = factor_pi * pixn;
+			#endif
 				q[s].piyy = factor_pi * piyy;
+			#ifndef BOOST_INVARIANT
 				q[s].piyn = factor_pi * piyn;
+			#endif
 				q[s].pinn = factor_pi * pinn;
 			#endif
 
@@ -253,12 +271,24 @@ void regulate_viscous_currents(precision t, hydro_variables * const __restrict__
 				precision pitt = q[s].pitt;
 				precision pitx = q[s].pitx;
 				precision pity = q[s].pity;
+			#ifndef BOOST_INVARIANT
 				precision pitn = q[s].pitn;
+			#else
+				precision pitn = 0;
+			#endif
 				precision pixx = q[s].pixx;
 				precision pixy = q[s].pixy;
+			#ifndef BOOST_INVARIANT
 				precision pixn = q[s].pixn;
+			#else
+				precision pixn = 0;
+			#endif
 				precision piyy = q[s].piyy;
+			#ifndef BOOST_INVARIANT
 				precision piyn = q[s].piyn;
+			#else
+				precision piyn = 0;
+			#endif
 				precision pinn = q[s].pinn;
 
 				precision pi_mag = sqrt(fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
@@ -286,12 +316,18 @@ void regulate_viscous_currents(precision t, hydro_variables * const __restrict__
 				q[s].pitt = factor_pi * pitt;
 				q[s].pitx = factor_pi * pitx;
 				q[s].pity = factor_pi * pity;
+			#ifndef BOOST_INVARIANT
 				q[s].pitn = factor_pi * pitn;
+			#endif
 				q[s].pixx = factor_pi * pixx;
 				q[s].pixy = factor_pi * pixy;
+			#ifndef BOOST_INVARIANT
 				q[s].pixn = factor_pi * pixn;
+			#endif
 				q[s].piyy = factor_pi * piyy;
+			#ifndef BOOST_INVARIANT
 				q[s].piyn = factor_pi * piyn;
+			#endif
 				q[s].pinn = factor_pi * pinn;
 			#endif
 

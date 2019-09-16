@@ -106,12 +106,18 @@ const precision * const __restrict__ e_current, const fluid_velocity * const __r
 				qs[a] = q_current[s].pitt; a++;
 				qs[a] = q_current[s].pitx; a++;
 				qs[a] = q_current[s].pity; a++;
+			#ifndef BOOST_INVARIANT
 				qs[a] = q_current[s].pitn; a++;
+			#endif
 				qs[a] = q_current[s].pixx; a++;
 				qs[a] = q_current[s].pixy; a++;
+			#ifndef BOOST_INVARIANT
 				qs[a] = q_current[s].pixn; a++;
+			#endif
 				qs[a] = q_current[s].piyy; a++;
+			#ifndef BOOST_INVARIANT
 				qs[a] = q_current[s].piyn; a++;
+			#endif
 				qs[a] = q_current[s].pinn; a++;
 			#endif
 			#ifdef WTZMU
@@ -198,12 +204,18 @@ const precision * const __restrict__ e_current, const fluid_velocity * const __r
 					q_update[s].pitt = f[a]; a++;
 					q_update[s].pitx = f[a]; a++;
 					q_update[s].pity = f[a]; a++;
+				#ifndef BOOST_INVARIANT
 					q_update[s].pitn = f[a]; a++;
+				#endif
 					q_update[s].pixx = f[a]; a++;
 					q_update[s].pixy = f[a]; a++;
+				#ifndef BOOST_INVARIANT
 					q_update[s].pixn = f[a]; a++;
+				#endif
 					q_update[s].piyy = f[a]; a++;
+				#ifndef BOOST_INVARIANT
 					q_update[s].piyn = f[a]; a++;
+				#endif
 					q_update[s].pinn = f[a]; a++;
 				#endif
 				#ifdef WTZMU
@@ -241,12 +253,18 @@ const precision * const __restrict__ e_current, const fluid_velocity * const __r
 					q_update[s].pitt = qs[a]; a++;
 					q_update[s].pitx = qs[a]; a++;
 					q_update[s].pity = qs[a]; a++;
+				#ifndef BOOST_INVARIANT
 					q_update[s].pitn = qs[a]; a++;
+				#endif
 					q_update[s].pixx = qs[a]; a++;
 					q_update[s].pixy = qs[a]; a++;
+				#ifndef BOOST_INVARIANT
 					q_update[s].pixn = qs[a]; a++;
+				#endif
 					q_update[s].piyy = qs[a]; a++;
+				#ifndef BOOST_INVARIANT
 					q_update[s].piyn = qs[a]; a++;
+				#endif
 					q_update[s].pinn = qs[a]; a++;
 				#endif
 				#ifdef WTZMU
@@ -284,12 +302,18 @@ const precision * const __restrict__ e_current, const fluid_velocity * const __r
 					q_update[s].pitt = (q[s].pitt  +  qs[a]) / 2.; a++;
 					q_update[s].pitx = (q[s].pitx  +  qs[a]) / 2.; a++;
 					q_update[s].pity = (q[s].pity  +  qs[a]) / 2.; a++;
+				#ifndef BOOST_INVARIANT
 					q_update[s].pitn = (q[s].pitn  +  qs[a]) / 2.; a++;
+				#endif
 					q_update[s].pixx = (q[s].pixx  +  qs[a]) / 2.; a++;
 					q_update[s].pixy = (q[s].pixy  +  qs[a]) / 2.; a++;
+				#ifndef BOOST_INVARIANT
 					q_update[s].pixn = (q[s].pixn  +  qs[a]) / 2.; a++;
+				#endif
 					q_update[s].piyy = (q[s].piyy  +  qs[a]) / 2.; a++;
+				#ifndef BOOST_INVARIANT
 					q_update[s].piyn = (q[s].piyn  +  qs[a]) / 2.; a++;
+				#endif
 					q_update[s].pinn = (q[s].pinn  +  qs[a]) / 2.; a++;
 				#endif
 				#ifdef WTZMU
@@ -338,12 +362,18 @@ void recompute_euler_step(const hydro_variables * const __restrict__ q_current, 
 				q_update[s].pitt = q_current[s].pitt  +  dt * q_update[s].pitt;
 				q_update[s].pitx = q_current[s].pitx  +  dt * q_update[s].pitx;
 				q_update[s].pity = q_current[s].pity  +  dt * q_update[s].pity;
+			#ifndef BOOST_INVARIANT
 				q_update[s].pitn = q_current[s].pitn  +  dt * q_update[s].pitn;
+			#endif
 				q_update[s].pixx = q_current[s].pixx  +  dt * q_update[s].pixx;
 				q_update[s].pixy = q_current[s].pixy  +  dt * q_update[s].pixy;
+			#ifndef BOOST_INVARIANT
 				q_update[s].pixn = q_current[s].pixn  +  dt * q_update[s].pixn;
+			#endif
 				q_update[s].piyy = q_current[s].piyy  +  dt * q_update[s].piyy;
+			#ifndef BOOST_INVARIANT
 				q_update[s].piyn = q_current[s].piyn  +  dt * q_update[s].piyn;
+			#endif
 				q_update[s].pinn = q_current[s].pinn  +  dt * q_update[s].pinn;
 			#endif
 			#ifdef WTZMU

@@ -19,7 +19,7 @@
 
 #ifdef PIMUNU
 	#ifdef BOOST_INVARIANT
-		#define PIMUNU_COMPONENTS 10		// later change to 7
+		#define PIMUNU_COMPONENTS 7		// later change to 7
 	#else
 		#define PIMUNU_COMPONENTS 10
 	#endif
@@ -61,35 +61,36 @@ typedef struct
 #ifndef BOOST_INVARIANT
 	precision ttn;			// start with this
 #endif
-
 #ifdef ANISO_HYDRO
 	precision pl;
-
 #if (PT_MATCHING == 1)
 	precision pt;
 #endif
 #endif
-
 #ifdef PIMUNU
 	precision pitt;
 	precision pitx;
 	precision pity;
+#ifndef BOOST_INVARIANT
 	precision pitn;
+#endif
 	precision pixx;
 	precision pixy;
+#ifndef BOOST_INVARIANT
 	precision pixn;
+#endif
 	precision piyy;
+#ifndef BOOST_INVARIANT
 	precision piyn;
+#endif
 	precision pinn;
 #endif
-
 #ifdef WTZMU
 	precision WtTz;
 	precision WxTz;
 	precision WyTz;
 	precision WnTz;
 #endif
-
 #ifdef PI
 	precision Pi;
 #endif

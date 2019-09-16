@@ -2,22 +2,14 @@
 #include <stdlib.h>
 #include <string>
 #include <math.h>
-#include <libconfig.h>
+#include <iostream>
+#include <fstream>
+#include <algorithm> 
+#include <sstream>
+#include <string>
 #include "../include/Macros.h"
 #include "../include/Parameters.h"
 using namespace std;
-
-
-void getIntegerProperty(config_t * cfg, const char * name, int * value)
-{
-	config_lookup_int(cfg, name, value);
-}
-
-
-void getDoubleProperty(config_t * cfg, const char * name, double * value)
-{
-	config_lookup_float(cfg, name, value);
-}
 
 
 bool starting_time_step_within_CFL_bound(double dt, lattice_parameters lattice)
@@ -43,46 +35,123 @@ double compute_conformal_prefactor(double flavors)
 
 hydro_parameters load_hydro_parameters()
 {
-	config_t cfg;
-	config_init(&cfg);
-
 	char fname[255] = "parameters/hydro.properties";
-	if(!config_read_file(&cfg, fname))
-	{
-		fprintf(stderr, "No configuration file  %s found for hydrodynamic parameters - %s.\n", fname, config_error_text(&cfg));
-		exit(-1);
-	}
-
+	
 	hydro_parameters hydro;
 
 	double quark_flavors;
 
-	getIntegerProperty(&cfg,"run_hydro",				&hydro.run_hydro);
+	std::ifstream cFile(fname);
+	if(cFile.is_open())
+	{
+		std::string line;
 
-	getDoubleProperty(&cfg, "tau_initial", 				&hydro.tau_initial);
-	getDoubleProperty(&cfg, "plpt_ratio_initial",		&hydro.plpt_ratio_initial);
-	getDoubleProperty(&cfg, "quark_flavors",			&quark_flavors);
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		auto delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		hydro.run_hydro = atoi(line.c_str());
 
-	getIntegerProperty(&cfg,"temperature_etas", 		&hydro.temperature_etas);
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		hydro.tau_initial = atof(line.c_str());
 
-	getDoubleProperty(&cfg, "etas_min", 				&hydro.etas_min);
-	getDoubleProperty(&cfg, "etas_slope", 				&hydro.etas_slope);
-	getDoubleProperty(&cfg, "constant_etas", 			&hydro.constant_etas);
-	getDoubleProperty(&cfg, "freezeout_temperature_GeV",&hydro.freezeout_temperature_GeV);
-	getDoubleProperty(&cfg, "flux_limiter",				&hydro.flux_limiter);
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		hydro.plpt_ratio_initial = atof(line.c_str());
 
-	getIntegerProperty(&cfg,"include_vorticity", 		&hydro.include_vorticity);
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		quark_flavors = atof(line.c_str());
 
-	getDoubleProperty(&cfg, "energy_min",				&hydro.energy_min);
-	getDoubleProperty(&cfg, "pressure_min",				&hydro.pressure_min);
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		hydro.temperature_etas = atoi(line.c_str());
 
-	getIntegerProperty(&cfg,"regulation_scheme", 		&hydro.regulation_scheme);
-	getIntegerProperty(&cfg,"reprojection", 			&hydro.reprojection);
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		hydro.etas_min = atof(line.c_str());
 
-	getDoubleProperty(&cfg, "rho_max",					&hydro.rho_max);
-	getDoubleProperty(&cfg, "xi0",						&hydro.xi0);
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		hydro.etas_slope = atof(line.c_str());
 
-	config_destroy(&cfg);
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		hydro.constant_etas = atof(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		hydro.freezeout_temperature_GeV = atof(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		hydro.flux_limiter = atof(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		hydro.include_vorticity = atoi(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		hydro.energy_min = atof(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		hydro.pressure_min = atof(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		hydro.regulation_scheme = atoi(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		hydro.reprojection = atoi(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		hydro.rho_max = atof(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		hydro.xi0 = atof(line.c_str());
+	}
+	else 
+	{
+		std::cerr << "No configuration file  %s found for hydro parameters\n";
+	}
 
 	hydro.conformal_eos_prefactor = compute_conformal_prefactor(quark_flavors);
 
@@ -108,7 +177,6 @@ hydro_parameters load_hydro_parameters()
 	printf("xi0                       = %.2f\n", 	hydro.xi0);
 	printf("\n");
 
-
 	if(hydro.tau_initial == 0)
 	{
 		printf("load_hydro_parameters error: tau_initial = %.3f is not allowed\n", hydro.tau_initial);
@@ -127,38 +195,91 @@ hydro_parameters load_hydro_parameters()
 
 lattice_parameters load_lattice_parameters(hydro_parameters hydro)
 {
-	config_t cfg;
-	config_init(&cfg);
-
 	char fname[255] = "parameters/lattice.properties";
-	if(!config_read_file(&cfg, fname))
-	{
-		fprintf(stderr, "No configuration file %s found for lattice parameters - %s.\n", fname, config_error_text(&cfg));
-		exit(-1);
-	}
 
 	lattice_parameters lattice;
 
-	getIntegerProperty(&cfg, "lattice_points_x", 		&lattice.lattice_points_x);
-	getIntegerProperty(&cfg, "lattice_points_y", 		&lattice.lattice_points_y);
-	getIntegerProperty(&cfg, "lattice_points_eta", 		&lattice.lattice_points_eta);
+	std::ifstream cFile(fname);
+	if(cFile.is_open())
+	{
+		std::string line;
 
-	getDoubleProperty(&cfg,  "lattice_spacing_x", 		&lattice.lattice_spacing_x);
-	getDoubleProperty(&cfg,  "lattice_spacing_y", 		&lattice.lattice_spacing_y);
-	getDoubleProperty(&cfg,  "lattice_spacing_eta", 	&lattice.lattice_spacing_eta);
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		auto delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		lattice.lattice_points_x = atoi(line.c_str());
 
-	getIntegerProperty(&cfg, "max_time_steps",			&lattice.max_time_steps);
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		lattice.lattice_points_y = atoi(line.c_str());
 
-	getDoubleProperty(&cfg,  "output_interval", 		&lattice.output_interval);
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		lattice.lattice_points_eta = atoi(line.c_str());
 
-	getDoubleProperty(&cfg,  "fixed_time_step", 		&lattice.fixed_time_step);
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		lattice.lattice_spacing_x = atof(line.c_str());
 
-	getIntegerProperty(&cfg, "adaptive_time_step", 		&lattice.adaptive_time_step);
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		lattice.lattice_spacing_y = atof(line.c_str());
 
-	getDoubleProperty(&cfg,  "delta_0", 				&lattice.delta_0);
-	getDoubleProperty(&cfg,  "alpha",			 		&lattice.alpha);
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		lattice.lattice_spacing_eta = atof(line.c_str());
 
-	config_destroy(&cfg);
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		lattice.max_time_steps = atoi(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		lattice.output_interval = atof(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		lattice.fixed_time_step = atof(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		lattice.adaptive_time_step = atoi(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		lattice.delta_0 = atof(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		lattice.alpha = atof(line.c_str());
+	}
+	else 
+	{
+		std::cerr << "No configuration file  %s found for hydro parameters\n";
+	}
 
 	lattice.min_time_step = 5. * pow(10., round(log10(hydro.tau_initial)) - 2.);		// min time step ~ 20x smaller than t0
 
@@ -179,10 +300,9 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro)
 	printf("fixed_time_step          = %.3g\n", lattice.fixed_time_step);
 	printf("adaptive_time_step       = %d\n", 	lattice.adaptive_time_step);
 	printf("min_time_step            = %.2e\n", lattice.min_time_step);
-	printf("delta_0                  = %.3e\n", lattice.delta_0);
+	printf("delta_0                  = %.3g\n", lattice.delta_0);
 	printf("alpha                    = %.3g\n", lattice.alpha);
 	printf("\n");
-
 
 	double dt = lattice.fixed_time_step;						// dt = starting time step
 	if(lattice.adaptive_time_step) dt = lattice.min_time_step;
@@ -199,30 +319,73 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro)
 
 initial_condition_parameters load_initial_condition_parameters()
 {
-	config_t cfg;
-	config_init(&cfg);
-
 	char fname[255] = "parameters/initial.properties";
-	if(!config_read_file(&cfg, fname))
-	{
-		fprintf(stderr, "No configuration file  %s found for initial condition parameters - %s.\n", fname, config_error_text(&cfg));
-		exit(-1);
-	}
 
 	initial_condition_parameters initial;
 
-	getIntegerProperty(&cfg, "initialConditionType", 		&initial.initialConditionType);
-	getIntegerProperty(&cfg, "numberOfNucleonsPerNuclei", 	&initial.numberOfNucleonsPerNuclei);
+	std::ifstream cFile(fname);
+	if(cFile.is_open())
+	{
+		std::string line;
 
-	getDoubleProperty(&cfg, "initialCentralTemperatureGeV",	&initial.initialCentralTemperatureGeV);
-	getDoubleProperty(&cfg, "scatteringCrossSectionNN", 	&initial.scatteringCrossSectionNN);
-	getDoubleProperty(&cfg, "impactParameter", 				&initial.impactParameter);
-	getDoubleProperty(&cfg,	"fractionOfBinaryCollisions", 	&initial.fractionOfBinaryCollisions);
-	getDoubleProperty(&cfg, "rapidityVariance", 			&initial.rapidityVariance);
-	getDoubleProperty(&cfg, "rapidityMean", 				&initial.rapidityMean);
-	getDoubleProperty(&cfg, "q_gubser", 					&initial.q_gubser);
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		auto delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		initial.initialConditionType = atoi(line.c_str());
 
-	config_destroy(&cfg);
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		initial.numberOfNucleonsPerNuclei = atoi(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		initial.initialCentralTemperatureGeV = atof(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		initial.scatteringCrossSectionNN = atof(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		initial.impactParameter = atof(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		initial.fractionOfBinaryCollisions = atof(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		initial.rapidityVariance = atof(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		initial.rapidityMean = atof(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		initial.q_gubser = atof(line.c_str());
+	}
+	else 
+	{
+		std::cerr << "No configuration file  %s found for hydro parameters\n";
+	}
 
 	printf("Initial condition parameters:");
 	printf("\n-----------------------------\n");

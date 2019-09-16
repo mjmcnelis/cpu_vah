@@ -62,7 +62,11 @@ void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict
 				precision pitt = q[s].pitt;
 				precision pitx = q[s].pitx;
 				precision pity = q[s].pity;
+			#ifndef BOOST_INVARIANT
 				precision pitn = q[s].pitn;
+			#else
+				precision pitn = 0;
+			#endif
 			#else
 				precision pitt = 0;
 				precision pitx = 0;
@@ -223,7 +227,11 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 				precision pitt = q[s].pitt;
 				precision pitx = q[s].pitx;
 				precision pity = q[s].pity;
+			#ifndef BOOST_INVARIANT
 				precision pitn = q[s].pitn;
+			#else
+				precision pitn = 0;
+			#endif
 			#else
 				precision pitt = 0;
 				precision pitx = 0;

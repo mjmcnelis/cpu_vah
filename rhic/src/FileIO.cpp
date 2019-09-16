@@ -283,12 +283,24 @@ void output_residual_shear_validity(const hydro_variables * const __restrict__ q
 				precision pitt = q[s].pitt;
 				precision pitx = q[s].pitx;
 				precision pity = q[s].pity;
+			#ifndef BOOST_INVARIANT
 				precision pitn = q[s].pitn;
+			#else
+				precision pitn = 0;
+			#endif
 				precision pixx = q[s].pixx;
 				precision pixy = q[s].pixy;
+			#ifndef BOOST_INVARIANT
 				precision pixn = q[s].pixn;
+			#else
+				precision pixn = 0;
+			#endif
 				precision piyy = q[s].piyy;
+			#ifndef BOOST_INVARIANT
 				precision piyn = q[s].piyn;
+			#else
+				precision piyn = 0;
+			#endif
 				precision pinn = q[s].pinn;
 
 				precision ux = u[s].ux;
@@ -475,7 +487,11 @@ void output_gubser(const hydro_variables * const __restrict__ q, const fluid_vel
 				precision zn = ut / t / utperp;
 			#ifdef PIMUNU
 				precision pitt = q[s].pitt;
+			#ifndef BOOST_INVARIANT
 				precision pitn = q[s].pitn;
+			#else
+				precision pitn = 0;
+			#endif
 				precision pinn = q[s].pinn;
 			#else
 				precision pitt = 0, pitn = 0, pinn = 0;

@@ -120,12 +120,24 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	precision pitt = q[a];	a++;
 	precision pitx = q[a];	a++;
 	precision pity = q[a];	a++;
+#ifndef BOOST_INVARIANT
 	precision pitn = q[a];	a++;
+#else
+	precision pitn = 0;
+#endif
 	precision pixx = q[a];	a++;
 	precision pixy = q[a];	a++;
+#ifndef BOOST_INVARIANT
 	precision pixn = q[a];	a++;
+#else
+	precision pixn = 0;
+#endif
 	precision piyy = q[a];	a++;
+#ifndef BOOST_INVARIANT
 	precision piyn = q[a];	a++;
+#else
+	precision piyn = 0;
+#endif
 	precision pinn = q[a];	a++;
 #else
 	precision pitt = 0;
@@ -233,22 +245,38 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	precision dpity_dy = central_derivative(qj1, n, dy);
 	precision dpity_dn = central_derivative(qk1, n, dn);	n += 2;
 
+#ifndef BOOST_INVARIANT
 	precision dpitn_dx = central_derivative(qi1, n, dx);
 	precision dpitn_dy = central_derivative(qj1, n, dy);
 	precision dpitn_dn = central_derivative(qk1, n, dn);	n += 2;
+#else
+	precision dpitn_dx = 0;
+	precision dpitn_dy = 0;			// I can also removed eta-derivatives if boost-invariant
+	precision dpitn_dn = 0;
+#endif
 
 	precision dpixx_dx = central_derivative(qi1, n, dx);	n += 2;
 
 	precision dpixy_dx = central_derivative(qi1, n, dx);
 	precision dpixy_dy = central_derivative(qj1, n, dy);	n += 2;
 
+#ifndef BOOST_INVARIANT
 	precision dpixn_dx = central_derivative(qi1, n, dx);
 	precision dpixn_dn = central_derivative(qk1, n, dn);	n += 2;
+#else
+	precision dpixn_dx = 0;
+	precision dpixn_dn = 0;
+#endif
 
 	precision dpiyy_dy = central_derivative(qj1, n, dy);	n += 2;
 
+#ifndef BOOST_INVARIANT
 	precision dpiyn_dy = central_derivative(qj1, n, dy);
 	precision dpiyn_dn = central_derivative(qk1, n, dn);	n += 2;
+#else
+	precision dpiyn_dy = 0;
+	precision dpiyn_dn = 0;
+#endif
 
 	precision dpinn_dn = central_derivative(qk1, n, dn);	n += 2;
 #else
@@ -481,7 +509,9 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	Itt -= delta_pipi * pitt * thetaT;
 	Itx -= delta_pipi * pitx * thetaT;
 	Ity -= delta_pipi * pity * thetaT;
-	Itn -= delta_pipi * pitn * thetaT;
+
+	Itn -= delta_pipi * pitn * thetaT;		// make use of BOOST_INVARIANT statements here? 
+
 	Ixx -= delta_pipi * pixx * thetaT;
 	Ixy -= delta_pipi * pixy * thetaT;
 	Ixn -= delta_pipi * pixn * thetaT;
@@ -501,6 +531,7 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	Iyn -= tau_pipi * (pity * sTtn  +  pitn * sTty  -  pixy * sTxn  -  pixn * sTxy  -  piyy * sTyn  -  piyn * sTyy  -  t2 * (piyn * sTnn  +  pinn * sTyn)) / 2.;
 	Inn -= tau_pipi * (pitn * sTtn  -  pixn * sTxn  -  piyn * sTyn  -  t2 * pinn * sTnn);
 
+#ifndef BOOST_INVARIANT
 	if(hydro.include_vorticity)
 	{
 		Itt += 0;	// vorticity terms not worked out yet...
@@ -514,6 +545,7 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 		Iyn += 0;
 		Inn += 0;
 	}
+#endif
 
 	// \lambda^\pi_\pi . \pi_T^{\mu\nu} . \theta_L
 	Itt += lambda_pipi * pitt * thetaL;
@@ -786,12 +818,18 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	S[a] = dpitt / ut  +  div_v * pitt;		a++;
 	S[a] = dpitx / ut  +  div_v * pitx;		a++;
 	S[a] = dpity / ut  +  div_v * pity;		a++;
+#ifndef BOOST_INVARIANT
 	S[a] = dpitn / ut  +  div_v * pitn;		a++;
+#endif
 	S[a] = dpixx / ut  +  div_v * pixx;		a++;
 	S[a] = dpixy / ut  +  div_v * pixy;		a++;
+#ifndef BOOST_INVARIANT
 	S[a] = dpixn / ut  +  div_v * pixn;		a++;
+#endif
 	S[a] = dpiyy / ut  +  div_v * piyy;		a++;
+#ifndef BOOST_INVARIANT
 	S[a] = dpiyn / ut  +  div_v * piyn;		a++;
+#endif
 	S[a] = dpinn / ut  +  div_v * pinn;		a++;
 #endif
 
@@ -841,12 +879,24 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	precision pitt = q[a];	a++;
 	precision pitx = q[a];	a++;
 	precision pity = q[a];	a++;
+#ifndef BOOST_INVARIANT
 	precision pitn = q[a];	a++;
+#else
+	precision pitn = 0;
+#endif
 	precision pixx = q[a];	a++;
 	precision pixy = q[a];	a++;
+#ifndef BOOST_INVARIANT
 	precision pixn = q[a];	a++;
+#else
+	precision pixn = 0;
+#endif
 	precision piyy = q[a];	a++;
+#ifndef BOOST_INVARIANT
 	precision piyn = q[a];	a++;
+#else
+	precision piyn = 0;
+#endif
 	precision pinn = q[a];	a++;
 
 	// shear transport coefficients
@@ -895,27 +945,72 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	precision dpity_dy = central_derivative(qj1, n, dy);
 	precision dpity_dn = central_derivative(qk1, n, dn);	n += 2;
 
+#ifndef BOOST_INVARIANT
 	precision dpitn_dx = central_derivative(qi1, n, dx);
 	precision dpitn_dy = central_derivative(qj1, n, dy);
 	precision dpitn_dn = central_derivative(qk1, n, dn);	n += 2;
+#else
+	precision dpitn_dx = 0;
+	precision dpitn_dy = 0;
+	precision dpitn_dn = 0;
+#endif
 
 	precision dpixx_dx = central_derivative(qi1, n, dx);	n += 2;
 
 	precision dpixy_dx = central_derivative(qi1, n, dx);
 	precision dpixy_dy = central_derivative(qj1, n, dy);	n += 2;
 
+#ifndef BOOST_INVARIANT
 	precision dpixn_dx = central_derivative(qi1, n, dx);
 	precision dpixn_dn = central_derivative(qk1, n, dn);	n += 2;
+#else
+	precision dpixn_dx = 0;
+	precision dpixn_dn = 0;
+#endif
 
 	precision dpiyy_dy = central_derivative(qj1, n, dy);	n += 2;
 
+#ifndef BOOST_INVARIANT
 	precision dpiyn_dy = central_derivative(qj1, n, dy);
 	precision dpiyn_dn = central_derivative(qk1, n, dn);	n += 2;
+#else
+	precision dpiyn_dy = 0;
+	precision dpiyn_dn = 0;
+#endif
 
 	precision dpinn_dn = central_derivative(qk1, n, dn);	n += 2;
 
 #else
-	precision dpitt_dx = 0, dpitt_dy = 0, dpitt_dn = 0, dpitx_dx = 0, dpitx_dy = 0, dpitx_dn = 0, dpity_dx = 0, dpity_dy = 0, dpity_dn = 0, dpitn_dx = 0, dpitn_dy = 0, dpitn_dn = 0, dpixx_dx = 0, dpixy_dx = 0, dpixy_dy = 0, dpixn_dx = 0, dpixn_dn = 0, dpiyy_dy = 0, dpiyn_dy = 0, dpiyn_dn = 0, dpinn_dn = 0;
+	precision dpitt_dx = 0;
+	precision dpitt_dy = 0;
+	precision dpitt_dn = 0;
+
+	precision dpitx_dx = 0;
+	precision dpitx_dy = 0;
+	precision dpitx_dn = 0;
+
+	precision dpity_dx = 0;
+	precision dpity_dy = 0;
+	precision dpity_dn = 0;
+
+	precision dpitn_dx = 0;
+	precision dpitn_dy = 0;
+	precision dpitn_dn = 0;
+
+	precision dpixx_dx = 0;
+
+	precision dpixy_dx = 0;
+	precision dpixy_dy = 0;
+
+	precision dpixn_dx = 0;
+	precision dpixn_dn = 0;
+
+	precision dpiyy_dy = 0;
+
+	precision dpiyn_dy = 0;
+	precision dpiyn_dn = 0;
+
+	precision dpinn_dn = 0;
 #endif
 #ifdef PI 	// \Pi derivatives
 	precision dPi_dx = central_derivative(qi1, n, dx);
@@ -1008,6 +1103,7 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	precision Iyn = 2. * betapi * syn;
 	precision Inn = 2. * betapi * snn;
 
+#ifndef BOOST_INVARIANT
 	if(hydro.include_vorticity)
 	{
 		Itt += 0.;	// vorticity terms haven't been worked out yet
@@ -1021,6 +1117,7 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 		Iyn += 0.;
 		Inn += 0.;
 	}
+#endif
 
 	// \delta_{\pi\pi} . pi^{\mu\nu} . \theta
 	Itt -= delta_pipi * pitt * theta;
@@ -1133,12 +1230,18 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	S[a] = dpitt / ut  +  div_v * pitt;		a++;
 	S[a] = dpitx / ut  +  div_v * pitx;		a++;
 	S[a] = dpity / ut  +  div_v * pity;		a++;
+#ifndef BOOST_INVARIANT
 	S[a] = dpitn / ut  +  div_v * pitn;		a++;
+#endif
 	S[a] = dpixx / ut  +  div_v * pixx;		a++;
 	S[a] = dpixy / ut  +  div_v * pixy;		a++;
+#ifndef BOOST_INVARIANT
 	S[a] = dpixn / ut  +  div_v * pixn;		a++;
+#endif
 	S[a] = dpiyy / ut  +  div_v * piyy;		a++;
+#ifndef BOOST_INVARIANT
 	S[a] = dpiyn / ut  +  div_v * piyn;		a++;
+#endif
 	S[a] = dpinn / ut  +  div_v * pinn;		a++;
 #endif
 

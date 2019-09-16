@@ -60,15 +60,12 @@ void set_initial_T_taumu_variables(double t, int nx, int ny, int nz)
 				precision zt = 0;
 				precision zn = 1. / t;
 			#endif
-
 				precision pl = q[s].pl;
-
 			#if (PT_MATCHING == 1)
 				precision pt = q[s].pt;
 			#else
 				precision pt = (e_s - pl) / 2.;
 			#endif
-
 			#else
 				precision p = equilibriumPressure(e_s);
 			#endif
@@ -77,7 +74,11 @@ void set_initial_T_taumu_variables(double t, int nx, int ny, int nz)
 				precision pitt = q[s].pitt;
 				precision pitx = q[s].pitx;
 				precision pity = q[s].pity;
+			#ifndef BOOST_INVARIANT
 				precision pitn = q[s].pitn;
+			#else
+				precision pitn = 0;
+			#endif
 			#else
 				precision pitt = 0;
 				precision pitx = 0;
@@ -151,12 +152,18 @@ void set_anisotropic_initial_condition(int nx, int ny, int nz, hydro_parameters 
 		  		q[s].pitt = 0;
 		  		q[s].pitx = 0;
 		  		q[s].pity = 0;
+		  	#ifndef BOOST_INVARIANT
 		  		q[s].pitn = 0;
+		  	#endif
 		  		q[s].pixx = 0;
 		  		q[s].pixy = 0;
+		  	#ifndef BOOST_INVARIANT
 		  		q[s].pixn = 0;
+		  	#endif
 		  		q[s].piyy = 0;
+		  	#ifndef BOOST_INVARIANT
 		  		q[s].piyn = 0;
+		  	#endif
 		  		q[s].pinn = 0;
 			#endif
 
@@ -348,9 +355,15 @@ void set_ideal_gubser_energy_density_and_flow_profile(int nx, int ny, int nz, do
 
 				u[s].ux = ux;
 				u[s].uy = uy;
+			#ifndef BOOST_INVARIANT
+				u[s].un = 0;
+			#endif
 
 				up[s].ux = ux_p;
 				up[s].uy = uy_p;
+			#ifndef BOOST_INVARIANT
+				up[s].un = 0;
+			#endif
 			}
 		}
 	}
@@ -458,12 +471,18 @@ void set_aniso_gubser_energy_density_and_flow_profile(double T0_hat, int nx, int
 		  		q[s].pitt = 0;
 		  		q[s].pitx = 0;
 		  		q[s].pity = 0;
+		  	#ifndef BOOST_INVARIANT
 		  		q[s].pitn = 0;
+		  	#endif
 		  		q[s].pixx = 0;
 		  		q[s].pixy = 0;
+		  	#ifndef BOOST_INVARIANT
 		  		q[s].pixn = 0;
+		  	#endif
 		  		q[s].piyy = 0;
+		  	#ifndef BOOST_INVARIANT
 		  		q[s].piyn = 0;
+		  	#endif
 		  		q[s].pinn = 0;
 			#endif
 
@@ -476,9 +495,15 @@ void set_aniso_gubser_energy_density_and_flow_profile(double T0_hat, int nx, int
 
 				u[s].ux = ux;
 				u[s].uy = uy;
+			#ifndef BOOST_INVARIANT
+				u[s].un = 0;
+			#endif
 
 				up[s].ux = ux_p;
 				up[s].uy = uy_p;
+			#ifndef BOOST_INVARIANT
+				up[s].un = 0;
+			#endif
 			}
 		}
 	}

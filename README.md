@@ -3,8 +3,6 @@ A 3+1d viscous anisotropic hydrodynamic simulation for heavy ion collisions
 
 To compile and run:  sh hydro.sh
 
-You will need to install libconfig
-
 C++ source and header files are located in rhic/
 
 Parameter files are located in parameters/
