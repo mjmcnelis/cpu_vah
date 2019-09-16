@@ -91,10 +91,11 @@ const precision * const __restrict__ e_current, const fluid_velocity * const __r
 				qs[0] = q_current[s].ttt;	// conserved variables of cell s
 				qs[1] = q_current[s].ttx;
 				qs[2] = q_current[s].tty;
-				qs[3] = q_current[s].ttn;
 
-				int a = 4;					// counter
-
+				int a = 3;
+			#ifndef BOOST_INVARIANT
+				qs[a] = q_current[s].ttn; a++;
+			#endif
 			#ifdef ANISO_HYDRO
 				qs[a] = q_current[s].pl; a++;
 			#if (PT_MATCHING == 1)
@@ -127,12 +128,21 @@ const precision * const __restrict__ e_current, const fluid_velocity * const __r
 
 				precision ux = u_current[s].ux;		// current fluid velocity
 				precision uy = u_current[s].uy;
+			#ifndef BOOST_INVARIANT
 				precision un = u_current[s].un;
+			#else
+				precision un = 0;
+			#endif
+
 				precision ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t2 * un * un);
 
 				precision ux_p = u_previous[s].ux;	// previous fluid velocity
 				precision uy_p = u_previous[s].uy;
+			#ifndef BOOST_INVARIANT
 				precision un_p = u_previous[s].un;
+			#else
+				precision un_p = 0;
+			#endif
 
 			#if (PT_MATCHING == 0)
 				get_primary_neighbor_cells(e_current, e1, sim, sip, sjm, sjp, skm, skp);
@@ -173,9 +183,11 @@ const precision * const __restrict__ e_current, const fluid_velocity * const __r
 					q_update[s].ttt = f[0];
 					q_update[s].ttx = f[1];
 					q_update[s].tty = f[2];
-					q_update[s].ttn = f[3];
 
-					a = 4;
+					a = 3;
+				#ifndef BOOST_INVARIANT
+					q_update[s].ttn = f[a]; a++;
+				#endif
 				#ifdef ANISO_HYDRO
 					q_update[s].pl = f[a]; a++;
 				#if (PT_MATCHING == 1)
@@ -214,9 +226,11 @@ const precision * const __restrict__ e_current, const fluid_velocity * const __r
 					q_update[s].ttt = qs[0];
 					q_update[s].ttx = qs[1];
 					q_update[s].tty = qs[2];
-					q_update[s].ttn = qs[3];
 
-					a = 4;
+					a = 3;
+				#ifndef BOOST_INVARIANT
+					q_update[s].ttn = qs[a]; a++;
+				#endif
 				#ifdef ANISO_HYDRO
 					q_update[s].pl = qs[a]; a++;
 				#if (PT_MATCHING == 1)
@@ -255,9 +269,11 @@ const precision * const __restrict__ e_current, const fluid_velocity * const __r
 					q_update[s].ttt = (q[s].ttt  +  qs[0]) / 2.;
 					q_update[s].ttx = (q[s].ttx  +  qs[1]) / 2.;
 					q_update[s].tty = (q[s].tty  +  qs[2]) / 2.;
-					q_update[s].ttn = (q[s].ttn  +  qs[3]) / 2.;
 
-					a = 4;
+					a = 3;
+				#ifndef BOOST_INVARIANT
+					q_update[s].ttn = (q[s].ttn  +  qs[a]) / 2.; a++;
+				#endif
 				#ifdef ANISO_HYDRO
 					q_update[s].pl = (q[s].pl  +  qs[a]) / 2.; a++;
 				#if (PT_MATCHING == 1)
@@ -309,8 +325,9 @@ void recompute_euler_step(const hydro_variables * const __restrict__ q_current, 
 				q_update[s].ttt = q_current[s].ttt  +  dt * q_update[s].ttt;
 				q_update[s].ttx = q_current[s].ttx  +  dt * q_update[s].ttx;
 				q_update[s].tty = q_current[s].tty  +  dt * q_update[s].tty;
+			#ifndef BOOST_INVARIANT
 				q_update[s].ttn = q_current[s].ttn  +  dt * q_update[s].ttn;
-
+			#endif
 			#ifdef ANISO_HYDRO
 				q_update[s].pl  = q_current[s].pl  +  dt * q_update[s].pl;
 			#if (PT_MATCHING == 1)

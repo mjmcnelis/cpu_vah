@@ -99,10 +99,16 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	precision ttt = q[0];
 	precision ttx = q[1];
 	precision tty = q[2];
-	precision ttn = q[3];
-	precision pl  = q[4];
 
-	int a = 5;	// counter
+	int a = 3;	// counter
+
+#ifndef BOOST_INVARIANT
+	precision ttn = q[a];	a++;
+#else
+	precision ttn = 0;
+#endif
+
+	precision pl  = q[a];	a++;
 
 #if (PT_MATCHING == 1)
 	precision pt  = q[a];	a++;
@@ -188,7 +194,12 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 
 // pl derivatives
 //-------------------------------------------------
+#ifndef BOOST_INVARIANT
 	int n = 8;
+#else
+	int n = 6;
+#endif
+
 	precision dpl_dx = central_derivative(qi1, n, dx);
 	precision dpl_dy = central_derivative(qj1, n, dy);
 	precision dpl_dn = central_derivative(qk1, n, dn);		n += 2;
@@ -444,7 +455,7 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	precision pi_sT = pitt * sTtt  +  pixx * sTxx  +  piyy * sTyy  +  t4 * pinn * sTnn  +  2. * (pixy * sTxy  -  pitx * sTtx  -  pity * sTty  +  t2 * (pixn * sTxn  +  piyn * sTyn  -  pitn * sTtn));
 
 	// 2 . \eta_T . \sigma_T^{\mu\nu}
-	precision Itt = 2. * eta_T * sTtt;		
+	precision Itt = 2. * eta_T * sTtt;
 	precision Itx = 2. * eta_T * sTtx;
 	precision Ity = 2. * eta_T * sTty;
 	precision Itn = 2. * eta_T * sTtn;
@@ -457,7 +468,7 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 
 	// 2 . WTz^{(\mu} . \dot{z}^{\nu)}
 #ifdef WTZMU
-	Itt -= 2. * WtTz * D_zt;				
+	Itt -= 2. * WtTz * D_zt;
 	Itx -= WxTz * D_zt;
 	Ity -= WyTz * D_zt;
 	Itn -= WtTz * D_zn  +  WnTz * D_zt;
@@ -467,7 +478,7 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 #endif
 
 	// \delta^\pi_\pi . pi_T^{\mu\nu} . \theta_T
-	Itt -= delta_pipi * pitt * thetaT;		
+	Itt -= delta_pipi * pitt * thetaT;
 	Itx -= delta_pipi * pitx * thetaT;
 	Ity -= delta_pipi * pity * thetaT;
 	Itn -= delta_pipi * pitn * thetaT;
@@ -505,7 +516,7 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	}
 
 	// \lambda^\pi_\pi . \pi_T^{\mu\nu} . \theta_L
-	Itt += lambda_pipi * pitt * thetaL;		
+	Itt += lambda_pipi * pitt * thetaL;
 	Itx += lambda_pipi * pitx * thetaL;
 	Ity += lambda_pipi * pity * thetaL;
 	Itn += lambda_pipi * pitn * thetaL;
@@ -518,7 +529,7 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 
 #ifdef WTZMU
 	// \lambda_Wu^\pi . WTz^{(\mu} . Dz u^{\nu)}
-	Itt -= lambda_Wupi * (WtTz * Dz_ut);	
+	Itt -= lambda_Wupi * (WtTz * Dz_ut);
 	Itx -= lambda_Wupi * (WtTz * Dz_ux  +  WxTz * Dz_ut) / 2.;
 	Ity -= lambda_Wupi * (WtTz * Dz_uy  +  WyTz * Dz_ut) / 2.;
 	Itn -= lambda_Wupi * (WtTz * Dz_un  +  WnTz * Dz_ut) / 2.;
@@ -530,7 +541,7 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	Inn -= lambda_Wupi * (WnTz * Dz_un);
 
 	// \lambda_WT^\pi . WTz^{(\mu} . z_\alpha . \Nabla_T^{\nu)} . u^\alpha
-	Itt += lambda_WTpi * (WtTz * z_NabTt_u);	
+	Itt += lambda_WTpi * (WtTz * z_NabTt_u);
 	Itx += lambda_WTpi * (WtTz * z_NabTx_u  +  WxTz * z_NabTt_u) / 2.;
 	Ity += lambda_WTpi * (WtTz * z_NabTy_u  +  WyTz * z_NabTt_u) / 2.;
 	Itn += lambda_WTpi * (WtTz * z_NabTn_u  +  WnTz * z_NabTt_u) / 2.;
@@ -673,7 +684,7 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 
 	if(hydro.include_vorticity)
 	{
-		It += 0.;		// haven't worked out vorticity terms yet 
+		It += 0.;		// haven't worked out vorticity terms yet
 		Ix += 0.;
 		Iy += 0.;
 		In += 0.;
@@ -739,16 +750,20 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 			+  vn * (dWty_dn  +  dpity_dn)  -  dpiyn_dn  -  dWyn_dn
 			-  0.5 * (vy * dLtn_dn  -  Ltn * dvy_dn);  // go over this line again
 
-	S[3] =	- 3. * ttn / t  -  dpt_dn / t2  +  div_v * (Ltn  +  Wtn  +  pitn)
+	a = 3;		// reset counter
+
+#ifndef BOOST_INVARIANT
+	S[a] =	- 3. * ttn / t  -  dpt_dn / t2  +  div_v * (Ltn  +  Wtn  +  pitn)
 			+  vx * (dLtn_dx  +  dWtn_dx  +  dpitn_dx)  -  dWxn_dx  -  dpixn_dx
 			+  vy * (dLtn_dy  +  dWtn_dy  +  dpitn_dy)  -  dWyn_dy  -  dpiyn_dy
 			+  vn * (dLtn_dn  +  dWtn_dn  +  dpitn_dn)  -  dWnn_dn  -  dpinn_dn  -  dLnn_dn;
+	a++;
+#endif
 
 	// pl relaxation equation
 	precision dpl = - dp * taupiInv / 1.5  +  zeta_LL * thetaL  +  zeta_TL * thetaT  +  IplW  -  lambda_piL * pi_sT;
-	S[4] =	dpl / ut  +  div_v * pl;
+	S[a] =	dpl / ut  +  div_v * pl;	a++;
 
-	a = 5;		// reset counter
 	// pt relaxation equation
 #if (PT_MATCHING == 1)
 	precision dpt =	dp * taupiInv / 3.  +  zeta_LT * thetaL  +  zeta_TT * thetaT  +  IptW  +  lambda_piT * pi_sT;
@@ -809,14 +824,19 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	precision T = effectiveTemperature(e, hydro.conformal_eos_prefactor);
 	precision p = equilibriumPressure(e);
 	precision cs2 = speedOfSoundSquared(e);
-	
+
 	// conserved variables
 	precision ttt = q[0];
 	precision ttx = q[1];
 	precision tty = q[2];
-	precision ttn = q[3];
 
-	int a = 4;	// counter
+	int a = 3;
+#ifndef BOOST_INVARIANT
+	precision ttn = q[a];	a++
+#else
+	precision ttn = 0;
+#endif
+
 #ifdef PIMUNU
 	precision pitt = q[a];	a++;
 	precision pitx = q[a];	a++;
@@ -990,7 +1010,7 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 
 	if(hydro.include_vorticity)
 	{
-		Itt += 0.;	// vorticity terms haven't been worked out yet 
+		Itt += 0.;	// vorticity terms haven't been worked out yet
 		Itx += 0.;
 		Ity += 0.;
 		Itn += 0.;
@@ -1001,7 +1021,7 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 		Iyn += 0.;
 		Inn += 0.;
 	}
-	
+
 	// \delta_{\pi\pi} . pi^{\mu\nu} . \theta
 	Itt -= delta_pipi * pitt * theta;
 	Itx -= delta_pipi * pitx * theta;
@@ -1088,12 +1108,14 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 			+  vy * dpity_dy  -  dpiyy_dy
 			+  vn * dpity_dn  -  dpiyn_dn;
 
-	S[3] =	- 3. * ttn / t  -  (dp_dn + dPi_dn) / t2  +  div_v * pitn
+	a = 3;	// reset counter
+#ifndef BOOST_INVARIANT
+	S[a] =	- 3. * ttn / t  -  (dp_dn + dPi_dn) / t2  +  div_v * pitn
 			+  vx * dpitn_dx  -  dpixn_dx
 			+  vy * dpitn_dy  -  dpiyn_dy
 			+  vn * dpitn_dn  -  dpinn_dn;
-
-	a = 4;	// reset counter
+	a++;
+#endif
 
 	// pimunu relaxation equation
 #ifdef PIMUNU

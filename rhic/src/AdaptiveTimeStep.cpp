@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <gsl/gsl_poly.h>
+#include "../include/Macros.h"
 #include "../include/Precision.h"
 #include "../include/FluxTerms.h"
 #include "../include/DynamicalVariables.h"
@@ -94,7 +95,11 @@ precision compute_dt_CFL(precision t, lattice_parameters lattice, hydro_paramete
 
 				precision ux = u[s].ux;		// current fluid velocity
 				precision uy = u[s].uy;
+			#ifndef BOOST_INVARIANT
 				precision un = u[s].un;
+			#else
+				precision un = 0;
+			#endif
 				precision ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t2 * un * un);
 
 				get_fluid_velocity_neighbor_cells(u[simm], u[sim], u[sip], u[sipp], u[sjmm], u[sjm], u[sjp], u[sjpp], u[skmm], u[skm], u[skp], u[skpp], ui1, uj1, uk1, vxi, vyj, vnk, t2);
@@ -126,7 +131,9 @@ hydro_variables compute_q_star(hydro_variables q, hydro_variables f, precision d
 	q_star.ttt = q.ttt  +  dt_prev * f.ttt;
 	q_star.ttx = q.ttx  +  dt_prev * f.ttx;
 	q_star.tty = q.tty  +  dt_prev * f.tty;
+#ifndef BOOST_INVARIANT
 	q_star.ttn = q.ttn  +  dt_prev * f.ttn;
+#endif
 
 #ifdef ANISO_HYDRO
 	q_star.pl  = q.pl  +  dt_prev * f.pl;
@@ -162,7 +169,11 @@ hydro_variables compute_q_star(hydro_variables q, hydro_variables f, precision d
 
 precision compute_hydro_norm2(hydro_variables q)		// I should be adding things with the same dimension...(which time to use?)
 {
-	precision norm2 = q.ttt * q.ttt  +  q.ttx * q.ttx  +  q.tty * q.tty  +  q.ttn * q.ttn;
+	precision norm2 = q.ttt * q.ttt  +  q.ttx * q.ttx  +  q.tty * q.tty;
+
+#ifndef BOOST_INVARIANT
+	norm2 +=  q.ttn * q.ttn;
+#endif
 
 #ifdef ANISO_HYDRO
 	norm2 += (q.pl * q.pl);
@@ -196,8 +207,11 @@ precision compute_second_derivative_norm(hydro_variables q_prev, hydro_variables
 {
 	precision norm2 = (	second_derivative_squared(q_prev.ttt, q.ttt, q_star.ttt) +
 						second_derivative_squared(q_prev.ttx, q.ttx, q_star.ttx) +
-						second_derivative_squared(q_prev.tty, q.tty, q_star.tty) +
-						second_derivative_squared(q_prev.ttn, q.ttn, q_star.ttn));
+						second_derivative_squared(q_prev.tty, q.tty, q_star.tty));
+
+#ifndef BOOST_INVARIANT
+	norm2 += second_derivative_squared(q_prev.ttn, q.ttn, q_star.ttn);
+#endif
 
 #ifdef ANISO_HYDRO
 	norm2 += second_derivative_squared(q_prev.pl, q.pl, q_star.pl);
@@ -233,7 +247,11 @@ precision compute_second_derivative_norm(hydro_variables q_prev, hydro_variables
 
 precision dot_product(hydro_variables q, hydro_variables f)
 {
-	precision dot = q.ttt * f.ttt  +  q.ttx * f.ttx  +  q.tty * f.tty  +  q.ttn * f.ttn;
+	precision dot = q.ttt * f.ttt  +  q.ttx * f.ttx  +  q.tty * f.tty;
+
+#ifndef BOOST_INVARIANT
+	dot +=  q.ttn * f.ttn;
+#endif
 
 #ifdef ANISO_HYDRO
 	dot += (q.pl * f.pl);

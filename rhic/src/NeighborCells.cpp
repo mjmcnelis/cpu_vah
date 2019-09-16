@@ -2,6 +2,7 @@
 #include "../include/DynamicalVariables.h"
 #include "../include/NeighborCells.h"
 #include "../include/Precision.h"
+#include "../include/Macros.h"
 
 
 void get_primary_neighbor_cells(const precision * const __restrict__ E, precision * const __restrict__ e1, int sim, int sip, int sjm, int sjp, int skm, int skp)
@@ -26,22 +27,38 @@ void get_fluid_velocity_neighbor_cells(	fluid_velocity u_simm, fluid_velocity u_
 {
 	precision ux_simm = u_simm.ux;
 	precision uy_simm = u_simm.uy;
+#ifndef BOOST_INVARIANT
 	precision un_simm = u_simm.un;
+#else
+	precision un_simm = 0;
+#endif
 	precision ut_simm = sqrt(1.  +  ux_simm * ux_simm  +  uy_simm * uy_simm  +  t2 * un_simm * un_simm);
 
 	precision ux_sim = u_sim.ux;
 	precision uy_sim = u_sim.uy;
+#ifndef BOOST_INVARIANT
 	precision un_sim = u_sim.un;
+#else
+	precision un_sim = 0;
+#endif
 	precision ut_sim = sqrt(1.  +  ux_sim * ux_sim  +  uy_sim * uy_sim  +  t2 * un_sim * un_sim);
 
 	precision ux_sip = u_sip.ux;
 	precision uy_sip = u_sip.uy;
+#ifndef BOOST_INVARIANT
 	precision un_sip = u_sip.un;
+#else
+	precision un_sip = 0;
+#endif
 	precision ut_sip = sqrt(1.  +  ux_sip * ux_sip  +  uy_sip * uy_sip  +  t2 * un_sip * un_sip);
 
 	precision ux_sipp = u_sipp.ux;
 	precision uy_sipp = u_sipp.uy;
+#ifndef BOOST_INVARIANT
 	precision un_sipp = u_sipp.un;
+#else
+	precision un_sipp = 0;
+#endif
 	precision ut_sipp = sqrt(1.  +  ux_sipp * ux_sipp  +  uy_sipp * uy_sipp  +  t2 * un_sipp * un_sipp);
 
 	vxi[0] = ux_simm / ut_simm;		// vx neighbors [i-2, i-1, i+1, i+2] stored in vxi
@@ -60,22 +77,38 @@ void get_fluid_velocity_neighbor_cells(	fluid_velocity u_simm, fluid_velocity u_
 
 	precision ux_sjmm = u_sjmm.ux;
 	precision uy_sjmm = u_sjmm.uy;
+#ifndef BOOST_INVARIANT
 	precision un_sjmm = u_sjmm.un;
+#else
+	precision un_sjmm = 0;
+#endif
 	precision ut_sjmm = sqrt(1.  +  ux_sjmm * ux_sjmm  +  uy_sjmm * uy_sjmm  +  t2 * un_sjmm * un_sjmm);
 
 	precision ux_sjm = u_sjm.ux;
 	precision uy_sjm = u_sjm.uy;
+#ifndef BOOST_INVARIANT
 	precision un_sjm = u_sjm.un;
+#else
+	precision un_sjm = 0;
+#endif
 	precision ut_sjm = sqrt(1.  +  ux_sjm * ux_sjm  +  uy_sjm * uy_sjm  +  t2 * un_sjm * un_sjm);
 
 	precision ux_sjp = u_sjp.ux;
 	precision uy_sjp = u_sjp.uy;
+#ifndef BOOST_INVARIANT
 	precision un_sjp = u_sjp.un;
+#else
+	precision un_sjp = 0;
+#endif
 	precision ut_sjp = sqrt(1.  +  ux_sjp * ux_sjp  +  uy_sjp * uy_sjp  +  t2 * un_sjp * un_sjp);
 
 	precision ux_sjpp = u_sjpp.ux;
 	precision uy_sjpp = u_sjpp.uy;
+#ifndef BOOST_INVARIANT
 	precision un_sjpp = u_sjpp.un;
+#else
+	precision un_sjpp = 0;
+#endif
 	precision ut_sjpp = sqrt(1.  +  ux_sjpp * ux_sjpp  +  uy_sjpp * uy_sjpp  +  t2 * un_sjpp * un_sjpp);
 
 	vyj[0] = uy_sjmm / ut_sjmm;		// vy neighbors [j-2, j-1, j+1, j+2] stored in vyj
@@ -94,22 +127,38 @@ void get_fluid_velocity_neighbor_cells(	fluid_velocity u_simm, fluid_velocity u_
 
 	precision ux_skmm = u_skmm.ux;
 	precision uy_skmm = u_skmm.uy;
+#ifndef BOOST_INVARIANT
 	precision un_skmm = u_skmm.un;
+#else
+	precision un_skmm = 0;
+#endif
 	precision ut_skmm = sqrt(1.  +  ux_skmm * ux_skmm  +  uy_skmm * uy_skmm  +  t2 * un_skmm * un_skmm);
 
 	precision ux_skm = u_skm.ux;
 	precision uy_skm = u_skm.uy;
+#ifndef BOOST_INVARIANT
 	precision un_skm = u_skm.un;
+#else
+	precision un_skm = 0;
+#endif
 	precision ut_skm = sqrt(1.  +  ux_skm * ux_skm  +  uy_skm * uy_skm  +  t2 * un_skm * un_skm);
 
 	precision ux_skp = u_skp.ux;
 	precision uy_skp = u_skp.uy;
+#ifndef BOOST_INVARIANT
 	precision un_skp = u_skp.un;
+#else
+	precision un_skp = 0;
+#endif
 	precision ut_skp = sqrt(1.  +  ux_skp * ux_skp  +  uy_skp * uy_skp  +  t2 * un_skp * un_skp);
 
 	precision ux_skpp = u_skpp.ux;
 	precision uy_skpp = u_skpp.uy;
+#ifndef BOOST_INVARIANT
 	precision un_skpp = u_skpp.un;
+#else
+	precision un_skpp = 0;
+#endif
 	precision ut_skpp = sqrt(1.  +  ux_skpp * ux_skpp  +  uy_skpp * uy_skpp  +  t2 * un_skpp * un_skpp);
 
 	vnk[0] = un_skmm / ut_skmm;		// vn neighbors [k-2, k-1, k+1, k+2] stored in vnk
@@ -142,9 +191,10 @@ void get_hydro_neighbor_cells(hydro_variables qm, hydro_variables qp, precision 
 	q[n]	 = qm.tty;
 	q[n + 1] = qp.tty;	n += 2;
 
+#ifndef BOOST_INVARIANT
 	q[n]	 = qm.ttn;
 	q[n + 1] = qp.ttn;	n += 2;
-
+#endif
 #ifdef ANISO_HYDRO
 	q[n]	 = qm.pl;
 	q[n + 1] = qp.pl;	n += 2;
@@ -154,7 +204,6 @@ void get_hydro_neighbor_cells(hydro_variables qm, hydro_variables qp, precision 
 	q[n + 1] = qp.pt;	n += 2;
 #endif
 #endif
-
 #ifdef PIMUNU
 	q[n]	 = qm.pitt;
 	q[n + 1] = qp.pitt;	n += 2;
@@ -186,7 +235,6 @@ void get_hydro_neighbor_cells(hydro_variables qm, hydro_variables qp, precision 
 	q[n]	 = qm.pinn;
 	q[n + 1] = qp.pinn;	n += 2;
 #endif
-
 #ifdef WTZMU
 	q[n]  	 = qm.WtTz;
 	q[n + 1] = qp.WtTz;	n += 2;

@@ -7,6 +7,8 @@
 // should I remove CONFORMAL_EOS so I can switch? (worry about it later)
 // it's only used for pt matching and pi
 
+#define BOOST_INVARIANT 		// run 2+1d hydro (comment to run 3+1d hydro) (tie with Gubser)
+
 #define CONFORMAL_EOS			// use conformal equation of state (comment to use lattice QCD)
 
 #define ANISO_HYDRO				// run anisotropic hydro (comment to run 2nd order viscous hydro)
@@ -19,7 +21,9 @@
 	#else
 		#define PT_MATCHING 1	// may update to facilitate switching?
 	#endif
-	//#define WTZMU 			// include longitudinal momentum diffusion (comment for for 2+1d simulations)
+	#ifndef BOOST_INVARIANT
+		#define WTZMU 			// include longitudinal momentum diffusion
+	#endif
 #else
 	#ifndef CONFORMAL_EOS
 		#define PI

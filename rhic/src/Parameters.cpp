@@ -3,6 +3,7 @@
 #include <string>
 #include <math.h>
 #include <libconfig.h>
+#include "../include/Macros.h"
 #include "../include/Parameters.h"
 using namespace std;
 
@@ -160,6 +161,10 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro)
 	config_destroy(&cfg);
 
 	lattice.min_time_step = 5. * pow(10., round(log10(hydro.tau_initial)) - 2.);		// min time step ~ 20x smaller than t0
+
+#ifdef BOOST_INVARIANT
+	lattice.lattice_points_eta = 1;		// automatic default
+#endif
 
 	printf("Lattice parameters:");
 	printf("\n-------------------\n");

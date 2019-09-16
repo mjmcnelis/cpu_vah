@@ -19,7 +19,7 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 }
 
 
-int central_index(lattice_parameters lattice)		
+int central_index(lattice_parameters lattice)
 {
 	int nx = lattice.lattice_points_x;
 	int ny = lattice.lattice_points_y;
@@ -137,16 +137,29 @@ void output_residual_gradients(const hydro_variables * const __restrict__ q, con
 
 				precision ux = u[s].ux;
 				precision uy = u[s].uy;
+			#ifndef BOOST_INVARIANT
 				precision un = u[s].un;
+			#else
+				precision un = 0;
+			#endif
 				precision ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t2 * un * un);
 
 				precision ux_p = up[s].ux;
 				precision uy_p = up[s].uy;
+			#ifndef BOOST_INVARIANT
 				precision un_p = up[s].un;
+			#else
+				precision un_p = 0;
+			#endif
 
+			#ifndef BOOST_INVARIANT
 				precision utperp = sqrt(1.  +  ux * ux  +  uy * uy);
 				precision zt = t * un / utperp;
 				precision zn = ut / t / utperp;
+			#else
+				precision zt = 0;
+				precision zn = 1. / t;
+			#endif
 
 				precision vx = ux / ut;
 				precision vy = uy / ut;
@@ -166,7 +179,7 @@ void output_residual_gradients(const hydro_variables * const __restrict__ q, con
 				precision dun_dt = (un - un_p) / dt;
 				precision dun_dx = central_derivative(ui1, 4, dx);
 				precision dun_dy = central_derivative(uj1, 4, dy);
-				precision dun_dn = central_derivative(uk1, 4, dn);
+				precision dun_dn = central_derivative(uk1, 4, dn);			// how to use BOOST_INVARIANT here?
 
 				precision dut_dt = vx * dux_dt  +  vy * duy_dt  +  t2 * vn * dun_dt  +  t * vn * un;
 				precision dut_dx = vx * dux_dx  +  vy * duy_dx  +  t2 * vn * dun_dx;
@@ -280,12 +293,22 @@ void output_residual_shear_validity(const hydro_variables * const __restrict__ q
 
 				precision ux = u[s].ux;
 				precision uy = u[s].uy;
+			#ifndef BOOST_INVARIANT
 				precision un = u[s].un;
+			#else
+				precision un = 0;
+			#endif
+
 				precision ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t2 * un * un);
 
+			#ifndef BOOST_INVARIANT
 				precision utperp = sqrt(1.  +  ux * ux  +  uy * uy);
 				precision zt = t * un / utperp;
 				precision zn = ut / t / utperp;
+			#else
+				precision zt = 0;
+				precision zn = 1. / t;
+			#endif
 
 				precision pi_mag = sqrt(fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
 
@@ -445,7 +468,7 @@ void output_gubser(const hydro_variables * const __restrict__ q, const fluid_vel
 			#ifdef ANISO_HYDRO
 				precision pl = q[s].pl;
 			#else
-				precision un = u[s].un;
+				precision un = u[s].un;			// what did I do here?
 				precision ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t2 * un * un);
 				precision utperp = sqrt(1.  +  ux * ux  +  uy * uy);
 				precision zt = t * un / utperp;

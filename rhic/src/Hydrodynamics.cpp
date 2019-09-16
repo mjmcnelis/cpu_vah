@@ -8,6 +8,7 @@
 #include "../include/FileIO.h"
 #include "../include/Parameters.h"
 #include "../include/Precision.h"
+#include "../include/Macros.h"
 #include "../include/GhostCells.h"
 #include "../include/InitialConditions.h"
 #include "../include/KurganovTadmor.h"
@@ -126,7 +127,11 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 	precision t_out = t;								// output times
 	precision dt_out = lattice.output_interval;
 
-	printf("Running hydro simulation...\n\n");
+#ifdef BOOST_INVARIANT
+	printf("Running 2+1d hydro simulation...\n\n");
+#else
+	printf("Running 3+1d hydro simulation...\n\n");
+#endif
 
 	double steps = 0;
 	clock_t start = clock();

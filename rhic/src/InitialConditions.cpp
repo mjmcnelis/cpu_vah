@@ -43,13 +43,23 @@ void set_initial_T_taumu_variables(double t, int nx, int ny, int nz)
 
 				precision ux = u[s].ux;
 				precision uy = u[s].uy;
+			#ifndef BOOST_INVARIANT
 				precision un = u[s].un;
+			#else
+				precision un = 0;
+			#endif
+
 				precision ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t * t * un * un);
 
 			#ifdef ANISO_HYDRO
+			#ifndef BOOST_INVARIANT
 				precision utperp = sqrt(1.  +  ux * ux  +  uy * uy);
 				precision zt = t * un / utperp;
 				precision zn = ut / t / utperp;
+			#else
+				precision zt = 0;
+				precision zn = 1. / t;
+			#endif
 
 				precision pl = q[s].pl;
 
@@ -97,12 +107,16 @@ void set_initial_T_taumu_variables(double t, int nx, int ny, int nz)
 				q[s].ttt = (e_s + pt) * ut * ut  -   pt  +  (pl - pt) * zt * zt  +  2. * WtTz * zt  +  pitt;
 				q[s].ttx = (e_s + pt) * ut * ux  +  WxTz * zt  +  pitx;
 				q[s].tty = (e_s + pt) * ut * uy  +  WyTz * zt  +  pity;
+			#ifndef BOOST_INVARIANT
 				q[s].ttn = (e_s + pt) * ut * un  +  (pl - pt) * zt * zn  +  WtTz * zn  +  WnTz * zt  +  pitn;
+			#endif
 			#else
 				q[s].ttt = (e_s + p + Pi) * ut * ut  -   p  -  Pi  +  pitt;
 				q[s].ttx = (e_s + p + Pi) * ut * ux  +  pitx;
 				q[s].tty = (e_s + p + Pi) * ut * uy  +  pity;
+			#ifndef BOOST_INVARIANT
 				q[s].ttn = (e_s + p + Pi) * ut * un  +  pitn;
+			#endif
 			#endif
 			}
 		}
@@ -184,11 +198,15 @@ void set_Bjorken_energy_density_and_flow_profile(int nx, int ny, int nz, initial
 
 				u[s].ux = 0;	// zero fluid velocity
 				u[s].uy = 0;
+			#ifndef BOOST_INVARIANT
 				u[s].un = 0;
+			#endif
 
 				up[s].ux = 0;	// also initialize up = u
 				up[s].uy = 0;
+			#ifndef BOOST_INVARIANT
 				up[s].un = 0;
+			#endif
 			}
 		}
 	}
@@ -251,11 +269,15 @@ void set_Glauber_energy_density_and_flow_profile(int nx, int ny, int nz, double 
 
 				u[s].ux = 0.0;		// zero initial velocity
 				u[s].uy = 0.0;
+			#ifndef BOOST_INVARIANT
 				u[s].un = 0.0;
+			#endif
 
 				up[s].ux = 0.0;		// also set up = u
 				up[s].uy = 0.0;
+			#ifndef BOOST_INVARIANT
 				up[s].un = 0.0;
+			#endif
 			}
 		}
 	}
@@ -326,11 +348,9 @@ void set_ideal_gubser_energy_density_and_flow_profile(int nx, int ny, int nz, do
 
 				u[s].ux = ux;
 				u[s].uy = uy;
-				u[s].un = 0;
 
 				up[s].ux = ux_p;
 				up[s].uy = uy_p;
-				up[s].un = 0;
 			}
 		}
 	}
@@ -344,7 +364,7 @@ void set_aniso_gubser_energy_density_and_flow_profile(double T0_hat, int nx, int
 	double t = hydro.tau_initial;					// initial longitudinal proper time
 
 	double q0 = initial.q_gubser;					// inverse length size
-	double plpt_ratio = hydro.plpt_ratio_initial;	// initial plpt ratio at transverse corner of grid 
+	double plpt_ratio = hydro.plpt_ratio_initial;	// initial plpt ratio at transverse corner of grid
 
 	double x2_max = pow((nx - 1.) * dx / 2., 2);
 	double y2_max = pow((ny - 1.) * dy / 2., 2);
@@ -417,7 +437,7 @@ void set_aniso_gubser_energy_density_and_flow_profile(double T0_hat, int nx, int
 			double ux_p = sinh(kappa_p) * x / r;
 			double uy_p = sinh(kappa_p) * y / r;
 
-			if(std::isnan(ux)) ux = 0;		
+			if(std::isnan(ux)) ux = 0;
 			if(std::isnan(uy)) uy = 0;
 
 			if(std::isnan(ux_p)) ux_p = 0;
@@ -456,11 +476,9 @@ void set_aniso_gubser_energy_density_and_flow_profile(double T0_hat, int nx, int
 
 				u[s].ux = ux;
 				u[s].uy = uy;
-				u[s].un = 0;
 
 				up[s].ux = ux_p;
 				up[s].uy = uy_p;
-				up[s].un = 0;
 			}
 		}
 	}
@@ -508,9 +526,9 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 			printf("(fluid velocity and viscous pressures initialized to zero)\n\n");
 
 			printf("\nRunning semi-analytic anisotropic Bjorken solution...\n");
-			
+
 			run_semi_analytic_aniso_bjorken(lattice, initial, hydro);
-			
+
 			set_Bjorken_energy_density_and_flow_profile(nx, ny, nz, initial, hydro);
 			set_anisotropic_initial_condition(nx, ny, nz, hydro);
 			set_initial_T_taumu_variables(t, nx, ny, nz);
