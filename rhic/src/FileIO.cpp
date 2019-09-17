@@ -595,7 +595,11 @@ void output_optical_glauber(const hydro_variables * const __restrict__ q, const 
 				
 			#ifdef PIMUNU
 				precision pitt = q[s].pitt;
+			#ifndef BOOST_INVARIANT
 				precision pitn = q[s].pitn;
+			#else
+				precision pitn = 0;
+			#endif
 				precision pinn = q[s].pinn;
 			#else
 				precision pitt = 0, pitn = 0, pinn = 0;
