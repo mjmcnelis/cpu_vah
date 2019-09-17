@@ -480,11 +480,18 @@ void output_gubser(const hydro_variables * const __restrict__ q, const fluid_vel
 			#ifdef ANISO_HYDRO
 				precision pl = q[s].pl;
 			#else
-				precision un = u[s].un;			// what did I do here?
+
+			#ifndef BOOST_INVARIANT
+				precision un = u[s].un;	
 				precision ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t2 * un * un);
 				precision utperp = sqrt(1.  +  ux * ux  +  uy * uy);
 				precision zt = t * un / utperp;
-				precision zn = ut / t / utperp;
+				precision zn = ut / t / utperp;	
+			#else
+				precision zt = 0;
+				precision zn = 1. / t; 
+			#endif
+
 			#ifdef PIMUNU
 				precision pitt = q[s].pitt;
 			#ifndef BOOST_INVARIANT
@@ -573,13 +580,19 @@ void output_optical_glauber(const hydro_variables * const __restrict__ q, const 
 				precision pt = (e_s - pl) / 2.;
 			#endif
 			#else
+				precision p = equilibriumPressure(e_s);
+
+			#ifndef BOOST_INVARIANT
 				precision un = u[s].un;
 				precision ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t2 * un * un);
 				precision utperp = sqrt(1.  +  ux * ux  +  uy * uy);
 				precision zt = t * un / utperp;
 				precision zn = ut / t / utperp;
-
-				precision p = equilibriumPressure(e_s);
+			#else 
+				precision zt = 0;
+				precision zn = 1. / t;
+			#endif
+				
 			#ifdef PIMUNU
 				precision pitt = q[s].pitt;
 				precision pitn = q[s].pitn;
@@ -652,7 +665,7 @@ void output_semi_analytic_solution_if_any(lattice_parameters lattice, initial_co
 		}
 		case 3:		// anisotropic Gubser
 		{
-			printf("\nRunning semi-analytic anisotropic Gubser solution...\n");
+			printf("\nRunning semi-analytic anisotropic Gubser solution!...\n");
 			double T0_hat = run_semi_analytic_aniso_gubser(lattice, initial, hydro);
 			break;
 		}

@@ -13,6 +13,7 @@
 #include "../include/OpticalGlauber.h"
 #include "../include/MCGlauber.h"
 #include "../include/AnisoBjorken.h"
+#include "../include/IdealGubser.h"
 #include "../include/AnisoGubser.h"
 #include "../include/EquationOfState.h"
 #include <gsl/gsl_errno.h>
@@ -119,6 +120,59 @@ void set_initial_T_taumu_variables(double t, int nx, int ny, int nz)
 				q[s].ttn = (e_s + p + Pi) * ut * un  +  pitn;
 			#endif
 			#endif
+			}
+		}
+	}
+}
+
+
+void set_equilibrium_initial_condition(int nx, int ny, int nz)
+{
+	for(int k = 2; k < nz + 2; k++)
+	{
+		for(int j = 2; j < ny + 2; j++)
+		{
+			for(int i = 2; i < nx + 2; i++)
+			{
+				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
+
+			#ifdef ANISO_HYDRO
+				precision e_s = e[s];
+				q[s].pl = equilibriumPressure(e_s);
+			#if (PT_MATCHING == 1)
+				q[s].pt = equilibriumPressure(e_s);
+			#endif
+			#endif
+
+			#ifdef PIMUNU
+		  		q[s].pitt = 0;
+		  		q[s].pitx = 0;
+		  		q[s].pity = 0;
+		  	#ifndef BOOST_INVARIANT
+		  		q[s].pitn = 0;
+		  	#endif
+		  		q[s].pixx = 0;
+		  		q[s].pixy = 0;
+		  	#ifndef BOOST_INVARIANT
+		  		q[s].pixn = 0;
+		  	#endif
+		  		q[s].piyy = 0;
+		  	#ifndef BOOST_INVARIANT
+		  		q[s].piyn = 0;
+		  	#endif
+		  		q[s].pinn = 0;
+			#endif
+
+			#ifdef WTZMU
+		  		q[s].WtTz = 0;
+		  		q[s].WxTz = 0;
+		  		q[s].WyTz = 0;
+		  		q[s].WnTz = 0;
+			#endif
+
+		  	#ifdef PI
+		  		q[s].Pi = 0;
+		  	#endif
 			}
 		}
 	}
@@ -291,25 +345,28 @@ void set_Glauber_energy_density_and_flow_profile(int nx, int ny, int nz, double 
 }
 
 
-
-// initial conditions for the ideal Gubser flow test
-void set_ideal_gubser_energy_density_and_flow_profile(int nx, int ny, int nz, double dt, double dx, double dy, double dz, initial_condition_parameters initial, hydro_parameters hydro)
+void set_ideal_gubser_initial_conditions(lattice_parameters lattice, precision dt, initial_condition_parameters initial, hydro_parameters hydro)
 {
+	int nx = lattice.lattice_points_x;
+	int ny = lattice.lattice_points_y;
+	int nz = lattice.lattice_points_eta;
+
+	double dx = lattice.lattice_spacing_x;
+	double dy = lattice.lattice_spacing_y;
+
 	double t = hydro.tau_initial;								// initial longitudinal proper time
+	double t2 = t * t;
 	double T0 = initial.initialCentralTemperatureGeV / hbarc;	// central temperature (fm)
 
 	precision conformal_eos_prefactor = hydro.conformal_eos_prefactor;
 	precision e_min = hydro.energy_min;
 
-	double q  = 1.;												// inverse length size (hard coded)
-	double q2 = q * q;
-	double q4 = q2 * q2;
-	double t2 = t * t;
+	double q0  = initial.q_gubser;
+	double q02 = q0 * q0;
+	double q04 = q02 * q02;
+	
+	double T0_hat = T0 * t * pow((1. + q02 * t2) / (2. * q0 * t), 2./3.);
 
-	// normalize Gubser ideal temperature profile so that central temperature = T0
-	double T0_hat = T0 * t * pow((1. + q2 * t2) / (2. * q * t), 2./3.);
-
-	// loop over physical grid points
 	for(int i = 2; i < nx + 2; i++)
 	{
 		double x = (i - 2. - (nx - 1.)/2.) * dx;
@@ -321,17 +378,16 @@ void set_ideal_gubser_energy_density_and_flow_profile(int nx, int ny, int nz, do
 			double r = sqrt(x * x  +  y * y);
 			double r2 = r * r;
 
-			double kappa   = atanh(2. * q2 * t * r / (1.  +  q2 * (t2  +  r2)));
-			double kappa_p = atanh(2. * q2 * (t - dt) * r / (1.  +  q2 * ((t - dt) * (t - dt)  +  r2)));
+			double kappa   = atanh(2. * q02 * t * r / (1.  +  q02 * (t2  +  r2)));
+			double kappa_p = atanh(2. * q02 * (t - dt) * r / (1.  +  q02 * ((t - dt) * (t - dt)  +  r2)));
 
 			if(std::isnan(kappa) || std::isnan(kappa_p))
 			{
-				printf("Gubser initial conditions error: (kappa, kappa_p) = (%lf, %lf)\n", kappa, kappa_p);
+				printf("set_ideal_gubser_initial_conditions error: (kappa, kappa_p) = (%lf, %lf)\n", kappa, kappa_p);
 				exit(-1);
 			}
 
-			// temperature profile
-			precision T = (T0_hat / t) * pow(2. * q * t, 2./3.) / pow(1.  +  2. * q2 * (t2 + r2)  +  q4 * (t2 - r2) * (t2 - r2), 1./3.);
+			precision T = (T0_hat / t) * pow(4. * q02 * t2 / (1.  +  2. * q02 * (t2 + r2)  +  q04 * (t2 - r2) * (t2 - r2)), 1./3.);
 
 			precision e_s = equilibriumEnergyDensity(T, conformal_eos_prefactor);
 
@@ -341,11 +397,11 @@ void set_ideal_gubser_energy_density_and_flow_profile(int nx, int ny, int nz, do
 			double ux_p = sinh(kappa_p) * x / r;
 			double uy_p = sinh(kappa_p) * y / r;
 
-			if(std::isnan(ux)) ux = 0;		// remove x/r = 0/0 nan
-			if(std::isnan(uy)) uy = 0;		// remove y/r = 0/0 nan
+			if(std::isnan(ux)) ux = 0;		// remove 0/0 nans
+			if(std::isnan(uy)) uy = 0;		
 
-			if(std::isnan(ux_p)) ux_p = 0;	// remove x/r = 0/0 nan
-			if(std::isnan(uy_p)) uy_p = 0;	// remove y/r = 0/0 nan
+			if(std::isnan(ux_p)) ux_p = 0;
+			if(std::isnan(uy_p)) uy_p = 0;
 
 			for(int k = 2; k < nz + 2; k++)
 			{
@@ -430,7 +486,7 @@ void set_aniso_gubser_energy_density_and_flow_profile(double T0_hat, int nx, int
 
 			rho = fmax(rho0, fmin(rho, rhoP - eps));
 
-			// evaluate anisotropic profile
+			// interpolate anisotropic profile
 			double e_s  = gsl_spline_eval(e_hat_spline,  rho, accel) / (t * t * t * t);
 			double pl_s = gsl_spline_eval(pl_hat_spline, rho, accel) / (t * t * t * t);
 			double pt_s = (e_s - pl_s) / 2.;
@@ -553,7 +609,6 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 			printf("\nRunning semi-analytic anisotropic Bjorken solution...\n");
 
 			run_semi_analytic_aniso_bjorken(lattice, initial, hydro);
-
 			set_Bjorken_energy_density_and_flow_profile(nx, ny, nz, initial, hydro);
 			set_anisotropic_initial_condition(nx, ny, nz, hydro);
 			set_initial_T_taumu_variables(t, nx, ny, nz);
@@ -562,26 +617,35 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 		}
 		case 2:
 		{
-			printf("Ideal Gubser (temporarily out of commission)\n\n");		// should get rid of this (or change it to a viscous Gubser)
-			exit(-1);
-		// #ifndef CONFORMAL_EOS
-		// 	printf("\nGubser initial condition error: CONFORMAL_EOS not defined in /rhic/include/EquationOfState.h, exiting...\n");
-		// 	exit(-1);
-		// #endif
+			printf("Ideal Gubser\n\n");	
 
-		// 	set_ideal_gubser_energy_density_and_flow_profile(nx, ny, nz, dt, dx, dy, dz, initial, hydro);
-		// 	set_anisotropic_initial_condition(nx, ny, nz);
-		// 	set_initial_T_taumu_variables(t, nx, ny, nz);
+		#ifdef ANISO_HYDRO
+			printf("Ideal Gubser error: need to comment ANISO_HYDRO in /rhic/include/Marcos.h..\n");
+			exit(-1);
+		#endif
+
+		#ifndef CONFORMAL_EOS
+			printf("\nIdeal gubser initial condition error: CONFORMAL_EOS not defined in /rhic/include/Marcos.h, exiting...\n");
+			exit(-1);
+		#endif
+			printf("Running analytic ideal Gubser solution...\n\n");
+
+			run_analytic_ideal_gubser(lattice, initial, hydro);
+			set_ideal_gubser_initial_conditions(lattice, dt, initial, hydro);
+			set_equilibrium_initial_condition(nx, ny, nz);
+			set_initial_T_taumu_variables(t, nx, ny, nz);
 
 			break;
 		}
 		case 3:
 		{
+			printf("Anisotropic Gubser (residual shear stress initialized to zero)\n\n");
+
 		#ifndef ANISO_HYDRO
 			printf("Aniso Gubser error: ANISO_HYDRO not defined in /rhic/include/Marcos.h, exiting...\n");
 			exit(-1);
 		#endif
-			printf("Anisotropic Gubser (residual shear stress initialized to zero)\n\n");
+
 		#ifndef CONFORMAL_EOS
 			printf("\nGubser initial condition error: CONFORMAL_EOS not defined in /rhic/include/Marcos.h, exiting...\n");
 			exit(-1);

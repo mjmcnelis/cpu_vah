@@ -907,7 +907,16 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	precision tau_pipi = 10./7;
 	precision lambda_pibulkPi = 1.2;
 #else
-	precision pitt = 0, pitx = 0, pity = 0, pitn = 0, pixx = 0, pixy = 0, pixn = 0, piyy = 0, piyn = 0, pinn = 0;
+	precision pitt = 0;
+	precision pitx = 0;
+	precision pity = 0;
+	precision pitn = 0;
+	precision pixx = 0;
+	precision pixy = 0;
+	precision pixn = 0;
+	precision piyy = 0;
+	precision piyn = 0;
+	precision pinn = 0;
 #endif
 
 #ifdef PI
