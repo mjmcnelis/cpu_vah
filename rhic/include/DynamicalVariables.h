@@ -19,7 +19,7 @@
 
 #ifdef PIMUNU
 	#ifdef BOOST_INVARIANT
-		#define PIMUNU_COMPONENTS 7		// later change to 7
+		#define PIMUNU_COMPONENTS 7	
 	#else
 		#define PIMUNU_COMPONENTS 10
 	#endif
@@ -59,7 +59,7 @@ typedef struct
 	precision ttx;
 	precision tty;
 #ifndef BOOST_INVARIANT
-	precision ttn;			// start with this
+	precision ttn;		
 #endif
 #ifdef ANISO_HYDRO
 	precision pl;

@@ -96,12 +96,14 @@ const precision * const __restrict__ e_current, const fluid_velocity * const __r
 			#ifndef BOOST_INVARIANT
 				qs[a] = q_current[s].ttn; a++;
 			#endif
+
 			#ifdef ANISO_HYDRO
 				qs[a] = q_current[s].pl; a++;
 			#if (PT_MATCHING == 1)
 				qs[a] = q_current[s].pt; a++;
 			#endif
 			#endif
+
 			#ifdef PIMUNU
 				qs[a] = q_current[s].pitt; a++;
 				qs[a] = q_current[s].pitx; a++;
@@ -120,12 +122,14 @@ const precision * const __restrict__ e_current, const fluid_velocity * const __r
 			#endif
 				qs[a] = q_current[s].pinn; a++;
 			#endif
+
 			#ifdef WTZMU
 				qs[a] = q_current[s].WtTz; a++;
 				qs[a] = q_current[s].WxTz; a++;
 				qs[a] = q_current[s].WyTz; a++;
 				qs[a] = q_current[s].WnTz;
 			#endif
+
 			#ifdef PI
 				qs[a] = q_current[s].Pi;
 			#endif
@@ -150,9 +154,7 @@ const precision * const __restrict__ e_current, const fluid_velocity * const __r
 				precision un_p = 0;
 			#endif
 
-			#if (PT_MATCHING == 0)
 				get_primary_neighbor_cells(e_current, e1, sim, sip, sjm, sjp, skm, skp);
-			#endif
 
 				get_fluid_velocity_neighbor_cells(u_current[simm], u_current[sim], u_current[sip], u_current[sipp], u_current[sjmm], u_current[sjm], u_current[sjp], u_current[sjpp], u_current[skmm], u_current[skm], u_current[skp], u_current[skpp], ui1, uj1, uk1, vxi, vyj, vnk, t2);
 
@@ -173,12 +175,14 @@ const precision * const __restrict__ e_current, const fluid_velocity * const __r
 				source_terms_viscous_hydro(S, qs, e_s, t, qi1, qj1, qk1, e1, ui1, uj1, uk1, ux, uy, un, ux_p, uy_p, un_p, dt_prev, dx, dy, dn, hydro);
 			#endif
 
+
 				// compute flux terms (H)
 				flux_terms(Hx_plus, Hx_minus, qs, qi1, qi2, vxi, ux / ut, Theta);
 				flux_terms(Hy_plus, Hy_minus, qs, qj1, qj2, vyj, uy / ut, Theta);
 				flux_terms(Hn_plus, Hn_minus, qs, qk1, qk2, vnk, un / ut, Theta);
 
 
+				// store the results
 				if(!update)				// store source function f
 				{
 					for(int n = 0; n < NUMBER_CONSERVED_VARIABLES; n++)
@@ -194,12 +198,14 @@ const precision * const __restrict__ e_current, const fluid_velocity * const __r
 				#ifndef BOOST_INVARIANT
 					q_update[s].ttn = f[a]; a++;
 				#endif
+
 				#ifdef ANISO_HYDRO
 					q_update[s].pl = f[a]; a++;
 				#if (PT_MATCHING == 1)
 					q_update[s].pt = f[a]; a++;
 				#endif
 				#endif
+
 				#ifdef PIMUNU
 					q_update[s].pitt = f[a]; a++;
 					q_update[s].pitx = f[a]; a++;
@@ -218,6 +224,7 @@ const precision * const __restrict__ e_current, const fluid_velocity * const __r
 				#endif
 					q_update[s].pinn = f[a]; a++;
 				#endif
+
 				#ifdef WTZMU
 					q_update[s].WtTz = f[a]; a++;
 					q_update[s].WxTz = f[a]; a++;
@@ -243,12 +250,14 @@ const precision * const __restrict__ e_current, const fluid_velocity * const __r
 				#ifndef BOOST_INVARIANT
 					q_update[s].ttn = qs[a]; a++;
 				#endif
+
 				#ifdef ANISO_HYDRO
 					q_update[s].pl = qs[a]; a++;
 				#if (PT_MATCHING == 1)
 					q_update[s].pt = qs[a]; a++;
 				#endif
 				#endif
+
 				#ifdef PIMUNU
 					q_update[s].pitt = qs[a]; a++;
 					q_update[s].pitx = qs[a]; a++;
@@ -267,12 +276,14 @@ const precision * const __restrict__ e_current, const fluid_velocity * const __r
 				#endif
 					q_update[s].pinn = qs[a]; a++;
 				#endif
+
 				#ifdef WTZMU
 					q_update[s].WtTz = qs[a]; a++;
 					q_update[s].WxTz = qs[a]; a++;
 					q_update[s].WyTz = qs[a]; a++;
 					q_update[s].WnTz = qs[a];
 				#endif
+
 				#ifdef PI
 					q_update[s].Pi = qs[a];
 				#endif
@@ -292,12 +303,14 @@ const precision * const __restrict__ e_current, const fluid_velocity * const __r
 				#ifndef BOOST_INVARIANT
 					q_update[s].ttn = (q[s].ttn  +  qs[a]) / 2.; a++;
 				#endif
+
 				#ifdef ANISO_HYDRO
 					q_update[s].pl = (q[s].pl  +  qs[a]) / 2.; a++;
 				#if (PT_MATCHING == 1)
 					q_update[s].pt = (q[s].pt  +  qs[a]) / 2.; a++;
 				#endif
 				#endif
+
 				#ifdef PIMUNU
 					q_update[s].pitt = (q[s].pitt  +  qs[a]) / 2.; a++;
 					q_update[s].pitx = (q[s].pitx  +  qs[a]) / 2.; a++;
@@ -316,12 +329,14 @@ const precision * const __restrict__ e_current, const fluid_velocity * const __r
 				#endif
 					q_update[s].pinn = (q[s].pinn  +  qs[a]) / 2.; a++;
 				#endif
+
 				#ifdef WTZMU
 					q_update[s].WtTz = (q[s].WtTz  +  qs[a]) / 2.; a++;
 					q_update[s].WxTz = (q[s].WxTz  +  qs[a]) / 2.; a++;
 					q_update[s].WyTz = (q[s].WyTz  +  qs[a]) / 2.; a++;
 					q_update[s].WnTz = (q[s].WnTz  +  qs[a]) / 2.;
 				#endif
+
 				#ifdef PI
 					q_update[s].Pi = (q[s].Pi  +  qs[a]) / 2.;
 				#endif
@@ -352,12 +367,14 @@ void recompute_euler_step(const hydro_variables * const __restrict__ q_current, 
 			#ifndef BOOST_INVARIANT
 				q_update[s].ttn = q_current[s].ttn  +  dt * q_update[s].ttn;
 			#endif
+
 			#ifdef ANISO_HYDRO
 				q_update[s].pl  = q_current[s].pl  +  dt * q_update[s].pl;
 			#if (PT_MATCHING == 1)
 				q_update[s].pt  = q_current[s].pt  +  dt * q_update[s].pt;
 			#endif
 			#endif
+
 			#ifdef PIMUNU
 				q_update[s].pitt = q_current[s].pitt  +  dt * q_update[s].pitt;
 				q_update[s].pitx = q_current[s].pitx  +  dt * q_update[s].pitx;
@@ -376,12 +393,14 @@ void recompute_euler_step(const hydro_variables * const __restrict__ q_current, 
 			#endif
 				q_update[s].pinn = q_current[s].pinn  +  dt * q_update[s].pinn;
 			#endif
+
 			#ifdef WTZMU
 				q_update[s].WtTz = q_current[s].WtTz  +  dt * q_update[s].WtTz;
 				q_update[s].WxTz = q_current[s].WxTz  +  dt * q_update[s].WxTz;
 				q_update[s].WyTz = q_current[s].WyTz  +  dt * q_update[s].WyTz;
 				q_update[s].WnTz = q_current[s].WnTz  +  dt * q_update[s].WnTz;
 			#endif
+
 			#ifdef PI
 				q_update[s].Pi = q_current[s].Pi  +  dt * q_update[s].Pi;
 			#endif

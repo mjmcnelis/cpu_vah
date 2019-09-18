@@ -237,6 +237,58 @@ void set_anisotropic_initial_condition(int nx, int ny, int nz, hydro_parameters 
 	}
 }
 
+
+void set_viscous_bjorken_initial_condition(int nx, int ny, int nz, initial_condition_parameters initial, hydro_parameters hydro)
+{
+	precision t = hydro.tau_initial;
+	precision t2 = t * t;
+	precision plpt_ratio = hydro.plpt_ratio_initial;
+	precision e_min = hydro.energy_min;
+	precision conformal_eos_prefactor = hydro.conformal_eos_prefactor;
+
+	precision T0 = initial.initialCentralTemperatureGeV;							// central temperature (GeV)
+	precision e0 = equilibriumEnergyDensity(T0 / hbarc, conformal_eos_prefactor);	// energy density
+
+	for(int i = 2; i < nx + 2; i++)
+	{
+		for(int j = 2; j < ny + 2; j++)
+		{
+			for(int k = 2; k < nz + 2; k++)
+			{
+				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
+
+				precision e_s = energy_density_cutoff(e_min, e0);
+
+				e[s] = e_s;
+
+				precision p = equilibriumPressure(e_s);
+				precision pl = e_s * plpt_ratio / (2. + plpt_ratio);		// conformal switch approximation
+				precision pt = e_s / (2. + plpt_ratio);
+		
+			#ifdef PIMUNU
+		  		q[s].pitt = 0;		
+		  		q[s].pitx = 0;
+		  		q[s].pity = 0;
+		  		q[s].pixx = - (pl - pt) / 3.;
+		  		q[s].pixy = 0;
+		  		q[s].piyy = - (pl - pt) / 3.;
+		  		q[s].pinn = 2. * (pl - pt) / (3. * t2);
+			#endif
+		  	#ifdef PI
+		  		q[s].Pi = (2. * pt  +  pl) / 3.  -  p;
+		  	#endif
+
+		  		u[s].ux = 0;		// zero fluid velocity
+				u[s].uy = 0;
+		
+				up[s].ux = 0;		// also initialize up = u
+				up[s].uy = 0;
+			}
+		}
+	}
+}
+
+
 void set_aniso_bjorken_initial_condition(int nx, int ny, int nz, initial_condition_parameters initial, hydro_parameters hydro)
 {
 #ifdef ANISO_HYDRO
@@ -285,6 +337,8 @@ void set_aniso_bjorken_initial_condition(int nx, int ny, int nz, initial_conditi
 	}
 #endif
 }
+
+
 
 
 // Longitudinal energy density profile function eL(eta)
@@ -622,11 +676,10 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 			printf("\nRunning semi-analytic anisotropic Bjorken solution...\n");
 			run_semi_analytic_aniso_bjorken(lattice, initial, hydro);
 			set_aniso_bjorken_initial_condition(nx, ny, nz, initial, hydro);
-			//set_anisotropic_initial_condition(nx, ny, nz, hydro);
 		#else
 			printf("\nRunning semi-analytic viscous Bjorken solution...\n");
 			run_semi_analytic_viscous_bjorken(lattice, initial, hydro);
-			//set_viscous_bjorken_initial_condition(nx, ny, nz, initial, hydro);
+			set_viscous_bjorken_initial_condition(nx, ny, nz, initial, hydro);
 		#endif
 
 			set_initial_T_taumu_variables(t, nx, ny, nz);

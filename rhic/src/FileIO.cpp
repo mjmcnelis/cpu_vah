@@ -363,69 +363,62 @@ void output_residual_shear_validity(const hydro_variables * const __restrict__ q
 }
 
 
+void output_viscous_bjorken(const hydro_variables * const __restrict__ q, const precision * const e, precision e0, precision t, lattice_parameters lattice, hydro_parameters hydro)
+{
+	FILE *energy, *plptratio;
+
+	energy = fopen("output/eratio.dat", "a");
+	plptratio = fopen("output/plptratio.dat", "a");
+
+	int s = central_index(lattice);
+
+	precision e_s = e[s];
+	precision p = equilibriumPressure(e_s);
+
+	precision pinn = 0;
+	precision Pi = 0;
+	
+#ifdef PIMUNU
+	pinn = q[s].pinn;
+#endif
+#ifdef PI
+	Pi = q[s].Pi;
+#endif
+
+	precision pl = p  +  Pi  +  t * t * pinn;
+	precision pt = p  +  Pi  -  t * t * pinn / 2.;
+
+	fprintf(energy, 	"%.8f\t%.8e\n", t, e_s / e0);
+	fprintf(plptratio, 	"%.8f\t%.8e\n", t, pl / pt);
+
+	fclose(energy);
+	fclose(plptratio);
+}
+
+
 void output_aniso_bjorken(const hydro_variables * const __restrict__ q, const precision * const e, double e0, double t, lattice_parameters lattice, hydro_parameters hydro)
 {
 #ifdef ANISO_HYDRO
-	int nx = lattice.lattice_points_x;
-	int ny = lattice.lattice_points_y;
-	int nz = lattice.lattice_points_eta;
+	FILE *energy, *plptratio;
 
-	precision conformal_eos_prefactor = hydro.conformal_eos_prefactor;
-
-	FILE *energy, *plptratio, *temperature, *aLplot, *Lambdaplot;
-
-	energy      = fopen("output/eratio.dat", "a");
-	plptratio   = fopen("output/plptratio.dat", "a");
-	temperature = fopen("output/T.dat", "a");
-	aLplot      = fopen("output/aL.dat", "a");
-	Lambdaplot	= fopen("output/Lambda.dat", "a");
+	energy = fopen("output/eratio.dat", "a");
+	plptratio = fopen("output/plptratio.dat", "a");
 
 	int s = central_index(lattice);
 
 	precision e_s = e[s];
 	precision pl = q[s].pl;
+#if (PT_MATCHING == 1)
+	precision pt = q[s].pt;
+#else
 	precision pt = (e_s - pl) / 2.;
-
-	precision T = effectiveTemperature(e_s, conformal_eos_prefactor) * hbarc;
-	precision aL = compute_conformal_aL(pl, e_s);
-	precision z = 1. / (aL * aL)  -  1.;
-	precision t_200 = 1.;
-
-	if(z > delta)
-	{
-		precision sqrtz = sqrt(z);
-		precision t = atan(sqrtz) / sqrtz;
-		t_200 = 1.  +  (1. + z) * t;
-	}
-	else if(z < -delta && z > -1.)
-	{
-		precision sqrtmz = sqrt(-z);
-		precision t = atanh(sqrtmz) / sqrtmz;
-		t_200 = 1.  +  (1. + z) * t;
-	}
-	else if(fabs(z) <= delta)
-	{
-		precision z2 = z  * z;
-		precision z3 = z2 * z;
-		precision z4 = z3 * z;
-		precision z5 = z4 * z;
-		precision z6 = z5 * z;
-		t_200 = 2. + 0.6666666666666667*z - 0.1333333333333333*z2 + 0.05714285714285716*z3 - 0.031746031746031744*z4 + 0.020202020202020193*z5 - 0.013986013986013984*z6;
-	}
-
-	precision Lambda = pow(2. * e_s / (aL * aL * conformal_eos_prefactor * t_200), 0.25) * hbarc;
+#endif
 
 	fprintf(energy, 	"%.8f\t%.8e\n", t, e_s / e0);
 	fprintf(plptratio, 	"%.8f\t%.8e\n", t, pl / pt);
-	fprintf(temperature,"%.12f\t%.12f\n", t, T);
-	fprintf(aLplot,		"%.12f\t%.12f\n", t, aL);
-	fprintf(Lambdaplot,	"%.12f\t%.12f\n", t, Lambda);
 
 	fclose(energy);
 	fclose(plptratio);
-	fclose(temperature);
-	fclose(aLplot);
-	fclose(Lambdaplot);
 #endif
 }
 
@@ -640,7 +633,11 @@ void output_dynamical_variables(double t, double dt, lattice_parameters lattice,
 		precision T0 = initial.initialCentralTemperatureGeV;
 		precision e0 = equilibriumEnergyDensity(T0 / hbarc, hydro.conformal_eos_prefactor);
 
+	#ifdef ANISO_HYDRO
 		output_aniso_bjorken(q, e, e0, t, lattice, hydro);
+	#else
+		output_viscous_bjorken(q, e, e0, t, lattice, hydro);
+	#endif
 	}
 	else if(initial_type == 2 || initial_type == 3)
 	{
@@ -661,7 +658,7 @@ void output_semi_analytic_solution_if_any(lattice_parameters lattice, initial_co
 {
 	switch(initial.initialConditionType)
 	{
-		case 1:		// anisotropic Bjorken
+		case 1:		// Bjorken
 		{
 			printf("\nRunning semi-analytic anisotropic Bjorken solution...\n");
 			run_semi_analytic_aniso_bjorken(lattice, initial, hydro);

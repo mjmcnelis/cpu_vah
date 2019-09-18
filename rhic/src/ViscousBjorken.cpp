@@ -22,6 +22,7 @@ double de_dt_vh(double e, double pi, double t, hydro_parameters hydro)
 
 double dpi_dt(double e, double pi, double t, hydro_parameters hydro)
 {	
+#ifdef PIMUNU
 	double p = equilibriumPressure(e);
 	double T = effectiveTemperature(e, hydro.conformal_eos_prefactor);
 	double s = (e + p) / T;
@@ -35,8 +36,11 @@ double dpi_dt(double e, double pi, double t, hydro_parameters hydro)
 	double lambdapiPi = 1.2;
 
 	// 2.0*lambdapiPi*Pi/3.0/tau;
-
+	
 	return taupiInv * (-pi  +  4./3. * eta / t)  -  (taupipi/3. + deltapipi) * pi / t;
+#else
+	return 0;
+#endif
 }
 
 
@@ -62,8 +66,17 @@ void run_semi_analytic_viscous_bjorken(lattice_parameters lattice, initial_condi
 	double pl = e0 * plpt_ratio / (2. + plpt_ratio);			
 	double pt = (e - pl) / 2.;				
 
-	double pi = 2./3. * (pl - pt);												// - t2.pinn
+#ifdef PIMUNU
+	double pi = - 2. * (pl - pt) / 3.;											// - t2.pinn
+#else
+	double pi = 0;
+#endif
+
+#ifdef PI
 	double bulkPi = 0;															// set bulk pressure = 0 for now
+#else
+	double bulkPi = 0;
+#endif
 	
 	double T_freeze = hydro.freezeout_temperature_GeV;
 	double e_freeze = equilibriumEnergyDensity(T_freeze / hbarc, conformal_eos_prefactor);
@@ -85,20 +98,20 @@ void run_semi_analytic_viscous_bjorken(lattice_parameters lattice, initial_condi
 
 		if(e < e_freeze) break;
 		
-		double e1  = dt *  de_dt_vh(e, pi, t, hydro);
+		double e1  = dt * de_dt_vh(e, pi, t, hydro);
 		double pi1 = dt * dpi_dt(e, pi, t, hydro);
 
-		double e2  = dt *  de_dt_vh(e + e1/2., pi + pi1/2., t + dt/2., hydro);
+		double e2  = dt * de_dt_vh(e + e1/2., pi + pi1/2., t + dt/2., hydro);
 		double pi2 = dt * dpi_dt(e + e1/2., pi + pi1/2., t + dt/2., hydro);
 
-		double e3  = dt *  de_dt_vh(e + e2/2., pi + pi2/2., t + dt/2., hydro);
+		double e3  = dt * de_dt_vh(e + e2/2., pi + pi2/2., t + dt/2., hydro);
 		double pi3 = dt * dpi_dt(e + e2/2., pi + pi2/2., t + dt/2., hydro);
 
-		double e4  = dt *  de_dt_vh(e + e3, pi + pi3, t + dt, hydro);
+		double e4  = dt * de_dt_vh(e + e3, pi + pi3, t + dt, hydro);
 		double pi4 = dt * dpi_dt(e + e3, pi + pi3, t + dt, hydro);
 
 		e  += (e1   +  2. * e2   +  2. * e3   +  e4)  / 6.;
-		pl += (pi1  +  2. * pi2  +  2. * pi3  +  pi4) / 6.;		
+		pi += (pi1  +  2. * pi2  +  2. * pi3  +  pi4) / 6.;		
 
 		t += dt;
 	}

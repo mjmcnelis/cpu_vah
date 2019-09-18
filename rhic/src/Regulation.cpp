@@ -256,6 +256,7 @@ void regulate_viscous_currents(precision t, hydro_variables * const __restrict__
 
 				precision e_s = e[s];
 				precision p = equilibriumPressure(e_s);
+
 				precision ux = u[s].ux;
 				precision uy = u[s].uy;
 			#ifndef BOOST_INVARIANT
@@ -266,7 +267,7 @@ void regulate_viscous_currents(precision t, hydro_variables * const __restrict__
 				precision ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t2 * un * un);
 
 				precision Teq_mag = sqrt(e_s * e_s  +  3. * p * p);
-
+		/*
 			#ifdef PIMUNU
 				precision pitt = q[s].pitt;
 				precision pitx = q[s].pitx;
@@ -331,6 +332,8 @@ void regulate_viscous_currents(precision t, hydro_variables * const __restrict__
 				q[s].pinn = factor_pi * pinn;
 			#endif
 
+
+
 			#ifdef PI
 				precision Pi = q[s].Pi;
 
@@ -340,6 +343,7 @@ void regulate_viscous_currents(precision t, hydro_variables * const __restrict__
 
 				q[s].Pi = factor_bulk * Pi;
 			#endif
+	*/
 			}
 		}
 	}

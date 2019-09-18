@@ -238,6 +238,7 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 				precision pity = 0;
 				precision pitn = 0;
 			#endif
+
 			#ifdef PI
 				precision Pi = q[s].Pi;
 			#else
@@ -263,28 +264,28 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 
 				precision p = equilibriumPressure(e_s);
 
-				precision ut_s = sqrt(fabs((Mt + p + Pi) / (e_s + p + Pi)));
-				precision ux_s = Mx / ut_s / (e_s + p + Pi);
-				precision uy_s = My / ut_s / (e_s + p + Pi);
+				precision ut = sqrt(fabs((Mt + p + Pi) / (e_s + p + Pi)));
+				precision ux = Mx / ut / (e_s + p + Pi);
+				precision uy = My / ut / (e_s + p + Pi);
 			#ifndef BOOST_INVARIANT
-				precision un_s = Mn / ut_s / (e_s + p + Pi);
+				precision un = Mn / ut / (e_s + p + Pi);
 			#else
-				precision un_s = 0;
+				precision un = 0;
 			#endif
 
-				if(std::isnan(ut_s))
+				if(std::isnan(ut))
 				{
-					printf("\nget_inferred_variables_viscous_hydro error: u^mu = (%lf, %lf, %lf, %lf) is nan\n", ut_s, ux_s, uy_s, un_s);
+					printf("\nget_inferred_variables_viscous_hydro error: u^mu = (%lf, %lf, %lf, %lf) is nan\n", ut, ux, uy, un);
 					exit(-1);
 				}
 
 			#ifdef TEST_TTAUMU
-				ut_s = sqrt(1.  +  ux_s * ux_s  +  uy_s * uy_s  +  t2 * un_s * un_s);
+				ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t2 * un * un);
 
-				precision dttt = fabs((e_s + p + Pi) * ut_s * ut_s  -  (p + Pi)  +  pitt  -  ttt);
-				precision dttx = fabs((e_s + p + Pi) * ut_s * ux_s  +  pitx  -  ttx);
-				precision dtty = fabs((e_s + p + Pi) * ut_s * uy_s  +  pity  -  tty);
-				precision dttn = fabs((e_s + p + Pi) * ut_s * un_s  +  pitn  -  ttn);
+				precision dttt = fabs((e_s + p + Pi) * ut * ut  -  (p + Pi)  +  pitt  -  ttt);
+				precision dttx = fabs((e_s + p + Pi) * ut * ux  +  pitx  -  ttx);
+				precision dtty = fabs((e_s + p + Pi) * ut * uy  +  pity  -  tty);
+				precision dttn = fabs((e_s + p + Pi) * ut * un  +  pitn  -  ttn);
 
 				if(dttt > ttt_error || dttx > ttx_error || dtty > tty_error || dttn > ttn_error)
 				{
@@ -296,12 +297,16 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 				}
 			#endif
 
-				e[s]     = e_s;		// set solution for primary variables
-				u[s].ux = ux_s;
-				u[s].uy = uy_s;
-			#ifndef BOOST_INVARIANT
-				u[s].un = un_s;
-			#endif
+			// 	e[s]    = e_s;		// set solution for primary variables
+			// 	u[s].ux = ux;
+			// 	u[s].uy = uy;
+			// #ifndef BOOST_INVARIANT
+			// 	u[s].un = un;
+			// #endif
+
+				e[s] = ttt;		// temporary 
+				u[s].ux = 0;
+				u[s].uy = 0;
 			}
 		}
 	}
