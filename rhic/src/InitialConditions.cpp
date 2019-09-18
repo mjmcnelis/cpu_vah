@@ -12,6 +12,7 @@
 #include "../include/Parameters.h"
 #include "../include/OpticalGlauber.h"
 #include "../include/MCGlauber.h"
+#include "../include/ViscousBjorken.h"
 #include "../include/AnisoBjorken.h"
 #include "../include/IdealGubser.h"
 #include "../include/AnisoGubser.h"
@@ -236,16 +237,15 @@ void set_anisotropic_initial_condition(int nx, int ny, int nz, hydro_parameters 
 	}
 }
 
-
-// constant initial energy density profile (Bjorken)
-void set_Bjorken_energy_density_and_flow_profile(int nx, int ny, int nz, initial_condition_parameters initial, hydro_parameters hydro)
+void set_aniso_bjorken_initial_condition(int nx, int ny, int nz, initial_condition_parameters initial, hydro_parameters hydro)
 {
+#ifdef ANISO_HYDRO
+	precision plpt_ratio = hydro.plpt_ratio_initial;
+	precision e_min = hydro.energy_min;
 	precision conformal_eos_prefactor = hydro.conformal_eos_prefactor;
 
 	precision T0 = initial.initialCentralTemperatureGeV;							// central temperature (GeV)
 	precision e0 = equilibriumEnergyDensity(T0 / hbarc, conformal_eos_prefactor);	// energy density
-
-	precision e_min = hydro.energy_min;
 
 	for(int i = 2; i < nx + 2; i++)
 	{
@@ -255,22 +255,35 @@ void set_Bjorken_energy_density_and_flow_profile(int nx, int ny, int nz, initial
 			{
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
-				e[s] = energy_density_cutoff(e_min, e0);
+				precision e_s = energy_density_cutoff(e_min, e0);
 
-				u[s].ux = 0;	// zero fluid velocity
+				e[s] = e_s;
+
+				q[s].pl = e_s * plpt_ratio / (2. + plpt_ratio);		// conformal switch approximation
+
+			#if (PT_MATCHING == 1)
+				q[s].pt = e_s / (2. + plpt_ratio);
+			#endif
+	
+			#ifdef PIMUNU
+		  		q[s].pitt = 0;		// zero residual shear stress
+		  		q[s].pitx = 0;
+		  		q[s].pity = 0;
+		  		q[s].pixx = 0;
+		  		q[s].pixy = 0;
+		  		q[s].piyy = 0;
+		  		q[s].pinn = 0;
+			#endif
+
+		  		u[s].ux = 0;		// zero fluid velocity
 				u[s].uy = 0;
-			#ifndef BOOST_INVARIANT
-				u[s].un = 0;
-			#endif
-
-				up[s].ux = 0;	// also initialize up = u
+		
+				up[s].ux = 0;		// also initialize up = u
 				up[s].uy = 0;
-			#ifndef BOOST_INVARIANT
-				up[s].un = 0;
-			#endif
 			}
 		}
 	}
+#endif
 }
 
 
@@ -598,19 +611,24 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 	{
 		case 1:
 		{
-			printf("Bjorken ");
-		#ifndef CONFORMAL_EOS
-			printf("QCD ");
-		#else
-			printf("Conformal ");
+			printf("Bjorken\n\n");
+
+		#ifndef BOOST_INVARIANT
+			printf("Bjorken initial condition error: define BOOST_INVARIANT in /rhic/include/Macros.h\n");
+			exit(-1);
 		#endif
-			printf("(fluid velocity and viscous pressures initialized to zero)\n\n");
-
+		
+		#ifdef ANISO_HYDRO
 			printf("\nRunning semi-analytic anisotropic Bjorken solution...\n");
-
 			run_semi_analytic_aniso_bjorken(lattice, initial, hydro);
-			set_Bjorken_energy_density_and_flow_profile(nx, ny, nz, initial, hydro);
-			set_anisotropic_initial_condition(nx, ny, nz, hydro);
+			set_aniso_bjorken_initial_condition(nx, ny, nz, initial, hydro);
+			//set_anisotropic_initial_condition(nx, ny, nz, hydro);
+		#else
+			printf("\nRunning semi-analytic viscous Bjorken solution...\n");
+			run_semi_analytic_viscous_bjorken(lattice, initial, hydro);
+			//set_viscous_bjorken_initial_condition(nx, ny, nz, initial, hydro);
+		#endif
+
 			set_initial_T_taumu_variables(t, nx, ny, nz);
 
 			break;

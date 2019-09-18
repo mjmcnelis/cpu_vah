@@ -11,7 +11,7 @@
 
 #define CONFORMAL_EOS			// use conformal equation of state (comment to use lattice QCD)
 
-//#define ANISO_HYDRO				// run anisotropic hydro (comment to run 2nd order viscous hydro)
+#define ANISO_HYDRO				// run anisotropic hydro (comment to run 2nd order viscous hydro)
 
 #define PIMUNU 					// include transverse shear stress (aniso) or shear stress (viscous hydro)
 

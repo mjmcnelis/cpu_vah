@@ -870,7 +870,7 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 
 	int a = 3;
 #ifndef BOOST_INVARIANT
-	precision ttn = q[a];	a++
+	precision ttn = q[a];	a++;
 #else
 	precision ttn = 0;
 #endif
