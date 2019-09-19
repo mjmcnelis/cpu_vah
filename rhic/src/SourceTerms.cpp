@@ -1077,15 +1077,14 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	spatial_projection Delta(ut, ux, uy, un, t2);		// \Delta^{\mu\nu}
 	double_spatial_projection Delta_2(Delta, t2, t4);	// \Delta^{\mu\nu\alpha\beta}
 
-	//Delta.test_spatial_projector();
-
-	// okay something is wrong with the double projector (algebraic mistake probably)
-	//Delta_2.test_double_spatial_projector(ut, ux, uy, un);
+	std::cout << - (pixx + piyy) / t2 << "\t" << pinn << std::endl;
 
 #ifdef PIMUNU
-	Delta_2.double_spatial_project_tensor(pitt, pitx, pity, pitn, pixx, pixy, pixn, piyy, piyn, pinn);
 
-	// acceleration = D u^\mu
+	// this makes thing worse
+	//Delta_2.double_spatial_project_tensor(pitt, pitx, pity, pitn, pixx, pixy, pixn, piyy, piyn, pinn);
+
+	//acceleration = D u^\mu
 	precision at = ut * dut_dt  +  ux * dut_dx  +  uy * dut_dy  +  un * dut_dn  +  t * un2;
 	precision ax = ut * dux_dt  +  ux * dux_dx  +  uy * dux_dy  +  un * dux_dn;
 	precision ay = ut * duy_dt  +  ux * duy_dx  +  uy * duy_dy  +  un * duy_dn;
@@ -1210,7 +1209,7 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	// conservation laws
 	precision tnn = (e + p + Pi) * un * un  +  (p + Pi) / t2  +  pinn;
 
-/*
+
 	S[0] =	- (ttt / t  +  t * tnn)  +  div_v * (pitt  -  p  -  Pi)
 			+  vx * (dpitt_dx  -  dp_dx  -  dPi_dx)  -  dpitx_dx
 			+  vy * (dpitt_dy  -  dp_dy  -  dPi_dy)  -  dpity_dy
@@ -1225,11 +1224,11 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 			+  vx * dpity_dx  -  dpixy_dx
 			+  vy * dpity_dy  -  dpiyy_dy
 			+  vn * dpity_dn  -  dpiyn_dn;
-*/
 
-	S[0] = - (ttt  +  p  +  t2 * pinn) / t;
-	S[1] = 0;
-	S[2] = 0;
+
+	// S[0] = - (ttt  +  p  +  t2 * pinn) / t;
+	// S[1] = 0;
+	// S[2] = 0;
 
 	a = 3;	// reset counter
 #ifndef BOOST_INVARIANT
@@ -1250,21 +1249,29 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	precision dpitx = - pitx * taupiInv  +  Itx  -  Ptx  -  Gtx;
 	precision dpity = - pity * taupiInv  +  Ity  -  Pty  -  Gty;
 	precision dpitn = - pitn * taupiInv  +  Itn  -  Ptn  -  Gtn;
-	precision dpixx = - pixx * taupiInv  +  Ixx  -  Pxx;
+	precision dpixx = - pixx * taupiInv  +  Ixx;
 	precision dpixy = - pixy * taupiInv  +  Ixy  -  Pxy;
 	precision dpixn = - pixn * taupiInv  +  Ixn  -  Pxn  -  Gxn;
-	precision dpiyy = - piyy * taupiInv  +  Iyy  -  Pyy;
+	precision dpiyy = - piyy * taupiInv  +  Iyy;
 	precision dpiyn = - piyn * taupiInv  +  Iyn  -  Pyn  -  Gyn;
-	precision dpinn = - pinn * taupiInv  +  Inn  -  Pnn  -  Gnn;
+	precision dpinn = - pinn * taupiInv  +  Inn  -  Gnn;
 
-	S[a] = dpitt;		a++;
-	S[a] = dpitx;		a++;
-	S[a] = dpity;		a++;
+/*
+	precision dpixx = - pixx * taupiInv  +  2./3. * betapi / t  -  (tau_pipi/3. + delta_pipi) * pixx / t;
+	precision dpiyy = - piyy * taupiInv  +  2./3. * betapi / t  -  (tau_pipi/3. + delta_pipi) * piyy / t;
+	precision dpinn = - pinn * taupiInv  -  4./3. * betapi / (t2 * t)  -  (tau_pipi/3. + delta_pipi) * pinn / t  -  2. * pinn / t;
+ 
+	//if(dpixy != 0) std::cout << dpixy << std::endl;
+	//std::cout << 2. * pixx  +  t2 * pinn << std::endl;
+
+	S[a] = 0;		a++;
+	S[a] = 0;		a++;
+	S[a] = 0;		a++;
 // #ifndef BOOST_INVARIANT
 // 	S[a] = dpitn;		a++;
 // #endif
 	S[a] = dpixx;		a++;
-	S[a] = dpixy;		a++;
+	S[a] = 0;			a++;
 // #ifndef BOOST_INVARIANT
 // 	S[a] = dpixn;		a++;
 // #endif
@@ -1273,34 +1280,34 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 // 	S[a] = dpiyn;		a++;
 // #endif
 	S[a] = dpinn;		a++;
-#endif
+*/
 
-// 	S[a] = dpitt / ut  +  div_v * pitt;		a++;
-// 	S[a] = dpitx / ut  +  div_v * pitx;		a++;
-// 	S[a] = dpity / ut  +  div_v * pity;		a++;
-// #ifndef BOOST_INVARIANT
-// 	S[a] = dpitn / ut  +  div_v * pitn;		a++;
-// #endif
-// 	S[a] = dpixx / ut  +  div_v * pixx;		a++;
-// 	S[a] = dpixy / ut  +  div_v * pixy;		a++;
-// #ifndef BOOST_INVARIANT
-// 	S[a] = dpixn / ut  +  div_v * pixn;		a++;
-// #endif
-// 	S[a] = dpiyy / ut  +  div_v * piyy;		a++;
-// #ifndef BOOST_INVARIANT
-// 	S[a] = dpiyn / ut  +  div_v * piyn;		a++;
-// #endif
-// 	S[a] = dpinn / ut  +  div_v * pinn;		a++;
-// #endif
+	S[a] = dpitt / ut  +  div_v * pitt;		a++;
+	S[a] = dpitx / ut  +  div_v * pitx;		a++;
+	S[a] = dpity / ut  +  div_v * pity;		a++;
+#ifndef BOOST_INVARIANT
+	S[a] = dpitn / ut  +  div_v * pitn;		a++;
+#endif
+	S[a] = dpixx / ut  +  div_v * pixx;		a++;
+	S[a] = dpixy / ut  +  div_v * pixy;		a++;
+#ifndef BOOST_INVARIANT
+	S[a] = dpixn / ut  +  div_v * pixn;		a++;
+#endif
+	S[a] = dpiyy / ut  +  div_v * piyy;		a++;
+#ifndef BOOST_INVARIANT
+	S[a] = dpiyn / ut  +  div_v * piyn;		a++;
+#endif
+	S[a] = dpinn / ut  +  div_v * pinn;		a++;
+#endif
 
 
 
 	// bulkPi relaxation equation
-#ifdef PI
-	precision dPi = - Pi * taubulkInv  -  (betabulk  +  delta_bulkPibulkPi * Pi) * theta  +  lambda_bulkPipi * pi_s;
+// #ifdef PI
+// 	precision dPi = - Pi * taubulkInv  -  (betabulk  +  delta_bulkPibulkPi * Pi) * theta  +  lambda_bulkPipi * pi_s;
 
-	S[a] = dPi / ut  +  div_v * Pi;
-#endif
+// 	S[a] = dPi / ut  +  div_v * Pi;
+// #endif
 }
 
 

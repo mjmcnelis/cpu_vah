@@ -14,7 +14,7 @@
 
 //#define ANISO_HYDRO				// run anisotropic hydro (comment to run 2nd order viscous hydro)
 
-//#define PIMUNU 					// include transverse shear stress (aniso) or shear stress (viscous hydro)
+#define PIMUNU 					// include transverse shear stress (aniso) or shear stress (viscous hydro)
 
 #ifdef ANISO_HYDRO
 	#ifdef CONFORMAL_EOS

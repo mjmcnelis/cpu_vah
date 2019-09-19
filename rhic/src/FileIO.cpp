@@ -374,15 +374,16 @@ void output_viscous_bjorken(const hydro_variables * const __restrict__ q, const 
 
 	precision e_s = e[s];
 	precision p = equilibriumPressure(e_s);
-
-	precision pinn = 0;
-	precision Pi = 0;
 	
 #ifdef PIMUNU
-	pinn = q[s].pinn;
+	precision pinn = q[s].pinn;
+#else
+	precision pinn = 0;
 #endif
 #ifdef PI
-	Pi = q[s].Pi;
+	precision Pi = q[s].Pi;
+#else
+	precision Pi = 0;
 #endif
 
 	precision pl = p  +  Pi  +  t * t * pinn;
