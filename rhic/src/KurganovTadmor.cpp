@@ -438,7 +438,7 @@ void evolve_hydro_one_time_step(int n, precision t, precision dt, precision dt_p
 	regulate_residual_currents(t, qI, e, uI, lattice, hydro);				// regulate qI
 #else
 	set_inferred_variables_viscous_hydro(qI, e, uI, t, lattice, hydro);
-	//regulate_viscous_currents(t, qI, e, uI, lattice, hydro);
+	regulate_viscous_currents(t, qI, e, uI, lattice, hydro);
 #endif
 
 	set_ghost_cells(qI, e, uI, lattice);									// set (qI, uI, e) ghost cells
@@ -455,7 +455,7 @@ void evolve_hydro_one_time_step(int n, precision t, precision dt, precision dt_p
 	regulate_residual_currents(t, Q, e, up, lattice, hydro);					// regulate Q
 #else
 	set_inferred_variables_viscous_hydro(Q, e, up, t, lattice, hydro);
-	//regulate_viscous_currents(t, Q, e, up, lattice, hydro);
+	regulate_viscous_currents(t, Q, e, up, lattice, hydro);
 #endif
 
 	swap_hydro_variables(&q, &Q);											// swap q and Q

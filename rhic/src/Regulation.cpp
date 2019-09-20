@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <iostream>
 #include <math.h>
 #include "../include/Macros.h"
 #include "../include/DynamicalVariables.h"
@@ -70,9 +71,9 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 				precision un = 0;
 			#endif
 				precision ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t2 * un * un);
+				precision utperp = sqrt(1.  +  ux * ux  +  uy * uy);
 
 			#ifndef BOOST_INVARIANT
-				precision utperp = sqrt(1.  +  ux * ux  +  uy * uy);
 				precision zt = t * un / utperp;
 				precision zn = ut / t / utperp;
 			#else
@@ -86,25 +87,20 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 				precision pitt = q[s].pitt;
 				precision pitx = q[s].pitx;
 				precision pity = q[s].pity;
-			#ifndef BOOST_INVARIANT
-				precision pitn = q[s].pitn;
-			#else
-				precision pitn = 0;
-			#endif
 				precision pixx = q[s].pixx;
 				precision pixy = q[s].pixy;
-			#ifndef BOOST_INVARIANT
-				precision pixn = q[s].pixn;
-			#else
-				precision pixn = 0;
-			#endif
 				precision piyy = q[s].piyy;
+				precision pinn = q[s].pinn;
+
 			#ifndef BOOST_INVARIANT
+				precision pitn = q[s].pitn;
+				precision pixn = q[s].pixn;
 				precision piyn = q[s].piyn;
 			#else
+				precision pitn = 0;
+				precision pixn = 0;
 				precision piyn = 0;
 			#endif
-				precision pinn = q[s].pinn;
 
 				precision pi_mag = sqrt(fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
 
@@ -117,29 +113,53 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 					{
 						precision rho_pi = pi_mag / (rho_max * T_aniso_mag);
 
-						if(!reprojection)	// include violations of orthogonality / traceless to rho_pi
-						{
-							precision trpi = fabs(pitt  -  pixx  -  piyy  -  t2 * pinn);
+						// independent components are pixx and pixy
+						piyy = (- pixx * (1.  +  uy * uy)  +  2. * pixy * ux * uy) / (1.  +  ux * ux);	// maybe can eliminate this as well 
+						pitx = (pixx * ux  +  pixy * uy) * ut / (utperp * utperp);
+						pity = (pixy * ux  +  piyy * uy) * ut / (utperp * utperp);
 
-							precision piu0 = fabs(pitt * ut  -  pitx * ux  -  pity * uy  -  t2 * pitn * un) / ut;
-							precision piu1 = fabs(pitx * ut  -  pixx * ux  -  pixy * uy  -  t2 * pixn * un) / ut;
-							precision piu2 = fabs(pity * ut  -  pixy * ux  -  piyy * uy  -  t2 * piyn * un) / ut;
-							precision piu3 = fabs(pitn * ut  -  pixn * ux  -  piyn * uy  -  t2 * pinn * un) * t / ut;
+					#ifndef BOOST_INVARIANT
+						pixn = pitx * un / ut;
+						piyn = pity * un / ut;
+						pitn = (pixn * ux  +  piyn * uy) * ut / (utperp * utperp);
+					#endif
 
-							precision piz0 = fabs(zt * pitt  -  t2 * zn * pitn) / (t * zn);
-							precision piz1 = fabs(zt * pitx  -  t2 * zn * pixn) / (t * zn);
-							precision piz2 = fabs(zt * pity  -  t2 * zn * piyn) / (t * zn);
-							precision piz3 = fabs(zt * pitn  -  t2 * zn * pinn) / zn;
+						pinn = pitn * un / ut;		// can eliminate this 
 
-							precision violation = fmax(trpi, fmax(piu0, fmax(piu1, fmax(piu2, fmax(piu3, fmax(piz0, fmax(piz1, fmax(piz2, piz3))))))));
+						pitt = (pitx * ux  +  pity * uy  +  t2 * pitn * un) / ut;
 
-							rho_pi = fmax(rho_pi, violation / (xi0 * rho_max * pi_mag));
-						}
-						else
-						{
-							printf("regulate_residual_currents error: no reprojection yet\n");
-							exit(-1);
-						}
+
+
+						
+						//if(fabs(pinn) > 1.e-12) std::cout << pinn << std::endl;
+
+
+
+
+
+						// if(!reprojection)	// include violations of orthogonality / traceless to rho_pi
+						// {
+						// 	precision trpi = fabs(pitt  -  pixx  -  piyy  -  t2 * pinn);
+
+						// 	precision piu0 = fabs(pitt * ut  -  pitx * ux  -  pity * uy  -  t2 * pitn * un) / ut;
+						// 	precision piu1 = fabs(pitx * ut  -  pixx * ux  -  pixy * uy  -  t2 * pixn * un) / ut;
+						// 	precision piu2 = fabs(pity * ut  -  pixy * ux  -  piyy * uy  -  t2 * piyn * un) / ut;
+						// 	precision piu3 = fabs(pitn * ut  -  pixn * ux  -  piyn * uy  -  t2 * pinn * un) * t / ut;
+
+						// 	precision piz0 = fabs(zt * pitt  -  t2 * zn * pitn) / (t * zn);
+						// 	precision piz1 = fabs(zt * pitx  -  t2 * zn * pixn) / (t * zn);
+						// 	precision piz2 = fabs(zt * pity  -  t2 * zn * piyn) / (t * zn);
+						// 	precision piz3 = fabs(zt * pitn  -  t2 * zn * pinn) / zn;
+
+						// 	precision violation = fmax(trpi, fmax(piu0, fmax(piu1, fmax(piu2, fmax(piu3, fmax(piz0, fmax(piz1, fmax(piz2, piz3))))))));
+
+						// 	rho_pi = fmax(rho_pi, violation / (xi0 * rho_max * pi_mag));
+						// }
+						// else
+						// {
+						// 	printf("regulate_residual_currents error: no reprojection yet\n");
+						// 	exit(-1);
+						// }
 
 						factor_pi = tanh_function(rho_pi);
 
