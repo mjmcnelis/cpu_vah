@@ -511,7 +511,7 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	Itx -= delta_pipi * pitx * thetaT;
 	Ity -= delta_pipi * pity * thetaT;
 
-	Itn -= delta_pipi * pitn * thetaT;		// make use of BOOST_INVARIANT statements here? 
+	Itn -= delta_pipi * pitn * thetaT;		// make use of BOOST_INVARIANT statements here?
 
 	Ixx -= delta_pipi * pixx * thetaT;
 	Ixy -= delta_pipi * pixy * thetaT;
@@ -852,17 +852,14 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 
 void source_terms_viscous_hydro(precision * const __restrict__ S, const precision * const __restrict__ q, precision e, precision t, const precision * const __restrict__ qi1, const precision * const __restrict__ qj1, const precision * const __restrict__ qk1, const precision * const __restrict__ e1, const precision * const __restrict__ ui1, const precision * const __restrict__ uj1, const precision * const __restrict__ uk1, precision ux, precision uy, precision un, precision ux_p, precision uy_p, precision un_p, precision dt_prev, precision dx, precision dy, precision dn, hydro_parameters hydro)
 {
-	precision t2 = t * t;			// useful expressions
+	precision t2 = t * t;
 	precision t4 = t2 * t2;
 	precision tun = t * un;
-	
+
 	precision ut = sqrt(1.  +  ux * ux  +  uy * uy  +  tun * tun);
 	precision vx = ux / ut;
 	precision vy = uy / ut;
 	precision vn = un / ut;
-
-	precision un2  = un * un;		// other useful expressions
-	precision utun = ut * un;
 
 	precision T = effectiveTemperature(e, hydro.conformal_eos_prefactor);
 	precision p = equilibriumPressure(e);
@@ -906,11 +903,9 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	// shear transport coefficients
 	precision etas = eta_over_s(T, hydro);
 	precision taupiInv = T / (5. * etas);
-
 	precision betapi = (e + p) / 5.;
 	precision delta_pipi = 4./3.;
 	precision tau_pipi = 10./7;
-
 	precision lambda_pibulkPi = 1.2;
 #else
 	precision pitt = 0;
@@ -923,6 +918,7 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	precision piyy = 0;
 	precision piyn = 0;
 	precision pinn = 0;
+	precision lambda_pibulkPi = 0;
 #endif
 
 #ifdef PI
@@ -938,9 +934,9 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	precision Pi = 0;
 #endif
 
-	precision de_dx = (e1[1] - e1[0]) / (2. * dx);		// energy density derivatives
-	precision de_dy = (e1[3] - e1[2]) / (2. * dy);
-	precision de_dn = (e1[5] - e1[4]) / (2. * dn);
+	precision de_dx = central_derivative(e1, 0, dx); 	// energy density derivatives
+	precision de_dy = central_derivative(e1, 2, dy);
+	precision de_dn = central_derivative(e1, 4, dn);
 
 	precision dp_dx = cs2 * de_dx;						// equilibrium pressure derivatives
 	precision dp_dy = cs2 * de_dy;
@@ -951,7 +947,6 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 #else
 	int n = 6;
 #endif
-
 
 #ifdef PIMUNU	// \pi^{\mu\nu} derivatives
 	precision dpitt_dx = central_derivative(qi1, n, dx);
@@ -1072,30 +1067,22 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	precision dvn_dn = (dun_dn  -  vn * dut_dn) / ut;
 	precision div_v = dvx_dx  +  dvy_dy  +  dvn_dn;
 
-
 #if (NUMBER_OF_VISCOUS_CURRENTS != 0)
 	spatial_projection Delta(ut, ux, uy, un, t2);		// \Delta^{\mu\nu}
 	double_spatial_projection Delta_2(Delta, t2, t4);	// \Delta^{\mu\nu\alpha\beta}
 
-	std::cout << - (pixx + piyy) / t2 << "\t" << pinn << std::endl;
-
-#ifdef PIMUNU
-
-	// this makes thing worse
-	//Delta_2.double_spatial_project_tensor(pitt, pitx, pity, pitn, pixx, pixy, pixn, piyy, piyn, pinn);
-
-	//acceleration = D u^\mu
-	precision at = ut * dut_dt  +  ux * dut_dx  +  uy * dut_dy  +  un * dut_dn  +  t * un2;
+#ifdef PIMUNU 	// acceleration: a^\mu = D u^\mu
+	precision at = ut * dut_dt  +  ux * dut_dx  +  uy * dut_dy  +  un * dut_dn  +  t * un * un;
 	precision ax = ut * dux_dt  +  ux * dux_dx  +  uy * dux_dy  +  un * dux_dn;
 	precision ay = ut * duy_dt  +  ux * duy_dx  +  uy * duy_dy  +  un * duy_dn;
-	precision an = ut * dun_dt  +  ux * dun_dx  +  uy * dun_dy  +  un * dun_dn  +  2. * utun / t;
+	precision an = ut * dun_dt  +  ux * dun_dx  +  uy * dun_dy  +  un * dun_dn  +  2. * ut * un / t;
 #endif
 
-	// shear velocity tensor = sigma^{\mu\nu} (first compute D^{(\mu) u^{\nu)})
+	// shear velocity tensor: sigma^{\mu\nu} (first compute D^{(\mu) u^{\nu)})
 	precision stt = dut_dt;
 	precision stx = (dux_dt  -  dut_dx) / 2.;
 	precision sty = (duy_dt  -  dut_dy) / 2.;
-	precision stn = (dun_dt  +  un / t  -  (dut_dn  +  tun) / t2) / 2.; 
+	precision stn = (dun_dt  +  un / t  -  (dut_dn  +  tun) / t2) / 2.;
 	precision sxx = - dux_dx;
 	precision sxy = - (dux_dy  +  duy_dx) / 2.;
 	precision sxn = - (dun_dx  +  dux_dn / t2) / 2.;
@@ -1106,21 +1093,21 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 #endif
 
 #ifdef PIMUNU
-	precision pi_s = pitt * stt  +  pixx * sxx  +  piyy * syy  +  t4 * pinn * snn  +  2.*(pixy * sxy  -  pitx * stx  -  pity * sty  +  t2 * (pixn * sxn  +  piyn * syn  -  pitn * stn));
+	precision pi_sigma = pitt * stt  +  pixx * sxx  +  piyy * syy  +  t4 * pinn * snn  +  2.*(pixy * sxy  -  pitx * stx  -  pity * sty  +  t2 * (pixn * sxn  +  piyn * syn  -  pitn * stn));
 
-	// pi gradient terms (tensors are symmetric but (2,4) not double spatial projected until end)
+	// pi gradient terms
 
-	// 2 . (eta/tau_pi) . \sigma_^{\mu\nu}
-	precision Itt = 2. * betapi * stt;
-	precision Itx = 2. * betapi * stx;
-	precision Ity = 2. * betapi * sty;
-	precision Itn = 2. * betapi * stn;
-	precision Ixx = 2. * betapi * sxx;
-	precision Ixy = 2. * betapi * sxy;
-	precision Ixn = 2. * betapi * sxn;
-	precision Iyy = 2. * betapi * syy;
-	precision Iyn = 2. * betapi * syn;
-	precision Inn = 2. * betapi * snn;
+	// \tau_{\pi\pi} . \pi^{\lambda (\mu} . \sigma_T^{\nu)}_\lambda
+	precision Itt = - tau_pipi*(pitt * stt  -  pitx * stx  -  pity * sty  -  t2 * pitn * stn);
+	precision Itx = - tau_pipi*(pitt * stx  +  pitx * stt  -  pitx * sxx  -  pixx * stx  -  pity * sxy  -  pixy * sty  -  t2 * (pitn * sxn  +  pixn * stn))/2.;
+	precision Ity = - tau_pipi*(pitt * sty  +  pity * stt  -  pitx * sxy  -  pixy * stx  -  pity * syy  -  piyy * sty  -  t2 * (pitn * syn  +  piyn * stn))/2.;
+	precision Itn = - tau_pipi*(pitt * stn  +  pitn * stt  -  pitx * sxn  -  pixn * stx  -  pity * syn  -  piyn * sty  -  t2 * (pitn * snn  +  pinn * stn))/2.;
+	precision Ixx = - tau_pipi*(pitx * stx  -  pixx * sxx  -  pixy * sxy  -  t2 * pixn * sxn);
+	precision Ixy = - tau_pipi*(pitx * sty  +  pity * stx  -  pixx * sxy  -  pixy * sxx  -  pixy * syy  -  piyy * sxy  -  t2 * (pixn * syn  +  piyn * sxn))/2.;
+	precision Ixn = - tau_pipi*(pitx * stn  +  pitn * stx  -  pixx * sxn  -  pixn * sxx  -  pixy * syn  -  piyn * sxy  -  t2 * (pixn * snn  +  pinn * sxn))/2.;
+	precision Iyy = - tau_pipi*(pity * sty  -  pixy * sxy  -  piyy * syy  -  t2 * piyn * syn);
+	precision Iyn = - tau_pipi*(pity * stn  +  pitn * sty  -  pixy * sxn  -  pixn * sxy  -  piyy * syn  -  piyn * syy  -  t2 * (piyn * snn  +  pinn * syn))/2.;
+	precision Inn = - tau_pipi*(pitn * stn  -  pixn * sxn  -  piyn * syn  -  t2 * pinn * snn);
 
 #ifndef BOOST_INVARIANT
 	if(hydro.include_vorticity)
@@ -1138,43 +1125,19 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	}
 #endif
 
-	Itt -= delta_pipi * pitt * theta;		// \delta_{\pi\pi} . pi^{\mu\nu} . \theta
-	Itx -= delta_pipi * pitx * theta;
-	Ity -= delta_pipi * pity * theta;
-	Itn -= delta_pipi * pitn * theta;
-	Ixx -= delta_pipi * pixx * theta;
-	Ixy -= delta_pipi * pixy * theta;
-	Ixn -= delta_pipi * pixn * theta;
-	Iyy -= delta_pipi * piyy * theta;
-	Iyn -= delta_pipi * piyn * theta;
-	Inn -= delta_pipi * pinn * theta;
-
-	// \tau_{\pi\pi} . \pi^{\lambda (\mu} . \sigma_T^{\nu)}_\lambda
-	Itt -= tau_pipi * (pitt * stt  -  pitx * stx  -  pity * sty  -  t2 * pitn * stn);
-	Itx -= tau_pipi * (pitt * stx  +  pitx * stt  -  pitx * sxx  -  pixx * stx  -  pity * sxy  -  pixy * sty  -  t2 * (pitn * sxn  +  pixn * stn)) / 2.;
-	Ity -= tau_pipi * (pitt * sty  +  pity * stt  -  pitx * sxy  -  pixy * stx  -  pity * syy  -  piyy * sty  -  t2 * (pitn * syn  +  piyn * stn)) / 2.;
-	Itn -= tau_pipi * (pitt * stn  +  pitn * stt  -  pitx * sxn  -  pixn * stx  -  pity * syn  -  piyn * sty  -  t2 * (pitn * snn  +  pinn * stn)) / 2.;
-	Ixx -= tau_pipi * (pitx * stx  -  pixx * sxx  -  pixy * sxy  -  t2 * pixn * sxn);
-	Ixy -= tau_pipi * (pitx * sty  +  pity * stx  -  pixx * sxy  -  pixy * sxx  -  pixy * syy  -  piyy * sxy  -  t2 * (pixn * syn  +  piyn * sxn)) / 2.;
-	Ixn -= tau_pipi * (pitx * stn  +  pitn * stx  -  pixx * sxn  -  pixn * sxx  -  pixy * syn  -  piyn * sxy  -  t2 * (pixn * snn  +  pinn * sxn)) / 2.;
-	Iyy -= tau_pipi * (pity * sty  -  pixy * sxy  -  piyy * syy  -  t2 * piyn * syn);
-	Iyn -= tau_pipi * (pity * stn  +  pitn * sty  -  pixy * sxn  -  pixn * sxy  -  piyy * syn  -  piyn * syy  -  t2 * (piyn * snn  +  pinn * syn)) / 2.;
-	Inn -= tau_pipi * (pitn * stn  -  pixn * sxn  -  piyn * syn  -  t2 * pinn * snn);
-
-#ifdef PI
-	Itt += lambda_pibulkPi * Pi * stt;		// \lambda^{\pi\Pi} . \sigma^{\mu\nu} . \Pi
-	Itx += lambda_pibulkPi * Pi * stx;
-	Ity += lambda_pibulkPi * Pi * sty;
-	Itn += lambda_pibulkPi * Pi * stn;
-	Ixx += lambda_pibulkPi * Pi * sxx;
-	Ixy += lambda_pibulkPi * Pi * sxy;
-	Ixn += lambda_pibulkPi * Pi * sxn;
-	Iyy += lambda_pibulkPi * Pi * syy;
-	Iyn += lambda_pibulkPi * Pi * syn;
-	Inn += lambda_pibulkPi * Pi * snn;
-#endif
-
 	Delta_2.double_spatial_project_tensor(Itt, Itx, Ity, Itn, Ixx, Ixy, Ixn, Iyy, Iyn, Inn);
+
+	// (2.beta_pi + \lambda^{\pi\Pi}) . \sigma^{\mu\nu}  -  \delta_{\pi\pi} . pi^{\mu\nu} . \theta
+	Itt += (2. * betapi  +  lambda_pibulkPi * Pi) * stt  -  delta_pipi * pitt * theta;
+	Itx += (2. * betapi  +  lambda_pibulkPi * Pi) * stx  -  delta_pipi * pitx * theta;
+	Ity += (2. * betapi  +  lambda_pibulkPi * Pi) * sty  -  delta_pipi * pity * theta;
+	Itn += (2. * betapi  +  lambda_pibulkPi * Pi) * stn  -  delta_pipi * pitn * theta;
+	Ixx += (2. * betapi  +  lambda_pibulkPi * Pi) * sxx  -  delta_pipi * pixx * theta;
+	Ixy += (2. * betapi  +  lambda_pibulkPi * Pi) * sxy  -  delta_pipi * pixy * theta;
+	Ixn += (2. * betapi  +  lambda_pibulkPi * Pi) * sxn  -  delta_pipi * pixn * theta;
+	Iyy += (2. * betapi  +  lambda_pibulkPi * Pi) * syy  -  delta_pipi * piyy * theta;
+	Iyn += (2. * betapi  +  lambda_pibulkPi * Pi) * syn  -  delta_pipi * piyn * theta;
+	Inn += (2. * betapi  +  lambda_pibulkPi * Pi) * snn  -  delta_pipi * pinn * theta;
 
 	// Christofel terms: G^{\mu\nu} = 2 . u^\alpha . \Gamma^{(\mu}_{\alpha\beta} . \pi^{\beta\nu)}
 	precision Gtt = 2. * tun * pitn;
@@ -1209,7 +1172,6 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	// conservation laws
 	precision tnn = (e + p + Pi) * un * un  +  (p + Pi) / t2  +  pinn;
 
-
 	S[0] =	- (ttt / t  +  t * tnn)  +  div_v * (pitt  -  p  -  Pi)
 			+  vx * (dpitt_dx  -  dp_dx  -  dPi_dx)  -  dpitx_dx
 			+  vy * (dpitt_dy  -  dp_dy  -  dPi_dy)  -  dpity_dy
@@ -1225,11 +1187,6 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 			+  vy * dpity_dy  -  dpiyy_dy
 			+  vn * dpity_dn  -  dpiyn_dn;
 
-
-	// S[0] = - (ttt  +  p  +  t2 * pinn) / t;
-	// S[1] = 0;
-	// S[2] = 0;
-
 	a = 3;	// reset counter
 #ifndef BOOST_INVARIANT
 	S[a] =	- 3. * ttn / t  -  (dp_dn + dPi_dn) / t2  +  div_v * pitn
@@ -1239,48 +1196,17 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	a++;
 #endif
 
-	// pimunu relaxation equation
-#ifdef PIMUNU
-
-
-
-
+#ifdef PIMUNU 	// shear relaxation equation
 	precision dpitt = - pitt * taupiInv  +  Itt  -  Ptt  -  Gtt;
 	precision dpitx = - pitx * taupiInv  +  Itx  -  Ptx  -  Gtx;
 	precision dpity = - pity * taupiInv  +  Ity  -  Pty  -  Gty;
 	precision dpitn = - pitn * taupiInv  +  Itn  -  Ptn  -  Gtn;
-	precision dpixx = - pixx * taupiInv  +  Ixx;
+	precision dpixx = - pixx * taupiInv  +  Ixx  -  Pxx;
 	precision dpixy = - pixy * taupiInv  +  Ixy  -  Pxy;
 	precision dpixn = - pixn * taupiInv  +  Ixn  -  Pxn  -  Gxn;
-	precision dpiyy = - piyy * taupiInv  +  Iyy;
+	precision dpiyy = - piyy * taupiInv  +  Iyy  -  Pyy;
 	precision dpiyn = - piyn * taupiInv  +  Iyn  -  Pyn  -  Gyn;
-	precision dpinn = - pinn * taupiInv  +  Inn  -  Gnn;
-
-/*
-	precision dpixx = - pixx * taupiInv  +  2./3. * betapi / t  -  (tau_pipi/3. + delta_pipi) * pixx / t;
-	precision dpiyy = - piyy * taupiInv  +  2./3. * betapi / t  -  (tau_pipi/3. + delta_pipi) * piyy / t;
-	precision dpinn = - pinn * taupiInv  -  4./3. * betapi / (t2 * t)  -  (tau_pipi/3. + delta_pipi) * pinn / t  -  2. * pinn / t;
- 
-	//if(dpixy != 0) std::cout << dpixy << std::endl;
-	//std::cout << 2. * pixx  +  t2 * pinn << std::endl;
-
-	S[a] = 0;		a++;
-	S[a] = 0;		a++;
-	S[a] = 0;		a++;
-// #ifndef BOOST_INVARIANT
-// 	S[a] = dpitn;		a++;
-// #endif
-	S[a] = dpixx;		a++;
-	S[a] = 0;			a++;
-// #ifndef BOOST_INVARIANT
-// 	S[a] = dpixn;		a++;
-// #endif
-	S[a] = dpiyy;		a++;
-// #ifndef BOOST_INVARIANT
-// 	S[a] = dpiyn;		a++;
-// #endif
-	S[a] = dpinn;		a++;
-*/
+	precision dpinn = - pinn * taupiInv  +  Inn  -  Pnn  -  Gnn;
 
 	S[a] = dpitt / ut  +  div_v * pitt;		a++;
 	S[a] = dpitx / ut  +  div_v * pitx;		a++;
@@ -1300,14 +1226,11 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	S[a] = dpinn / ut  +  div_v * pinn;		a++;
 #endif
 
+#ifdef PI 	// bulk relaxation equation
+	precision dPi = - Pi * taubulkInv  -  (betabulk  +  delta_bulkPibulkPi * Pi) * theta  +  lambda_bulkPipi * pi_sigma;
 
-
-	// bulkPi relaxation equation
-// #ifdef PI
-// 	precision dPi = - Pi * taubulkInv  -  (betabulk  +  delta_bulkPibulkPi * Pi) * theta  +  lambda_bulkPipi * pi_s;
-
-// 	S[a] = dPi / ut  +  div_v * Pi;
-// #endif
+	S[a] = dPi / ut  +  div_v * Pi;
+#endif
 }
 
 
