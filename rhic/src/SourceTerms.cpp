@@ -121,25 +121,32 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	precision pitt = q[a];	a++;
 	precision pitx = q[a];	a++;
 	precision pity = q[a];	a++;
+
 #ifndef BOOST_INVARIANT
 	precision pitn = q[a];	a++;
 #else
 	precision pitn = 0;
 #endif
+
 	precision pixx = q[a];	a++;
 	precision pixy = q[a];	a++;
+
 #ifndef BOOST_INVARIANT
 	precision pixn = q[a];	a++;
 #else
 	precision pixn = 0;
 #endif
+
 	precision piyy = q[a];	a++;
+
 #ifndef BOOST_INVARIANT
 	precision piyn = q[a];	a++;
+	precision pinn = q[a];	a++;
 #else
 	precision piyn = 0;
+	precision pinn = 0;
 #endif
-	precision pinn = q[a];	a++;
+
 #else
 	precision pitt = 0;
 	precision pitx = 0;
@@ -274,12 +281,15 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 #ifndef BOOST_INVARIANT
 	precision dpiyn_dy = central_derivative(qj1, n, dy);
 	precision dpiyn_dn = central_derivative(qk1, n, dn);	n += 2;
+
+	precision dpinn_dn = central_derivative(qk1, n, dn);	n += 2;
 #else
 	precision dpiyn_dy = 0;
 	precision dpiyn_dn = 0;
+
+	precision dpinn_dn = 0;
 #endif
 
-	precision dpinn_dn = central_derivative(qk1, n, dn);	n += 2;
 #else
 	precision dpitt_dx = 0;
 	precision dpitt_dy = 0;
@@ -564,7 +574,7 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	precision Gtn = tun * pinn  +  (ut * pitn  +  un * pitt) / t;
 	precision Gxn = (ut * pixn  +  un * pitx) / t;
 	precision Gyn = (ut * piyn  +  un * pity) / t;
-	precision Gnn = 2. * (ut * pinn  +  un * pitn) / t;	
+	precision Gnn = 2. * (ut * pinn  +  un * pitn) / t;
 
 	// pi_T^{\mu\alpha} . a_\alpha
 	precision piat = pitt * at  -  pitx * ax  -  pity * ay  -  t2 * pitn * an;
@@ -849,24 +859,30 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	precision pitt = q[a];	a++;
 	precision pitx = q[a];	a++;
 	precision pity = q[a];	a++;
+
 #ifndef BOOST_INVARIANT
 	precision pitn = q[a];	a++;
 #else
 	precision pitn = 0;
 #endif
+
 	precision pixx = q[a];	a++;
 	precision pixy = q[a];	a++;
+
 #ifndef BOOST_INVARIANT
 	precision pixn = q[a];	a++;
 #else
 	precision pixn = 0;
 #endif
+
 	precision piyy = q[a];	a++;
+
 #ifndef BOOST_INVARIANT
 	precision piyn = q[a];	a++;
 #else
 	precision piyn = 0;
 #endif
+
 	precision pinn = q[a];	a++;
 
 	// shear transport coefficients
@@ -1067,7 +1083,7 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	precision two_betapi = 2. * betapi;
 	precision lambda_pibulkPi_Pi = lambda_pibulkPi * Pi;
 	precision delta_pipi_theta = delta_pipi * theta;
-	
+
 	// pi gradient terms
 
 	// \tau_{\pi\pi} . \pi^{\lambda (\mu} . \sigma_T^{\nu)}_\lambda

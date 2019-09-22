@@ -119,8 +119,12 @@ const precision * const __restrict__ e_current, const fluid_velocity * const __r
 				qs[a] = q_current[s].piyy; a++;
 			#ifndef BOOST_INVARIANT
 				qs[a] = q_current[s].piyn; a++;
-			#endif
 				qs[a] = q_current[s].pinn; a++;
+			#else
+			#ifndef ANISO_HYDRO
+				qs[a] = q_current[s].pinn; a++;
+			#endif
+			#endif
 			#endif
 
 			#ifdef WTZMU
@@ -221,8 +225,12 @@ const precision * const __restrict__ e_current, const fluid_velocity * const __r
 					q_update[s].piyy = f[a]; a++;
 				#ifndef BOOST_INVARIANT
 					q_update[s].piyn = f[a]; a++;
-				#endif
 					q_update[s].pinn = f[a]; a++;
+				#else
+				#ifndef ANISO_HYDRO
+					q_update[s].pinn = f[a]; a++;
+				#endif
+				#endif
 				#endif
 
 				#ifdef WTZMU
@@ -273,8 +281,12 @@ const precision * const __restrict__ e_current, const fluid_velocity * const __r
 					q_update[s].piyy = qs[a]; a++;
 				#ifndef BOOST_INVARIANT
 					q_update[s].piyn = qs[a]; a++;
-				#endif
 					q_update[s].pinn = qs[a]; a++;
+				#else
+				#ifndef ANISO_HYDRO
+					q_update[s].pinn = qs[a]; a++;
+				#endif
+				#endif
 				#endif
 
 				#ifdef WTZMU
@@ -326,8 +338,13 @@ const precision * const __restrict__ e_current, const fluid_velocity * const __r
 					q_update[s].piyy = (q[s].piyy  +  qs[a]) / 2.; a++;
 				#ifndef BOOST_INVARIANT
 					q_update[s].piyn = (q[s].piyn  +  qs[a]) / 2.; a++;
-				#endif
 					q_update[s].pinn = (q[s].pinn  +  qs[a]) / 2.; a++;
+				#else
+				#ifndef ANISO_HYDRO
+					q_update[s].pinn = (q[s].pinn  +  qs[a]) / 2.; a++;
+				#endif
+				#endif
+
 				#endif
 
 				#ifdef WTZMU
@@ -390,8 +407,12 @@ void recompute_euler_step(const hydro_variables * const __restrict__ q_current, 
 				q_update[s].piyy = q_current[s].piyy  +  dt * q_update[s].piyy;
 			#ifndef BOOST_INVARIANT
 				q_update[s].piyn = q_current[s].piyn  +  dt * q_update[s].piyn;
-			#endif
 				q_update[s].pinn = q_current[s].pinn  +  dt * q_update[s].pinn;
+			#else
+			#ifndef ANISO_HYDRO
+				q_update[s].pinn = q_current[s].pinn  +  dt * q_update[s].pinn;
+			#endif
+			#endif
 			#endif
 
 			#ifdef WTZMU

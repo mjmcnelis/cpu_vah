@@ -47,6 +47,7 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 				precision e_s = e[s];
 				precision pl  = q[s].pl;
 
+			// regulate longitudinal and transverse pressures
 				if(pl < pressure_min)
 				{
 					q[s].pl = pressure_min;		// cutoff like energy density?
@@ -62,6 +63,9 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 			#else
 				precision pt = (e_s - pl) / 2.;
 			#endif
+
+			// regulate residual currents
+			#if (NUMBER_OF_RESIDUAL_CURRENTS != 0)
 
 				precision ux = u[s].ux;
 				precision uy = u[s].uy;
@@ -90,31 +94,36 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 				precision pixx = q[s].pixx;
 				precision pixy = q[s].pixy;
 				precision piyy = q[s].piyy;
-				precision pinn = q[s].pinn;
 
 			#ifndef BOOST_INVARIANT
 				precision pitn = q[s].pitn;
 				precision pixn = q[s].pixn;
 				precision piyn = q[s].piyn;
+				precision pinn = q[s].pinn;
 			#else
 				precision pitn = 0;
 				precision pixn = 0;
 				precision piyn = 0;
+				precision pinn = 0;
 			#endif
 
 				precision pi_mag = sqrt(fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
 
 				precision factor_pi;
 
+
+				// 2+1d: pitt, pitx, pity, pixx, pixy (piyy = f(pixx, piyy, ux, uy); pixn, piyn, pitn, pinn = 0)
+				// 3+1d: pitt, pitx, pity, pitn, pixx, pixy (pixn, piyy, piyn, pinn can be reconstructed algebraically, need chain rule for derivatives)
+
 				// need to reorganize this
 				switch(regulation_scheme)
 				{
 					case 0:
 					{
-						precision rho_pi = pi_mag / (rho_max * T_aniso_mag);
+						factor_pi = tanh_function(pi_mag / (rho_max * T_aniso_mag));
 
 						// independent components are pixx and pixy
-						piyy = (- pixx * (1.  +  uy * uy)  +  2. * pixy * ux * uy) / (1.  +  ux * ux);	// maybe can eliminate this as well 
+						piyy = (- pixx * (1.  +  uy * uy)  +  2. * pixy * ux * uy) / (1.  +  ux * ux);
 						pitx = (pixx * ux  +  pixy * uy) * ut / (utperp * utperp);
 						pity = (pixy * ux  +  piyy * uy) * ut / (utperp * utperp);
 
@@ -122,47 +131,10 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 						pixn = pitx * un / ut;
 						piyn = pity * un / ut;
 						pitn = (pixn * ux  +  piyn * uy) * ut / (utperp * utperp);
+						pinn = pitn * un / ut;
 					#endif
 
-						pinn = pitn * un / ut;		// can eliminate this 
-
 						pitt = (pitx * ux  +  pity * uy  +  t2 * pitn * un) / ut;
-
-
-
-						
-						//if(fabs(pinn) > 1.e-12) std::cout << pinn << std::endl;
-
-
-
-
-
-						// if(!reprojection)	// include violations of orthogonality / traceless to rho_pi
-						// {
-						// 	precision trpi = fabs(pitt  -  pixx  -  piyy  -  t2 * pinn);
-
-						// 	precision piu0 = fabs(pitt * ut  -  pitx * ux  -  pity * uy  -  t2 * pitn * un) / ut;
-						// 	precision piu1 = fabs(pitx * ut  -  pixx * ux  -  pixy * uy  -  t2 * pixn * un) / ut;
-						// 	precision piu2 = fabs(pity * ut  -  pixy * ux  -  piyy * uy  -  t2 * piyn * un) / ut;
-						// 	precision piu3 = fabs(pitn * ut  -  pixn * ux  -  piyn * uy  -  t2 * pinn * un) * t / ut;
-
-						// 	precision piz0 = fabs(zt * pitt  -  t2 * zn * pitn) / (t * zn);
-						// 	precision piz1 = fabs(zt * pitx  -  t2 * zn * pixn) / (t * zn);
-						// 	precision piz2 = fabs(zt * pity  -  t2 * zn * piyn) / (t * zn);
-						// 	precision piz3 = fabs(zt * pitn  -  t2 * zn * pinn) / zn;
-
-						// 	precision violation = fmax(trpi, fmax(piu0, fmax(piu1, fmax(piu2, fmax(piu3, fmax(piz0, fmax(piz1, fmax(piz2, piz3))))))));
-
-						// 	rho_pi = fmax(rho_pi, violation / (xi0 * rho_max * pi_mag));
-						// }
-						// else
-						// {
-						// 	printf("regulate_residual_currents error: no reprojection yet\n");
-						// 	exit(-1);
-						// }
-
-						factor_pi = tanh_function(rho_pi);
-
 						break;
 					}
 					case 1:
@@ -180,19 +152,17 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 				q[s].pitt = factor_pi * pitt;
 				q[s].pitx = factor_pi * pitx;
 				q[s].pity = factor_pi * pity;
-			#ifndef BOOST_INVARIANT
-				q[s].pitn = factor_pi * pitn;
-			#endif
 				q[s].pixx = factor_pi * pixx;
 				q[s].pixy = factor_pi * pixy;
-			#ifndef BOOST_INVARIANT
-				q[s].pixn = factor_pi * pixn;
-			#endif
 				q[s].piyy = factor_pi * piyy;
+
 			#ifndef BOOST_INVARIANT
+				q[s].pitn = factor_pi * pitn;
+				q[s].pixn = factor_pi * pixn;
 				q[s].piyn = factor_pi * piyn;
-			#endif
 				q[s].pinn = factor_pi * pinn;
+			#endif
+
 			#endif
 
 			#ifdef WTZMU
@@ -209,24 +179,10 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 				{
 					case 0:
 					{
-						precision rho_W = WTz_mag / (rho_max * T_aniso_mag);
+						factor_W = tanh_function(WTz_mag / (rho_max * T_aniso_mag));
 
-						if(!reprojection)	// include violations of orthogonality to rho_W
-						{
-							precision WTzu = fabs(WtTz * ut  -  WxTz * ux  -  WyTz * uy  -  t2 * WnTz * un);
-							precision WTzz = fabs(WtTz * zt  -  t2 * WnTz * zn);
-
-							precision violation = fmax(WTzu, WTzz);
-
-							rho_W = fmax(rho_W, violation / (xi0 * rho_max * WTz_mag));
-						}
-						else
-						{
-							printf("regulate_residual_currents error: no reprojection yet\n");
-							exit(-1);
-						}
-
-						factor_W = tanh_function(rho_W);
+						WtTz = (WxTz * ux  +  WyTz * uy) * ut / (utperp * utperp);
+						WnTz = WtTz * un / ut;
 						break;
 					}
 					case 1:
@@ -245,6 +201,8 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 				q[s].WxTz = factor_W * WxTz;
 				q[s].WyTz = factor_W * WyTz;
 				q[s].WnTz = factor_W * WnTz;
+			#endif
+
 			#endif
 			}
 		}

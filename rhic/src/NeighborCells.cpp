@@ -204,6 +204,7 @@ void get_hydro_neighbor_cells(hydro_variables qm, hydro_variables qp, precision 
 	q[n + 1] = qp.pt;	n += 2;
 #endif
 #endif
+
 #ifdef PIMUNU
 	q[n]	 = qm.pitt;
 	q[n + 1] = qp.pitt;	n += 2;
@@ -231,10 +232,16 @@ void get_hydro_neighbor_cells(hydro_variables qm, hydro_variables qp, precision 
 #ifndef BOOST_INVARIANT
 	q[n]     = qm.piyn;
 	q[n + 1] = qp.piyn;	n += 2;
-#endif
+	q[n]	 = qm.pinn;
+	q[n + 1] = qp.pinn;	n += 2;
+#else
+#ifndef ANISO_HYDRO
 	q[n]	 = qm.pinn;
 	q[n + 1] = qp.pinn;	n += 2;
 #endif
+#endif
+#endif
+
 #ifdef WTZMU
 	q[n]  	 = qm.WtTz;
 	q[n + 1] = qp.WtTz;	n += 2;

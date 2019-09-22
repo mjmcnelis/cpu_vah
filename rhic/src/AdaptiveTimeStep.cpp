@@ -141,30 +141,35 @@ hydro_variables compute_q_star(hydro_variables q, hydro_variables f, precision d
 	q_star.pt  = q.pt  +  dt_prev * f.pt;
 #endif
 #endif
+
 #ifdef PIMUNU
 	q_star.pitt = q.pitt  +  dt_prev * f.pitt;
 	q_star.pitx = q.pitx  +  dt_prev * f.pitx;
 	q_star.pity = q.pity  +  dt_prev * f.pity;
-#ifndef BOOST_INVARIANT
-	q_star.pitn = q.pitn  +  dt_prev * f.pitn;
-#endif
 	q_star.pixx = q.pixx  +  dt_prev * f.pixx;
 	q_star.pixy = q.pixy  +  dt_prev * f.pixy;
-#ifndef BOOST_INVARIANT
-	q_star.pixn = q.pixn  +  dt_prev * f.pixn;
-#endif
 	q_star.piyy = q.piyy  +  dt_prev * f.piyy;
+
 #ifndef BOOST_INVARIANT
+	q_star.pitn = q.pitn  +  dt_prev * f.pitn;
+	q_star.pixn = q.pixn  +  dt_prev * f.pixn;
 	q_star.piyn = q.piyn  +  dt_prev * f.piyn;
-#endif
 	q_star.pinn = q.pinn  +  dt_prev * f.pinn;
+#else
+	#ifndef ANISO_HYDRO
+		q_star.pinn = q.pinn  +  dt_prev * f.pinn;
+	#endif
 #endif
+
+#endif
+
 #ifdef WTZMU
 	q_star.WtTz = q.WtTz  +  dt_prev * f.WtTz;
 	q_star.WxTz = q.WxTz  +  dt_prev * f.WxTz;
 	q_star.WyTz = q.WyTz  +  dt_prev * f.WyTz;
 	q_star.WnTz = q.WnTz  +  dt_prev * f.WnTz;
 #endif
+
 #ifdef PI
 	q_star.Pi = q.Pi  +  dt_prev * f.Pi;
 #endif
@@ -173,7 +178,7 @@ hydro_variables compute_q_star(hydro_variables q, hydro_variables f, precision d
 }
 
 
-precision compute_hydro_norm2(hydro_variables q)		// I should be adding things with the same dimension...(which time to use?)
+precision compute_hydro_norm2(hydro_variables q)		// I should probably add things with the same dimension...(which time to use?)
 {
 	precision norm2 = q.ttt * q.ttt  +  q.ttx * q.ttx  +  q.tty * q.tty;
 
@@ -187,15 +192,24 @@ precision compute_hydro_norm2(hydro_variables q)		// I should be adding things w
 	norm2 += (q.pt * q.pt);
 #endif
 #endif
+
 #ifdef PIMUNU
-	norm2 += (q.pitt * q.pitt  +  q.pitx * q.pitx  +  q.pity * q.pity  +  q.pixx * q.pixx  +  q.pixy * q.pixy  +  q.piyy * q.piyy  +  q.pinn * q.pinn);
+	norm2 += (q.pitt * q.pitt  +  q.pitx * q.pitx  +  q.pity * q.pity  +  q.pixx * q.pixx  +  q.pixy * q.pixy  +  q.piyy * q.piyy);
+
 #ifndef BOOST_INVARIANT
-	norm2 += (q.pitn * q.pitn  +  q.pixn * q.pixn  +  q.piyn * q.piyn);
+	norm2 += (q.pitn * q.pitn  +  q.pixn * q.pixn  +  q.piyn * q.piyn  +  q.pinn * q.pinn);
+#else
+	#ifndef ANISO_HYDRO
+		norm2 += (q.pinn * q.pinn);
+	#endif
 #endif
+
 #endif
+
 #ifdef WTZMU
 	norm2 += (q.WtTz * q.WtTz  +  q.WxTz * q.WxTz  +  q.WyTz * q.WyTz  +  q.WnTz * q.WnTz);
 #endif
+
 #ifdef PI
 	norm2 += (q.Pi * q.Pi);
 #endif
@@ -228,26 +242,33 @@ precision compute_second_derivative_norm(hydro_variables q_prev, hydro_variables
 	norm2 += second_derivative_squared(q_prev.pt, q.pt, q_star.pt);
 #endif
 #endif
+
 #ifdef PIMUNU
 	norm2 += (	second_derivative_squared(q_prev.pitt, q.pitt, q_star.pitt)	+
 				second_derivative_squared(q_prev.pitx, q.pitx, q_star.pitx)	+
 				second_derivative_squared(q_prev.pity, q.pity, q_star.pity)	+
 				second_derivative_squared(q_prev.pixx, q.pixx, q_star.pixx)	+
 				second_derivative_squared(q_prev.pixy, q.pixy, q_star.pixy)	+
-				second_derivative_squared(q_prev.piyy, q.piyy, q_star.piyy)	+
-				second_derivative_squared(q_prev.pinn, q.pinn, q_star.pinn));
+				second_derivative_squared(q_prev.piyy, q.piyy, q_star.piyy));
 #ifndef BOOST_INVARIANT
 	norm2 += (	second_derivative_squared(q_prev.pitn, q.pitn, q_star.pitn)	+
 				second_derivative_squared(q_prev.pixn, q.pixn, q_star.pixn)	+
-				second_derivative_squared(q_prev.piyn, q.piyn, q_star.piyn));
+				second_derivative_squared(q_prev.piyn, q.piyn, q_star.piyn) +
+				second_derivative_squared(q_prev.pinn, q.pinn, q_star.pinn));
+#else
+	#ifndef ANISO_HYDRO
+		norm2 += second_derivative_squared(q_prev.pinn, q.pinn, q_star.pinn);
+	#endif
 #endif
 #endif
+
 #ifdef WTZMU
 	norm2 += (	second_derivative_squared(q_prev.WtTz, q.WtTz, q_star.WtTz)	+
 				second_derivative_squared(q_prev.WxTz, q.WxTz, q_star.WxTz)	+
 				second_derivative_squared(q_prev.WyTz, q.WyTz, q_star.WyTz)	+
 				second_derivative_squared(q_prev.WnTz, q.WnTz, q_star.WnTz));
 #endif
+
 #ifdef PI
 	norm2 += second_derivative_squared(q_prev.Pi, q.Pi, q_star.Pi);
 #endif
@@ -261,7 +282,7 @@ precision dot_product(hydro_variables q, hydro_variables f)
 	precision dot = q.ttt * f.ttt  +  q.ttx * f.ttx  +  q.tty * f.tty;
 
 #ifndef BOOST_INVARIANT
-	dot +=  q.ttn * f.ttn;
+	dot += (q.ttn * f.ttn);
 #endif
 
 #ifdef ANISO_HYDRO
@@ -270,15 +291,22 @@ precision dot_product(hydro_variables q, hydro_variables f)
 	dot += (q.pt * f.pt);
 #endif
 #endif
+
 #ifdef PIMUNU
-	dot += (q.pitt * f.pitt  +  q.pitx * f.pitx  +  q.pity * f.pity  +  q.pixx * f.pixx  +  q.pixy * f.pixy  +  q.piyy * f.piyy   +  q.pinn * f.pinn);
+	dot += (q.pitt * f.pitt  +  q.pitx * f.pitx  +  q.pity * f.pity  +  q.pixx * f.pixx  +  q.pixy * f.pixy  +  q.piyy * f.piyy);
 #ifndef BOOST_INVARIANT
-	dot += (q.pitn * f.pitn  +  q.pixn * f.pixn  +  q.piyn * f.piyn);
+	dot += (q.pitn * f.pitn  +  q.pixn * f.pixn  +  q.piyn * f.piyn  +  q.pinn * f.pinn);
+#else
+	#ifndef ANISO_HYDRO
+		dot += (q.pinn * f.pinn);
+	#endif
 #endif
 #endif
+
 #ifdef WTZMU
 	dot += (q.WtTz * f.WtTz  +  q.WxTz * f.WxTz  +  q.WyTz * f.WyTz  +  q.WnTz * f.WnTz);
 #endif
+
 #ifdef PI
 	dot += (q.Pi * f.Pi);
 #endif
@@ -370,26 +398,6 @@ precision compute_dt_source(precision t, const hydro_variables * const __restric
 
 	return dt_source;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

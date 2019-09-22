@@ -283,25 +283,21 @@ void output_residual_shear_validity(const hydro_variables * const __restrict__ q
 				precision pitt = q[s].pitt;
 				precision pitx = q[s].pitx;
 				precision pity = q[s].pity;
-			#ifndef BOOST_INVARIANT
-				precision pitn = q[s].pitn;
-			#else
-				precision pitn = 0;
-			#endif
 				precision pixx = q[s].pixx;
 				precision pixy = q[s].pixy;
-			#ifndef BOOST_INVARIANT
-				precision pixn = q[s].pixn;
-			#else
-				precision pixn = 0;
-			#endif
 				precision piyy = q[s].piyy;
+
 			#ifndef BOOST_INVARIANT
+				precision pitn = q[s].pitn;
+				precision pixn = q[s].pixn;
 				precision piyn = q[s].piyn;
-			#else
-				precision piyn = 0;
-			#endif
 				precision pinn = q[s].pinn;
+			#else
+				precision pitn = 0;
+				precision pixn = 0;
+				precision piyn = 0;
+				precision pinn = 0;
+			#endif
 
 				precision ux = u[s].ux;
 				precision uy = u[s].uy;
@@ -365,6 +361,7 @@ void output_residual_shear_validity(const hydro_variables * const __restrict__ q
 
 void output_viscous_bjorken(const hydro_variables * const __restrict__ q, const precision * const e, precision e0, precision t, lattice_parameters lattice, hydro_parameters hydro)
 {
+#ifndef ANISO_HYDRO
 	FILE *energy, *plptratio;
 
 	energy = fopen("output/eratio.dat", "a");
@@ -374,12 +371,13 @@ void output_viscous_bjorken(const hydro_variables * const __restrict__ q, const 
 
 	precision e_s = e[s];
 	precision p = equilibriumPressure(e_s);
-	
+
 #ifdef PIMUNU
 	precision pinn = q[s].pinn;
 #else
 	precision pinn = 0;
 #endif
+
 #ifdef PI
 	precision Pi = q[s].Pi;
 #else
@@ -394,6 +392,7 @@ void output_viscous_bjorken(const hydro_variables * const __restrict__ q, const 
 
 	fclose(energy);
 	fclose(plptratio);
+#endif
 }
 
 
@@ -476,27 +475,32 @@ void output_gubser(const hydro_variables * const __restrict__ q, const fluid_vel
 			#else
 
 			#ifndef BOOST_INVARIANT
-				precision un = u[s].un;	
+				precision un = u[s].un;
 				precision ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t2 * un * un);
 				precision utperp = sqrt(1.  +  ux * ux  +  uy * uy);
 				precision zt = t * un / utperp;
-				precision zn = ut / t / utperp;	
+				precision zn = ut / t / utperp;
 			#else
 				precision zt = 0;
-				precision zn = 1. / t; 
+				precision zn = 1. / t;
 			#endif
 
 			#ifdef PIMUNU
 				precision pitt = q[s].pitt;
+				precision pinn = q[s].pinn;
+
 			#ifndef BOOST_INVARIANT
 				precision pitn = q[s].pitn;
 			#else
 				precision pitn = 0;
 			#endif
-				precision pinn = q[s].pinn;
+
 			#else
-				precision pitt = 0, pitn = 0, pinn = 0;
+				precision pitt = 0;
+				precision pitn = 0;
+				precision pinn = 0;
 			#endif
+
 				// pl = zmu.z.nu.Tmunu
 				precision pl = e_s/3.  +  zt * zt * pitt  +  t4 * zn * zn * pinn  +  2. * t2 * zt * zn * pitn;
 			#endif
@@ -582,11 +586,11 @@ void output_optical_glauber(const hydro_variables * const __restrict__ q, const 
 				precision utperp = sqrt(1.  +  ux * ux  +  uy * uy);
 				precision zt = t * un / utperp;
 				precision zn = ut / t / utperp;
-			#else 
+			#else
 				precision zt = 0;
 				precision zn = 1. / t;
 			#endif
-				
+
 			#ifdef PIMUNU
 				precision pitt = q[s].pitt;
 			#ifndef BOOST_INVARIANT

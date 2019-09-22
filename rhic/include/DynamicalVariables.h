@@ -13,13 +13,14 @@
 	#define CONSERVATION_LAWS 4
 #endif
 
-// maybe use this somewhere?...
-#define VELOCITY_COMPONENTS (CONSERVATION_LAWS - 1)
-
 
 #ifdef PIMUNU
 	#ifdef BOOST_INVARIANT
-		#define PIMUNU_COMPONENTS 7	
+		#ifdef ANISO_HYDRO
+			#define PIMUNU_COMPONENTS 6
+		#else
+			#define PIMUNU_COMPONENTS 7
+		#endif
 	#else
 		#define PIMUNU_COMPONENTS 10
 	#endif
@@ -53,74 +54,79 @@
 #endif
 
 
+// hydro variables
 typedef struct
 {
 	precision ttt;
 	precision ttx;
 	precision tty;
 #ifndef BOOST_INVARIANT
-	precision ttn;		
+	precision ttn;
 #endif
+
 #ifdef ANISO_HYDRO
 	precision pl;
 #if (PT_MATCHING == 1)
 	precision pt;
 #endif
 #endif
+
 #ifdef PIMUNU
 	precision pitt;
 	precision pitx;
 	precision pity;
-#ifndef BOOST_INVARIANT
-	precision pitn;
-#endif
 	precision pixx;
 	precision pixy;
-#ifndef BOOST_INVARIANT
-	precision pixn;
-#endif
 	precision piyy;
+
 #ifndef BOOST_INVARIANT
+	precision pitn;
+	precision pixn;
 	precision piyn;
-#endif
 	precision pinn;
+#else
+	#ifndef ANISO_HYDRO
+		precision pinn;		// piperp^\eta\eta = 0 in 2+1d
+	#endif
 #endif
+#endif
+
 #ifdef WTZMU
 	precision WtTz;
 	precision WxTz;
 	precision WyTz;
 	precision WnTz;
 #endif
+
 #ifdef PI
 	precision Pi;
 #endif
 
 } hydro_variables;
 
+
+// fluid velocity
 typedef struct
 {
 	precision ux;
 	precision uy;
 #ifndef BOOST_INVARIANT
-	precision un;			// start with this
+	precision un;
 #endif
 
 } fluid_velocity;
 
 
-// q, u = current hydro, fluid velocity variables
-// up = previous fluid velocity
-// Q = updated hydro variables
-// qI, uI = intermediate variables
-// extern means the variables are declared but defined elsewhere to allow other source files to use it
-
+// external variables
 extern hydro_variables *q, *Q, *qI;
 extern fluid_velocity *u, *up, *uI;
 extern precision *e;
 
+
 // swap variables
 void swap_hydro_variables(hydro_variables ** hydro_1, hydro_variables ** hydro_2);
 void swap_fluid_velocity(fluid_velocity ** velocity_1, fluid_velocity ** velocity_2);
+
 
 // memory
 void allocate_memory(lattice_parameters lattice);

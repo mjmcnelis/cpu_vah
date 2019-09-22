@@ -149,19 +149,20 @@ void set_equilibrium_initial_condition(int nx, int ny, int nz)
 		  		q[s].pitt = 0;
 		  		q[s].pitx = 0;
 		  		q[s].pity = 0;
-		  	#ifndef BOOST_INVARIANT
-		  		q[s].pitn = 0;
-		  	#endif
 		  		q[s].pixx = 0;
 		  		q[s].pixy = 0;
-		  	#ifndef BOOST_INVARIANT
-		  		q[s].pixn = 0;
-		  	#endif
 		  		q[s].piyy = 0;
+
 		  	#ifndef BOOST_INVARIANT
+		  		q[s].pitn = 0;
+		  		q[s].pixn = 0;
 		  		q[s].piyn = 0;
-		  	#endif
 		  		q[s].pinn = 0;
+		  	#else
+		  	#ifndef ANISO_HYDRO
+		  		q[s].pinn = 0;
+		  	#endif
+		  	#endif
 			#endif
 
 			#ifdef WTZMU
@@ -182,6 +183,7 @@ void set_equilibrium_initial_condition(int nx, int ny, int nz)
 
 void set_anisotropic_initial_condition(int nx, int ny, int nz, hydro_parameters hydro)
 {
+#ifdef ANISO_HYDRO
 	precision plpt_ratio = hydro.plpt_ratio_initial;
 
 	for(int k = 2; k < nz + 2; k++)
@@ -194,33 +196,28 @@ void set_anisotropic_initial_condition(int nx, int ny, int nz, hydro_parameters 
 
 				precision e_s = e[s];
 
-			#ifdef ANISO_HYDRO
 				q[s].pl = e_s * plpt_ratio / (2. + plpt_ratio);		// conformal approximation
 
 			#if (PT_MATCHING == 1)
 				q[s].pt = e_s / (2. + plpt_ratio);
 			#endif
 
-			#endif
-
 			#ifdef PIMUNU
 		  		q[s].pitt = 0;
 		  		q[s].pitx = 0;
 		  		q[s].pity = 0;
-		  	#ifndef BOOST_INVARIANT
-		  		q[s].pitn = 0;
-		  	#endif
 		  		q[s].pixx = 0;
 		  		q[s].pixy = 0;
-		  	#ifndef BOOST_INVARIANT
-		  		q[s].pixn = 0;
-		  	#endif
 		  		q[s].piyy = 0;
+
 		  	#ifndef BOOST_INVARIANT
+		  		q[s].pitn = 0;
+		  		q[s].pixn = 0;
 		  		q[s].piyn = 0;
-		  	#endif
 		  		q[s].pinn = 0;
-			#endif
+		  	#endif
+
+		  	#endif
 
 			#ifdef WTZMU
 		  		q[s].WtTz = 0;
@@ -235,11 +232,13 @@ void set_anisotropic_initial_condition(int nx, int ny, int nz, hydro_parameters 
 			}
 		}
 	}
+#endif
 }
 
 
 void set_viscous_bjorken_initial_condition(int nx, int ny, int nz, initial_condition_parameters initial, hydro_parameters hydro)
 {
+#ifndef ANISO_HYDRO
 	precision t = hydro.tau_initial;
 	precision t2 = t * t;
 	precision plpt_ratio = hydro.plpt_ratio_initial;
@@ -264,9 +263,9 @@ void set_viscous_bjorken_initial_condition(int nx, int ny, int nz, initial_condi
 				precision p = equilibriumPressure(e_s);
 				precision pl = e_s * plpt_ratio / (2. + plpt_ratio);		// conformal switch approximation
 				precision pt = e_s / (2. + plpt_ratio);
-		
+
 			#ifdef PIMUNU
-		  		q[s].pitt = 0;		
+		  		q[s].pitt = 0;
 		  		q[s].pitx = 0;
 		  		q[s].pity = 0;
 		  		q[s].pixx = - (pl - pt) / 3.;
@@ -274,18 +273,20 @@ void set_viscous_bjorken_initial_condition(int nx, int ny, int nz, initial_condi
 		  		q[s].piyy = - (pl - pt) / 3.;
 		  		q[s].pinn = 2. * (pl - pt) / (3. * t2);
 			#endif
+
 		  	#ifdef PI
 		  		q[s].Pi = (2. * pt  +  pl) / 3.  -  p;
 		  	#endif
 
 		  		u[s].ux = 0;		// zero fluid velocity
 				u[s].uy = 0;
-		
+
 				up[s].ux = 0;		// also initialize up = u
 				up[s].uy = 0;
 			}
 		}
 	}
+#endif
 }
 
 
@@ -316,7 +317,7 @@ void set_aniso_bjorken_initial_condition(int nx, int ny, int nz, initial_conditi
 			#if (PT_MATCHING == 1)
 				q[s].pt = e_s / (2. + plpt_ratio);
 			#endif
-	
+
 			#ifdef PIMUNU
 		  		q[s].pitt = 0;		// zero residual shear stress
 		  		q[s].pitx = 0;
@@ -324,12 +325,18 @@ void set_aniso_bjorken_initial_condition(int nx, int ny, int nz, initial_conditi
 		  		q[s].pixx = 0;
 		  		q[s].pixy = 0;
 		  		q[s].piyy = 0;
+		  	#ifndef BOOST_INVARIANT
+		  		q[s].pitn = 0;
+		  		q[s].pixn = 0;
+		  		q[s].piyn = 0;
 		  		q[s].pinn = 0;
+		  	#endif
+
 			#endif
 
 		  		u[s].ux = 0;		// zero fluid velocity
 				u[s].uy = 0;
-		
+
 				up[s].ux = 0;		// also initialize up = u
 				up[s].uy = 0;
 			}
@@ -431,7 +438,7 @@ void set_ideal_gubser_initial_conditions(lattice_parameters lattice, precision d
 	double q0  = initial.q_gubser;
 	double q02 = q0 * q0;
 	double q04 = q02 * q02;
-	
+
 	double T0_hat = T0 * t * pow((1. + q02 * t2) / (2. * q0 * t), 2./3.);
 
 	for(int i = 2; i < nx + 2; i++)
@@ -465,7 +472,7 @@ void set_ideal_gubser_initial_conditions(lattice_parameters lattice, precision d
 			double uy_p = sinh(kappa_p) * y / r;
 
 			if(std::isnan(ux)) ux = 0;		// remove 0/0 nans
-			if(std::isnan(uy)) uy = 0;		
+			if(std::isnan(uy)) uy = 0;
 
 			if(std::isnan(ux_p)) ux_p = 0;
 			if(std::isnan(uy_p)) uy_p = 0;
@@ -594,39 +601,17 @@ void set_aniso_gubser_energy_density_and_flow_profile(double T0_hat, int nx, int
 		  		q[s].pitt = 0;
 		  		q[s].pitx = 0;
 		  		q[s].pity = 0;
-		  	#ifndef BOOST_INVARIANT
-		  		q[s].pitn = 0;
-		  	#endif
 		  		q[s].pixx = 0;
 		  		q[s].pixy = 0;
-		  	#ifndef BOOST_INVARIANT
-		  		q[s].pixn = 0;
-		  	#endif
 		  		q[s].piyy = 0;
-		  	#ifndef BOOST_INVARIANT
-		  		q[s].piyn = 0;
-		  	#endif
-		  		q[s].pinn = 0;
-			#endif
-
-			#ifdef WTZMU
-		  		q[s].WtTz = 0;
-		  		q[s].WxTz = 0;
-		  		q[s].WyTz = 0;
-		  		q[s].WnTz = 0;
 			#endif
 
 				u[s].ux = ux;
 				u[s].uy = uy;
-			#ifndef BOOST_INVARIANT
-				u[s].un = 0;
-			#endif
 
 				up[s].ux = ux_p;
 				up[s].uy = uy_p;
-			#ifndef BOOST_INVARIANT
-				up[s].un = 0;
-			#endif
+
 			}
 		}
 	}
@@ -671,7 +656,7 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 			printf("Bjorken initial condition error: define BOOST_INVARIANT in /rhic/include/Macros.h\n");
 			exit(-1);
 		#endif
-		
+
 		#ifdef ANISO_HYDRO
 			printf("\nRunning semi-analytic anisotropic Bjorken solution...\n");
 			run_semi_analytic_aniso_bjorken(lattice, initial, hydro);
@@ -688,7 +673,7 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 		}
 		case 2:
 		{
-			printf("Ideal Gubser\n\n");	
+			printf("Ideal Gubser\n\n");
 
 		#ifdef ANISO_HYDRO
 			printf("Ideal Gubser error: need to comment ANISO_HYDRO in /rhic/include/Marcos.h..\n");
@@ -714,6 +699,11 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 
 		#ifndef ANISO_HYDRO
 			printf("Aniso Gubser error: ANISO_HYDRO not defined in /rhic/include/Marcos.h, exiting...\n");
+			exit(-1);
+		#endif
+
+		#ifndef BOOST_INVARIANT
+			printf("Aniso Gubser error: BOOST_INVARIANT not defined in /rhic/include/Marcos.h, exiting...\n");
 			exit(-1);
 		#endif
 
