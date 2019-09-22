@@ -13,7 +13,8 @@ OPTIONS        =
 LINK_OPTIONS   =
 CFLAGS         = -std=c++11 $(DEBUG) $(OPTIMIZATION) $(FLOWTRACE) $(OPTIONS)
 
-LIBS     = -L /usr/local/lib -lm -lgsl -lgslcblas -lc++
+#LIBS     = -L /usr/local/lib -lm -lgsl -lgslcblas -lc++
+LIBS     = -L /usr/local/lib -lm -lgsl -lgslcblas
 INCLUDES = -I /usr/local/include -I rhic/include
 
 CPP := $(shell find $(DIR_SRC) -name '*.cpp')
