@@ -28,9 +28,7 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 	int nz = lattice.lattice_points_eta;
 
 	int regulation_scheme = hydro.regulation_scheme;
-	int reprojection = hydro.reprojection;
 	precision pressure_min = hydro.pressure_min;
-	precision xi0 = hydro.xi0;
 	precision rho_max = hydro.rho_max;
 
 	precision t2 = t * t;
@@ -47,8 +45,8 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 				precision e_s = e[s];
 				precision pl  = q[s].pl;
 
-			// regulate longitudinal and transverse pressures
-				if(pl < pressure_min)
+
+				if(pl < pressure_min)			// regulate longitudinal and transverse pressures
 				{
 					q[s].pl = pressure_min;		// cutoff like energy density?
 					pl = pressure_min;
@@ -64,8 +62,7 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 				precision pt = (e_s - pl) / 2.;
 			#endif
 
-			// regulate residual currents
-			#if (NUMBER_OF_RESIDUAL_CURRENTS != 0)
+			#if (NUMBER_OF_RESIDUAL_CURRENTS != 0)		// regulate residual currents
 
 				precision ux = u[s].ux;
 				precision uy = u[s].uy;
@@ -111,9 +108,22 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 
 				precision factor_pi;
 
-
 				// 2+1d: pitt, pitx, pity, pixx, pixy (piyy = f(pixx, piyy, ux, uy); pixn, piyn, pitn, pinn = 0)
 				// 3+1d: pitt, pitx, pity, pitn, pixx, pixy (pixn, piyy, piyn, pinn can be reconstructed algebraically, need chain rule for derivatives)
+
+				// independent components are pixx and pixy
+				piyy = (- pixx * (1.  +  uy * uy)  +  2. * pixy * ux * uy) / (1.  +  ux * ux);
+				pitx = (pixx * ux  +  pixy * uy) * ut / (utperp * utperp);
+				pity = (pixy * ux  +  piyy * uy) * ut / (utperp * utperp);
+
+			#ifndef BOOST_INVARIANT
+				pixn = pitx * un / ut;
+				piyn = pity * un / ut;
+				pitn = (pixn * ux  +  piyn * uy) * ut / (utperp * utperp);
+				pinn = pitn * un / ut;
+			#endif
+
+				pitt = (pitx * ux  +  pity * uy  +  t2 * pitn * un) / ut;
 
 				// need to reorganize this
 				switch(regulation_scheme)
@@ -121,20 +131,6 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 					case 0:
 					{
 						factor_pi = tanh_function(pi_mag / (rho_max * T_aniso_mag));
-
-						// independent components are pixx and pixy
-						piyy = (- pixx * (1.  +  uy * uy)  +  2. * pixy * ux * uy) / (1.  +  ux * ux);
-						pitx = (pixx * ux  +  pixy * uy) * ut / (utperp * utperp);
-						pity = (pixy * ux  +  piyy * uy) * ut / (utperp * utperp);
-
-					#ifndef BOOST_INVARIANT
-						pixn = pitx * un / ut;
-						piyn = pity * un / ut;
-						pitn = (pixn * ux  +  piyn * uy) * ut / (utperp * utperp);
-						pinn = pitn * un / ut;
-					#endif
-
-						pitt = (pitx * ux  +  pity * uy  +  t2 * pitn * un) / ut;
 						break;
 					}
 					case 1:
@@ -213,13 +209,13 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 
 void regulate_viscous_currents(precision t, hydro_variables * const __restrict__ q, precision * const __restrict__ e, const fluid_velocity * const __restrict__ u, lattice_parameters lattice, hydro_parameters hydro)
 {
+#ifndef ANISO_HYDRO
 #if (NUMBER_OF_VISCOUS_CURRENTS != 0)
 	int nx = lattice.lattice_points_x;
 	int ny = lattice.lattice_points_y;
 	int nz = lattice.lattice_points_eta;
 
 	precision rho_max = hydro.rho_max;
-	precision xi0 = hydro.xi0;
 
 	precision t2 = t * t;
 	precision t4 = t2 * t2;
@@ -237,94 +233,84 @@ void regulate_viscous_currents(precision t, hydro_variables * const __restrict__
 
 				precision ux = u[s].ux;
 				precision uy = u[s].uy;
+
 			#ifndef BOOST_INVARIANT
 				precision un = u[s].un;
 			#else
 				precision un = 0;
 			#endif
+
 				precision ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t2 * un * un);
+				precision utperp = sqrt(1.  +  ux * ux  +  uy * uy);
 
 				precision Teq_mag = sqrt(e_s * e_s  +  3. * p * p);
-		/*
+
 			#ifdef PIMUNU
 				precision pitt = q[s].pitt;
 				precision pitx = q[s].pitx;
 				precision pity = q[s].pity;
-			#ifndef BOOST_INVARIANT
-				precision pitn = q[s].pitn;
-			#else
-				precision pitn = 0;
-			#endif
 				precision pixx = q[s].pixx;
 				precision pixy = q[s].pixy;
-			#ifndef BOOST_INVARIANT
-				precision pixn = q[s].pixn;
-			#else
-				precision pixn = 0;
-			#endif
 				precision piyy = q[s].piyy;
+				precision pinn = q[s].pinn;
+
 			#ifndef BOOST_INVARIANT
+				precision pitn = q[s].pitn;
+				precision pixn = q[s].pixn;
 				precision piyn = q[s].piyn;
 			#else
+				precision pitn = 0;
+				precision pixn = 0;
 				precision piyn = 0;
 			#endif
-				precision pinn = q[s].pinn;
 
 				precision pi_mag = sqrt(fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
 
-				precision trpi = fabs(pitt  -  pixx  -  piyy  -  t2 * pinn);
+				precision factor_pi = tanh_function(pi_mag / (rho_max * Teq_mag));
 
-				precision piu0 = fabs(pitt * ut  -  pitx * ux  -  pity * uy  -  t2 * pitn * un) / ut;
-				precision piu1 = fabs(pitx * ut  -  pixx * ux  -  pixy * uy  -  t2 * pixn * un) / ut;
-				precision piu2 = fabs(pity * ut  -  pixy * ux  -  piyy * uy  -  t2 * piyn * un) / ut;
-				precision piu3 = fabs(pitn * ut  -  pixn * ux  -  piyn * uy  -  t2 * pinn * un) * t / ut;
+				pinn = (pixx * (ux * ux  -  ut * ut)  +  piyy * (uy * uy  -  ut * ut)  +  2. * (pixy * ux * uy  +  t2 * un * (pixn * ux  +  piyn * uy))) / (t2 * utperp * utperp);
+         		pitn = (pixn * ux  +  piyn * uy  +  t2 * un * pinn) / ut;
+				pity = (pixy * ux  +  piyy * uy  +  t2 * un * piyn) / ut;
+				pitx = (pixx * ux  +  pixy * uy  +  t2 * un * pixn) / ut;
+				pitt = (pitx * ux  +  pity * uy  +  t2 * un * pitn) / ut;
 
-				precision denom_pi = xi0 * rho_max * pi_mag;
-
-				precision a0 = pi_mag / (rho_max * Teq_mag);
-				precision a1 = trpi / denom_pi;
-				precision a2 = piu0 / denom_pi;
-				precision a3 = piu1 / denom_pi;
-				precision a4 = piu2 / denom_pi;
-				precision a5 = piu3 / denom_pi;
-
-				precision rho_pi = fmax(a0, fmax(a1, fmax(a2, fmax(a3, fmax(a4, a5)))));
-
-				precision factor_pi = tanh_function(rho_pi);
+				// precision trace = fabs(pitt  -  pixx  -  piyy  -  t2 * pinn);
+				// precision piu0 = fabs(pitt * ut  -   pitx * ux  -  pity * uy  -  t2 * pitn * un);
+				// precision piu1 = fabs(pitx * ut  -   pixx * ux  -  pixy * uy  -  t2 * pixn * un);
+				// precision piu2 = fabs(pity * ut  -   pixy * ux  -  piyy * uy  -  t2 * piyn * un);
+				// precision piu3 = fabs(pitn * ut  -   pixn * ux  -  piyn * uy  -  t2 * pinn * un);
+				//if(trace > 1.e-12) std::cout << "trace = " << trace << std::endl;
+				//if(piu0 > 1.e-12) std::cout << "piu0 = " << piu0 << std::endl;
+				//if(piu1 > 1.e-12) std::cout << "piu1 = " << piu1 << std::endl;
+				// if(piu2 > 1.e-12) std::cout << "piu1 = " << piu2 << std::endl;
 
 				q[s].pitt = factor_pi * pitt;
 				q[s].pitx = factor_pi * pitx;
 				q[s].pity = factor_pi * pity;
-			#ifndef BOOST_INVARIANT
-				q[s].pitn = factor_pi * pitn;
-			#endif
 				q[s].pixx = factor_pi * pixx;
 				q[s].pixy = factor_pi * pixy;
-			#ifndef BOOST_INVARIANT
-				q[s].pixn = factor_pi * pixn;
-			#endif
 				q[s].piyy = factor_pi * piyy;
+				q[s].pinn = factor_pi * pinn;
+
 			#ifndef BOOST_INVARIANT
+				q[s].pitn = factor_pi * pitn;
+				q[s].pixn = factor_pi * pixn;
 				q[s].piyn = factor_pi * piyn;
 			#endif
-				q[s].pinn = factor_pi * pinn;
+
 			#endif
-
-
 
 			#ifdef PI
 				precision Pi = q[s].Pi;
 
-				precision rho_bulk = fabs(Pi / (rho_max * Teq_mag));
-
-				precision factor_bulk = tanh_function(rho_bulk);
+				precision factor_bulk = tanh_function(fabs(Pi / (rho_max * Teq_mag)));
 
 				q[s].Pi = factor_bulk * Pi;
 			#endif
-	*/
 			}
 		}
 	}
+#endif
 #endif
 }
 

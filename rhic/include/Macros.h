@@ -9,10 +9,10 @@
 
 #define BOOST_INVARIANT 		// run 2+1d hydro (comment to run 3+1d hydro) (tie with Gubser)
 
-//#define LATTICE_QCD				// use lattice qcd equation of state 
+//#define LATTICE_QCD				// use lattice qcd equation of state
 #define CONFORMAL_EOS			// use conformal equation of state (if both are defined, will transition eos)
 
-#define ANISO_HYDRO				// run anisotropic hydro (comment to run 2nd order viscous hydro)
+//#define ANISO_HYDRO				// run anisotropic hydro (comment to run 2nd order viscous hydro)
 
 #define PIMUNU 					// include transverse shear stress (aniso) or shear stress (viscous hydro)
 

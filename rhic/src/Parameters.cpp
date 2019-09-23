@@ -4,7 +4,7 @@
 #include <math.h>
 #include <iostream>
 #include <fstream>
-#include <algorithm> 
+#include <algorithm>
 #include <sstream>
 #include <string>
 #include "../include/Macros.h"
@@ -36,7 +36,7 @@ double compute_conformal_prefactor(double flavors)
 hydro_parameters load_hydro_parameters()
 {
 	char fname[255] = "parameters/hydro.properties";
-	
+
 	hydro_parameters hydro;
 
 	double quark_flavors;
@@ -134,21 +134,9 @@ hydro_parameters load_hydro_parameters()
 		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
 		delimiterPos = line.find("=");
 		line = line.substr(delimiterPos + 1);
-		hydro.reprojection = atoi(line.c_str());
-
-		getline(cFile, line);
-		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
-		delimiterPos = line.find("=");
-		line = line.substr(delimiterPos + 1);
 		hydro.rho_max = atof(line.c_str());
-
-		getline(cFile, line);
-		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
-		delimiterPos = line.find("=");
-		line = line.substr(delimiterPos + 1);
-		hydro.xi0 = atof(line.c_str());
 	}
-	else 
+	else
 	{
 		std::cerr << "No configuration file  %s found for hydro parameters\n";
 	}
@@ -172,9 +160,7 @@ hydro_parameters load_hydro_parameters()
 	printf("energy_min                = %.1e\n", 	hydro.energy_min);
 	printf("pressure_min              = %.1e\n", 	hydro.pressure_min);
 	printf("regulation_scheme         = %d\n", 		hydro.regulation_scheme);
-	printf("reprojection              = %d\n", 		hydro.reprojection);
 	printf("rho_max                   = %.2f\n", 	hydro.rho_max);
-	printf("xi0                       = %.2f\n", 	hydro.xi0);
 	printf("\n");
 
 	if(hydro.tau_initial == 0)
@@ -276,7 +262,7 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro)
 		line = line.substr(delimiterPos + 1);
 		lattice.alpha = atof(line.c_str());
 	}
-	else 
+	else
 	{
 		std::cerr << "No configuration file  %s found for hydro parameters\n";
 	}
@@ -382,7 +368,7 @@ initial_condition_parameters load_initial_condition_parameters()
 		line = line.substr(delimiterPos + 1);
 		initial.q_gubser = atof(line.c_str());
 	}
-	else 
+	else
 	{
 		std::cerr << "No configuration file  %s found for hydro parameters\n";
 	}

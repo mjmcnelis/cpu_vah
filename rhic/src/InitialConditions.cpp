@@ -485,15 +485,9 @@ void set_ideal_gubser_initial_conditions(lattice_parameters lattice, precision d
 
 				u[s].ux = ux;
 				u[s].uy = uy;
-			#ifndef BOOST_INVARIANT
-				u[s].un = 0;
-			#endif
 
 				up[s].ux = ux_p;
 				up[s].uy = uy_p;
-			#ifndef BOOST_INVARIANT
-				up[s].un = 0;
-			#endif
 			}
 		}
 	}
@@ -674,6 +668,10 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 		case 2:
 		{
 			printf("Ideal Gubser\n\n");
+
+		#ifndef BOOST_INVARIANT
+			printf("Ideal Gubser error: define BOOST_INVARIANT in /rhic/include/Marcos.h..\n");
+		#endif
 
 		#ifdef ANISO_HYDRO
 			printf("Ideal Gubser error: need to comment ANISO_HYDRO in /rhic/include/Marcos.h..\n");

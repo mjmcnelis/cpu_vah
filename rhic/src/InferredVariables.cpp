@@ -297,16 +297,12 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 				}
 			#endif
 
-			// 	e[s]    = e_s;		// set solution for primary variables
-			// 	u[s].ux = ux;
-			// 	u[s].uy = uy;
-			// #ifndef BOOST_INVARIANT
-			// 	u[s].un = un;
-			// #endif
-
-				e[s] = ttt;		// temporary 
-				u[s].ux = 0;
-				u[s].uy = 0;
+				e[s]    = e_s;		// set solution for primary variables
+				u[s].ux = ux;
+				u[s].uy = uy;
+			#ifndef BOOST_INVARIANT
+				u[s].un = un;
+			#endif
 			}
 		}
 	}

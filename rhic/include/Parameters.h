@@ -25,10 +25,8 @@ typedef struct
 	double pressure_min;
 
 	int regulation_scheme;
-	int reprojection;
 
 	double rho_max;
-	double xi0;
 
 } hydro_parameters;
 
