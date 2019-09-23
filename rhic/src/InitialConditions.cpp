@@ -15,6 +15,7 @@
 #include "../include/ViscousBjorken.h"
 #include "../include/AnisoBjorken.h"
 #include "../include/IdealGubser.h"
+#include "../include/ViscousGubser.h"
 #include "../include/AnisoGubser.h"
 #include "../include/EquationOfState.h"
 #include <gsl/gsl_errno.h>
@@ -667,26 +668,36 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 		}
 		case 2:
 		{
+		#ifdef PIMUNU
+			printf("Viscous Gubser\n\n");
+		#else
 			printf("Ideal Gubser\n\n");
+		#endif
 
 		#ifndef BOOST_INVARIANT
-			printf("Ideal Gubser error: define BOOST_INVARIANT in /rhic/include/Marcos.h..\n");
+			printf("Gubser initial condition error: define BOOST_INVARIANT in /rhic/include/Marcos.h..\n");
+			exit(-1);
 		#endif
-
 		#ifdef ANISO_HYDRO
-			printf("Ideal Gubser error: need to comment ANISO_HYDRO in /rhic/include/Marcos.h..\n");
+			printf("Gubser initial condition error: undefine ANISO_HYDRO in /rhic/include/Marcos.h..\n");
 			exit(-1);
 		#endif
-
 		#ifndef CONFORMAL_EOS
-			printf("\nIdeal gubser initial condition error: CONFORMAL_EOS not defined in /rhic/include/Marcos.h, exiting...\n");
+			printf("\nGubser initial condition error: define CONFORMAL_EOS in /rhic/include/Marcos.h, exiting...\n");
 			exit(-1);
 		#endif
-			printf("Running analytic ideal Gubser solution...\n\n");
 
+		#ifdef PIMUNU
+			printf("Running semi-analytic viscous Gubser solution...\n\n");
+			double T0_hat = run_semi_analytic_viscous_gubser(lattice, initial, hydro);
+			//set_ideal_gubser_initial_conditions(lattice, dt, initial, hydro);
+			exit(-1);
+		#else
+			printf("Running analytic ideal Gubser solution...\n\n");
 			run_analytic_ideal_gubser(lattice, initial, hydro);
 			set_ideal_gubser_initial_conditions(lattice, dt, initial, hydro);
-			set_equilibrium_initial_condition(nx, ny, nz);
+		#endif
+			
 			set_initial_T_taumu_variables(t, nx, ny, nz);
 
 			break;
