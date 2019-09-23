@@ -7,9 +7,16 @@
 #include <cmath>
 #include "../include/EquationOfState.h"
 #include "../include/TransportCoefficients.h"
+#include "../include/DynamicalVariables.h"
+#include "../include/Macros.h"
 #include "../include/Hydrodynamics.h"
 #include "../include/Parameters.h"
 using namespace std;
+
+inline int linear_column_index(int i, int j, int k, int nx, int ny)
+{
+	return i  +  nx * (j  +  ny * k);
+}
 
 
 double de_dt_vh(double e, double pi, double t, hydro_parameters hydro)
@@ -120,5 +127,58 @@ void run_semi_analytic_viscous_bjorken(lattice_parameters lattice, initial_condi
 	pl_pt_plot.close();
 }
 
+
+void set_viscous_bjorken_initial_condition(int nx, int ny, int nz, initial_condition_parameters initial, hydro_parameters hydro)
+{
+#ifndef ANISO_HYDRO
+	precision t = hydro.tau_initial;
+	precision t2 = t * t;
+	precision plpt_ratio = hydro.plpt_ratio_initial;
+	precision e_min = hydro.energy_min;
+	precision conformal_eos_prefactor = hydro.conformal_eos_prefactor;
+
+	precision T0 = initial.initialCentralTemperatureGeV;							// central temperature (GeV)
+	precision e0 = equilibriumEnergyDensity(T0 / hbarc, conformal_eos_prefactor);	// energy density
+
+	for(int i = 2; i < nx + 2; i++)
+	{
+		for(int j = 2; j < ny + 2; j++)
+		{
+			for(int k = 2; k < nz + 2; k++)
+			{
+				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
+
+				precision e_s = energy_density_cutoff(e_min, e0);
+
+				e[s] = e_s;
+
+				precision p = equilibriumPressure(e_s);
+				precision pl = e_s * plpt_ratio / (2. + plpt_ratio);		// conformal switch approximation
+				precision pt = e_s / (2. + plpt_ratio);
+
+			#ifdef PIMUNU
+		  		q[s].pitt = 0;
+		  		q[s].pitx = 0;
+		  		q[s].pity = 0;
+		  		q[s].pixx = - (pl - pt) / 3.;
+		  		q[s].pixy = 0;
+		  		q[s].piyy = - (pl - pt) / 3.;
+		  		q[s].pinn = 2. * (pl - pt) / (3. * t2);
+			#endif
+
+		  	#ifdef PI
+		  		q[s].Pi = (2. * pt  +  pl) / 3.  -  p;
+		  	#endif
+
+		  		u[s].ux = 0;		// zero fluid velocity
+				u[s].uy = 0;
+
+				up[s].ux = 0;		// also initialize up = u
+				up[s].uy = 0;
+			}
+		}
+	}
+#endif
+}
 
 

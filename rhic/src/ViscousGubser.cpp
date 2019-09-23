@@ -10,7 +10,14 @@
 #include "../include/EquationOfState.h"
 #include "../include/Parameters.h"
 #include "../include/AnisoGubser.h"
+#include "../include/DynamicalVariables.h"
 using namespace std;
+
+inline int linear_column_index(int i, int j, int k, int nx, int ny)
+{
+	return i  +  nx * (j  +  ny * k);
+}
+
 
 inline int sign(double x)	
 {
@@ -187,8 +194,8 @@ double run_semi_analytic_viscous_gubser(lattice_parameters lattice, initial_cond
 		double e0 = hydro.conformal_eos_prefactor * T0_hat * T0_hat * T0_hat * T0_hat;
 		double pl0 = e0 * plpt_ratio / (2. + plpt_ratio);
 
-		e_hat[0] = e0;
-		pi_hat[0] = pl0  -  e0/3.;
+		 e_hat[0] = e0;
+		pi_hat[0] = pl0 - e0/3.;
 
 		gubser_viscous_evolution(e_hat, pi_hat, rho_array, rho_pts, drho, t, hydro);
 
@@ -249,6 +256,128 @@ double run_semi_analytic_viscous_gubser(lattice_parameters lattice, initial_cond
 }
 
 
+void set_viscous_gubser_initial_condition(double T0_hat, int nx, int ny, int nz, double dt, double dx, double dy, double dz, hydro_parameters hydro, initial_condition_parameters initial)
+{
+#ifndef ANISO_HYDRO
+	double t = hydro.tau_initial;					// initial longitudinal proper time
+
+	double q0 = initial.q_gubser;					// inverse length size
+	double plpt_ratio = hydro.plpt_ratio_initial;	// initial plpt ratio at transverse corner of grid
+
+	double x2_max = pow((nx - 1.) * dx / 2., 2);
+	double y2_max = pow((ny - 1.) * dy / 2., 2);
+
+	double r_max = sqrt(x2_max + y2_max);			// distance to transverse corner
+
+    double rho0 = rho_function(t, r_max, q0);		// min rho at transverse corner
+	double rhoP = rho_function(t, 0, q0);			// max rho at center
+
+	int rho_pts = ceil(fabs((rhoP - rho0) / drho_default));
+
+	double drho = fabs((rhoP - rho0) / ((double)rho_pts - 1.));
+
+	double rho_array[rho_pts];
+
+	for(int j = 0; j < rho_pts; j++) rho_array[j] = rho0  +  j * drho;
+
+	double  e_hat[rho_pts];
+	double pi_hat[rho_pts];
+
+	double e0 = hydro.conformal_eos_prefactor * T0_hat * T0_hat * T0_hat * T0_hat;
+	double pl0 = e0 * plpt_ratio / (2. + plpt_ratio);
+
+	 e_hat[0] = e0;
+	pi_hat[0] = pl0 - e0/3.;
+
+	gubser_viscous_evolution(e_hat, pi_hat, rho_array, rho_pts, drho, t, hydro);
+
+	gsl_spline * e_hat_spline;						// construct the cubic spline interpolations
+	gsl_spline * pi_hat_spline;
+
+	 e_hat_spline = gsl_spline_alloc(gsl_interp_cspline, rho_pts);
+	pi_hat_spline = gsl_spline_alloc(gsl_interp_cspline, rho_pts);
+
+	gsl_spline_init(e_hat_spline, rho_array, e_hat, rho_pts);
+	gsl_spline_init(pi_hat_spline, rho_array, pi_hat, rho_pts);
+
+	gsl_interp_accel * accel = gsl_interp_accel_alloc();
+
+	double eps = 1.e-5;
+
+	for(int i = 2; i < nx + 2; i++)
+	{
+		double x = (i - 2. - (nx - 1.)/2.) * dx;
+
+		for(int j = 2; j < ny + 2; j++)
+		{
+			double y = (j - 2. - (ny - 1.)/2.) * dy;
+
+			double r = sqrt(x * x  +  y * y);
+
+			double rho = rho_function(t, r, q0);
+
+			rho = fmax(rho0, fmin(rho, rhoP - eps));
+
+			// interpolate anisotropic profile
+			double e_s  = gsl_spline_eval(e_hat_spline,  rho, accel) / (t * t * t * t);
+			double pi = gsl_spline_eval(pi_hat_spline, rho, accel) / (t * t * t * t);
+
+			double kappa   = atanh(2. * q0 * q0 * t * r / (1.  +  q0 * q0 * (t * t  +  r * r)));
+			double kappa_p = atanh(2. * q0 * q0 * (t - dt) * r / (1.  +  q0 * q0 * ((t - dt) * (t - dt)  +  r * r)));
+
+			if(std::isnan(kappa) || std::isnan(kappa_p))
+			{
+				printf("Gubser initial conditions error: (kappa, kappa_p) = (%lf, %lf)\n", kappa, kappa_p);
+				exit(-1);
+			}
+
+			double ux = sinh(kappa) * x / r;
+			double uy = sinh(kappa) * y / r;
+
+			double ux_p = sinh(kappa_p) * x / r;
+			double uy_p = sinh(kappa_p) * y / r;
+
+			if(std::isnan(ux)) ux = 0;
+			if(std::isnan(uy)) uy = 0;
+
+			if(std::isnan(ux_p)) ux_p = 0;
+			if(std::isnan(uy_p)) uy_p = 0;
+
+			for(int k = 2; k < nz + 2; k++)
+			{
+				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
+
+				e[s] = energy_density_cutoff(hydro.energy_min, e_s);
+
+
+
+
+			// I need to figure this out (can still work with initial pl/pt = 1)
+			#ifdef PIMUNU
+		  		q[s].pitt = 0;			// what do I do here?? 
+		  		q[s].pitx = 0;
+		  		q[s].pity = 0;
+		  		q[s].pixx = 0;
+		  		q[s].pixy = 0;
+		  		q[s].piyy = 0;
+		  		q[s].pinn = 0;
+			#endif
+
+				u[s].ux = ux;
+				u[s].uy = uy;
+
+				up[s].ux = ux_p;
+				up[s].uy = uy_p;
+
+			}
+		}
+	}
+
+	gsl_spline_free(e_hat_spline);
+	gsl_spline_free(pi_hat_spline);
+	gsl_interp_accel_free(accel);
+#endif
+}
 
 
 

@@ -8,10 +8,18 @@
 #include "../include/EquationOfState.h"
 #include "../include/TransportCoefficients.h"
 #include "../include/Hydrodynamics.h"
+#include "../include/DynamicalVariables.h"
+#include "../include/Macros.h"
 #include "../include/Parameters.h"
 using namespace std;
 
 const double dt_eps = 1.e-8;
+
+inline int linear_column_index(int i, int j, int k, int nx, int ny)
+{
+	return i  +  nx * (j  +  ny * k);
+}
+
 
 double de_dt(double e, double pl, double t, hydro_parameters hydro)
 {
@@ -37,23 +45,6 @@ double dpl_dt(double e, double pl, double t, hydro_parameters hydro)
 	return - taupiInv * (pl - p)  +  aniso.zeta_LL / t;
 
 }
-
-
-double set_time_step(double t, double t_next_output, lattice_parameters lattice)
-{
-	double dt = lattice.min_time_step;
-
-	if(t + dt_eps < t_next_output)		
-	{
-		if(t + dt > t_next_output)
-		{
-			//dt = fmax(dt_eps, t_next_output - t);
-			dt = fmax(dt, t_next_output - t);
-		}
-	} 	
-	return dt;
-}
-
 
 
 void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro)
@@ -120,6 +111,63 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 	e_e0_plot.close();
 	pl_pt_plot.close();
 }
+
+
+void set_aniso_bjorken_initial_condition(int nx, int ny, int nz, initial_condition_parameters initial, hydro_parameters hydro)
+{
+#ifdef ANISO_HYDRO
+	precision plpt_ratio = hydro.plpt_ratio_initial;
+	precision e_min = hydro.energy_min;
+	precision conformal_eos_prefactor = hydro.conformal_eos_prefactor;
+
+	precision T0 = initial.initialCentralTemperatureGeV;							// central temperature (GeV)
+	precision e0 = equilibriumEnergyDensity(T0 / hbarc, conformal_eos_prefactor);	// energy density
+
+	for(int i = 2; i < nx + 2; i++)
+	{
+		for(int j = 2; j < ny + 2; j++)
+		{
+			for(int k = 2; k < nz + 2; k++)
+			{
+				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
+
+				precision e_s = energy_density_cutoff(e_min, e0);
+
+				e[s] = e_s;
+
+				q[s].pl = e_s * plpt_ratio / (2. + plpt_ratio);		// conformal switch approximation
+
+			#if (PT_MATCHING == 1)
+				q[s].pt = e_s / (2. + plpt_ratio);
+			#endif
+
+			#ifdef PIMUNU
+		  		q[s].pitt = 0;		// zero residual shear stress
+		  		q[s].pitx = 0;
+		  		q[s].pity = 0;
+		  		q[s].pixx = 0;
+		  		q[s].pixy = 0;
+		  		q[s].piyy = 0;
+		  	#ifndef BOOST_INVARIANT
+		  		q[s].pitn = 0;
+		  		q[s].pixn = 0;
+		  		q[s].piyn = 0;
+		  		q[s].pinn = 0;
+		  	#endif
+
+			#endif
+
+		  		u[s].ux = 0;		// zero fluid velocity
+				u[s].uy = 0;
+
+				up[s].ux = 0;		// also initialize up = u
+				up[s].uy = 0;
+			}
+		}
+	}
+#endif
+}
+
 
 
 
