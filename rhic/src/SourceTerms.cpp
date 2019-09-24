@@ -919,11 +919,11 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	precision Pi = 0;
 #endif
 
-	precision de_dx = central_derivative(e1, 0, dx); 	// energy density derivatives
+	precision de_dx = central_derivative(e1, 0, dx); 		// energy density derivatives
 	precision de_dy = central_derivative(e1, 2, dy);
 	precision de_dn = central_derivative(e1, 4, dn);
 
-	precision dp_dx = cs2 * de_dx;						// equilibrium pressure derivatives
+	precision dp_dx = cs2 * de_dx;							// equilibrium pressure derivatives
 	precision dp_dy = cs2 * de_dy;
 	precision dp_dn = cs2 * de_dn;
 
@@ -933,7 +933,7 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	int n = 6;
 #endif
 
-#ifdef PIMUNU	// \pi^{\mu\nu} derivatives
+#ifdef PIMUNU												// \pi^{\mu\nu} derivatives
 	precision dpitt_dx = central_derivative(qi1, n, dx);
 	precision dpitt_dy = central_derivative(qj1, n, dy);
 	precision dpitt_dn = central_derivative(qk1, n, dn);	n += 2;
@@ -1013,7 +1013,7 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	precision dpinn_dn = 0;
 #endif
 
-#ifdef PI 	// \Pi derivatives
+#ifdef PI 													// \Pi derivatives
 	precision dPi_dx = central_derivative(qi1, n, dx);
 	precision dPi_dy = central_derivative(qj1, n, dy);
 	precision dPi_dn = central_derivative(qk1, n, dn);
@@ -1055,6 +1055,9 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 #if (NUMBER_OF_VISCOUS_CURRENTS != 0)
 	spatial_projection Delta(ut, ux, uy, un, t2);		// \Delta^{\mu\nu}
 	double_spatial_projection Delta_2(Delta, t2, t4);	// \Delta^{\mu\nu\alpha\beta}
+
+	//Delta.test_spatial_projector();
+	//Delta_2.test_double_spatial_projector(ut,ux,uy,un);	// these tests passed
 
 #ifdef PIMUNU 	// acceleration: a^\mu = D u^\mu
 	precision at = ut * dut_dt  +  ux * dut_dx  +  uy * dut_dy  +  un * dut_dn  +  t * un * un;
@@ -1137,28 +1140,28 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	precision Gyn = (ut * piyn  +  un * pity) / t;
 	precision Gnn = 2. * (ut * pinn  +  un * pitn) / t;
 
-	// pi^{\mu\alpha} . a_\alpha
+	// pi^{\mu\lambda} . a_\lambda
 	precision piat = pitt * at  -  pitx * ax  -  pity * ay  -  t2 * pitn * an;
 	precision piax = pitx * at  -  pixx * ax  -  pixy * ay  -  t2 * pixn * an;
 	precision piay = pity * at  -  pixy * ax  -  piyy * ay  -  t2 * piyn * an;
 	precision pian = pitn * at  -  pixn * ax  -  piyn * ay  -  t2 * pinn * an;
 
-	// product rule terms: P^{\mu\nu} = 2 . u^{(\mu} . \pi^\nu)_\lambda} . a_\lambda
+	// product rule terms: P^{\mu\nu} = 2 . u^{(\mu} . \pi^{\nu)\lambda} . a_\lambda
 	precision Ptt = 2. * ut * piat;
-	precision Ptx = ut * piax  -  ux * piat;
-	precision Pty = ut * piay  -  uy * piat;
-	precision Ptn = ut * pian  -  un * piat;
+	precision Ptx = ut * piax  +  ux * piat;		// fixed all signs to plus 9/24
+	precision Pty = ut * piay  +  uy * piat;
+	precision Ptn = ut * pian  +  un * piat;
 	precision Pxx = 2. * ux * piax;
-	precision Pxy = ux * piay  -  uy * piax;
-	precision Pxn = ux * pian  -  un * piax;
+	precision Pxy = ux * piay  +  uy * piax;
+	precision Pxn = ux * pian  +  un * piax;
 	precision Pyy = 2. * uy * piay;
-	precision Pyn = uy * pian  -  un * piay;
+	precision Pyn = uy * pian  +  un * piay;
 	precision Pnn = 2. * un * pian;
 #else
 	precision pi_sigma = 0;
 #endif
 
-	// conservation laws
+	// conservation laws (looks fine to me)
 	precision tnn = (e + p + Pi) * un * un  +  (p + Pi) / t2  +  pinn;
 
 	S[0] =	- (ttt / t  +  t * tnn)  +  div_v * (pitt  -  p  -  Pi)

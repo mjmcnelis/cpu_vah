@@ -7,6 +7,7 @@
 #include "../include/InferredVariables.h"
 #include "../include/Projections.h"
 
+const precision sqrt_three = sqrt(3.);
 
 inline int linear_column_index(int i, int j, int k, int nx, int ny)
 {
@@ -215,6 +216,7 @@ void regulate_viscous_currents(precision t, hydro_variables * const __restrict__
 	int ny = lattice.lattice_points_y;
 	int nz = lattice.lattice_points_eta;
 
+	int regulation_scheme = hydro.regulation_scheme;
 	precision rho_max = hydro.rho_max;
 
 	precision t2 = t * t;
@@ -242,8 +244,7 @@ void regulate_viscous_currents(precision t, hydro_variables * const __restrict__
 
 				precision ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t2 * un * un);
 				precision utperp = sqrt(1.  +  ux * ux  +  uy * uy);
-
-				precision Teq_mag = sqrt(e_s * e_s  +  3. * p * p);
+				precision Teq = sqrt(e_s * e_s  +  3. * p * p);
 
 			#ifdef PIMUNU
 				precision pitt = q[s].pitt;
@@ -262,51 +263,103 @@ void regulate_viscous_currents(precision t, hydro_variables * const __restrict__
 				precision pitn = 0;
 				precision pixn = 0;
 				precision piyn = 0;
-			#endif
-
-				precision pi_mag = sqrt(fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
-
-				precision factor_pi = tanh_function(pi_mag / (rho_max * Teq_mag));
-
+			#endif 
+				// enforce orthogonality and tracelessness
 				pinn = (pixx * (ux * ux  -  ut * ut)  +  piyy * (uy * uy  -  ut * ut)  +  2. * (pixy * ux * uy  +  t2 * un * (pixn * ux  +  piyn * uy))) / (t2 * utperp * utperp);
          		pitn = (pixn * ux  +  piyn * uy  +  t2 * un * pinn) / ut;
 				pity = (pixy * ux  +  piyy * uy  +  t2 * un * piyn) / ut;
 				pitx = (pixx * ux  +  pixy * uy  +  t2 * un * pixn) / ut;
 				pitt = (pitx * ux  +  pity * uy  +  t2 * un * pitn) / ut;
-
-				// precision trace = fabs(pitt  -  pixx  -  piyy  -  t2 * pinn);
-				// precision piu0 = fabs(pitt * ut  -   pitx * ux  -  pity * uy  -  t2 * pitn * un);
-				// precision piu1 = fabs(pitx * ut  -   pixx * ux  -  pixy * uy  -  t2 * pixn * un);
-				// precision piu2 = fabs(pity * ut  -   pixy * ux  -  piyy * uy  -  t2 * piyn * un);
-				// precision piu3 = fabs(pitn * ut  -   pixn * ux  -  piyn * uy  -  t2 * pinn * un);
-				//if(trace > 1.e-12) std::cout << "trace = " << trace << std::endl;
-				//if(piu0 > 1.e-12) std::cout << "piu0 = " << piu0 << std::endl;
-				//if(piu1 > 1.e-12) std::cout << "piu1 = " << piu1 << std::endl;
-				// if(piu2 > 1.e-12) std::cout << "piu1 = " << piu2 << std::endl;
-
-				q[s].pitt = factor_pi * pitt;
-				q[s].pitx = factor_pi * pitx;
-				q[s].pity = factor_pi * pity;
-				q[s].pixx = factor_pi * pixx;
-				q[s].pixy = factor_pi * pixy;
-				q[s].piyy = factor_pi * piyy;
-				q[s].pinn = factor_pi * pinn;
-
-			#ifndef BOOST_INVARIANT
-				q[s].pitn = factor_pi * pitn;
-				q[s].pixn = factor_pi * pixn;
-				q[s].piyn = factor_pi * piyn;
+			#else
+				precision pitt = 0;
+				precision pitx = 0;
+				precision pity = 0;
+				precision pitn = 0;
+				precision pixx = 0;
+				precision pixy = 0;
+				precision pixn = 0;
+				precision piyy = 0;
+				precision piyn = 0;
+				precision pinn = 0;
 			#endif
 
-			#endif
-
-			#ifdef PI
+			#ifdef PI 
 				precision Pi = q[s].Pi;
-
-				precision factor_bulk = tanh_function(fabs(Pi / (rho_max * Teq_mag)));
-
-				q[s].Pi = factor_bulk * Pi;
+			#else
+				precision Pi = 0;
 			#endif
+ 
+				// regulation of viscous pressures
+				switch(regulation_scheme)
+				{
+					case 0:		// gradually regulate the viscous pressures at all grid points
+					{
+					#ifdef PIMUNU
+						precision pi_mag = sqrt(fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
+
+						precision factor_pi = tanh_function(pi_mag / (rho_max * Teq));
+						
+						q[s].pitt = factor_pi * pitt;
+						q[s].pitx = factor_pi * pitx;
+						q[s].pity = factor_pi * pity;
+						q[s].pixx = factor_pi * pixx;
+						q[s].pixy = factor_pi * pixy;
+						q[s].piyy = factor_pi * piyy;
+						q[s].pinn = factor_pi * pinn;
+
+					#ifndef BOOST_INVARIANT
+						q[s].pitn = factor_pi * pitn;
+						q[s].pixn = factor_pi * pixn;
+						q[s].piyn = factor_pi * piyn;
+					#endif
+					#endif
+
+					#ifdef PI
+						precision factor_bulk = tanh_function(fabs(sqrt_three * Pi / (rho_max * Teq)));
+						q[s].Pi = factor_bulk * Pi;
+					#endif
+
+						break;
+					}
+					case 1:		// only do regulation if viscous Tmunu magnitude > equilibrium part
+					{
+						precision Tvisc = sqrt(fabs(3. * Pi * Pi  +  pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
+
+						//precision factor = Teq / (1.e-8 + Tvisc);
+						precision factor = sqrt_three * p / (1.e-8 + Tvisc);
+
+						if(factor < 1.)
+						{
+						#ifdef PIMUNU
+
+							q[s].pitt = factor * pitt;
+							q[s].pitx = factor * pitx;
+							q[s].pity = factor * pity;
+							q[s].pixx = factor * pixx;
+							q[s].pixy = factor * pixy;
+							q[s].piyy = factor * piyy;
+							q[s].pinn = factor * pinn;
+
+						#ifndef BOOST_INVARIANT
+							q[s].pitn = factor * pitn;
+							q[s].pixn = factor * pixn;
+							q[s].piyn = factor * piyn;
+						#endif
+						#endif
+
+						#ifdef PI
+							q[s].Pi = factor * Pi;
+						#endif
+						}
+
+						break;
+					}
+					default:
+					{
+						printf("regulate_viscous_currents error: set regulate_scheme = (0,1)\n");
+						exit(-1);
+					}
+				}
 			}
 		}
 	}

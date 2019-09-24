@@ -9,6 +9,7 @@
 #include "../include/Hydrodynamics.h"
 #include "../include/EquationOfState.h"
 #include "../include/Parameters.h"
+#include "../include/Projections.h"
 #include "../include/AnisoGubser.h"
 #include "../include/DynamicalVariables.h"
 using namespace std;
@@ -321,7 +322,7 @@ void set_viscous_gubser_initial_condition(double T0_hat, int nx, int ny, int nz,
 			// interpolate anisotropic profile
 			double e_s  = gsl_spline_eval(e_hat_spline,  rho, accel) / (t * t * t * t);
 			double pi = gsl_spline_eval(pi_hat_spline, rho, accel) / (t * t * t * t);
-
+			
 			double kappa   = atanh(2. * q0 * q0 * t * r / (1.  +  q0 * q0 * (t * t  +  r * r)));
 			double kappa_p = atanh(2. * q0 * q0 * (t - dt) * r / (1.  +  q0 * q0 * ((t - dt) * (t - dt)  +  r * r)));
 
@@ -343,24 +344,25 @@ void set_viscous_gubser_initial_condition(double T0_hat, int nx, int ny, int nz,
 			if(std::isnan(ux_p)) ux_p = 0;
 			if(std::isnan(uy_p)) uy_p = 0;
 
+			double ut = sqrt(1.  +  ux * ux  +  uy * uy);
+
+			spatial_projection Delta(ut, ux, uy, 0, t * t);
+
 			for(int k = 2; k < nz + 2; k++)
 			{
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
 				e[s] = energy_density_cutoff(hydro.energy_min, e_s);
 
-
-
-
-			// I need to figure this out (can still work with initial pl/pt = 1)
+			// \pi^munu = (pi/2).Delta^\munu  +  (3.pi/2).z^\mu.z^\nu
 			#ifdef PIMUNU
-		  		q[s].pitt = 0;			// what do I do here?? 
-		  		q[s].pitx = 0;
-		  		q[s].pity = 0;
-		  		q[s].pixx = 0;
-		  		q[s].pixy = 0;
-		  		q[s].piyy = 0;
-		  		q[s].pinn = 0;
+		  		q[s].pitt = pi/2. * Delta.Dtt;			
+		  		q[s].pitx = pi/2. * Delta.Dtx;
+		  		q[s].pity = pi/2. * Delta.Dty;
+		  		q[s].pixx = pi/2. * Delta.Dxx;
+		  		q[s].pixy = pi/2. * Delta.Dxy;
+		  		q[s].piyy = pi/2. * Delta.Dyy;
+		  		q[s].pinn = pi/2. * (Delta.Dnn  +  3./t/t);
 			#endif
 
 				u[s].ux = ux;

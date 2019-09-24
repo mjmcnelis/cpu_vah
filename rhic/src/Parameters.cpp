@@ -291,6 +291,7 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro)
 	printf("\n");
 
 	double dt = lattice.fixed_time_step;						// dt = starting time step
+
 	if(lattice.adaptive_time_step) dt = lattice.min_time_step;
 
 	if(!starting_time_step_within_CFL_bound(dt, lattice))
