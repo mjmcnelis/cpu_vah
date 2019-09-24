@@ -288,37 +288,20 @@ void regulate_viscous_currents(precision t, hydro_variables * const __restrict__
 			#else
 				precision Pi = 0;
 			#endif
- 
+ 	
+ 				precision factor_pi = 1;
+ 				precision factor_bulk = 1;
+
 				// regulation of viscous pressures
 				switch(regulation_scheme)
 				{
 					case 0:		// gradually regulate the viscous pressures at all grid points
 					{
-					#ifdef PIMUNU
 						precision pi_mag = sqrt(fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
 
-						precision factor_pi = tanh_function(pi_mag / (rho_max * Teq));
-						
-						q[s].pitt = factor_pi * pitt;
-						q[s].pitx = factor_pi * pitx;
-						q[s].pity = factor_pi * pity;
-						q[s].pixx = factor_pi * pixx;
-						q[s].pixy = factor_pi * pixy;
-						q[s].piyy = factor_pi * piyy;
-						q[s].pinn = factor_pi * pinn;
-
-					#ifndef BOOST_INVARIANT
-						q[s].pitn = factor_pi * pitn;
-						q[s].pixn = factor_pi * pixn;
-						q[s].piyn = factor_pi * piyn;
-					#endif
-					#endif
-
-					#ifdef PI
-						precision factor_bulk = tanh_function(fabs(sqrt_three * Pi / (rho_max * Teq)));
-						q[s].Pi = factor_bulk * Pi;
-					#endif
-
+						factor_pi = tanh_function(pi_mag / (rho_max * Teq));
+						factor_bulk = tanh_function(fabs(sqrt_three * Pi / (rho_max * Teq)));
+				
 						break;
 					}
 					case 1:		// only do regulation if viscous Tmunu magnitude > equilibrium part
@@ -327,29 +310,11 @@ void regulate_viscous_currents(precision t, hydro_variables * const __restrict__
 
 						//precision factor = Teq / (1.e-8 + Tvisc);
 						precision factor = sqrt_three * p / (1.e-8 + Tvisc);
-
+					
 						if(factor < 1.)
 						{
-						#ifdef PIMUNU
-
-							q[s].pitt = factor * pitt;
-							q[s].pitx = factor * pitx;
-							q[s].pity = factor * pity;
-							q[s].pixx = factor * pixx;
-							q[s].pixy = factor * pixy;
-							q[s].piyy = factor * piyy;
-							q[s].pinn = factor * pinn;
-
-						#ifndef BOOST_INVARIANT
-							q[s].pitn = factor * pitn;
-							q[s].pixn = factor * pixn;
-							q[s].piyn = factor * piyn;
-						#endif
-						#endif
-
-						#ifdef PI
-							q[s].Pi = factor * Pi;
-						#endif
+							factor_pi = factor;
+							factor_bulk = factor;
 						}
 
 						break;
@@ -360,6 +325,26 @@ void regulate_viscous_currents(precision t, hydro_variables * const __restrict__
 						exit(-1);
 					}
 				}
+
+				#ifdef PIMUNU
+					q[s].pitt = factor_pi * pitt;
+					q[s].pitx = factor_pi * pitx;
+					q[s].pity = factor_pi * pity;
+					q[s].pixx = factor_pi * pixx;
+					q[s].pixy = factor_pi * pixy;
+					q[s].piyy = factor_pi * piyy;
+					q[s].pinn = factor_pi * pinn;
+
+				#ifndef BOOST_INVARIANT
+					q[s].pitn = factor_pi * pitn;
+					q[s].pixn = factor_pi * pixn;
+					q[s].piyn = factor_pi * piyn;
+				#endif
+				#endif
+
+				#ifdef PI
+					q[s].Pi = factor_bulk * Pi;
+				#endif
 			}
 		}
 	}
