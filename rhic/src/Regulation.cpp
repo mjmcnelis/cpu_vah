@@ -83,7 +83,12 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 				precision zn = 1. / t;
 			#endif
 
-				precision T_aniso_mag = sqrt(e_s * e_s  +  pl * pl  +  2. * pt * pt);
+				//precision Taniso = sqrt(e_s * e_s  +  pl * pl  +  2. * pt * pt);
+				precision Taniso = sqrt(pl * pl  +  2. * pt * pt);
+				// 2+1d: pitt, pitx, pity, pixx, pixy (piyy = f(pixx, piyy, ux, uy); pixn, piyn, pitn, pinn = 0)
+				// 3+1d: pitt, pitx, pity, pitn, pixx, pixy (pixn, piyy, piyn, pinn can be reconstructed algebraically, need chain rule for derivatives)
+
+				// independent components are pixx and pixy
 
 			#ifdef PIMUNU
 				precision pitt = q[s].pitt;
@@ -104,40 +109,70 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 				precision piyn = 0;
 				precision pinn = 0;
 			#endif
-
-				precision pi_mag = sqrt(fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
-
-				precision factor_pi;
-
-				// 2+1d: pitt, pitx, pity, pixx, pixy (piyy = f(pixx, piyy, ux, uy); pixn, piyn, pitn, pinn = 0)
-				// 3+1d: pitt, pitx, pity, pitn, pixx, pixy (pixn, piyy, piyn, pinn can be reconstructed algebraically, need chain rule for derivatives)
-
-				// independent components are pixx and pixy
+				// enforce orthogonality and tracelessness
 				piyy = (- pixx * (1.  +  uy * uy)  +  2. * pixy * ux * uy) / (1.  +  ux * ux);
 				pitx = (pixx * ux  +  pixy * uy) * ut / (utperp * utperp);
 				pity = (pixy * ux  +  piyy * uy) * ut / (utperp * utperp);
-
-			#ifndef BOOST_INVARIANT
 				pixn = pitx * un / ut;
 				piyn = pity * un / ut;
 				pitn = (pixn * ux  +  piyn * uy) * ut / (utperp * utperp);
 				pinn = pitn * un / ut;
+				pitt = (pitx * ux  +  pity * uy  +  t2 * pitn * un) / ut;
+			#else
+				precision pitt = 0;
+				precision pitx = 0;
+				precision pity = 0;
+				precision pitn = 0;
+				precision pixx = 0;
+				precision pixy = 0;
+				precision pixn = 0;
+				precision piyy = 0;
+				precision piyn = 0;
+				precision pinn = 0;
 			#endif
 
-				pitt = (pitx * ux  +  pity * uy  +  t2 * pitn * un) / ut;
+			#ifdef WTZMU
+				precision WtTz = q[s].WtTz;
+				precision WxTz = q[s].WxTz;
+				precision WyTz = q[s].WyTz;
+				precision WnTz = q[s].WnTz;
 
-				// need to reorganize this
+				// enforce orthogonality
+				WtTz = (WxTz * ux  +  WyTz * uy) * ut / (utperp * utperp);
+				WnTz = WtTz * un / ut;
+			#else
+				precision WtTz = 0;
+				precision WxTz = 0;
+				precision WyTz = 0;
+				precision WnTz = 0;
+			#endif
+
+				precision factor_pi = 1;
+				precision factor_W = 1;
+
 				switch(regulation_scheme)
 				{
 					case 0:
 					{
-						factor_pi = tanh_function(pi_mag / (rho_max * T_aniso_mag));
+						precision pi_mag = sqrt(fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
+						precision WTz_mag = sqrt(2. * fabs(WtTz * WtTz  -  WxTz * WxTz  -  WyTz * WyTz  -  t2 * WnTz * WnTz));
+
+						factor_pi = tanh_function(pi_mag / (rho_max * Taniso));
+						factor_W = tanh_function(WTz_mag / (rho_max * Taniso));
+						
 						break;
 					}
 					case 1:
 					{
-						printf("regulate_residual_currents error: no regulate_scheme = 1 yet\n");
-						exit(-1);
+						precision Tres = sqrt(fabs(2. * (WtTz * WtTz  -  WxTz * WxTz  -  WyTz * WyTz  -  t2 * WnTz * WnTz)  +  pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
+ 						
+ 						precision factor = Taniso / (1.e-8 + Tres);
+
+ 						if(factor < 1.)
+ 						{
+ 							factor_pi = factor;
+ 							factor_W = factor;
+ 						}
 						break;
 					}
 					default:
@@ -146,6 +181,8 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 						exit(-1);
 					}
 				}
+
+			#ifdef PIMUNU
 				q[s].pitt = factor_pi * pitt;
 				q[s].pitx = factor_pi * pitx;
 				q[s].pity = factor_pi * pity;
@@ -159,41 +196,9 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 				q[s].piyn = factor_pi * piyn;
 				q[s].pinn = factor_pi * pinn;
 			#endif
-
 			#endif
 
 			#ifdef WTZMU
-				precision WtTz = q[s].WtTz;
-				precision WxTz = q[s].WxTz;
-				precision WyTz = q[s].WyTz;
-				precision WnTz = q[s].WnTz;
-
-				precision WTz_mag = sqrt(fabs(WtTz * WtTz  -  WxTz * WxTz  -  WyTz * WyTz  -  t2 * WnTz * WnTz));
-
-				precision factor_W;
-
-				switch(regulation_scheme)
-				{
-					case 0:
-					{
-						factor_W = tanh_function(WTz_mag / (rho_max * T_aniso_mag));
-
-						WtTz = (WxTz * ux  +  WyTz * uy) * ut / (utperp * utperp);
-						WnTz = WtTz * un / ut;
-						break;
-					}
-					case 1:
-					{
-						printf("regulate_residual_currents error: no regulate_scheme = 1 yet\n");
-						exit(-1);
-						break;
-					}
-					default:
-					{
-						printf("regulate_residual_currents error: set regulate_scheme = (0,1)\n");
-						exit(-1);
-					}
-				}
 				q[s].WtTz = factor_W * WtTz;
 				q[s].WxTz = factor_W * WxTz;
 				q[s].WyTz = factor_W * WyTz;
@@ -244,7 +249,11 @@ void regulate_viscous_currents(precision t, hydro_variables * const __restrict__
 
 				precision ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t2 * un * un);
 				precision utperp = sqrt(1.  +  ux * ux  +  uy * uy);
-				precision Teq = sqrt(e_s * e_s  +  3. * p * p);
+
+
+				//precision Teq = sqrt(e_s * e_s  +  3. * p * p);
+				precision Teq = sqrt_three * p;
+
 
 			#ifdef PIMUNU
 				precision pitt = q[s].pitt;
@@ -308,8 +317,7 @@ void regulate_viscous_currents(precision t, hydro_variables * const __restrict__
 					{
 						precision Tvisc = sqrt(fabs(3. * Pi * Pi  +  pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
 
-						//precision factor = Teq / (1.e-8 + Tvisc);
-						precision factor = sqrt_three * p / (1.e-8 + Tvisc);
+						precision factor = Teq / (1.e-8 + Tvisc);
 					
 						if(factor < 1.)
 						{
