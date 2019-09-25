@@ -613,7 +613,7 @@ void output_optical_glauber(const hydro_variables * const __restrict__ q, const 
 				precision pt = (3. * (p + Pi)  -  pl) / 2.;
 			#endif
 
-				fprintf(energy, 	"%.3f\t%.3f\t%.3f\t%.8e\n", x, y, z, e_s);
+				fprintf(energy, 	"%.3f\t%.3f\t%.3f\t%.8e\n", x, y, z, e_s * hbarc);
 				fprintf(plptratio,	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, pl / pt);
 				fprintf(uxplot, 	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, ux);
 				fprintf(uyplot, 	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, uy);
