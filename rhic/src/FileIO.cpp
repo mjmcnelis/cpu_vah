@@ -421,8 +421,8 @@ void output_optical_glauber(const hydro_variables * const __restrict__ q, const 
 			#endif
 				// pl = zmu.z.nu.Tmunu
 				precision pl = p  +  Pi  +  zt * zt * pitt  +  t4 * zn * zn * pinn  +  2. * t2 * zt * zn * pitn;
-				// pt = -Ximunu.Tmunu / 2 (assumes pimunu is traceless and orthogonal to u)
-				precision pt = (3. * (p + Pi)  -  pl) / 2.;
+				// pt = -Ximunu.Tmunu / 2 
+				precision pt = p  +  Pi  -  (zt * zt * pitt  +  t4 * zn * zn * pinn  +  2. * t2 * zt * zn * pitn) / 2.;
 			#endif
 
 				fprintf(energy, 	"%.3f\t%.3f\t%.3f\t%.8e\n", x, y, z, e_s * hbarc);
