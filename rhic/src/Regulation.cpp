@@ -84,7 +84,7 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 				precision zn = 1. / t;
 			#endif
 
-				precision Taniso = sqrt_2 * pt; 
+				precision Taniso = sqrt_two * pt; 
 			#ifdef WTZMU
 				Taniso = sqrt(pl * pl  +  2. * pt * pt);
 			#endif

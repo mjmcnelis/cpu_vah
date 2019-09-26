@@ -73,148 +73,8 @@ inline precision central_derivative(const precision * const __restrict__ f, int 
 }
 
 
-void output_residual_gradients(const hydro_variables * const __restrict__ q, const fluid_velocity * const __restrict__ u, const fluid_velocity * const __restrict__ up, const precision * const e, double t, double dt, lattice_parameters lattice, hydro_parameters hydro)
-{
-#ifdef ANISO_HYDRO
-	int nx = lattice.lattice_points_x;
-	int ny = lattice.lattice_points_y;
-	int nz = lattice.lattice_points_eta;
-
-	precision dx = lattice.lattice_spacing_x;
-	precision dy = lattice.lattice_spacing_y;
-	precision dn = lattice.lattice_spacing_eta;
-
-	FILE *Knpi;
-	char fname1[255];
-	sprintf(fname1, "output/Knpi_%.3f.dat", t);		// tau_pi . sqrt(\sigma_T . \sigma_T)
-	Knpi = fopen(fname1, "w");
-
-	precision t2 = t * t;
-	precision t4 = t2 * t2;
-
-	int stride_y = nx + 4;
-	int stride_z = (nx + 4) * (ny + 4);
-
-	precision ui1[6], uj1[6], uk1[6];
-	precision vxi[4], vyj[4], vnk[4];
-
-	for(int k = 2; k < nz + 2; k++)
-	{
-		double z = (k - 2. - (nz - 1.)/2.) * dn;
-
-		for(int j = 2; j < ny + 2; j++)
-		{
-			double y = (j - 2. - (ny - 1.)/2.) * dy;
-
-			for(int i = 2; i < nx + 2; i++)
-			{
-				double x = (i - 2. - (nx - 1.)/2.) * dx;
-
-				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
-
-				int simm = s - 2;
-				int sim  = s - 1;
-				int sip  = s + 1;
-				int sipp = s + 2;
-
-				int sjmm = s - 2*stride_y;
-				int sjm  = s - stride_y;
-				int sjp  = s + stride_y;
-				int sjpp = s + 2*stride_y;
-
-				int skmm = s - 2*stride_z;
-				int skm  = s - stride_z;
-				int skp  = s + stride_z;
-				int skpp = s + 2*stride_z;
-
-				get_fluid_velocity_neighbor_cells(u[simm], u[sim], u[sip], u[sipp], u[sjmm], u[sjm], u[sjp], u[sjpp], u[skmm], u[skm], u[skp], u[skpp], ui1, uj1, uk1, vxi, vyj, vnk, t2);
-
-				precision e_s = e[s];
-				precision T = effectiveTemperature(e_s, hydro.conformal_eos_prefactor);
-
-				precision etabar = eta_over_s(T, hydro);
-				precision tau_pi = (5. * etabar) / T;
-
-				precision ux = u[s].ux;
-				precision uy = u[s].uy;
-			#ifndef BOOST_INVARIANT
-				precision un = u[s].un;
-			#else
-				precision un = 0;
-			#endif
-				precision ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t2 * un * un);
-
-				precision ux_p = up[s].ux;
-				precision uy_p = up[s].uy;
-			#ifndef BOOST_INVARIANT
-				precision un_p = up[s].un;
-			#else
-				precision un_p = 0;
-			#endif
-
-			#ifndef BOOST_INVARIANT
-				precision utperp = sqrt(1.  +  ux * ux  +  uy * uy);
-				precision zt = t * un / utperp;
-				precision zn = ut / t / utperp;
-			#else
-				precision zt = 0;
-				precision zn = 1. / t;
-			#endif
-
-				precision vx = ux / ut;
-				precision vy = uy / ut;
-				precision vn = un / ut;
-
-				// compute \sigma_T^{\mu\nu}
-				precision dux_dt = (ux - ux_p) / dt;
-				precision dux_dx = central_derivative(ui1, 0, dx);
-				precision dux_dy = central_derivative(uj1, 0, dy);
-				precision dux_dn = central_derivative(uk1, 0, dn);
-
-				precision duy_dt = (uy - uy_p) / dt;
-				precision duy_dx = central_derivative(ui1, 2, dx);
-				precision duy_dy = central_derivative(uj1, 2, dy);
-				precision duy_dn = central_derivative(uk1, 2, dn);
-
-				precision dun_dt = (un - un_p) / dt;
-				precision dun_dx = central_derivative(ui1, 4, dx);
-				precision dun_dy = central_derivative(uj1, 4, dy);
-				precision dun_dn = central_derivative(uk1, 4, dn);			// how to use BOOST_INVARIANT here?
-
-				precision dut_dt = vx * dux_dt  +  vy * duy_dt  +  t2 * vn * dun_dt  +  t * vn * un;
-				precision dut_dx = vx * dux_dx  +  vy * duy_dx  +  t2 * vn * dun_dx;
-				precision dut_dy = vx * dux_dy  +  vy * duy_dy  +  t2 * vn * dun_dy;
-				precision dut_dn = vx * dux_dn  +  vy * duy_dn  +  t2 * vn * dun_dn;
-
-				precision sTtt = dut_dt;
-				precision sTtx = (dux_dt  -  dut_dx) / 2.;
-				precision sTty = (duy_dt  -  dut_dy) / 2.;
-				precision sTtn = (dun_dt  +  un / t  -  (dut_dn  +  t * un) / t2) / 2.;
-				precision sTxx = - dux_dx;
-				precision sTxy = - (dux_dy  +  duy_dx) / 2.;
-				precision sTxn = - (dun_dx  +  dux_dn / t2) / 2.;
-				precision sTyy = - duy_dy;
-				precision sTyn = - (dun_dy  +  duy_dn / t2) / 2.;
-				precision sTnn = - (dun_dn  +  ut / t) / t2;
-
-				transverse_projection Xi(ut, ux, uy, un, zt, zn, t2);
-				double_transverse_projection Xi_2(Xi, t2, t4);
-				Xi_2.double_transverse_project_tensor(sTtt, sTtx, sTty, sTtn, sTxx, sTxy, sTxn, sTyy, sTyn, sTnn);
-
-				precision sT_mag = sqrt(fabs(sTtt * sTtt  +  sTxx * sTxx  +  sTyy * sTyy  +  t4 * sTnn * sTnn  -  2. * (sTtx * sTtx  +  sTty * sTty  -  sTxy * sTxy  +  t2 * (sTtn * sTtn  -  sTxn * sTxn  -  sTyn * sTyn))));
-
-				fprintf(Knpi, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, tau_pi * sT_mag);
-			}
-		}
-	}
-	fclose(Knpi);
-#endif
-}
-
-
 void output_residual_shear_validity(const hydro_variables * const __restrict__ q, const fluid_velocity * const __restrict__ u, const precision * const e, double t, lattice_parameters lattice)
 {
-#ifdef ANISO_HYDRO
 #ifdef PIMUNU
 	int nx = lattice.lattice_points_x;
 	int ny = lattice.lattice_points_y;
@@ -224,10 +84,10 @@ void output_residual_shear_validity(const hydro_variables * const __restrict__ q
 	precision dy = lattice.lattice_spacing_y;
 	precision dn = lattice.lattice_spacing_eta;
 
-	FILE *Rpi_inverse;
+	FILE *RpiT_inverse;
 	char fname1[255];
-	sprintf(fname1, "output/RpiInv_%.3f.dat", t);
-	Rpi_inverse = fopen(fname1, "w");
+	sprintf(fname1, "output/RpiT_inv_%.3f.dat", t);
+	RpiT_inverse = fopen(fname1, "w");
 
 	precision t2 = t * t;
 	precision t4 = t2 * t2;
@@ -245,42 +105,75 @@ void output_residual_shear_validity(const hydro_variables * const __restrict__ q
 				double x = (i - 2. - (nx - 1.)/2.) * dx;
 
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
-
-			#if (PT_MATCHING == 1)
-				precision pt = q[s].pt;
-			#else
+				
 				precision e_s = e[s];
-				precision pl = q[s].pl;
-				precision pt = (e_s - pl) / 2.;
-			#endif
+				precision pt;
 
-				precision pitt = q[s].pitt;
+				precision pitt = q[s].pitt;			// get shear stress
 				precision pitx = q[s].pitx;
 				precision pity = q[s].pity;
+				precision pitn = 0;
 				precision pixx = q[s].pixx;
 				precision pixy = q[s].pixy;
-				precision piyy = q[s].piyy;
-
-			#ifndef BOOST_INVARIANT
-				precision pitn = q[s].pitn;
-				precision pixn = q[s].pixn;
-				precision piyn = q[s].piyn;
-				precision pinn = q[s].pinn;
-			#else
-				precision pitn = 0;
 				precision pixn = 0;
+				precision piyy = q[s].piyy;
 				precision piyn = 0;
 				precision pinn = 0;
+
+			#ifndef BOOST_INVARIANT
+				pitn = q[s].pitn;
+				pixn = q[s].pixn;
+				piyn = q[s].piyn;
+				pinn = q[s].pinn;
+			#else
+			#ifndef ANISO_HYDRO
+				pinn = q[s].pinn;
+			#endif
+			#endif
+
+			#ifdef ANISO_HYDRO						// get transverse pressure
+
+			#if (PT_MATCHING == 1)					
+				pt = q[s].pt;
+			#else
+				pt = (e_s - q[s].pl) / 2.;
+			#endif
+
+			#else									// get transverse pressure and double-transverse project viscous hydro shear stress
+				precision P = equilibriumPressure(e_s);
+				
+			#ifdef PI
+				P += q[s].Pi;
+			#endif
+
+				precision ux = u[s].ux;
+				precision uy = u[s].uy;
+				precision un = 0;
+
+			#ifndef BOOST_INVARIANT
+				un = u[s].un;
+			#endif
+				precision ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t2 * un * un);
+				precision utperp = sqrt(1.  +  ux * ux  +  uy * uy);
+
+				precision zt = t * un / utperp;
+				precision zn = ut / t / utperp;
+
+				transverse_projection Xi(ut, ux, uy, un, zt, zn, t2);	
+				double_transverse_projection Xi_2(Xi, t2, t4);
+
+				Xi_2.double_transverse_project_tensor(pitt, pitx, pity, pitn, pixx, pixy, pixn, piyy, piyn, pinn);
+
+				pt = P  -  (zt * zt * pitt  +  t4 * zn * zn * pinn  +  2. * t2 * zt * zn * pitn) / 2.;
 			#endif
 
 				precision pi_mag = sqrt(fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
 
-				fprintf(Rpi_inverse, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, pi_mag / (sqrt(2.) * pt));
+				fprintf(RpiT_inverse, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, pi_mag / (sqrt(2.) * pt));
 			}
 		}
 	}
-	fclose(Rpi_inverse);
-#endif
+	fclose(RpiT_inverse);
 #endif
 }
 
@@ -359,10 +252,8 @@ void output_gubser(const hydro_variables * const __restrict__ q, const fluid_vel
 	precision dy = lattice.lattice_spacing_y;
 	precision dz = lattice.lattice_spacing_eta;
 
-	FILE *energy, *plptratio;
-	FILE *uxplot, *urplot;
-	char fname1[255], fname2[255];
-	char fname3[255], fname4[255];
+	FILE *energy, *plptratio, *uxplot, *urplot;
+	char fname1[255], fname2[255], fname3[255], fname4[255];
 
 	sprintf(fname1, "output/e_%.3f.dat", t);
 	sprintf(fname2, "output/plpt_%.3f.dat", t);
@@ -457,22 +348,18 @@ void output_optical_glauber(const hydro_variables * const __restrict__ q, const 
 	precision dy = lattice.lattice_spacing_y;
 	precision dz = lattice.lattice_spacing_eta;
 
-	FILE *energy, *plptratio;
-	FILE *uxplot, *uyplot, *urplot;
-	char fname1[255], fname2[255];
-	char fname3[255], fname4[255], fname5[255];
+	FILE *energy, *plptratio, *uxplot, *uyplot;
+	char fname1[255], fname2[255], fname3[255], fname4[255];
 
 	sprintf(fname1, "output/e_%.3f.dat", t);
 	sprintf(fname2, "output/plpt_%.3f.dat", t);
 	sprintf(fname3, "output/ux_%.3f.dat", t);
 	sprintf(fname4, "output/uy_%.3f.dat", t);
-	sprintf(fname5, "output/ur_%.3f.dat", t);
 
 	energy      = fopen(fname1, "w");
 	plptratio 	= fopen(fname2, "w");
 	uxplot    	= fopen(fname3, "w");
 	uyplot    	= fopen(fname4, "w");
-	urplot		= fopen(fname5, "w");
 
 	precision t2 = t * t;
 	precision t4 = t2 * t2;
@@ -493,7 +380,6 @@ void output_optical_glauber(const hydro_variables * const __restrict__ q, const 
 
 				precision ux = u[s].ux;
 				precision uy = u[s].uy;
-				precision ur = sqrt(ux * ux  +  uy * uy);
 				precision e_s = e[s];
 
 			#ifdef ANISO_HYDRO
@@ -543,7 +429,6 @@ void output_optical_glauber(const hydro_variables * const __restrict__ q, const 
 				fprintf(plptratio,	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, pl / pt);
 				fprintf(uxplot, 	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, ux);
 				fprintf(uyplot, 	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, uy);
-				fprintf(urplot, 	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, ur);
 			}
 		}
 	}
@@ -551,7 +436,6 @@ void output_optical_glauber(const hydro_variables * const __restrict__ q, const 
 	fclose(plptratio);
 	fclose(uxplot);
 	fclose(uyplot);
-	fclose(urplot);
 }
 
 
@@ -573,13 +457,11 @@ void output_dynamical_variables(double t, double dt, lattice_parameters lattice,
 	else if(initial_type == 2 || initial_type == 3)
 	{
 		output_gubser(q, u, e, t, lattice);
-		output_residual_gradients(q, u, up, e, t, dt, lattice, hydro);
 		output_residual_shear_validity(q, u, e, t, lattice);
 	}
 	else if(initial_type == 4)
 	{
 		output_optical_glauber(q, u, e, t, lattice);
-		output_residual_gradients(q, u, up, e, t, dt, lattice, hydro);
 		output_residual_shear_validity(q, u, e, t, lattice);
 	}
 }
