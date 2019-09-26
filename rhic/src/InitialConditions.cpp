@@ -3,11 +3,9 @@
 #include <math.h>
 #include <cmath>
 #include <iostream>
-#include <algorithm>
 #include "../include/Macros.h"
 #include "../include/Hydrodynamics.h"
 #include "../include/DynamicalVariables.h"
-#include "../include/InitialConditions.h"
 #include "../include/Precision.h"
 #include "../include/Parameters.h"
 #include "../include/OpticalGlauber.h"
@@ -18,9 +16,7 @@
 #include "../include/ViscousGubser.h"
 #include "../include/AnisoGubser.h"
 #include "../include/EquationOfState.h"
-#include <gsl/gsl_errno.h>
-#include <gsl/gsl_spline.h>
-#include <gsl/gsl_interp.h>
+#include "../include/Projections.h"
 using namespace std;
 
 #define THETA_FUNCTION(X) ((double)X < (double)0 ? (double)0 : (double)1)
@@ -184,8 +180,8 @@ void set_equilibrium_initial_condition(int nx, int ny, int nz)
 
 void set_anisotropic_initial_condition(int nx, int ny, int nz, hydro_parameters hydro)
 {
-#ifdef ANISO_HYDRO
 	precision plpt_ratio = hydro.plpt_ratio_initial;
+	precision t = hydro.tau_initial;
 
 	for(int k = 2; k < nz + 2; k++)
 	{
@@ -197,10 +193,13 @@ void set_anisotropic_initial_condition(int nx, int ny, int nz, hydro_parameters 
 
 				precision e_s = e[s];
 
-				q[s].pl = e_s * plpt_ratio / (2. + plpt_ratio);		// conformal approximation
+				precision pl = e_s * plpt_ratio / (2. + plpt_ratio);	
+				precision pt = e_s / (2. + plpt_ratio);
 
+			#ifdef ANISO_HYDRO
+				q[s].pl = pl;						// conformal approximation
 			#if (PT_MATCHING == 1)
-				q[s].pt = e_s / (2. + plpt_ratio);
+				q[s].pt = pt;
 			#endif
 
 			#ifdef PIMUNU
@@ -210,30 +209,62 @@ void set_anisotropic_initial_condition(int nx, int ny, int nz, hydro_parameters 
 		  		q[s].pixx = 0;
 		  		q[s].pixy = 0;
 		  		q[s].piyy = 0;
-
 		  	#ifndef BOOST_INVARIANT
 		  		q[s].pitn = 0;
 		  		q[s].pixn = 0;
 		  		q[s].piyn = 0;
 		  		q[s].pinn = 0;
 		  	#endif
+			#endif
 
-		  	#endif
-
-			#ifdef WTZMU
+		  	#ifdef WTZMU
 		  		q[s].WtTz = 0;
 		  		q[s].WxTz = 0;
 		  		q[s].WyTz = 0;
 		  		q[s].WnTz = 0;
 			#endif
 
+			#else
+
+		 	#ifdef PIMUNU
+		  		precision ux = u[s].ux;
+		  		precision uy = u[s].uy;
+		  		precision un = 0;
+		  	#ifndef BOOST_INVARIANT
+		  		un = u[s].un;
+		  	#endif
+		  		precision ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t * t * un * un);
+		  		precision utperp = sqrt(1.  +  ux * ux  +  uy * uy);
+		  		precision zt = t * un / utperp;
+		  		precision zn = ut / t / utperp;
+
+		  		spatial_projection Delta(ut, ux, uy, un, t * t);
+
+		  		// pi^\munu = (pl - pt)/3 . (\Delta^\munu + 3.z^\mu.z^\nu)
+		  		q[s].pitt = (pl - pt)/3. * (Delta.Dtt  +  3. * zt * zt);			
+		  		q[s].pitx = (pl - pt)/3. * Delta.Dtx;
+		  		q[s].pity = (pl - pt)/3. * Delta.Dty;
+		  		q[s].pixx = (pl - pt)/3. * Delta.Dxx;
+		  		q[s].pixy = (pl - pt)/3. * Delta.Dxy;
+		  		q[s].piyy = (pl - pt)/3. * Delta.Dyy;
+		  		q[s].pinn = (pl - pt)/3. * (Delta.Dnn  +  3. * zn * zn);
+
+		  	#ifndef BOOST_INVARIANT
+		  		q[s].pitn = (pl - pt)/3. * (Delta.Dtn  +  3. * zt * zn);		
+		  		q[s].pixn = (pl - pt)/3. * Delta.Dxn;
+		  		q[s].piyn = (pl - pt)/3. * Delta.Dyn;
+		  	#endif
+		  	#endif
+
 		  	#ifdef PI
-		  		q[s].Pi = e_s / 3.  -  equilibriumPressure(e_s);	// switching from conformal eos to lattice
+		  		q[s].Pi = e_s/3.  -  equilibriumPressure(e_s);	// switching from conformal eos to lattice
+		  	#endif
+
 		  	#endif
 			}
 		}
 	}
-#endif
+
 }
 
 
@@ -428,7 +459,7 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 		}
 		case 4:
 		{
-			printf("Optical Glauber (fluid velocity and viscous pressures initialized to zero)\n\n");
+			printf("Optical Glauber (fluid velocity initialized to zero)\n\n");
 
 			set_Glauber_energy_density_and_flow_profile(nx, ny, nz, dx, dy, dz, initial, hydro);
 			set_anisotropic_initial_condition(nx, ny, nz, hydro);

@@ -27,9 +27,9 @@ void print_hydro_mode(hydro_parameters hydro)
 	printf(":::  %s viscous anisotropic hydro  :::\n", mode.c_str());
 	printf(":::::::::::::::::::::::::::::::::::::::::::\n\n");
 #else
-	printf("\n:::::::::::::::::::::::::::::::::::::::::::\n");
+	printf("\n::::::::::::::::::::::::::::::::::::::::::::::\n");
 	printf(":::   %s second order viscous hydro   :::\n", mode.c_str());
-	printf(":::::::::::::::::::::::::::::::::::::::::::\n\n");
+	printf("::::::::::::::::::::::::::::::::::::::::::::::\n\n");
 #endif
 }
 
@@ -99,20 +99,16 @@ void print_parameters(lattice_parameters lattice, hydro_parameters hydro)
 	printf("Spatial dimensions  = %.3f fm  x  %.3f fm  x  %.3f\n\n", (nx - 1.) * dx, (ny - 1.) * dy, (nz - 1.) * dz);
 
 	// hydro parameters
-	printf("Initial time 	       = %.3f fm/c\n", 	hydro.tau_initial);
+	printf("Initial time 	       = %.3g fm/c\n", 	hydro.tau_initial);
+	printf("Initial pl/pt ratio    = %.3g\n", 		hydro.plpt_ratio_initial);
 
-	if(hydro.temperature_etas)
-	{
-		printf("Shear viscosity        = Temperature dependent\n");
-	}
-	else
-	{
-		printf("Shear viscosity        = %.3f (fixed)\n", hydro.constant_etas);
-	}
+	if(hydro.temperature_etas)	printf("Shear viscosity        = Temperature dependent\n");
+	else						printf("Shear viscosity        = %.3f (fixed)\n", hydro.constant_etas);
 
-	printf("Freezeout temperature  = %.3f GeV\n",	hydro.freezeout_temperature_GeV);
+	printf("Freezeout temperature  = %.3g MeV\n",	hydro.freezeout_temperature_GeV * 1000.);
 	printf("Flux limiter           = %.2f\n",		hydro.flux_limiter);
 	printf("Minimum energy density = %.2e\n",		hydro.energy_min);
+	printf("Minimum pressure       = %.2e\n",		hydro.pressure_min);
 
 	// equation of state
 #ifdef CONFORMAL_EOS
