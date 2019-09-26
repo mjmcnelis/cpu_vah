@@ -7,6 +7,7 @@
 #include "../include/InferredVariables.h"
 #include "../include/Projections.h"
 
+const precision sqrt_two   = sqrt(2.);
 const precision sqrt_three = sqrt(3.);
 
 inline int linear_column_index(int i, int j, int k, int nx, int ny)
@@ -83,8 +84,11 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 				precision zn = 1. / t;
 			#endif
 
-				//precision Taniso = sqrt(e_s * e_s  +  pl * pl  +  2. * pt * pt);
-				precision Taniso = sqrt(pl * pl  +  2. * pt * pt);
+				precision Taniso = sqrt_2 * pt; 
+			#ifdef WTZMU
+				Taniso = sqrt(pl * pl  +  2. * pt * pt);
+			#endif
+
 				// 2+1d: pitt, pitx, pity, pixx, pixy (piyy = f(pixx, piyy, ux, uy); pixn, piyn, pitn, pinn = 0)
 				// 3+1d: pitt, pitx, pity, pitn, pixx, pixy (pixn, piyy, piyn, pinn can be reconstructed algebraically, need chain rule for derivatives)
 
@@ -250,10 +254,7 @@ void regulate_viscous_currents(precision t, hydro_variables * const __restrict__
 				precision ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t2 * un * un);
 				precision utperp = sqrt(1.  +  ux * ux  +  uy * uy);
 
-
-				//precision Teq = sqrt(e_s * e_s  +  3. * p * p);
 				precision Teq = sqrt_three * p;
-
 
 			#ifdef PIMUNU
 				precision pitt = q[s].pitt;

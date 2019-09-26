@@ -211,7 +211,8 @@ void output_residual_gradients(const hydro_variables * const __restrict__ q, con
 #endif
 }
 
-void output_residual_shear_validity(const hydro_variables * const __restrict__ q, const fluid_velocity * const __restrict__ u, const precision * const e, double t, double dt, lattice_parameters lattice)
+
+void output_residual_shear_validity(const hydro_variables * const __restrict__ q, const fluid_velocity * const __restrict__ u, const precision * const e, double t, lattice_parameters lattice)
 {
 #ifdef ANISO_HYDRO
 #ifdef PIMUNU
@@ -223,37 +224,10 @@ void output_residual_shear_validity(const hydro_variables * const __restrict__ q
 	precision dy = lattice.lattice_spacing_y;
 	precision dn = lattice.lattice_spacing_eta;
 
-	FILE *RpiInverse;
-	FILE *piu_ortho0, *piu_ortho1, *piu_ortho2, *piu_ortho3;
-	FILE *piz_ortho0, *piz_ortho1, *piz_ortho2, *piz_ortho3;
-	FILE *pi_trace;
-
+	FILE *Rpi_inverse;
 	char fname1[255];
-	char fname2[255], fname3[255], fname4[255], fname5[255];
-	char fname6[255], fname7[255], fname8[255], fname9[255];
-	char fname10[255];
-
 	sprintf(fname1, "output/RpiInv_%.3f.dat", t);
-	sprintf(fname2, "output/piu_ortho0_%.3f.dat", t);
-	sprintf(fname3, "output/piu_ortho1_%.3f.dat", t);
-	sprintf(fname4, "output/piu_ortho2_%.3f.dat", t);
-	sprintf(fname5, "output/piu_ortho3_%.3f.dat", t);
-	sprintf(fname6, "output/piz_ortho0_%.3f.dat", t);
-	sprintf(fname7, "output/piz_ortho1_%.3f.dat", t);
-	sprintf(fname8, "output/piz_ortho2_%.3f.dat", t);
-	sprintf(fname9, "output/piz_ortho3_%.3f.dat", t);
-	sprintf(fname10, "output/pi_trace_%.3f.dat", t);
-
-	RpiInverse = fopen(fname1, "w");
-	piu_ortho0 = fopen(fname2, "w");
-	piu_ortho1 = fopen(fname3, "w");
-	piu_ortho2 = fopen(fname4, "w");
-	piu_ortho3 = fopen(fname5, "w");
-	piz_ortho0 = fopen(fname6, "w");
-	piz_ortho1 = fopen(fname7, "w");
-	piz_ortho2 = fopen(fname8, "w");
-	piz_ortho3 = fopen(fname9, "w");
-	pi_trace   = fopen(fname10, "w");
+	Rpi_inverse = fopen(fname1, "w");
 
 	precision t2 = t * t;
 	precision t4 = t2 * t2;
@@ -299,61 +273,13 @@ void output_residual_shear_validity(const hydro_variables * const __restrict__ q
 				precision pinn = 0;
 			#endif
 
-				precision ux = u[s].ux;
-				precision uy = u[s].uy;
-			#ifndef BOOST_INVARIANT
-				precision un = u[s].un;
-			#else
-				precision un = 0;
-			#endif
-
-				precision ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t2 * un * un);
-
-			#ifndef BOOST_INVARIANT
-				precision utperp = sqrt(1.  +  ux * ux  +  uy * uy);
-				precision zt = t * un / utperp;
-				precision zn = ut / t / utperp;
-			#else
-				precision zt = 0;
-				precision zn = 1. / t;
-			#endif
-
 				precision pi_mag = sqrt(fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
 
-				precision piu0 = fabs(pitt * ut  -  pitx * ux  -  pity * uy  -  t2 * pitn * un);
-				precision piu1 = fabs(pitx * ut  -  pixx * ux  -  pixy * uy  -  t2 * pixn * un);
-				precision piu2 = fabs(pity * ut  -  pixy * ux  -  piyy * uy  -  t2 * piyn * un);
-				precision piu3 = fabs(pitn * ut  -  pixn * ux  -  piyn * uy  -  t2 * pinn * un) * t;
-
-				precision piz0 = fabs(zt * pitt  -  t2 * zn * pitn);
-				precision piz1 = fabs(zt * pitx  -  t2 * zn * pixn);
-				precision piz2 = fabs(zt * pity  -  t2 * zn * piyn);
-				precision piz3 = fabs(zt * pitn  -  t2 * zn * pinn) * t;
-
-				precision trpi = fabs(pitt  -  pixx  -  piyy  -  t2 * pinn);
-
-				fprintf(RpiInverse, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, pi_mag / pt);
-				fprintf(piu_ortho0, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, piu0 / (ut * pi_mag));
-				fprintf(piu_ortho1, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, piu1 / (ut * pi_mag));
-				fprintf(piu_ortho2, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, piu2 / (ut * pi_mag));
-				fprintf(piu_ortho3, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, piu3 / (ut * pi_mag));
-				fprintf(piz_ortho0, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, piz0 / (t * zn * pi_mag));
-				fprintf(piz_ortho1, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, piz1 / (t * zn * pi_mag));
-				fprintf(piz_ortho2, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, piz2 / (t * zn * pi_mag));
-				fprintf(piz_ortho3, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, piz3 / (t * zn * pi_mag));
-				fprintf(pi_trace,   "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, trpi / pi_mag);
+				fprintf(Rpi_inverse, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, pi_mag / (sqrt(2.) * pt));
 			}
 		}
 	}
-	fclose(RpiInverse);
-	fclose(piu_ortho0);
-	fclose(piu_ortho1);
-	fclose(piu_ortho2);
-	fclose(piu_ortho3);
-	fclose(piz_ortho0);
-	fclose(piz_ortho1);
-	fclose(piz_ortho2);
-	fclose(piz_ortho3);
+	fclose(Rpi_inverse);
 #endif
 #endif
 }
@@ -648,13 +574,13 @@ void output_dynamical_variables(double t, double dt, lattice_parameters lattice,
 	{
 		output_gubser(q, u, e, t, lattice);
 		output_residual_gradients(q, u, up, e, t, dt, lattice, hydro);
-		output_residual_shear_validity(q, u, e, t, dt, lattice);
+		output_residual_shear_validity(q, u, e, t, lattice);
 	}
 	else if(initial_type == 4)
 	{
 		output_optical_glauber(q, u, e, t, lattice);
 		output_residual_gradients(q, u, up, e, t, dt, lattice, hydro);
-		output_residual_shear_validity(q, u, e, t, dt, lattice);
+		output_residual_shear_validity(q, u, e, t, lattice);
 	}
 }
 
