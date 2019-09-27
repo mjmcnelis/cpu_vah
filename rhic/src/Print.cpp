@@ -57,8 +57,10 @@ void print_hydro_center(int n, double t, lattice_parameters lattice, hydro_param
 		print_line();
 	}
 	precision e_s = e[s] * hbarc;
-	precision p = equilibriumPressure(e[s]) * hbarc;
-	precision T = effectiveTemperature(e[s], hydro.conformal_eos_prefactor) * hbarc;
+
+	equation_of_state eos(e[s]);
+	precision p = eos.equilibrium_pressure() * hbarc;
+	precision T = eos.effective_temperature(hydro.conformal_eos_prefactor) * hbarc;
 #ifdef ANISO_HYDRO
 	precision pl  = q[s].pl * hbarc;
 	#if (PT_MATCHING == 1)

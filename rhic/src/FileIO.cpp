@@ -105,7 +105,7 @@ void output_residual_shear_validity(const hydro_variables * const __restrict__ q
 				double x = (i - 2. - (nx - 1.)/2.) * dx;
 
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
-				
+
 				precision e_s = e[s];
 				precision pt;
 
@@ -133,7 +133,7 @@ void output_residual_shear_validity(const hydro_variables * const __restrict__ q
 
 			#ifdef ANISO_HYDRO						// get transverse pressure
 
-			#if (PT_MATCHING == 1)					
+			#if (PT_MATCHING == 1)
 				pt = q[s].pt;
 			#else
 				pt = (e_s - q[s].pl) / 2.;
@@ -141,7 +141,7 @@ void output_residual_shear_validity(const hydro_variables * const __restrict__ q
 
 			#else									// get transverse pressure and double-transverse project viscous hydro shear stress
 				precision P = equilibriumPressure(e_s);
-				
+
 			#ifdef PI
 				P += q[s].Pi;
 			#endif
@@ -159,7 +159,7 @@ void output_residual_shear_validity(const hydro_variables * const __restrict__ q
 				precision zt = t * un / utperp;
 				precision zn = ut / t / utperp;
 
-				transverse_projection Xi(ut, ux, uy, un, zt, zn, t2);	
+				transverse_projection Xi(ut, ux, uy, un, zt, zn, t2);
 				double_transverse_projection Xi_2(Xi, t2, t4);
 
 				Xi_2.double_transverse_project_tensor(pitt, pitx, pity, pitn, pixx, pixy, pixn, piyy, piyn, pinn);
@@ -189,7 +189,9 @@ void output_viscous_bjorken(const hydro_variables * const __restrict__ q, const 
 	int s = central_index(lattice);
 
 	precision e_s = e[s];
-	precision p = equilibriumPressure(e_s);
+
+	equation_of_state eos(e_s);
+	precision p = eos.equilibrium_pressure();
 
 #ifdef PIMUNU
 	precision pinn = q[s].pinn;
@@ -390,7 +392,8 @@ void output_optical_glauber(const hydro_variables * const __restrict__ q, const 
 				precision pt = (e_s - pl) / 2.;
 			#endif
 			#else
-				precision p = equilibriumPressure(e_s);
+				equation_of_state eos(e_s);
+				precision p = eos.equilibrium_pressure();
 
 			#ifndef BOOST_INVARIANT
 				precision un = u[s].un;
@@ -421,7 +424,7 @@ void output_optical_glauber(const hydro_variables * const __restrict__ q, const 
 			#endif
 				// pl = zmu.z.nu.Tmunu
 				precision pl = p  +  Pi  +  zt * zt * pitt  +  t4 * zn * zn * pinn  +  2. * t2 * zt * zn * pitn;
-				// pt = -Ximunu.Tmunu / 2 
+				// pt = -Ximunu.Tmunu / 2
 				precision pt = p  +  Pi  -  (zt * zt * pitt  +  t4 * zn * zn * pinn  +  2. * t2 * zt * zn * pitn) / 2.;
 			#endif
 

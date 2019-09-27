@@ -66,7 +66,8 @@ void set_initial_T_taumu_variables(double t, int nx, int ny, int nz)
 				precision pt = (e_s - pl) / 2.;
 			#endif
 			#else
-				precision p = equilibriumPressure(e_s);
+				equation_of_state eos(e_s);
+				precision p = eos.equilibrium_pressure();
 			#endif
 
 			#ifdef PIMUNU
@@ -193,7 +194,7 @@ void set_anisotropic_initial_condition(int nx, int ny, int nz, hydro_parameters 
 
 				precision e_s = e[s];
 
-				precision pl = e_s * plpt_ratio / (2. + plpt_ratio);	
+				precision pl = e_s * plpt_ratio / (2. + plpt_ratio);
 				precision pt = e_s / (2. + plpt_ratio);
 
 			#ifdef ANISO_HYDRO
@@ -241,7 +242,7 @@ void set_anisotropic_initial_condition(int nx, int ny, int nz, hydro_parameters 
 		  		spatial_projection Delta(ut, ux, uy, un, t * t);
 
 		  		// pi^\munu = (pl - pt)/3 . (\Delta^\munu + 3.z^\mu.z^\nu)
-		  		q[s].pitt = (pl - pt)/3. * (Delta.Dtt  +  3. * zt * zt);			
+		  		q[s].pitt = (pl - pt)/3. * (Delta.Dtt  +  3. * zt * zt);
 		  		q[s].pitx = (pl - pt)/3. * Delta.Dtx;
 		  		q[s].pity = (pl - pt)/3. * Delta.Dty;
 		  		q[s].pixx = (pl - pt)/3. * Delta.Dxx;
@@ -250,7 +251,7 @@ void set_anisotropic_initial_condition(int nx, int ny, int nz, hydro_parameters 
 		  		q[s].pinn = (pl - pt)/3. * (Delta.Dnn  +  3. * zn * zn);
 
 		  	#ifndef BOOST_INVARIANT
-		  		q[s].pitn = (pl - pt)/3. * (Delta.Dtn  +  3. * zt * zn);		
+		  		q[s].pitn = (pl - pt)/3. * (Delta.Dtn  +  3. * zt * zn);
 		  		q[s].pixn = (pl - pt)/3. * Delta.Dxn;
 		  		q[s].piyn = (pl - pt)/3. * Delta.Dyn;
 		  	#endif
@@ -418,7 +419,7 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 			run_analytic_ideal_gubser(lattice, initial, hydro);
 			set_ideal_gubser_initial_conditions(lattice, dt, initial, hydro);
 		#endif
-			
+
 			set_initial_T_taumu_variables(t, nx, ny, nz);
 
 			break;

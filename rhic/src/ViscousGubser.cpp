@@ -20,7 +20,7 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 }
 
 
-inline int sign(double x)	
+inline int sign(double x)
 {
 	if(x > 0.) return 1;
 	else if(x < 0.) return -1;
@@ -30,15 +30,15 @@ inline int sign(double x)
 
 double de_drho_viscous(double e, double pi, double rho, double t, hydro_parameters hydro)
 {
-	return (pi - 8./3.*e) * tanh(rho);		// energy conservation law (viscous gubser) 
+	return (pi - 8./3.*e) * tanh(rho);		// energy conservation law (viscous gubser)
 }
 
 
 double dpi_drho_viscous(double e, double pi, double rho, double t, hydro_parameters hydro)
 {
-	double T_hat = effectiveTemperature(e, hydro.conformal_eos_prefactor);
+	double T_hat = pow(e / hydro.conformal_eos_prefactor, 0.25);
 	double taupiInv = T_hat / (5. * hydro.constant_etas);
-	// pi relaxation equation (viscous gubser) 
+	// pi relaxation equation (viscous gubser)
 	return - taupiInv * pi  +  (16./45. * e  -  46./21. * pi) * tanh(rho);
 }
 
@@ -71,7 +71,7 @@ void gubser_viscous_evolution(double * e_hat, double * pi_hat, double * rho_arra
 
 
 double compute_initial_central_temperature_viscous(double t0, double rho0, double rhoP, int rho_pts, double * rho_array, double drho, double T0_hat, hydro_parameters hydro)
-{	
+{
 	double conformal_eos_prefactor = hydro.conformal_eos_prefactor;
 	double plpt_ratio = hydro.plpt_ratio_initial;
 
@@ -85,7 +85,7 @@ double compute_initial_central_temperature_viscous(double t0, double rho0, doubl
 	pi_hat[0] = pl - e/3.;
 
 	gubser_viscous_evolution(e_hat, pi_hat, rho_array, rho_pts, drho, t0, hydro);
-	
+
 	return hbarc / t0 * pow(e_hat[rho_pts - 1] / conformal_eos_prefactor, 0.25); 	// initial central temperature in GeV
 }
 
@@ -95,7 +95,7 @@ double search_viscous_T0_hat(lattice_parameters lattice, initial_condition_param
 	double T0 = initial.initialCentralTemperatureGeV;	// solve the root equation: f(T0_hat) = T0
 
 	double t0 = hydro.tau_initial;
-	double q0 = initial.q_gubser;								
+	double q0 = initial.q_gubser;
 
 	int nx = lattice.lattice_points_x;
 	double dx = lattice.lattice_spacing_x;
@@ -117,12 +117,12 @@ double search_viscous_T0_hat(lattice_parameters lattice, initial_condition_param
 
 	int n = 0, max_iterations = 50;
 
-	do 	// bisection root search 
+	do 	// bisection root search
 	{
 		// compute the corresponding initial central temperatures in GeV
-		double T0_1   = compute_initial_central_temperature_viscous(t0, rho0, rhoP, rho_pts, rho_array, drho, T0_hat_1, hydro);	
-		double T0_2   = compute_initial_central_temperature_viscous(t0, rho0, rhoP, rho_pts, rho_array, drho, T0_hat_2, hydro);	
-		double T0_mid = compute_initial_central_temperature_viscous(t0, rho0, rhoP, rho_pts, rho_array, drho, T0_hat_mid, hydro);	
+		double T0_1   = compute_initial_central_temperature_viscous(t0, rho0, rhoP, rho_pts, rho_array, drho, T0_hat_1, hydro);
+		double T0_2   = compute_initial_central_temperature_viscous(t0, rho0, rhoP, rho_pts, rho_array, drho, T0_hat_2, hydro);
+		double T0_mid = compute_initial_central_temperature_viscous(t0, rho0, rhoP, rho_pts, rho_array, drho, T0_hat_mid, hydro);
 
 		double sign_1 = sign(T0_1 - T0);
 		double sign_2 = sign(T0_2 - T0);
@@ -160,7 +160,7 @@ double run_semi_analytic_viscous_gubser(lattice_parameters lattice, initial_cond
 	double t0 = hydro.tau_initial;										// initial time
 	double dt_out = lattice.output_interval;							// output time intervals
 
-	double q0 = initial.q_gubser;										// inverse length size 
+	double q0 = initial.q_gubser;										// inverse length size
 
 	double T0_hat = search_viscous_T0_hat(lattice, initial, hydro);		// initial Gubser temperature
 
@@ -176,7 +176,7 @@ double run_semi_analytic_viscous_gubser(lattice_parameters lattice, initial_cond
 	double t = t0;
 
 	// increase t until grid below freezeout temperature
-	while(true)	
+	while(true)
 	{
 		double rho0 = rho_function(t0, r_max, q0);			// min rho at transverse corner
 		double rhoP = rho_function(t + dt_out, 0, q0);		// max rho at center (this is the problem)
@@ -322,7 +322,7 @@ void set_viscous_gubser_initial_condition(double T0_hat, int nx, int ny, int nz,
 			// interpolate anisotropic profile
 			double e_s  = gsl_spline_eval(e_hat_spline,  rho, accel) / (t * t * t * t);
 			double pi = gsl_spline_eval(pi_hat_spline, rho, accel) / (t * t * t * t);
-			
+
 			double kappa   = atanh(2. * q0 * q0 * t * r / (1.  +  q0 * q0 * (t * t  +  r * r)));
 			double kappa_p = atanh(2. * q0 * q0 * (t - dt) * r / (1.  +  q0 * q0 * ((t - dt) * (t - dt)  +  r * r)));
 
@@ -356,7 +356,7 @@ void set_viscous_gubser_initial_condition(double T0_hat, int nx, int ny, int nz,
 
 			// \pi^munu = (pi/2).Delta^\munu  +  (3.pi/2).z^\mu.z^\nu
 			#ifdef PIMUNU
-		  		q[s].pitt = pi/2. * Delta.Dtt;			
+		  		q[s].pitt = pi/2. * Delta.Dtt;
 		  		q[s].pitx = pi/2. * Delta.Dtx;
 		  		q[s].pity = pi/2. * Delta.Dty;
 		  		q[s].pixx = pi/2. * Delta.Dxx;

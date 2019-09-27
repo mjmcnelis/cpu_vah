@@ -262,7 +262,8 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 				// root solving algorithm (update e)
 			#endif
 
-				precision p = equilibriumPressure(e_s);
+				equation_of_state eos(e_s);
+				precision p = eos.equilibrium_pressure();
 
 				precision ut = sqrt(fabs((Mt + p + Pi) / (e_s + p + Pi)));
 				precision ux = Mx / ut / (e_s + p + Pi);

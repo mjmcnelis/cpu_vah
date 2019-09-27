@@ -21,17 +21,19 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 
 double de_dt_vh(double e, double pi, double t, hydro_parameters hydro)
 {
-	double p = equilibriumPressure(e);
+	equation_of_state eos(e);
+	double p = eos.equilibrium_pressure();
 
 	return - (e + p - pi) / t;
 }
 
 
 double dpi_dt(double e, double pi, double t, hydro_parameters hydro)
-{	
+{
 #ifdef PIMUNU
-	double p = equilibriumPressure(e);
-	double T = effectiveTemperature(e, hydro.conformal_eos_prefactor);
+	equation_of_state eos(e);
+	double p = eos.equilibrium_pressure();
+	double T = eos.effective_temperature(hydro.conformal_eos_prefactor);
 	double s = (e + p) / T;
 
 	double etas = eta_over_s(T, hydro);
@@ -43,7 +45,7 @@ double dpi_dt(double e, double pi, double t, hydro_parameters hydro)
 	double lambdapiPi = 1.2;
 
 	// 2.0*lambdapiPi*Pi/3.0/tau;
-	
+
 	return taupiInv * (-pi  +  4./3. * eta / t)  -  (taupipi/3. + deltapipi) * pi / t;
 #else
 	return 0;
@@ -60,7 +62,7 @@ void run_semi_analytic_viscous_bjorken(lattice_parameters lattice, initial_condi
 	double t  = hydro.tau_initial;												// initial time
 	double T0  = initial.initialCentralTemperatureGeV;							// initial temperature
 
-	double dt = lattice.min_time_step;											// use minimum time step ~ 100x smaller than t0 
+	double dt = lattice.min_time_step;											// use minimum time step ~ 100x smaller than t0
 	int decimal = - log10(dt);													// setprecision value for t output
 
 	double conformal_eos_prefactor = hydro.conformal_eos_prefactor;
@@ -69,9 +71,11 @@ void run_semi_analytic_viscous_bjorken(lattice_parameters lattice, initial_condi
 	double plpt_ratio = hydro.plpt_ratio_initial;								// initial pl/pt ratio
 
 	double e = e0;
-	double p = equilibriumPressure(e);
-	double pl = e0 * plpt_ratio / (2. + plpt_ratio);			
-	double pt = (e - pl) / 2.;				
+	//double p = equilibriumPressure(e);
+	equation_of_state eos(e);
+	double p = eos.equilibrium_pressure();
+	double pl = e0 * plpt_ratio / (2. + plpt_ratio);
+	double pt = (e - pl) / 2.;
 
 #ifdef PIMUNU
 	double pi = - 2. * (pl - pt) / 3.;											// - t2.pinn
@@ -84,7 +88,7 @@ void run_semi_analytic_viscous_bjorken(lattice_parameters lattice, initial_condi
 #else
 	double bulkPi = 0;
 #endif
-	
+
 	double T_freeze = hydro.freezeout_temperature_GeV;
 	double e_freeze = equilibriumEnergyDensity(T_freeze / hbarc, conformal_eos_prefactor);
 
@@ -95,16 +99,18 @@ void run_semi_analytic_viscous_bjorken(lattice_parameters lattice, initial_condi
 
 	while(true)
 	{
-		p = equilibriumPressure(e);
+		//p = equilibriumPressure(e);
+		equation_of_state EoS(e);
+		p = EoS.equilibrium_pressure();
 
 		pl = p + bulkPi - pi;
-		pt = p + bulkPi + pi/2.; 
-		
+		pt = p + bulkPi + pi/2.;
+
 		e_e0_plot  << fixed << setprecision(decimal + 1) << t << "\t" << scientific << setprecision(12) << e / e0 << endl;
 		pl_pt_plot << fixed << setprecision(decimal + 1) << t << "\t" << scientific << setprecision(12) << pl / pt << endl;
 
 		if(e < e_freeze) break;
-		
+
 		double e1  = dt * de_dt_vh(e, pi, t, hydro);
 		double pi1 = dt * dpi_dt(e, pi, t, hydro);
 
@@ -118,7 +124,7 @@ void run_semi_analytic_viscous_bjorken(lattice_parameters lattice, initial_condi
 		double pi4 = dt * dpi_dt(e + e3, pi + pi3, t + dt, hydro);
 
 		e  += (e1   +  2. * e2   +  2. * e3   +  e4)  / 6.;
-		pi += (pi1  +  2. * pi2  +  2. * pi3  +  pi4) / 6.;		
+		pi += (pi1  +  2. * pi2  +  2. * pi3  +  pi4) / 6.;
 
 		t += dt;
 	}
@@ -152,7 +158,9 @@ void set_viscous_bjorken_initial_condition(int nx, int ny, int nz, initial_condi
 
 				e[s] = e_s;
 
-				precision p = equilibriumPressure(e_s);
+				//precision p = equilibriumPressure(e_s);
+				equation_of_state eos(e_s);
+				precision p = eos.equilibrium_pressure();
 				precision pl = e_s * plpt_ratio / (2. + plpt_ratio);		// conformal switch approximation
 				precision pt = e_s / (2. + plpt_ratio);
 

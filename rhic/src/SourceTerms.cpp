@@ -89,8 +89,10 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 // thermodynamic variables
 //-------------------------------------------------
 	precision conformal_eos_prefactor = hydro.conformal_eos_prefactor;
-	precision T = effectiveTemperature(e, conformal_eos_prefactor);
-	precision p = equilibriumPressure(e);
+
+	equation_of_state eos(e);
+	precision p = eos.equilibrium_pressure();
+	precision T = eos.effective_temperature(conformal_eos_prefactor);
 
 	// shear and bulk viscosities
 	precision etabar = eta_over_s(T, hydro);
@@ -840,9 +842,10 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	precision vy = uy / ut;
 	precision vn = un / ut;
 
-	precision T = effectiveTemperature(e, hydro.conformal_eos_prefactor);
-	precision p = equilibriumPressure(e);
-	precision cs2 = speedOfSoundSquared(e);
+	equation_of_state eos(e);
+	precision p = eos.equilibrium_pressure();
+	precision cs2 = eos.speed_of_sound_squared();
+	precision T = eos.effective_temperature(hydro.conformal_eos_prefactor);
 
 	precision ttt = q[0];				// hydro variables
 	precision ttx = q[1];

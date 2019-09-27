@@ -35,25 +35,23 @@ double rho_function(double t, double r, double q)
 }
 
 
-// energy conservation law (gubser) 
+// energy conservation law (gubser)
 double de_drho(double e, double pl, double rho, double t, hydro_parameters hydro)
 {
 	return (pl  -  3.*e) * tanh(rho);
 }
 
 
-// pl relaxation equation (gubser) 
+// pl relaxation equation (gubser)
 double dpl_drho(double e, double pl, double rho, double t, hydro_parameters hydro)
 {
-	double conformal_eos_prefactor = hydro.conformal_eos_prefactor;	
-	double T_hat = effectiveTemperature(e, conformal_eos_prefactor);
+	double conformal_prefactor = hydro.conformal_eos_prefactor;
+	double T_hat = pow(e / conformal_prefactor, 0.25);
 
-	double etas = hydro.constant_etas;	
-
-	double taupiInv = T_hat / (5. * etas);
+	double taupiInv = T_hat / (5. * hydro.constant_etas);
 
 	transport_coefficients aniso;
-	aniso.compute_transport_coefficients(e, pl, (e - pl)/2., conformal_eos_prefactor);
+	aniso.compute_transport_coefficients(e, pl, (e - pl)/2., conformal_prefactor);
 
 	return - taupiInv * (pl - e/3.)  -  (4. * pl  +  aniso.zeta_LL) * tanh(rho);
 
@@ -88,7 +86,7 @@ void gubser_rho_evolution(double * e_hat, double * pl_hat, double * rho_array, i
 
 
 double compute_initial_central_temperature(double t0, double rho0, double rhoP, int rho_pts, double * rho_array, double drho, double T0_hat, hydro_parameters hydro)
-{	
+{
 	double conformal_eos_prefactor = hydro.conformal_eos_prefactor;
 	double plpt_ratio = hydro.plpt_ratio_initial;
 
@@ -99,7 +97,7 @@ double compute_initial_central_temperature(double t0, double rho0, double rhoP, 
 	pl_hat[0] = e_hat[0] * plpt_ratio / (2. + plpt_ratio);
 
 	gubser_rho_evolution(e_hat, pl_hat, rho_array, rho_pts, drho, t0, hydro);
-	
+
 	// initial central temperature in GeV
 	return hbarc / t0 * pow(e_hat[rho_pts - 1] / conformal_eos_prefactor, 0.25);
 }
@@ -110,7 +108,7 @@ double search_T0_hat(lattice_parameters lattice, initial_condition_parameters in
 	double T0 = initial.initialCentralTemperatureGeV;	// solve the root equation: f(T0_hat) = T0
 
 	double t0 = hydro.tau_initial;
-	double q0 = initial.q_gubser;								
+	double q0 = initial.q_gubser;
 
 	int nx = lattice.lattice_points_x;
 	double dx = lattice.lattice_spacing_x;
@@ -132,12 +130,12 @@ double search_T0_hat(lattice_parameters lattice, initial_condition_parameters in
 
 	int n = 0, max_iterations = 50;
 
-	do 	// bisection root search 
+	do 	// bisection root search
 	{
 		// compute the corresponding initial central temperatures in GeV
-		double T0_1   = compute_initial_central_temperature(t0, rho0, rhoP, rho_pts, rho_array, drho, T0_hat_1, hydro);	
-		double T0_2   = compute_initial_central_temperature(t0, rho0, rhoP, rho_pts, rho_array, drho, T0_hat_2, hydro);	
-		double T0_mid = compute_initial_central_temperature(t0, rho0, rhoP, rho_pts, rho_array, drho, T0_hat_mid, hydro);	
+		double T0_1   = compute_initial_central_temperature(t0, rho0, rhoP, rho_pts, rho_array, drho, T0_hat_1, hydro);
+		double T0_2   = compute_initial_central_temperature(t0, rho0, rhoP, rho_pts, rho_array, drho, T0_hat_2, hydro);
+		double T0_mid = compute_initial_central_temperature(t0, rho0, rhoP, rho_pts, rho_array, drho, T0_hat_mid, hydro);
 
 		double sign_1 = sign(T0_1 - T0);
 		double sign_2 = sign(T0_2 - T0);
@@ -175,8 +173,8 @@ double run_semi_analytic_aniso_gubser(lattice_parameters lattice, initial_condit
 	double t0 = hydro.tau_initial;							// initial time
 	double dt_out = lattice.output_interval;				// output time intervals
 
-	double q0 = initial.q_gubser;							// inverse length size 
-	double T0_hat = search_T0_hat(lattice, initial, hydro);	// initial Gubser temperature	
+	double q0 = initial.q_gubser;							// inverse length size
+	double T0_hat = search_T0_hat(lattice, initial, hydro);	// initial Gubser temperature
 	double plpt_ratio = hydro.plpt_ratio_initial;			// initial plpt ratio at transverse corner of grid
 
 	printf("T0_hat = %lf\n\n", T0_hat);
@@ -189,7 +187,7 @@ double run_semi_analytic_aniso_gubser(lattice_parameters lattice, initial_condit
 	double t = t0;
 
 	// increase t until grid below freezeout temperature
-	while(true)	
+	while(true)
 	{
 		double rho0 = rho_function(t0, r_max, q0);			// min rho at transverse corner
 		double rhoP = rho_function(t + dt_out, 0, q0);		// max rho at center (this is the problem)

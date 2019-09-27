@@ -28,10 +28,12 @@ double de_dt(double e, double pl, double t, hydro_parameters hydro)
 
 
 double dpl_dt(double e, double pl, double t, hydro_parameters hydro)
-{	
-	double conformal_eos_prefactor = hydro.conformal_eos_prefactor;
-	double p = equilibriumPressure(e);
-	double T = effectiveTemperature(e, conformal_eos_prefactor);
+{
+	double conformal_prefactor = hydro.conformal_eos_prefactor;
+
+	equation_of_state eos(e);
+	double p = eos.equilibrium_pressure();
+	double T = eos.effective_temperature(conformal_prefactor);
 
 	double etas = eta_over_s(T, hydro);
 	double taupiInv = T / (5. * etas);
@@ -39,7 +41,7 @@ double dpl_dt(double e, double pl, double t, hydro_parameters hydro)
 	double pt = (e - pl) / 2.; 	// temporary
 
 	transport_coefficients aniso;
-	aniso.compute_transport_coefficients(e, pl, pt, conformal_eos_prefactor);
+	aniso.compute_transport_coefficients(e, pl, pt, conformal_prefactor);
 
 
 	return - taupiInv * (pl - p)  +  aniso.zeta_LL / t;
@@ -55,7 +57,7 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 	double t  = hydro.tau_initial;												// initial time
 	double T0  = initial.initialCentralTemperatureGeV;							// initial temperature
 
-	double dt = lattice.min_time_step;											// use minimum time step ~ 100x smaller than t0 
+	double dt = lattice.min_time_step;											// use minimum time step ~ 100x smaller than t0
 	int decimal = - log10(dt);													// setprecision value for t output
 
 	double conformal_eos_prefactor = hydro.conformal_eos_prefactor;
@@ -64,8 +66,8 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 	double plpt_ratio = hydro.plpt_ratio_initial;								// initial pl/pt ratio
 
 	double e = e0;
-	double pl = e0 * plpt_ratio / (2. + plpt_ratio);							// using the conformal formula I think 
-	
+	double pl = e0 * plpt_ratio / (2. + plpt_ratio);							// using the conformal formula I think
+
 	double T_freeze = hydro.freezeout_temperature_GeV;
 	double e_freeze = equilibriumEnergyDensity(T_freeze / hbarc, conformal_eos_prefactor);
 
@@ -101,7 +103,7 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 		double plk4 = dt * dpl_dt(e + ek3, pl + plk3, t + dt, hydro);
 
 		e  += (ek1   +  2. * ek2   +  2. * ek3   +  ek4) / 6.;
-		pl += (plk1  +  2. * plk2  +  2. * plk3  +  plk4) / 6.;		
+		pl += (plk1  +  2. * plk2  +  2. * plk3  +  plk4) / 6.;
 
 		t += dt;
 
