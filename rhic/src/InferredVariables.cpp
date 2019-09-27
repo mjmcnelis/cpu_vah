@@ -252,13 +252,15 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 
 				precision M_squared = Mx * Mx  +  My * My  +  t2 * Mn * Mn;
 
-			#ifndef PI
+			#ifdef CONFORMAL_EOS
 				precision e_s = energy_density_cutoff(e_min, - Mt  +  sqrt(fabs(4. * Mt * Mt  -  3. * M_squared)));
 			#else
 				// add root-solving algorithm (use a function)
 				// initial guess (need ePrev)
 				precision ePrev = e[s];
-				precision e_s;
+
+				precision e_s = ttt;	// temp
+
 				// root solving algorithm (update e)
 			#endif
 

@@ -182,7 +182,7 @@ double run_semi_analytic_aniso_gubser(lattice_parameters lattice, initial_condit
 	double r_max = (nx - 1.) * dx / sqrt(2.);				// distance to transverse corner
 
 	double T_freeze = hydro.freezeout_temperature_GeV;
-	double e_freeze = equilibriumEnergyDensity(T_freeze / hbarc, hydro.conformal_eos_prefactor);
+	double e_freeze = equilibrium_energy_density(T_freeze / hbarc, hydro.conformal_eos_prefactor);
 
 	double t = t0;
 
@@ -203,7 +203,7 @@ double run_semi_analytic_aniso_gubser(lattice_parameters lattice, initial_condit
 		double  e_hat[rho_pts];
 		double pl_hat[rho_pts];
 
-		 e_hat[0] = equilibriumEnergyDensity(T0_hat, hydro.conformal_eos_prefactor);
+		 e_hat[0] = equilibrium_energy_density(T0_hat, hydro.conformal_eos_prefactor);
 		pl_hat[0] = e_hat[0] * plpt_ratio / (2. + plpt_ratio);
 
 		gubser_rho_evolution(e_hat, pl_hat, rho_array, rho_pts, drho, t, hydro);

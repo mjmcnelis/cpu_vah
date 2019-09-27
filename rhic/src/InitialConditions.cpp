@@ -136,10 +136,10 @@ void set_equilibrium_initial_condition(int nx, int ny, int nz)
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
 			#ifdef ANISO_HYDRO
-				precision e_s = e[s];
-				q[s].pl = equilibriumPressure(e_s);
+				equation_of_state eos(e[s]);
+				q[s].pl = eos.equilibrium_pressure();
 			#if (PT_MATCHING == 1)
-				q[s].pt = equilibriumPressure(e_s);
+				q[s].pt = q[s].pl;
 			#endif
 			#endif
 
@@ -258,7 +258,8 @@ void set_anisotropic_initial_condition(int nx, int ny, int nz, hydro_parameters 
 		  	#endif
 
 		  	#ifdef PI
-		  		q[s].Pi = e_s/3.  -  equilibriumPressure(e_s);	// switching from conformal eos to lattice
+		  		equation_of_state eos(e_s);
+		  		q[s].Pi = e_s/3.  -  eos.equilibrium_pressure();	// switching from conformal eos to lattice
 		  	#endif
 
 		  	#endif
@@ -292,7 +293,7 @@ void set_Glauber_energy_density_and_flow_profile(int nx, int ny, int nz, double 
 	int initialConditionType = initial.initialConditionType;
 
 	double T0 = initial.initialCentralTemperatureGeV;									// central temperature (GeV)
-	double e0 = equilibriumEnergyDensity(T0 / hbarc, hydro.conformal_eos_prefactor);	// energy density scale factor
+	double e0 = equilibrium_energy_density(T0 / hbarc, hydro.conformal_eos_prefactor);	// energy density scale factor
 
 	precision e_min = hydro.energy_min;
 

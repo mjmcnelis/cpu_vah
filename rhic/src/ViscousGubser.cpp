@@ -171,7 +171,7 @@ double run_semi_analytic_viscous_gubser(lattice_parameters lattice, initial_cond
 	double r_max = (nx - 1.) * dx / sqrt(2.);							// distance to transverse corner
 
 	double T_freeze = hydro.freezeout_temperature_GeV;
-	double e_freeze = equilibriumEnergyDensity(T_freeze / hbarc, hydro.conformal_eos_prefactor);
+	double e_freeze = equilibrium_energy_density(T_freeze / hbarc, hydro.conformal_eos_prefactor);
 
 	double t = t0;
 

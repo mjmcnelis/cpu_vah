@@ -9,39 +9,6 @@
 #include "../include/Projections.h"
 #include "../include/Parameters.h"
 
-#define A_1 -13.77
-#define A_2 27.55
-#define A_3 13.45
-
-#define LAMBDA_1 0.9
-#define LAMBDA_2 0.25
-#define LAMBDA_3 0.9
-#define LAMBDA_4 0.22
-
-#define SIGMA_1 0.025
-#define SIGMA_2 0.13
-#define SIGMA_3 0.0025
-#define SIGMA_4 0.022
-
-
-inline precision zetabar(precision T)
-{
-	precision x = T / 1.01355;
-
-	if(x > 1.05)
-	{
-		return LAMBDA_1*exp(-(x-1)/SIGMA_1) + LAMBDA_2*exp(-(x-1)/SIGMA_2)+0.001;
-	}
-	else if(x < 0.995)
-	{
-		return LAMBDA_3*exp((x-1)/SIGMA_3)+ LAMBDA_4*exp((x-1)/SIGMA_4)+0.03;
-	}
-	else
-	{
-		return A_1*x*x + A_2*x - A_3;
-	}
-}
-
 
 inline precision central_derivative(const precision * const __restrict__ f, int n, precision dx)
 {
@@ -915,7 +882,7 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	// bulk transport coefficients
 	precision third_cs2 = 1./3. - cs2;
 	precision betabulk = 15. * third_cs2 * third_cs2 * (e + p);
-	precision taubulkInv = 15. * third_cs2 * third_cs2 * T / zetabar(T);
+	precision taubulkInv = 15. * third_cs2 * third_cs2 * T / zeta_over_s(T, hydro);
 	precision lambda_bulkPipi = 1.6 * third_cs2;
 	precision delta_bulkPibulkPi = 2./3.;
 #else

@@ -239,8 +239,8 @@ void regulate_viscous_currents(precision t, hydro_variables * const __restrict__
 			{
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
-				precision e_s = e[s];
-				precision p = equilibriumPressure(e_s);
+				equation_of_state eos(e[s]);
+				precision p = eos.equilibrium_pressure();
 
 				precision ux = u[s].ux;
 				precision uy = u[s].uy;

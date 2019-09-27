@@ -140,7 +140,8 @@ void output_residual_shear_validity(const hydro_variables * const __restrict__ q
 			#endif
 
 			#else									// get transverse pressure and double-transverse project viscous hydro shear stress
-				precision P = equilibriumPressure(e_s);
+				equation_of_state eos(e_s);
+				precision P = eos.equilibrium_pressure();
 
 			#ifdef PI
 				P += q[s].Pi;
@@ -181,10 +182,12 @@ void output_residual_shear_validity(const hydro_variables * const __restrict__ q
 void output_viscous_bjorken(const hydro_variables * const __restrict__ q, const precision * const e, precision e0, precision t, lattice_parameters lattice, hydro_parameters hydro)
 {
 #ifndef ANISO_HYDRO
-	FILE *energy, *plptratio;
+	FILE *energy, *plptratio, *Rpi_inverse, *Rbulk_inverse;
 
 	energy = fopen("output/eratio.dat", "a");
 	plptratio = fopen("output/plptratio.dat", "a");
+	Rpi_inverse = fopen("output/Rpi_inverse.dat", "a");
+	Rbulk_inverse = fopen("output/Rbulk_inverse.dat", "a");
 
 	int s = central_index(lattice);
 
@@ -208,11 +211,15 @@ void output_viscous_bjorken(const hydro_variables * const __restrict__ q, const 
 	precision pl = p  +  Pi  +  t * t * pinn;
 	precision pt = p  +  Pi  -  t * t * pinn / 2.;
 
-	fprintf(energy, 	"%.8f\t%.8e\n", t, e_s / e0);
-	fprintf(plptratio, 	"%.8f\t%.8e\n", t, pl / pt);
+	fprintf(energy,			"%.8f\t%.8e\n", t, e_s / e0);
+	fprintf(plptratio,		"%.8f\t%.8e\n", t, pl / pt);
+	fprintf(Rpi_inverse,	"%.8f\t%.8e\n", t, sqrt(2.)/3. * fabs(pl - pt) / p);
+	fprintf(Rbulk_inverse,	"%.8f\t%.8e\n", t, fabs(Pi) / p);
 
 	fclose(energy);
 	fclose(plptratio);
+	fclose(Rpi_inverse);
+	fclose(Rbulk_inverse);
 #endif
 }
 
@@ -449,7 +456,7 @@ void output_dynamical_variables(double t, double dt, lattice_parameters lattice,
 	if(initial_type == 1)
 	{
 		precision T0 = initial.initialCentralTemperatureGeV;
-		precision e0 = equilibriumEnergyDensity(T0 / hbarc, hydro.conformal_eos_prefactor);
+		precision e0 = equilibrium_energy_density(T0 / hbarc, hydro.conformal_eos_prefactor);
 
 	#ifdef ANISO_HYDRO
 		output_aniso_bjorken(q, e, e0, t, lattice, hydro);

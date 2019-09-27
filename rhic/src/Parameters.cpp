@@ -98,6 +98,18 @@ hydro_parameters load_hydro_parameters()
 		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
 		delimiterPos = line.find("=");
 		line = line.substr(delimiterPos + 1);
+		hydro.zetas_normalization_factor = atof(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		hydro.zetas_peak_temperature_GeV = atof(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
 		hydro.freezeout_temperature_GeV = atof(line.c_str());
 
 		getline(cFile, line);
@@ -145,22 +157,24 @@ hydro_parameters load_hydro_parameters()
 
 	printf("\nHydro parameters:");
 	printf("\n-----------------\n");
-	printf("run_hydro                 = %d\n",		hydro.run_hydro);
-	printf("tau_initial               = %.3g\n",	hydro.tau_initial);
-	printf("plpt_ratio_initial        = %.2g\n", 	hydro.plpt_ratio_initial);
-	printf("quark_flavors             = %.1f\n", 	quark_flavors);
-	printf("conformal_eos_prefactor   = %.6g\n", 	hydro.conformal_eos_prefactor);
-	printf("temperature_etas          = %d\n", 		hydro.temperature_etas);
-	printf("etas_min                  = %.3g\n", 	hydro.etas_min);
-	printf("etas_slope                = %.3g\n", 	hydro.etas_slope);
-	printf("constant_etas             = %.3g\n", 	hydro.constant_etas);
-	printf("freezeout_temperature_GeV = %.3f\n", 	hydro.freezeout_temperature_GeV);
-	printf("flux_limiter              = %.3g\n", 	hydro.flux_limiter);
-	printf("include_vorticity         = %d\n", 		hydro.include_vorticity);
-	printf("energy_min                = %.1e\n", 	hydro.energy_min);
-	printf("pressure_min              = %.1e\n", 	hydro.pressure_min);
-	printf("regulation_scheme         = %d\n", 		hydro.regulation_scheme);
-	printf("rho_max                   = %.2f\n", 	hydro.rho_max);
+	printf("run_hydro                  = %d\n",		hydro.run_hydro);
+	printf("tau_initial                = %.3g\n",	hydro.tau_initial);
+	printf("plpt_ratio_initial         = %.2g\n", 	hydro.plpt_ratio_initial);
+	printf("quark_flavors              = %.1f\n", 	quark_flavors);
+	printf("conformal_eos_prefactor    = %.6g\n", 	hydro.conformal_eos_prefactor);
+	printf("temperature_etas           = %d\n", 	hydro.temperature_etas);
+	printf("etas_min                   = %.3g\n", 	hydro.etas_min);
+	printf("etas_slope                 = %.3g\n", 	hydro.etas_slope);
+	printf("constant_etas              = %.3g\n", 	hydro.constant_etas);
+	printf("zetas_normalization_factor = %.3g\n", 	hydro.zetas_normalization_factor);
+	printf("zetas_peak_temperature_GeV = %.3g\n", 	hydro.zetas_peak_temperature_GeV);
+	printf("freezeout_temperature_GeV  = %.3f\n", 	hydro.freezeout_temperature_GeV);
+	printf("flux_limiter               = %.3g\n", 	hydro.flux_limiter);
+	printf("include_vorticity          = %d\n", 	hydro.include_vorticity);
+	printf("energy_min                 = %.1e\n", 	hydro.energy_min);
+	printf("pressure_min               = %.1e\n", 	hydro.pressure_min);
+	printf("regulation_scheme          = %d\n", 	hydro.regulation_scheme);
+	printf("rho_max                    = %.2f\n", 	hydro.rho_max);
 	printf("\n");
 
 	if(hydro.tau_initial == 0)

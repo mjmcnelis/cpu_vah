@@ -61,7 +61,7 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 	int decimal = - log10(dt);													// setprecision value for t output
 
 	double conformal_eos_prefactor = hydro.conformal_eos_prefactor;
-	double e0 = equilibriumEnergyDensity(T0 / hbarc, conformal_eos_prefactor);	// initial energy density
+	double e0 = equilibrium_energy_density(T0 / hbarc, conformal_eos_prefactor);	// initial energy density
 
 	double plpt_ratio = hydro.plpt_ratio_initial;								// initial pl/pt ratio
 
@@ -69,7 +69,7 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 	double pl = e0 * plpt_ratio / (2. + plpt_ratio);							// using the conformal formula I think
 
 	double T_freeze = hydro.freezeout_temperature_GeV;
-	double e_freeze = equilibriumEnergyDensity(T_freeze / hbarc, conformal_eos_prefactor);
+	double e_freeze = equilibrium_energy_density(T_freeze / hbarc, conformal_eos_prefactor);
 
 	ofstream e_e0_plot;
 	ofstream pl_pt_plot;

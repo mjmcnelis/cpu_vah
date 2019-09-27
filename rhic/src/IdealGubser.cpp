@@ -58,7 +58,7 @@ void set_ideal_gubser_initial_conditions(lattice_parameters lattice, precision d
 
 			precision T = (T0_hat / t) * pow(4. * q02 * t2 / (1.  +  2. * q02 * (t2 + r2)  +  q04 * (t2 - r2) * (t2 - r2)), 1./3.);
 
-			precision e_s = equilibriumEnergyDensity(T, conformal_eos_prefactor);
+			precision e_s = equilibrium_energy_density(T, conformal_eos_prefactor);
 
 			double ux = sinh(kappa) * x / r;
 			double uy = sinh(kappa) * y / r;

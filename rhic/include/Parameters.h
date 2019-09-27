@@ -17,6 +17,9 @@ typedef struct
 	double etas_slope;
 	double constant_etas;
 
+	double zetas_normalization_factor;
+	double zetas_peak_temperature_GeV;
+
 	double freezeout_temperature_GeV;
 	double flux_limiter;
 	int include_vorticity;

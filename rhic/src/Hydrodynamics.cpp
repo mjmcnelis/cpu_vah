@@ -37,7 +37,7 @@ bool all_cells_below_freezeout_temperature(lattice_parameters lattice, hydro_par
 	int nz = lattice.lattice_points_eta;
 
 	precision T_switch = hydro.freezeout_temperature_GeV;
-	precision e_switch = equilibriumEnergyDensity(T_switch / hbarc, hydro.conformal_eos_prefactor);
+	precision e_switch = equilibrium_energy_density(T_switch / hbarc, hydro.conformal_eos_prefactor);
 
 	for(int k = 2; k < nz + 2; k++)
 	{
