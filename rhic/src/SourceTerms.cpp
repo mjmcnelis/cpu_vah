@@ -6,6 +6,7 @@
 #include "../include/DynamicalVariables.h"
 #include "../include/EquationOfState.h"
 #include "../include/TransportCoefficients.h"
+#include "../include/TransportViscous.h"
 #include "../include/Projections.h"
 #include "../include/Parameters.h"
 
@@ -63,7 +64,7 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 
 	// shear and bulk viscosities
 	precision etabar = eta_over_s(T, hydro);
-	precision zetabar = 0;
+	precision zetabar = zeta_over_s(T, hydro);
 
 	// conserved variables
 	precision ttt = q[0];
@@ -417,7 +418,7 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	precision sTtt = dut_dt;
 	precision sTtx = (dux_dt  -  dut_dx) / 2.;
 	precision sTty = (duy_dt  -  dut_dy) / 2.;
-	precision sTtn = (dun_dt  +  un / t  -  (dut_dn  +  tun) / t2) / 2.;  // I don't see anything wrong here...
+	precision sTtn = (dun_dt  +  un / t  -  (dut_dn  +  tun) / t2) / 2.;
 	precision sTxx = - dux_dx;
 	precision sTxy = - (dux_dy  +  duy_dx) / 2.;
 	precision sTxn = - (dun_dx  +  dux_dn / t2) / 2.;
@@ -814,6 +815,10 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	precision cs2 = eos.speed_of_sound_squared();
 	precision T = eos.effective_temperature(hydro.conformal_eos_prefactor);
 
+#if (NUMBER_OF_VISCOUS_CURRENTS != 0)
+	viscous_transport_coefficients viscous(T, e, p);
+#endif
+
 	precision ttt = q[0];				// hydro variables
 	precision ttx = q[1];
 	precision tty = q[2];
@@ -855,13 +860,14 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 
 	precision pinn = q[a];	a++;
 
-	// shear transport coefficients
 	precision etas = eta_over_s(T, hydro);
-	precision taupiInv = T / (5. * etas);
-	precision betapi = (e + p) / 5.;
-	precision delta_pipi = 4./3.;
-	precision tau_pipi = 10./7;
-	precision lambda_pibulkPi = 1.2;
+	viscous.compute_shear_transport_coefficients(etas);
+
+	precision taupiInv = viscous.taupi_inverse;
+	precision betapi = viscous.betapi;
+	precision delta_pipi = viscous.delta_pipi;
+	precision tau_pipi = viscous.tau_pipi;
+	precision lambda_pibulkPi = viscous.lambda_pibulkPi;
 #else
 	precision pitt = 0;
 	precision pitx = 0;
@@ -879,12 +885,13 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 #ifdef PI
 	precision Pi = q[a];
 
-	// bulk transport coefficients
-	precision third_cs2 = 1./3. - cs2;
-	precision betabulk = 15. * third_cs2 * third_cs2 * (e + p);
-	precision taubulkInv = 15. * third_cs2 * third_cs2 * T / zeta_over_s(T, hydro);
-	precision lambda_bulkPipi = 1.6 * third_cs2;
-	precision delta_bulkPibulkPi = 2./3.;
+	precision zetas = zeta_over_s(T, hydro);
+	viscous.compute_bulk_transport_coefficients(zetas, 1./3. - cs2);
+
+	precision betabulk = viscous.betabulk;
+	precision taubulkInv = viscous.taubulk_inverse;
+	precision lambda_bulkPipi = viscous.lambda_bulkPipi;
+	precision delta_bulkPibulkPi = viscous.delta_bulkPibulkPi;
 #else
 	precision Pi = 0;
 #endif
