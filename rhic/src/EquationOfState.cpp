@@ -95,7 +95,8 @@ precision equation_of_state::equilibrium_pressure()
 #else
 	p = e1 / 3.;
 #endif
-	return p;
+	return fmax(p, 0.);
+	//return p;
 }
 
 
@@ -138,6 +139,7 @@ precision equation_of_state::speed_of_sound_squared()
 #else
 	cs2 = 1./3.;
 #endif
+	//return fmax(cs2, 0.);
 	return cs2;
 }
 
@@ -178,6 +180,7 @@ precision equation_of_state::effective_temperature(precision conformal_prefactor
 #else
 	T = pow(e1 / conformal_prefactor, 0.25);
 #endif
+	//return fmax(T, 0.);
 	return T;
 }
 
@@ -239,6 +242,7 @@ precision equation_of_state::z_quasi(precision T)
 #else
 	z = 0;
 #endif
+	//return fmax(z, 0.);
 	return z;
 }
 

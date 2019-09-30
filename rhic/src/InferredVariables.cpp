@@ -211,13 +211,6 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 
 	precision e_min = hydro.energy_min;
 
-	equation_of_state eos_min(e_min);
-	precision p_min = eos_min.equilibrium_pressure();
-	precision cs2_min = eos_min.speed_of_sound_squared();
-
-	//printf("p_min = %.3g\n", p_min);
-	//printf("cs2_min = %.3g\n", cs2_min);
-
 	precision t2 = t * t;
 
 	for(int k = 2; k < nz + 2; k++)
@@ -269,146 +262,41 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 			#ifdef CONFORMAL_EOS
 				precision e_s = energy_density_cutoff(e_min, - Mt  +  sqrt(fabs(4. * Mt * Mt  -  3. * M_squared)));
 			#else
-				precision e_s;
 
+				precision eprev = e[s];
 
+				precision e_s = eprev;				// initial guess is previous energy density
 
-/*
-				bool non_emin_solution = true;
-
-			#ifdef PI
-				if((Mt - e_min) * (Mt + p_min + Pi)  -  M_squared < 0.)
+				int n;
+				const int n_max = 100;
+				for(n = 1; n <= n_max; n++)			// root solving algorithm (update e)
 				{
-					Pi = (M_squared  -  (Mt + p_min) * (Mt - e_min)) / (Mt - e_min);
-
-					if(((cs2_min - 1.) * Mt  -  Pi) <= 0.)
+					equation_of_state EoS(e_s);
+					precision p = EoS.equilibrium_pressure();
+					
+					if(p + Pi <= 0.) 				// regulate the pressure to zero 
 					{
-						e_s = e_min;
-						non_emin_solution = false;
+						e_s = Mt  -  M_squared / Mt;
+						break;
 					}
+
+					precision cs2 = EoS.speed_of_sound_squared();
+					
+					precision f = (Mt - e_s) * (Mt + p + Pi)  -  M_squared;
+
+					precision fprime = cs2 * (Mt - e_s)  -  (Mt + p + Pi);
+
+					precision de = - f / fprime;
+
+					e_s += de;
+
+					if(e_s < e_min) break;
+
+					if(fabs(de / e_s) <= 1.e-4) break;
 				}
-			#endif
 
-				if(non_emin_solution)
-				{
-					e_s = e[s];				// initial guess is previous energy density
-					precision eprev = e_s;	// for tracking convergence
+				if(n > n_max) printf("newton method (eprev, e_s) = (%lf, %lf) failed to converge at (i, j, k) = (%d, %d, %d)\n", eprev, e_s, i, j, k);
 
-					// debug the bulk pressure here
-					int n;
-					const int n_max = 100;
-					for(n = 1; n <= n_max; n++)			// root solving algorithm (update e)
-					{
-						equation_of_state EoS(e_s);
-						precision p = EoS.equilibrium_pressure();
-						precision cs2 = EoS.speed_of_sound_squared();
-						precision cst2 = p / e_s;
-
-						// should I regulate Pi here?
-
-						// why even use this function manipulation at all?
-						precision A = Mt * (1. - cst2)  +  Pi;
-						precision B = Mt * (Mt + Pi)  -  M_squared;
-						precision H = sqrt(fabs(A * A  +  4. * cst2 * B));
-						precision D = (A - H) / (2. * cst2);
-
-						precision f = e_s + D;
-						precision fprime = 1. - ((cs2 - cst2) * (B  +  D * H  -  ((cs2 - cst2) * cst2 * D * Mt) / e_s)) / (cst2 * e_s * H);
-
-						precision de = - f / fprime;
-
-						eprev = e_s;
-
-						e_s += de;
-
-						if(e_s < e_min) break;
-						if(fabs(de) <= 1.e-3 * fmax(1., e_s)) break;
-					}
-
-					if(n > n_max) printf("newton method (eprev, e_s) = (%lf, %lf) failed to converge at (i, j, k) = (%d, %d, %d)\n", eprev, e_s, i, j, k);
-					//printf("%d\n", n);
-
-				}
-*/
-
-
-			/*
-				if(Mt <= e_min)  			// since e < Mt
-				{
-					e_s = e_min;			// is this necessary?
-				}
-				else 						// check that the is bracketed
-				{
-
-					precision eL = e_min;
-					precision eR = 1.001 * Mt;
-
-					equation_of_state eosL(eL);
-					equation_of_state eosR(eR);
-
-					precision pL = eosL.equilibrium_pressure();
-					precision pR = eosR.equilibrium_pressure();
-
-					// let's try to regulate bulk pressure
-
-					precision fL = Mt  -  eL  -  M_squared / (Mt + pL + Pi);
-					precision fR = Mt  -  eR  -  M_squared / (Mt + pR + Pi);
-
-					int sign1 = sign(fL);
-					int sign2 = sign(fR);
-
-					if(sign2 != -1) 	// the third term in fR might be negative if Pi is negative enough
-					{
-						printf("Root bracketing error: fR = %.4g is not negative (pR, Mt, Pi) = (%.3g, %.3g, %.3g)\n", fR, pR, Mt, Pi);
-						exit(-1);
-					}
-
-					if(sign1 == sign2)		// the root is not bracketed in the region [e_min, 1.01 * Mt]
-					//if(false)
-					{
-						e_s = e_min;
-					}
-					else
-					{
-						e_s = e[s];				// initial guess is previous energy density
-						precision eprev = e_s;	// for tracking convergence
-
-						// debug the bulk pressure here
-						int n;
-						const int n_max = 100;
-						for(n = 1; n <= n_max; n++)			// root solving algorithm (update e)
-						{
-							equation_of_state EoS(e_s);
-							precision p = EoS.equilibrium_pressure();
-							precision cs2 = EoS.speed_of_sound_squared();
-							precision cst2 = p / e_s;
-
-							// should I regulate Pi here?
-
-							// why even use this function manipulation at all?
-							precision A = Mt * (1. - cst2)  +  Pi;
-							precision B = Mt * (Mt + Pi)  -  M_squared;
-							precision H = sqrt(fabs(A * A  +  4. * cst2 * B));
-							precision D = (A - H) / (2. * cst2);
-
-							precision f = e_s + D;
-							precision fprime = 1. - ((cs2 - cst2) * (B  +  D * H  -  ((cs2 - cst2) * cst2 * D * Mt) / e_s)) / (cst2 * e_s * H);
-
-							precision de = - f / fprime;
-
-							eprev = e_s;
-
-							e_s += de;
-
-							if(e_s < e_min) break;
-							if(fabs(de) <= 1.e-3 * fmax(1., e_s)) break;
-						}
-
-						if(n > n_max) printf("newton method (eprev, e_s) = (%lf, %lf) failed to converge at (i, j, k) = (%d, %d, %d)\n", eprev, e_s, i, j, k);
-						//printf("%d\n", n);
-					}
-				}
-			*/
 
 				if(std::isnan(e_s))
 				{
@@ -421,6 +309,8 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 
 				equation_of_state eos(e_s);
 				precision p = eos.equilibrium_pressure();
+
+				precision P = fmax(0., p + Pi);
 
 				precision ut = sqrt(fabs((Mt + p + Pi) / (e_s + p + Pi)));
 				precision ux = Mx / ut / (e_s + p + Pi);
@@ -440,10 +330,10 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 			#ifdef TEST_TTAUMU
 				ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t2 * un * un);
 
-				precision dttt = fabs((e_s + p + Pi) * ut * ut  -  (p + Pi)  +  pitt  -  ttt);
-				precision dttx = fabs((e_s + p + Pi) * ut * ux  +  pitx  -  ttx);
-				precision dtty = fabs((e_s + p + Pi) * ut * uy  +  pity  -  tty);
-				precision dttn = fabs((e_s + p + Pi) * ut * un  +  pitn  -  ttn);
+				precision dttt = fabs((e_s + P) * ut * ut  -  P  +  pitt  -  ttt);
+				precision dttx = fabs((e_s + P) * ut * ux  +  pitx  -  ttx);
+				precision dtty = fabs((e_s + P) * ut * uy  +  pity  -  tty);
+				precision dttn = fabs((e_s + P) * ut * un  +  pitn  -  ttn);
 
 				if(dttt > ttt_error || dttx > ttx_error || dtty > tty_error || dttn > ttn_error)
 				{

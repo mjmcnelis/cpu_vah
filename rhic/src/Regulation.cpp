@@ -170,7 +170,7 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 					{
 						precision Tres = sqrt(fabs(2. * (WtTz * WtTz  -  WxTz * WxTz  -  WyTz * WyTz  -  t2 * WnTz * WnTz)  +  pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
 
- 						precision factor = Taniso / (1.e-8 + Tres);
+ 						precision factor = fabs(Taniso / (1.e-8 + Tres));
 
  						if(factor < 1.)
  						{
@@ -318,7 +318,7 @@ void regulate_viscous_currents(precision t, hydro_variables * const __restrict__
 					{
 						precision Tvisc = sqrt(3. * Pi * Pi  + fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
 
-						precision factor = Teq / (1.e-10 + Tvisc);
+						precision factor = fabs(Teq / (1.e-10 + Tvisc));
 
 						if(factor < 1.)
 						{
