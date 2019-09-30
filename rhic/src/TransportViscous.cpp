@@ -33,7 +33,7 @@ void viscous_transport_coefficients::compute_shear_transport_coefficients(precis
 
 void viscous_transport_coefficients::compute_bulk_transport_coefficients(precision zetas, precision third_cs2)
 {
-#ifdef PIMUNU
+#ifdef PI
 	taubulk_inverse	= 15. * third_cs2 * third_cs2 * T / zetas;		// double check this
 	betabulk = 15. * third_cs2 * third_cs2 * (e + p);
 	lambda_bulkPipi = 1.6 * third_cs2;

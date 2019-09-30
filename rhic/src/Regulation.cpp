@@ -84,7 +84,7 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 				precision zn = 1. / t;
 			#endif
 
-				precision Taniso = sqrt_two * pt; 
+				precision Taniso = sqrt_two * pt;
 			#ifdef WTZMU
 				Taniso = sqrt(pl * pl  +  2. * pt * pt);
 			#endif
@@ -163,13 +163,13 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 
 						factor_pi = tanh_function(pi_mag / (rho_max * Taniso));
 						factor_W = tanh_function(WTz_mag / (rho_max * Taniso));
-						
+
 						break;
 					}
 					case 1:
 					{
 						precision Tres = sqrt(fabs(2. * (WtTz * WtTz  -  WxTz * WxTz  -  WyTz * WyTz  -  t2 * WnTz * WnTz)  +  pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
- 						
+
  						precision factor = Taniso / (1.e-8 + Tres);
 
  						if(factor < 1.)
@@ -273,7 +273,7 @@ void regulate_viscous_currents(precision t, hydro_variables * const __restrict__
 				precision pitn = 0;
 				precision pixn = 0;
 				precision piyn = 0;
-			#endif 
+			#endif
 				// enforce orthogonality and tracelessness
 				pinn = (pixx * (ux * ux  -  ut * ut)  +  piyy * (uy * uy  -  ut * ut)  +  2. * (pixy * ux * uy  +  t2 * un * (pixn * ux  +  piyn * uy))) / (t2 * utperp * utperp);
          		pitn = (pixn * ux  +  piyn * uy  +  t2 * un * pinn) / ut;
@@ -293,12 +293,12 @@ void regulate_viscous_currents(precision t, hydro_variables * const __restrict__
 				precision pinn = 0;
 			#endif
 
-			#ifdef PI 
+			#ifdef PI
 				precision Pi = q[s].Pi;
 			#else
 				precision Pi = 0;
 			#endif
- 	
+
  				precision factor_pi = 1;
  				precision factor_bulk = 1;
 
@@ -311,15 +311,15 @@ void regulate_viscous_currents(precision t, hydro_variables * const __restrict__
 
 						factor_pi = tanh_function(pi_mag / (rho_max * Teq));
 						factor_bulk = tanh_function(fabs(sqrt_three * Pi / (rho_max * Teq)));
-				
+
 						break;
 					}
 					case 1:		// only do regulation if viscous Tmunu magnitude > equilibrium part
 					{
-						precision Tvisc = sqrt(fabs(3. * Pi * Pi  +  pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
+						precision Tvisc = sqrt(3. * Pi * Pi  + fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
 
-						precision factor = Teq / (1.e-8 + Tvisc);
-					
+						precision factor = Teq / (1.e-10 + Tvisc);
+
 						if(factor < 1.)
 						{
 							factor_pi = factor;
