@@ -266,15 +266,16 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 				precision eprev = e[s];
 
 				precision e_s = eprev;					// initial guess is previous energy density
+				precision de;
 
 				int n;
-				const int n_max = 10;
-				for(n = 1; n <= n_max; n++)				// root solving algorithm (update e)
+				
+				for(n = 1; n <= 10; n++)				// root solving algorithm (update e)
 				{
 					equation_of_state EoS(e_s);
 					precision p = EoS.equilibrium_pressure();
 
-					if(p + Pi <= 0.) 					// regulate the pressure to zero
+					if(p + Pi <= 0.) 					// solution when have to regulate bulk pressure 
 					{
 						e_s = Mt  -  M_squared / Mt;
 						break;
@@ -286,7 +287,7 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 
 					precision fprime = cs2 * (Mt - e_s)  -  (Mt + p + Pi);
 
-					precision de = - f / fprime;
+					de = - f / fprime;
 
 					e_s += de;
 
@@ -294,27 +295,20 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 					{
 						break;
 					}
-					else if(fabs(de / e_s) <= 1.e-4)
+					else if(fabs(de / e_s) <= 1.e-5)
 					{
 						break;
 					}
 				}
 
-				if(n > n_max) printf("newton method (eprev, e_s) = (%lf, %lf) failed to converge at (i, j, k) = (%d, %d, %d)\n", eprev, e_s, i, j, k);
+				if(n > 10) printf("newton method (eprev, e_s, de) = (%.6g, %.6g, %.6g) failed to converge at (i, j, k) = (%d, %d, %d)\n", eprev, e_s, de, i, j, k);
 
 			#endif
 				e_s = energy_density_cutoff(e_min, e_s);
 
-				if(std::isnan(e_s))
-				{
-					printf("\nget_inferred_variables_viscous_hydro error: e = %lf\n", e_s);
-					exit(-1);
-				}
-
 				equation_of_state eos(e_s);
 				precision p = eos.equilibrium_pressure();
 
-				//precision P = p + Pi;
 				precision P = fmax(0., p + Pi);
 
 				precision ut = sqrt(fabs((Mt + P) / (e_s + P)));
@@ -326,19 +320,19 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 				precision un = 0;
 			#endif
 
-				if(std::isnan(ut))
+				if(std::isnan(e_s) || std::isnan(ut))
 				{
-					printf("\nget_inferred_variables_viscous_hydro error: u^mu = (%lf, %lf, %lf, %lf)\n", ut, ux, uy, un);
+					printf("\nget_inferred_variables_viscous_hydro error: (e, ut) = (%lf, %lf) \n", e_s, ut);
 					exit(-1);
 				}
 
 			#ifdef TEST_TTAUMU
 				ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t2 * un * un);
 
-				precision dttt = fabs((e_s + P) * ut * ut  -  P  +  pitt  -  ttt);
-				precision dttx = fabs((e_s + P) * ut * ux  +  pitx  -  ttx);
-				precision dtty = fabs((e_s + P) * ut * uy  +  pity  -  tty);
-				precision dttn = fabs((e_s + P) * ut * un  +  pitn  -  ttn);
+				precision dttt = fabs((e_s + p + Pi) * ut * ut  -  p  -  Pi +  pitt  -  ttt);
+				precision dttx = fabs((e_s + p + Pi) * ut * ux  +  pitx  -  ttx);
+				precision dtty = fabs((e_s + p + Pi) * ut * uy  +  pity  -  tty);
+				precision dttn = fabs((e_s + p + Pi) * ut * un  +  pitn  -  ttn);
 
 				if(dttt > ttt_error || dttx > ttx_error || dtty > tty_error || dttn > ttn_error)
 				{
@@ -346,7 +340,7 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 					ttx_error = fmax(dttx, ttx_error);
 					tty_error = fmax(dtty, tty_error);
 					ttn_error = fmax(dttn, ttn_error);
-					printf("get_inferred_variables_viscous_hydro: |dt^{tau/mu}| = (%.6g, %.6g, %.6g, %.6g)\n", ttt_error, ttx_error, tty_error, ttn_error);
+					printf("get_inferred_variables_viscous_hydro: |dt^{tau/mu}| = (%.6g, %.6g, %.6g, %.6g) at %d, %d, %d \n", ttt_error, ttx_error, tty_error, ttn_error, i, j, k);
 				}
 			#endif
 
