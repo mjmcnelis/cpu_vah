@@ -265,23 +265,23 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 
 				precision eprev = e[s];
 
-				precision e_s = eprev;				// initial guess is previous energy density
+				precision e_s = eprev;					// initial guess is previous energy density
 
 				int n;
-				const int n_max = 100;
-				for(n = 1; n <= n_max; n++)			// root solving algorithm (update e)
+				const int n_max = 10;
+				for(n = 1; n <= n_max; n++)				// root solving algorithm (update e)
 				{
 					equation_of_state EoS(e_s);
 					precision p = EoS.equilibrium_pressure();
-					
-					if(p + Pi <= 0.) 				// regulate the pressure to zero 
+
+					if(p + Pi <= 0.) 					// regulate the pressure to zero
 					{
 						e_s = Mt  -  M_squared / Mt;
 						break;
 					}
 
 					precision cs2 = EoS.speed_of_sound_squared();
-					
+
 					precision f = (Mt - e_s) * (Mt + p + Pi)  -  M_squared;
 
 					precision fprime = cs2 * (Mt - e_s)  -  (Mt + p + Pi);
@@ -290,13 +290,20 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 
 					e_s += de;
 
-					if(e_s < e_min) break;
-
-					if(fabs(de / e_s) <= 1.e-4) break;
+					if(e_s < e_min)						// stop iterating if e -> 0
+					{
+						break;
+					}
+					else if(fabs(de / e_s) <= 1.e-4)
+					{
+						break;
+					}
 				}
 
 				if(n > n_max) printf("newton method (eprev, e_s) = (%lf, %lf) failed to converge at (i, j, k) = (%d, %d, %d)\n", eprev, e_s, i, j, k);
 
+			#endif
+				e_s = energy_density_cutoff(e_min, e_s);
 
 				if(std::isnan(e_s))
 				{
@@ -304,19 +311,17 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 					exit(-1);
 				}
 
-			#endif
-				e_s = energy_density_cutoff(e_min, e_s);
-
 				equation_of_state eos(e_s);
 				precision p = eos.equilibrium_pressure();
 
+				//precision P = p + Pi;
 				precision P = fmax(0., p + Pi);
 
-				precision ut = sqrt(fabs((Mt + p + Pi) / (e_s + p + Pi)));
-				precision ux = Mx / ut / (e_s + p + Pi);
-				precision uy = My / ut / (e_s + p + Pi);
+				precision ut = sqrt(fabs((Mt + P) / (e_s + P)));
+				precision ux = Mx / ut / (e_s + P);
+				precision uy = My / ut / (e_s + P);
 			#ifndef BOOST_INVARIANT
-				precision un = Mn / ut / (e_s + p + Pi);
+				precision un = Mn / ut / (e_s + P);
 			#else
 				precision un = 0;
 			#endif
