@@ -6,7 +6,6 @@
 #include "../include/Macros.h"
 #include "../include/EquationOfState.h"
 #include "../include/DynamicalVariables.h"
-#include "../include/TransportCoefficients.h"
 #include "../include/Projections.h"
 #include "../include/NeighborCells.h"
 #include "../include/Hydrodynamics.h"
@@ -38,38 +37,94 @@ int central_index(lattice_parameters lattice)
 }
 
 
-double compute_conformal_aL(double pl, double e)
+void output_inverse_reynolds_number(const hydro_variables * const __restrict__ q, const precision * const e, double t, lattice_parameters lattice)
 {
-	precision x   = pl / e;		// x = pl / e
-	precision x2  = x   * x;
-	precision x3  = x2  * x;
-	precision x4  = x3  * x;
-	precision x5  = x4  * x;
-	precision x6  = x5  * x;
-	precision x7  = x6  * x;
-	precision x8  = x7  * x;
-	precision x9  = x8  * x;
-	precision x10 = x9  * x;
-	precision x11 = x10 * x;
-	precision x12 = x11 * x;
-	precision x13 = x12 * x;
-	precision x14 = x13 * x;
+#ifndef ANISO_HYDRO
+#if (NUMBER_OF_VISCOUS_CURRENTS != 0)
+	int nx = lattice.lattice_points_x;
+	int ny = lattice.lattice_points_y;
+	int nz = lattice.lattice_points_eta;
 
-	precision aL = (5.6098342562962155e-24 + 1.0056714201158781e-17*x + 8.574287549260127e-13*x2 + 8.639689853874967e-9*x3 + 0.000014337184308704522*x4 +
-     0.0047402683487226555*x5 + 0.3461801244895056*x6 + 5.3061287395562*x7 + 3.7804213528647956*x8 - 55.646719325650224*x9 +
-     71.68906037132133*x10 + 0.6485422288016947*x11 - 52.86438720903515*x12 + 32.635674688615836*x13 - 5.899614102635062*x14)/
-   (1.2460117685059638e-20 + 3.9506205613753145e-15*x + 1.090135069930889e-10*x2 + 4.2931027828550746e-7*x3 + 0.00030704101799886117*x4 +
-     0.04575504592470687*x5 + 1.4479634250149949*x6 + 6.077429142899631*x7 - 29.171395065126873*x8 + 13.501854646832847*x9 +
-     65.98203155631907*x10 - 111.65365949648432*x11 + 71.83676912638525*x12 - 19.66184593458614*x13 + 1.5947903161928916*x14);
+	precision dx = lattice.lattice_spacing_x;
+	precision dy = lattice.lattice_spacing_y;
+	precision dn = lattice.lattice_spacing_eta;
 
-   	return fmax(0.001, fmin(aL, 20.0));
-}
+#ifdef PIMUNU
+	FILE *Rpi_inverse;
+	char fname1[255];
+	sprintf(fname1, "output/Rpi_inverse_%.3f.dat", t);
+	Rpi_inverse = fopen(fname1, "w");
+#endif
 
+#ifdef PI
+	FILE *Rbulk_inverse;
+	char fname2[255];
+	sprintf(fname2, "output/Rbulk_inverse_%.3f.dat", t);
+	Rbulk_inverse = fopen(fname2, "w");
+#endif
 
-inline precision central_derivative(const precision * const __restrict__ f, int n, precision dx)
-{
-	// f[n] = fm  |	 f[n+1] = fp  (appears counterintuitive it's f's array structure)
-	return (f[n + 1] - f[n]) / (2. * dx);
+	precision t2 = t * t;
+	precision t4 = t2 * t2;
+
+	for(int k = 2; k < nz + 2; k++)
+	{
+		double z = (k - 2. - (nz - 1.)/2.) * dn;
+
+		for(int j = 2; j < ny + 2; j++)
+		{
+			double y = (j - 2. - (ny - 1.)/2.) * dy;
+
+			for(int i = 2; i < nx + 2; i++)
+			{
+				double x = (i - 2. - (nx - 1.)/2.) * dx;
+
+				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
+
+				equation_of_state eos(e[s]);
+				precision p = eos.equilibrium_pressure();
+		
+			#ifdef PIMUNU
+				precision pitt = q[s].pitt;			// get shear stress
+				precision pitx = q[s].pitx;
+				precision pity = q[s].pity;
+				precision pitn = 0;
+				precision pixx = q[s].pixx;
+				precision pixy = q[s].pixy;
+				precision pixn = 0;
+				precision piyy = q[s].piyy;
+				precision piyn = 0;
+				precision pinn = q[s].pinn;
+
+			#ifndef BOOST_INVARIANT
+				pitn = q[s].pitn;
+				pixn = q[s].pixn;
+				piyn = q[s].piyn;
+			#endif
+
+				precision pi_mag = sqrt(fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
+
+				fprintf(Rpi_inverse, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, fabs(pi_mag / (sqrt(3.) * p)));
+
+			#endif
+
+			#ifdef PI
+				precision Pi = q[s].Pi;
+
+				fprintf(Rbulk_inverse, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, fabs(Pi /  p));
+			#endif				
+			}
+		}
+	}
+#ifdef PIMUNU
+	fclose(Rpi_inverse);
+#endif
+
+#ifdef PI
+	fclose(Rbulk_inverse);
+#endif
+
+#endif
+#endif
 }
 
 
@@ -473,6 +528,7 @@ void output_dynamical_variables(double t, double dt, lattice_parameters lattice,
 	{
 		output_optical_glauber(q, u, e, t, lattice);
 		output_residual_shear_validity(q, u, e, t, lattice);
+		output_inverse_reynolds_number(q, e, t, lattice);
 	}
 }
 

@@ -5,7 +5,7 @@
 #include <cmath>
 #include "../include/Macros.h"
 #include "../include/Hydrodynamics.h"
-#include "../include/TransportCoefficients.h"
+#include "../include/TransportAniso.h"
 #include "../include/DynamicalVariables.h"
 #include "../include/EquationOfState.h"
 #include "../include/Precision.h"
@@ -16,19 +16,19 @@ double dpl_error = 1.e-7;
 double dpt_error = 1.e-7;
 
 
-transport_coefficients::transport_coefficients()
+aniso_transport_coefficients::aniso_transport_coefficients()
 {
 
 }
 
 
-transport_coefficients::~transport_coefficients()
+aniso_transport_coefficients::~aniso_transport_coefficients()
 {
 
 }
 
 
-void transport_coefficients::test_kinetic_solution(precision e, precision pl, precision pt, precision aL2, precision prefactor)
+void aniso_transport_coefficients::test_kinetic_solution(precision e, precision pl, precision pt, precision aL2, precision prefactor)
 {
 	precision e_a  = prefactor * t_200 * aL2;
 	precision pl_a = prefactor * t_220 * aL2;
@@ -49,7 +49,7 @@ void transport_coefficients::test_kinetic_solution(precision e, precision pl, pr
 }
 
 
-void transport_coefficients::compute_hypergeometric_functions(precision z)
+void aniso_transport_coefficients::compute_hypergeometric_functions(precision z)
 {
 	precision z2 = z  * z;
 	precision z3 = z2 * z;
@@ -136,7 +136,7 @@ void transport_coefficients::compute_hypergeometric_functions(precision z)
 }
 
 
-void transport_coefficients::compute_transport_coefficients(precision e, precision pl, precision pt, precision conformal_eos_prefactor)
+void aniso_transport_coefficients::compute_transport_coefficients(precision e, precision pl, precision pt, precision conformal_eos_prefactor)
 {
 #ifdef CONFORMAL_EOS
 	precision x   = pl / e;

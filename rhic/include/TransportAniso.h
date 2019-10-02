@@ -1,6 +1,6 @@
 
-#ifndef TRANSPORTCOEFFICIENTS_H_
-#define TRANSPORTCOEFFICIENTS_H_
+#ifndef TRANSPORTANISO_H_
+#define TRANSPORTANISO_H_
 
 #include "Precision.h"
 #include "Macros.h"
@@ -11,7 +11,7 @@
 
 const precision delta = 0.01;	// piecewise interval where hypergeometric functions are Taylor expanded
 
-class transport_coefficients
+class aniso_transport_coefficients
 {
 	private:
 		int alpha;			// # generalized powers (0 : alpha - 1)
@@ -85,8 +85,8 @@ class transport_coefficients
 	#endif
 
 
-		transport_coefficients();
-		~transport_coefficients();
+		aniso_transport_coefficients();
+		~aniso_transport_coefficients();
 
 		void test_kinetic_solution(precision e, precision pl, precision pt, precision aL2, precision prefactor);
 

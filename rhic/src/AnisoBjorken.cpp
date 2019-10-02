@@ -6,7 +6,7 @@
 #include <math.h>
 #include <cmath>
 #include "../include/EquationOfState.h"
-#include "../include/TransportCoefficients.h"
+#include "../include/TransportAniso.h"
 #include "../include/Viscosities.h"
 #include "../include/Hydrodynamics.h"
 #include "../include/DynamicalVariables.h"
@@ -41,7 +41,7 @@ double dpl_dt(double e, double pl, double t, hydro_parameters hydro)
 
 	double pt = (e - pl) / 2.; 	// temporary
 
-	transport_coefficients aniso;
+	aniso_transport_coefficients aniso;
 	aniso.compute_transport_coefficients(e, pl, pt, conformal_prefactor);
 
 

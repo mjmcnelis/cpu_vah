@@ -6,10 +6,7 @@
 #include "../include/Precision.h"
 #include "../include/FluxTerms.h"
 #include "../include/DynamicalVariables.h"
-#include "../include/SourceTerms.h"
 #include "../include/NeighborCells.h"
-#include "../include/EquationOfState.h"
-#include "../include/TransportCoefficients.h"
 
 #define ADAPTIVE_FILE
 

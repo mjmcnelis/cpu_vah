@@ -5,7 +5,7 @@
 #include "../include/Precision.h"
 #include "../include/DynamicalVariables.h"
 #include "../include/EquationOfState.h"
-#include "../include/TransportCoefficients.h"
+#include "../include/TransportAniso.h"
 #include "../include/Viscosities.h"
 #include "../include/TransportViscous.h"
 #include "../include/Projections.h"
@@ -154,7 +154,7 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	precision taubulkInv = 1.;
 #endif
 
-	transport_coefficients aniso;
+	aniso_transport_coefficients aniso;
 	aniso.compute_transport_coefficients(e, pl, pt, conformal_eos_prefactor);
 
 	// pl coefficients
@@ -817,7 +817,7 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	precision T = eos.effective_temperature(hydro.conformal_eos_prefactor);
 
 #if (NUMBER_OF_VISCOUS_CURRENTS != 0)
-	viscous_transport_coefficients viscous(T, e, p);
+	viscous_transport_coefficients viscous(T, e, p, hydro.kinetic_theory_model);
 #endif
 
 	precision ttt = q[0];				// hydro variables

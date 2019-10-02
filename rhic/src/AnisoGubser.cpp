@@ -7,7 +7,7 @@
 #include <gsl/gsl_interp.h>
 #include "../include/Hydrodynamics.h"
 #include "../include/EquationOfState.h"
-#include "../include/TransportCoefficients.h"
+#include "../include/TransportAniso.h"
 #include "../include/DynamicalVariables.h"
 #include "../include/Parameters.h"
 #include "../include/Macros.h"
@@ -50,7 +50,7 @@ double dpl_drho(double e, double pl, double rho, double t, hydro_parameters hydr
 
 	double taupiInv = T_hat / (5. * hydro.constant_etas);
 
-	transport_coefficients aniso;
+	aniso_transport_coefficients aniso;
 	aniso.compute_transport_coefficients(e, pl, (e - pl)/2., conformal_prefactor);
 
 	return - taupiInv * (pl - e/3.)  -  (4. * pl  +  aniso.zeta_LL) * tanh(rho);
