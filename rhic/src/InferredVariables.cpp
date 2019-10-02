@@ -20,16 +20,6 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 	return i  +  nx * (j  +  ny * k);
 }
 
-inline int sign(precision x)
-{
-	if(x > 0.) return 1;
-	else if(x < 0.) return -1;
-	else return 0;
-}
-
-// maybe need more quantitative way of checking convergence of iterations
-// maybe regulate individual rows of pimunu
-// here maybe: I don't need to reproject pimunu b/c already "fixed" velocity solution (just use "old method")
 
 void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u, precision t, lattice_parameters lattice, hydro_parameters hydro)
 {
@@ -269,13 +259,13 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 				precision de;
 
 				int n;
-				
+
 				for(n = 1; n <= 10; n++)				// root solving algorithm (update e)
 				{
 					equation_of_state EoS(e_s);
 					precision p = EoS.equilibrium_pressure();
 
-					if(p + Pi <= 0.) 					// solution when have to regulate bulk pressure 
+					if(p + Pi <= 0.) 					// solution when have to regulate bulk pressure
 					{
 						e_s = Mt  -  M_squared / Mt;
 						break;

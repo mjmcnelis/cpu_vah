@@ -46,6 +46,8 @@ hydro_parameters load_hydro_parameters()
 	{
 		std::string line;
 
+		// can't I just make a function?...
+
 		getline(cFile, line);
 		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
 		auto delimiterPos = line.find("=");
@@ -63,6 +65,12 @@ hydro_parameters load_hydro_parameters()
 		delimiterPos = line.find("=");
 		line = line.substr(delimiterPos + 1);
 		hydro.plpt_ratio_initial = atof(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		hydro.kinetic_theory_model = atoi(line.c_str());
 
 		getline(cFile, line);
 		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
@@ -160,6 +168,7 @@ hydro_parameters load_hydro_parameters()
 	printf("run_hydro                  = %d\n",		hydro.run_hydro);
 	printf("tau_initial                = %.3g\n",	hydro.tau_initial);
 	printf("plpt_ratio_initial         = %.2g\n", 	hydro.plpt_ratio_initial);
+	printf("kinetic_theory_model       = %d\n", 	hydro.kinetic_theory_model);
 	printf("quark_flavors              = %.1f\n", 	quark_flavors);
 	printf("conformal_eos_prefactor    = %.6g\n", 	hydro.conformal_eos_prefactor);
 	printf("temperature_etas           = %d\n", 	hydro.temperature_etas);
@@ -281,7 +290,7 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro)
 		std::cerr << "No configuration file  %s found for hydro parameters\n";
 	}
 
-	lattice.min_time_step = 2. * pow(10., round(log10(hydro.tau_initial)) - 2.);		// min time step ~ 20x smaller than t0
+	lattice.min_time_step = 5. * pow(10., round(log10(hydro.tau_initial)) - 2.);		// min time step ~ 20x smaller than t0
 
 #ifdef BOOST_INVARIANT
 	lattice.lattice_points_eta = 1;		// automatic default

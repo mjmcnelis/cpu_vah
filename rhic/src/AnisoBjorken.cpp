@@ -7,6 +7,7 @@
 #include <cmath>
 #include "../include/EquationOfState.h"
 #include "../include/TransportCoefficients.h"
+#include "../include/Viscosities.h"
 #include "../include/Hydrodynamics.h"
 #include "../include/DynamicalVariables.h"
 #include "../include/Macros.h"

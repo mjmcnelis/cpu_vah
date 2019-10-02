@@ -6,6 +6,7 @@
 #include "../include/DynamicalVariables.h"
 #include "../include/EquationOfState.h"
 #include "../include/TransportCoefficients.h"
+#include "../include/Viscosities.h"
 #include "../include/TransportViscous.h"
 #include "../include/Projections.h"
 #include "../include/Parameters.h"

@@ -8,6 +8,7 @@
 #include "../include/EquationOfState.h"
 #include "../include/TransportCoefficients.h"
 #include "../include/DynamicalVariables.h"
+#include "../include/Viscosities.h"
 #include "../include/Macros.h"
 #include "../include/Hydrodynamics.h"
 #include "../include/Parameters.h"
@@ -56,11 +57,11 @@ double dbulk_dt(double e, double pi, double bulk, double t, hydro_parameters hyd
 	equation_of_state eos(e);
 	double p = eos.equilibrium_pressure();
 	double T = eos.effective_temperature(hydro.conformal_eos_prefactor);
-	double s = (e + p) / T;						 
-	double cs2 = eos.speed_of_sound_squared();	     
+	double s = (e + p) / T;
+	double cs2 = eos.speed_of_sound_squared();
 
-	double zetas = zeta_over_s(T, hydro);      
-	double zeta = s * zetas;						      
+	double zetas = zeta_over_s(T, hydro);
+	double zeta = s * zetas;
 
 	double taubulk_inverse = 15. * (1./3. - cs2) * (1./3. - cs2) * T / zetas;		// Model 1: fixed mass and m/T << 1
 	double deltabulkbulk = 2./3.;

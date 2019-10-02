@@ -10,6 +10,8 @@ typedef struct
 	double tau_initial;
 	double plpt_ratio_initial;
 
+	int kinetic_theory_model;
+
 	double conformal_eos_prefactor;	 // e = conformal_eos_prefactor * T^4
 
 	int temperature_etas;

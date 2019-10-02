@@ -11,9 +11,6 @@
 
 const precision delta = 0.01;	// piecewise interval where hypergeometric functions are Taylor expanded
 
-precision eta_over_s(precision T, hydro_parameters hydro);
-precision zeta_over_s(precision T, hydro_parameters hydro);
-
 class transport_coefficients
 {
 	private:
