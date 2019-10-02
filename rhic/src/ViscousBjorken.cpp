@@ -6,7 +6,7 @@
 #include <math.h>
 #include <cmath>
 #include "../include/EquationOfState.h"
-//#include "../include/TransportCoefficients.h"
+#include "../include/TransportViscous.h"
 #include "../include/DynamicalVariables.h"
 #include "../include/Viscosities.h"
 #include "../include/Macros.h"
@@ -39,11 +39,19 @@ double dpi_dt(double e, double pi, double bulk, double t, hydro_parameters hydro
 
 	double etas = eta_over_s(T, hydro);
 	double eta = s * etas;
-	double taupi_inverse = T / (5. * etas);
 
-	double taupipi = 10./7.;
-	double deltapipi = 4./3.;
-	double lambdapibulk = 1.2;
+	viscous_transport_coefficients viscous(T, e, p, hydro.kinetic_theory_model);
+
+	viscous.compute_shear_transport_coefficients(etas);
+
+	double taupi_inverse = viscous.taupi_inverse;
+	double deltapipi = viscous.delta_pipi;
+	double taupipi = viscous.tau_pipi;
+#ifdef PI
+	double lambdapibulk = viscous.lambda_pibulkPi;
+#else
+	double lambdapibulk = 0;
+#endif
 
 	return taupi_inverse * (-pi  +  4./3. * eta / t)  -  (taupipi/3. + deltapipi) * pi / t  +  2./3. * lambdapibulk * bulk / t;
 #else
@@ -63,13 +71,18 @@ double dbulk_dt(double e, double pi, double bulk, double t, hydro_parameters hyd
 	double zetas = zeta_over_s(T, hydro);
 	double zeta = s * zetas;
 
-	double taubulk_inverse = 15. * (1./3. - cs2) * (1./3. - cs2) * T / zetas;		// Model 1: fixed mass and m/T << 1
-	double deltabulkbulk = 2./3.;
-	double lambdabulkpi = 1.6 * (1./3. - cs2);
+	viscous_transport_coefficients viscous(T, e, p, hydro.kinetic_theory_model);
 
-	// double tauPiInv = beta_bulk(T)/zeta;											// Model 2: quasiparticle model
-	// double deltaPiPi = deltaBB(T);
-	// double lambdaPipi = lambdaBS(T);
+	viscous.compute_bulk_transport_coefficients(zetas, 1./3. - cs2);
+
+	double taubulk_inverse = viscous.taubulk_inverse;
+	double deltabulkbulk = viscous.delta_bulkPibulkPi;
+
+#ifdef PIMUNU
+	double lambdabulkpi = viscous.lambda_bulkPipi;
+#else
+	double lambdabulkpi = 0;
+#endif
 
 	return - taubulk_inverse * (bulk  +  zeta / t)  +  (- deltabulkbulk * bulk  +  lambdabulkpi * pi) / t;
 #else
@@ -98,10 +111,11 @@ void run_semi_analytic_viscous_bjorken(lattice_parameters lattice, initial_condi
 
 	equation_of_state eos(e);
 	double p = eos.equilibrium_pressure();
-	double pl = e0 * plpt_ratio / (2. + plpt_ratio);
+	double pl = e * plpt_ratio / (2. + plpt_ratio);
 	double pt = (e - pl) / 2.;
 
-	double pi = 0, bulk = 0;
+	double pi = 0;
+	double bulk = 0;
 
 #ifdef PIMUNU
 	pi = - 2. * (pl - pt) / 3.;													// - t2.pinn
@@ -133,8 +147,8 @@ void run_semi_analytic_viscous_bjorken(lattice_parameters lattice, initial_condi
 
 		e_e0_plot      << fixed << setprecision(decimal + 1) << t << "\t" << scientific << setprecision(12) << e / e0                  << endl;
 		pl_pt_plot     << fixed << setprecision(decimal + 1) << t << "\t" << scientific << setprecision(12) << pl / pt                 << endl;
-		Rpi_inv_plot   << fixed << setprecision(decimal + 1) << t << "\t" << scientific << setprecision(12) << fabs(pi) / sqrt(2.) / p << endl;
-		Rbulk_inv_plot << fixed << setprecision(decimal + 1) << t << "\t" << scientific << setprecision(12) << fabs(bulk) / p          << endl;
+		Rpi_inv_plot   << fixed << setprecision(decimal + 1) << t << "\t" << scientific << setprecision(12) << fabs(pi / sqrt(2.) / p) << endl;
+		Rbulk_inv_plot << fixed << setprecision(decimal + 1) << t << "\t" << scientific << setprecision(12) << fabs(bulk / p)          << endl;
 
 		if(e < e_freeze) break;
 

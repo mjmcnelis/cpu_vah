@@ -101,11 +101,29 @@ void print_parameters(lattice_parameters lattice, hydro_parameters hydro)
 	printf("Spatial dimensions  = %.3f fm  x  %.3f fm  x  %.3f\n\n", (nx - 1.) * dx, (ny - 1.) * dy, (nz - 1.) * dz);
 
 	// hydro parameters
-	printf("Initial time 	       = %.3g fm/c\n", 	hydro.tau_initial);
-	printf("Initial pl/pt ratio    = %.3g\n", 		hydro.plpt_ratio_initial);
+	printf("Initial time 	    = %.3g fm/c\n", hydro.tau_initial);
+	printf("Initial pl/pt ratio = %.3g\n\n", 	hydro.plpt_ratio_initial);
 
-	if(hydro.temperature_etas)	printf("Shear viscosity        = Temperature dependent\n");
-	else						printf("Shear viscosity        = %.3f (fixed)\n", hydro.constant_etas);
+	if(hydro.temperature_etas)	
+	{
+		printf("Shear viscosity model:\teta/s = max(%.3f, %.3f  +  %.3f(T / GeV - 0.154))\n\n", hydro.etas_min, hydro.etas_min, hydro.etas_slope);
+	}
+	else
+	{		
+		printf("Shear viscosity model:\teta/s = %.3f (fixed)\n\n", hydro.constant_etas);
+	}
+
+	printf("Bulk viscosity normalization    = %.3g\n", 			hydro.zetas_normalization_factor);
+	printf("Bulk viscosity peak temperature = %.3g MeV\n\n", 	hydro.zetas_peak_temperature_GeV * 1000.);
+
+	if(hydro.kinetic_theory_model == 0)	
+	{
+		printf("Kinetic theory model = Small mass expansion\n\n");
+	}
+	else
+	{							
+		printf("Kinetic theory model = Quasiparticle\n\n");
+	}
 
 	printf("Freezeout temperature  = %.3g MeV\n",	hydro.freezeout_temperature_GeV * 1000.);
 	printf("Flux limiter           = %.2f\n",		hydro.flux_limiter);

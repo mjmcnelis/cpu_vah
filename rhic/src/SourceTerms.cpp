@@ -868,7 +868,11 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	precision betapi = viscous.betapi;
 	precision delta_pipi = viscous.delta_pipi;
 	precision tau_pipi = viscous.tau_pipi;
+#ifdef PI
 	precision lambda_pibulkPi = viscous.lambda_pibulkPi;
+#else
+	precision lambda_pibulkPi = 0;
+#endif
 #else
 	precision pitt = 0;
 	precision pitx = 0;
@@ -891,8 +895,12 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 
 	precision betabulk = viscous.betabulk;
 	precision taubulkInv = viscous.taubulk_inverse;
-	precision lambda_bulkPipi = viscous.lambda_bulkPipi;
 	precision delta_bulkPibulkPi = viscous.delta_bulkPibulkPi;
+#ifdef PIMUNU
+	precision lambda_bulkPipi = viscous.lambda_bulkPipi;
+#else
+	precision lambda_bulkPipi = 0;
+#endif
 #else
 	precision Pi = 0;
 #endif
