@@ -82,7 +82,7 @@ void output_inverse_reynolds_number(const hydro_variables * const __restrict__ q
 
 				equation_of_state eos(e[s]);
 				precision p = eos.equilibrium_pressure();
-		
+
 			#ifdef PIMUNU
 				precision pitt = q[s].pitt;			// get shear stress
 				precision pitx = q[s].pitx;
@@ -111,7 +111,7 @@ void output_inverse_reynolds_number(const hydro_variables * const __restrict__ q
 				precision Pi = q[s].Pi;
 
 				fprintf(Rbulk_inverse, "%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, fabs(Pi /  p));
-			#endif				
+			#endif
 			}
 		}
 	}
@@ -162,7 +162,6 @@ void output_residual_shear_validity(const hydro_variables * const __restrict__ q
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
 				precision e_s = e[s];
-				precision pt;
 
 				precision pitt = q[s].pitt;			// get shear stress
 				precision pitx = q[s].pitx;
@@ -187,14 +186,8 @@ void output_residual_shear_validity(const hydro_variables * const __restrict__ q
 			#endif
 
 			#ifdef ANISO_HYDRO						// get transverse pressure
-
-			#if (PT_MATCHING == 1)
-				pt = q[s].pt;
-			#else
-				pt = (e_s - q[s].pl) / 2.;
-			#endif
-
-			#else									// get transverse pressure and double-transverse project viscous hydro shear stress
+				precision pt = q[s].pt;
+			#else 									// get transverse pressure and double-transverse project viscous hydro shear stress
 				equation_of_state eos(e_s);
 				precision P = eos.equilibrium_pressure();
 
@@ -220,7 +213,7 @@ void output_residual_shear_validity(const hydro_variables * const __restrict__ q
 
 				Xi_2.double_transverse_project_tensor(pitt, pitx, pity, pitn, pixx, pixy, pixn, piyy, piyn, pinn);
 
-				pt = P  -  (zt * zt * pitt  +  t4 * zn * zn * pinn  +  2. * t2 * zt * zn * pitn) / 2.;
+				precision pt = P  -  (zt * zt * pitt  +  t4 * zn * zn * pinn  +  2. * t2 * zt * zn * pitn) / 2.;
 			#endif
 
 				precision pi_mag = sqrt(fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
@@ -291,11 +284,7 @@ void output_aniso_bjorken(const hydro_variables * const __restrict__ q, const pr
 
 	precision e_s = e[s];
 	precision pl = q[s].pl;
-#if (PT_MATCHING == 1)
 	precision pt = q[s].pt;
-#else
-	precision pt = (e_s - pl) / 2.;
-#endif
 
 	fprintf(energy, 	"%.8f\t%.8e\n", t, e_s / e0);
 	fprintf(plptratio, 	"%.8f\t%.8e\n", t, pl / pt);

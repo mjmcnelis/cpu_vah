@@ -134,9 +134,7 @@ hydro_variables compute_q_star(hydro_variables q, hydro_variables f, precision d
 
 #ifdef ANISO_HYDRO
 	q_star.pl  = q.pl  +  dt_prev * f.pl;
-#if (PT_MATCHING == 1)
-	q_star.pt  = q.pt  +  dt_prev * f.pt;
-#endif
+	//q_star.pt  = q.pt  +  dt_prev * f.pt;		// figure out what to do with this later
 #endif
 
 #ifdef PIMUNU
@@ -175,7 +173,7 @@ hydro_variables compute_q_star(hydro_variables q, hydro_variables f, precision d
 }
 
 
-precision compute_hydro_norm2(hydro_variables q)		// I should probably add things with the same dimension...(which time to use?)
+precision compute_hydro_norm2(hydro_variables q)		// I should probably add things with the same dimension...(which times to use?)
 {
 	precision norm2 = q.ttt * q.ttt  +  q.ttx * q.ttx  +  q.tty * q.tty;
 
@@ -185,9 +183,7 @@ precision compute_hydro_norm2(hydro_variables q)		// I should probably add thing
 
 #ifdef ANISO_HYDRO
 	norm2 += (q.pl * q.pl);
-#if (PT_MATCHING == 1)
-	norm2 += (q.pt * q.pt);
-#endif
+	//norm2 += (q.pt * q.pt);			// add this in later (with if/else statements)
 #endif
 
 #ifdef PIMUNU
@@ -235,9 +231,7 @@ precision compute_second_derivative_norm(hydro_variables q_prev, hydro_variables
 
 #ifdef ANISO_HYDRO
 	norm2 += second_derivative_squared(q_prev.pl, q.pl, q_star.pl);
-#if (PT_MATCHING == 1)
-	norm2 += second_derivative_squared(q_prev.pt, q.pt, q_star.pt);
-#endif
+	//norm2 += second_derivative_squared(q_prev.pt, q.pt, q_star.pt);   // include later
 #endif
 
 #ifdef PIMUNU
@@ -284,9 +278,8 @@ precision dot_product(hydro_variables q, hydro_variables f)
 
 #ifdef ANISO_HYDRO
 	dot += (q.pl * f.pl);
-#if (PT_MATCHING == 1)
-	dot += (q.pt * f.pt);
-#endif
+	//dot += (q.pt * f.pt);  // include later
+
 #endif
 
 #ifdef PIMUNU

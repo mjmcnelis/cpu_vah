@@ -93,7 +93,7 @@ double compute_initial_central_temperature(double t0, double rho0, double rhoP, 
 	double  e_hat[rho_pts];
 	double pl_hat[rho_pts];
 
-	 e_hat[0] = conformal_eos_prefactor * T0_hat * T0_hat * T0_hat * T0_hat;
+	 e_hat[0] = conformal_eos_prefactor * pow(T0_hat, 4);
 	pl_hat[0] = e_hat[0] * plpt_ratio / (2. + plpt_ratio);
 
 	gubser_rho_evolution(e_hat, pl_hat, rho_array, rho_pts, drho, t0, hydro);
@@ -182,7 +182,7 @@ double run_semi_analytic_aniso_gubser(lattice_parameters lattice, initial_condit
 	double r_max = (nx - 1.) * dx / sqrt(2.);				// distance to transverse corner
 
 	double T_freeze = hydro.freezeout_temperature_GeV;
-	double e_freeze = equilibrium_energy_density(T_freeze / hbarc, hydro.conformal_eos_prefactor);
+	double e_freeze = hydro.conformal_eos_prefactor * pow(T_freeze / hbarc, 4);
 
 	double t = t0;
 
@@ -203,7 +203,7 @@ double run_semi_analytic_aniso_gubser(lattice_parameters lattice, initial_condit
 		double  e_hat[rho_pts];
 		double pl_hat[rho_pts];
 
-		 e_hat[0] = equilibrium_energy_density(T0_hat, hydro.conformal_eos_prefactor);
+		 e_hat[0] = hydro.conformal_eos_prefactor * pow(T0_hat, 4);
 		pl_hat[0] = e_hat[0] * plpt_ratio / (2. + plpt_ratio);
 
 		gubser_rho_evolution(e_hat, pl_hat, rho_array, rho_pts, drho, t, hydro);
@@ -291,7 +291,7 @@ void set_aniso_gubser_energy_density_and_flow_profile(double T0_hat, int nx, int
 	double  e_hat[rho_pts];
 	double pl_hat[rho_pts];
 
-	 e_hat[0] = equilibriumEnergyDensity(T0_hat, hydro.conformal_eos_prefactor);
+	 e_hat[0] = hydro.conformal_eos_prefactor * pow(T0_hat, 4);
 	pl_hat[0] = e_hat[0] * plpt_ratio / (2. + plpt_ratio);
 
 	gubser_rho_evolution(e_hat, pl_hat, rho_array, rho_pts, drho, t, hydro);
@@ -356,9 +356,7 @@ void set_aniso_gubser_energy_density_and_flow_profile(double T0_hat, int nx, int
 				e[s] = energy_density_cutoff(hydro.energy_min, e_s);
 
 				q[s].pl = pl_s;
-			#if (PT_MATCHING == 1)
 				q[s].pt = pt_s;
-			#endif
 
 			#ifdef PIMUNU
 		  		q[s].pitt = 0;

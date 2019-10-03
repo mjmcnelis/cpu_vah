@@ -7,6 +7,7 @@
 #include "Precision.h"
 #include "Parameters.h"
 
+
 #ifdef BOOST_INVARIANT
 	#define CONSERVATION_LAWS 3
 #else
@@ -48,7 +49,7 @@
 
 
 #ifdef ANISO_HYDRO
-	#define NUMBER_CONSERVED_VARIABLES (CONSERVATION_LAWS + 1 + PT_MATCHING + NUMBER_OF_RESIDUAL_CURRENTS)
+	#define NUMBER_CONSERVED_VARIABLES (CONSERVATION_LAWS + 2 + NUMBER_OF_RESIDUAL_CURRENTS)
 #else
 	#define NUMBER_CONSERVED_VARIABLES (CONSERVATION_LAWS + NUMBER_OF_VISCOUS_CURRENTS)
 #endif
@@ -66,9 +67,7 @@ typedef struct
 
 #ifdef ANISO_HYDRO
 	precision pl;
-#if (PT_MATCHING == 1)
 	precision pt;
-#endif
 #endif
 
 #ifdef PIMUNU
@@ -85,10 +84,13 @@ typedef struct
 	precision piyn;
 	precision pinn;
 #else
-	#ifndef ANISO_HYDRO
-		precision pinn;		// piperp^\eta\eta = 0 in 2+1d
-	#endif
+
+#ifndef ANISO_HYDRO
+	precision pinn;		// piperp^\eta\eta = 0 in 2+1d
 #endif
+
+#endif
+
 #endif
 
 #ifdef WTZMU

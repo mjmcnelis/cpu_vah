@@ -124,7 +124,7 @@ void set_aniso_bjorken_initial_condition(int nx, int ny, int nz, initial_conditi
 	precision conformal_eos_prefactor = hydro.conformal_eos_prefactor;
 
 	precision T0 = initial.initialCentralTemperatureGeV;							// central temperature (GeV)
-	precision e0 = equilibriumEnergyDensity(T0 / hbarc, conformal_eos_prefactor);	// energy density
+	precision e0 = equilibrium_energy_density(T0 / hbarc, conformal_eos_prefactor);	// energy density
 
 	for(int i = 2; i < nx + 2; i++)
 	{
@@ -138,11 +138,8 @@ void set_aniso_bjorken_initial_condition(int nx, int ny, int nz, initial_conditi
 
 				e[s] = e_s;
 
-				q[s].pl = e_s * plpt_ratio / (2. + plpt_ratio);		// conformal switch approximation
-
-			#if (PT_MATCHING == 1)
+				q[s].pl = e_s * plpt_ratio / (2. + plpt_ratio);		// conformal eos initialization
 				q[s].pt = e_s / (2. + plpt_ratio);
-			#endif
 
 			#ifdef PIMUNU
 		  		q[s].pitt = 0;		// zero residual shear stress

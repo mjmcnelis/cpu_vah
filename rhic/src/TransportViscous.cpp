@@ -12,7 +12,7 @@ viscous_transport_coefficients::viscous_transport_coefficients(double T_in, doub
 	p = p_in;
 	kinetic_theory_model = kinetic_theory_model_in;
 
-	if(kinetic_theory_model != 0)	// quasiparticle model 
+	if(kinetic_theory_model != 0)	// quasiparticle model
 	{
 		T2  = T   * T;
 		T3  = T2  * T;
@@ -57,7 +57,7 @@ void viscous_transport_coefficients::compute_shear_transport_coefficients(precis
 	#endif
 	#endif
 	}
-	else										// quasiparticle m/T 
+	else										// quasiparticle m/T
 	{
 	#ifdef PIMUNU
 		betapi = (8.611704298094825e-6 - 0.001405354006113392*T + 0.059924402660583354*T2 - 1.1252821226321765*T3 + 11.505088678768702*T4 - 72.86243933500441*T5 +
@@ -161,8 +161,6 @@ void viscous_transport_coefficients::compute_bulk_transport_coefficients(precisi
 	#endif
 	#endif
 	}
-
-
 }
 
 

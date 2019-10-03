@@ -2,37 +2,41 @@
 #ifndef MACROS_H_
 #define MACROS_H_
 
-// macro parameters to fix equation of state and hydrodynamic variables at compile time
+// macro parameters to fix hydrodynamic variables at compile time
 
-// should I remove CONFORMAL_EOS so I can switch? (worry about it later)
-// it's only used for pt matching and pi
+#define ANISO_HYDRO				// run anisotropic hydro (comment to run 2nd order viscous hydro)
+#define BOOST_INVARIANT 		// run 2+1d hydro (comment to run 3+1d hydro)
 
-#define BOOST_INVARIANT 		// run 2+1d hydro (comment to run 3+1d hydro) (tie with Gubser)
 
-#define BEST					// use the best eos (might be temporary after settling on one)
+#define BEST					// use the best eos (might be temporary after settling on one, or use parameter)
 
-#define LATTICE_QCD				// use lattice qcd equation of state
-//#define CONFORMAL_EOS			// use conformal equation of state (if both are defined, will transition eos)
 
-//#define ANISO_HYDRO				// run anisotropic hydro (comment to run 2nd order viscous hydro)
+// I want to get rid of these two macros and use parameters instead
+//#define LATTICE_QCD				// use lattice qcd equation of state
+#define CONFORMAL_EOS			// use conformal equation of state (if both are defined, will transition eos)
 
-#define PIMUNU 					// include transverse shear stress (aniso) or shear stress (viscous hydro)
 
-#ifdef ANISO_HYDRO
-	#ifdef CONFORMAL_EOS
-		#define PT_MATCHING 0
-	#else
-		#define PT_MATCHING 1	// may update to facilitate switching?
-	#endif
+
+#ifdef ANISO_HYDRO				// residual shear stress
+
+	#define PIMUNU 				// transverse shear stress
+
 	#ifndef BOOST_INVARIANT
-		#define WTZMU 			// include longitudinal momentum diffusion current
+		#define WTZMU 			// longitudinal momentum diffusion current
 	#endif
-#else
+
+#else							// viscous stress tensor
+
+	#define PIMUNU				// shear stress
+
 	#ifndef CONFORMAL_EOS
-		#define PI
+		#define PI 				// bulk pressure
 	#endif
+
 #endif
 
-//#define TEST_TTAUMU 			// test reproduction of t^{\tau\mu} (used in InferredVariables.cpp)
+
+//#define TEST_TTAUMU 			// test reproduction of T^{\tau\mu} in InferredVariables.cpp
+
 
 #endif
