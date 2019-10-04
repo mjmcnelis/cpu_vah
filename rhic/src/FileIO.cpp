@@ -437,11 +437,7 @@ void output_optical_glauber(const hydro_variables * const __restrict__ q, const 
 
 			#ifdef ANISO_HYDRO
 				precision pl = q[s].pl;
-			#if (PT_MATCHING == 1)
 				precision pt = q[s].pt;
-			#else
-				precision pt = (e_s - pl) / 2.;
-			#endif
 			#else
 				equation_of_state eos(e_s);
 				precision p = eos.equilibrium_pressure();

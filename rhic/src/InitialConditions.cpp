@@ -60,11 +60,7 @@ void set_initial_T_taumu_variables(double t, int nx, int ny, int nz)
 				precision zn = 1. / t;
 			#endif
 				precision pl = q[s].pl;
-			#if (PT_MATCHING == 1)
 				precision pt = q[s].pt;
-			#else
-				precision pt = (e_s - pl) / 2.;
-			#endif
 			#else
 				equation_of_state eos(e_s);
 				precision p = eos.equilibrium_pressure();
@@ -138,9 +134,7 @@ void set_equilibrium_initial_condition(int nx, int ny, int nz)
 			#ifdef ANISO_HYDRO
 				equation_of_state eos(e[s]);
 				q[s].pl = eos.equilibrium_pressure();
-			#if (PT_MATCHING == 1)
-				q[s].pt = q[s].pl;
-			#endif
+				q[s].pt = eos.equilibrium_pressure();
 			#endif
 
 			#ifdef PIMUNU
@@ -199,10 +193,8 @@ void set_anisotropic_initial_condition(int nx, int ny, int nz, hydro_parameters 
 
 			#ifdef ANISO_HYDRO
 				q[s].pl = pl;						// conformal approximation
-			#if (PT_MATCHING == 1)
 				q[s].pt = pt;
-			#endif
-
+			
 			#ifdef PIMUNU
 		  		q[s].pitt = 0;
 		  		q[s].pitx = 0;

@@ -195,14 +195,13 @@ void get_hydro_neighbor_cells(hydro_variables qm, hydro_variables qp, precision 
 	q[n]	 = qm.ttn;
 	q[n + 1] = qp.ttn;	n += 2;
 #endif
+	
 #ifdef ANISO_HYDRO
 	q[n]	 = qm.pl;
 	q[n + 1] = qp.pl;	n += 2;
 
-#if (PT_MATCHING == 1)
 	q[n]	 = qm.pt;
 	q[n + 1] = qp.pt;	n += 2;
-#endif
 #endif
 
 #ifdef PIMUNU

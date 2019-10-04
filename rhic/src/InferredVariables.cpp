@@ -49,11 +49,9 @@ void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict
 			#else
 				precision ttn = 0;
 			#endif
-				precision pl  = q[s].pl;
 
-			#if (PT_MATCHING == 1)
-				precision pt  = q[s].pt;
-			#endif
+				precision pl  = q[s].pl;
+				precision pt  = q[s].pt;		
 
 			#ifdef PIMUNU
 				precision pitt = q[s].pitt;
@@ -113,7 +111,7 @@ void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict
 				precision Mn = kn  -  WtTz * zn  -  WnTz * zt;
 
 				// solution for e
-			#if (PT_MATCHING == 1)
+			#ifndef CONFORMAL_EOS
 				precision Ltt = (pl - pt) * zt * zt;
 				precision ut_numerator = Mt  +  pt  -  Ltt;
 
@@ -131,7 +129,7 @@ void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict
 
 				precision e_s = energy_density_cutoff(e_min, (sqrt(fabs(b * b  -  4. * a * c))  -  b) / (2. * a));
 
-				precision pt = (e_s - pl) / 2.;
+				pt = (e_s - pl) / 2.;
 
 				precision ut_numerator = Mt  +  pt  -  (pl - pt) * zt2;
 			#endif

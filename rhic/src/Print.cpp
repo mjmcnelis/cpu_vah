@@ -62,12 +62,9 @@ void print_hydro_center(int n, double t, lattice_parameters lattice, hydro_param
 	precision p = eos.equilibrium_pressure() * hbarc;
 	precision T = eos.effective_temperature(hydro.conformal_eos_prefactor) * hbarc;
 #ifdef ANISO_HYDRO
-	precision pl  = q[s].pl * hbarc;
-	#if (PT_MATCHING == 1)
-		precision pt = q[s].pt * hbarc;
-	#else
-		precision pt = (e_s - pl) / 2.;
-	#endif
+	precision pl = q[s].pl * hbarc;
+	precision pt = q[s].pt * hbarc;
+	
 	printf("\t%d\t|\t%.3f\t\t|\t%.3f\t\t|\t%.3f\t\t|\t%.3f\t\t|\t%.3f\t\t|\t%.3f\n", n, t, T, e_s, p, pl, pt);
 #else
 	printf("%d\tt = %.3f fm/c\t\te = %.3f GeV/fm^3\tpeq = %.3f GeV/fm^3\tT = %.3f GeV\n", n, t, e_s, p, T);

@@ -23,26 +23,21 @@ class aniso_transport_coefficients
 		// waste as little time opening and reading the files
 
 	public:
-
-		// pl coefficients
-		precision zeta_LL;
+		
+		precision zeta_LL;			// pl coefficients
 		precision zeta_TL;
 		precision lambda_WuL;
 		precision lambda_WTL;
 		precision lambda_piL;
 
-		// pt coefficients
-	#if (PT_MATCHING == 1)
-		precision zeta_LT;
+		precision zeta_LT;			// pt coefficients
 		precision zeta_TT;
 		precision lambda_WuT;
 		precision lambda_WTT;
 		precision lambda_piT;
-	#endif
 
-		// WTz coefficients
 	#ifdef WTZMU
-		precision eta_uW;
+		precision eta_uW;			// WTz coefficients
 		precision eta_TW;
 		precision tau_zW;
 		precision delta_WW;
@@ -52,8 +47,7 @@ class aniso_transport_coefficients
 		precision lambda_piTW;
 	#endif
 
-		// piT coefficients
-	#ifdef PIMUNU
+	#ifdef PIMUNU 					// piT coefficients
 		precision eta_T;
 		precision delta_pipi;
 		precision tau_pipi;
@@ -69,10 +63,7 @@ class aniso_transport_coefficients
 
 		precision t_240;
 		precision t_221;
-
-	#if (PT_MATCHING == 1 || PIMUNU_COMPONENTS != 0)
 		precision t_202;
-	#endif
 
 		// for now just assume WTz and pi both included (easier to sort organize)
 	#if (NUMBER_OF_RESIDUAL_CURRENTS != 0)

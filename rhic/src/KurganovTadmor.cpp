@@ -99,9 +99,7 @@ const precision * const __restrict__ e_current, const fluid_velocity * const __r
 
 			#ifdef ANISO_HYDRO
 				qs[a] = q_current[s].pl; a++;
-			#if (PT_MATCHING == 1)
 				qs[a] = q_current[s].pt; a++;
-			#endif
 			#endif
 
 			#ifdef PIMUNU
@@ -205,9 +203,7 @@ const precision * const __restrict__ e_current, const fluid_velocity * const __r
 
 				#ifdef ANISO_HYDRO
 					q_update[s].pl = f[a]; a++;
-				#if (PT_MATCHING == 1)
 					q_update[s].pt = f[a]; a++;
-				#endif
 				#endif
 
 				#ifdef PIMUNU
@@ -261,9 +257,7 @@ const precision * const __restrict__ e_current, const fluid_velocity * const __r
 
 				#ifdef ANISO_HYDRO
 					q_update[s].pl = qs[a]; a++;
-				#if (PT_MATCHING == 1)
 					q_update[s].pt = qs[a]; a++;
-				#endif
 				#endif
 
 				#ifdef PIMUNU
@@ -318,9 +312,7 @@ const precision * const __restrict__ e_current, const fluid_velocity * const __r
 
 				#ifdef ANISO_HYDRO
 					q_update[s].pl = (q[s].pl  +  qs[a]) / 2.; a++;
-				#if (PT_MATCHING == 1)
 					q_update[s].pt = (q[s].pt  +  qs[a]) / 2.; a++;
-				#endif
 				#endif
 
 				#ifdef PIMUNU
@@ -387,9 +379,7 @@ void recompute_euler_step(const hydro_variables * const __restrict__ q_current, 
 
 			#ifdef ANISO_HYDRO
 				q_update[s].pl  = q_current[s].pl  +  dt * q_update[s].pl;
-			#if (PT_MATCHING == 1)
 				q_update[s].pt  = q_current[s].pt  +  dt * q_update[s].pt;
-			#endif
 			#endif
 
 			#ifdef PIMUNU

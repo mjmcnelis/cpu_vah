@@ -46,23 +46,24 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 
 				precision e_s = e[s];
 				precision pl  = q[s].pl;
-
-
-				if(pl < pressure_min)			// regulate longitudinal and transverse pressures
-				{
-					q[s].pl = pressure_min;		// cutoff like energy density?
-					pl = pressure_min;
-				}
-			#if (PT_MATCHING == 1)
 				precision pt  = q[s].pt;
+
+				if(pl < pressure_min)		
+				{
+					pl = pressure_min;			// cutoff like energy density?
+				}
 				if(pt < pressure_min)
 				{
-					q[s].pt = pressure_min;
 					pt = pressure_min;
 				}
-			#else
-				precision pt = (e_s - pl) / 2.;
+
+			#ifdef CONFORMAL_EOS  				// temporary marco (replace with if(hydro.eos) statement)
+				pt = (e_s - pl) / 2.;
 			#endif
+
+				q[s].pl = pl;					// regulate longitudinal and transverse pressures
+				q[s].pt = pt;
+
 
 			#if (NUMBER_OF_RESIDUAL_CURRENTS != 0)		// regulate residual currents
 

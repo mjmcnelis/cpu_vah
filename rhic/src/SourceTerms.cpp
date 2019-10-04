@@ -81,11 +81,10 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 #endif
 
 	precision pl  = q[a];	a++;
-
-#if (PT_MATCHING == 1)
 	precision pt  = q[a];	a++;
-#else
-	precision pt  = (e - pl) / 2.;
+
+#ifdef CONFORMAL_EOS
+	pt  = (e - pl) / 2.;			// I don't think I need this (because it's already regulated to conformal formula)
 #endif
 
 #ifdef PIMUNU
@@ -147,10 +146,10 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 // relaxation times and transport coefficients
 //-------------------------------------------------
 #ifdef CONFORMAL_EOS
-	precision taupiInv = T / (5. * etabar);
+	precision taupi_inverse = T / (5. * etabar);
 	precision taubulkInv = 0;
 #else
-	precision taupiInv = 1.;	// fill in quasiparticle later
+	precision taupi_inverse = 1.;	// fill in quasiparticle later
 	precision taubulkInv = 1.;
 #endif
 
@@ -165,23 +164,17 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	precision lambda_piL = aniso.lambda_piL;
 
 	// pt coefficients
-#if (PT_MATCHING == 1)
 	precision zeta_LT = aniso.zeta_LT;
 	precision zeta_TT = aniso.zeta_TT;
 	precision lambda_WuT = aniso.lambda_WuT;
 	precision lambda_WTT = aniso.lambda_WTT;
 	precision lambda_piT = aniso.lambda_piT;
-#endif
-
 
 // primary variable derivatives
 //-------------------------------------------------
-#if (PT_MATCHING == 0)
 	precision de_dx = (e1[1] - e1[0]) / (2. * dx);
 	precision de_dy = (e1[3] - e1[2]) / (2. * dy);
 	precision de_dn = (e1[5] - e1[4]) / (2. * dn);
-#endif
-
 
 // pl derivatives
 //-------------------------------------------------
@@ -198,14 +191,13 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 
 // pt derivatives
 //-------------------------------------------------
-#if (PT_MATCHING == 1)
 	precision dpt_dx = central_derivative(qi1, n, dx);
 	precision dpt_dy = central_derivative(qj1, n, dy);
 	precision dpt_dn = central_derivative(qk1, n, dn);		n += 2;
-#else
-	precision dpt_dx = (de_dx  -  dpl_dx) / 2.;
-	precision dpt_dy = (de_dy  -  dpl_dy) / 2.;
-	precision dpt_dn = (de_dn  -  dpl_dn) / 2.;
+#ifdef CONFORMAL_EOS
+	dpt_dx = (de_dx  -  dpl_dx) / 2.;
+	dpt_dy = (de_dy  -  dpl_dy) / 2.;
+	dpt_dn = (de_dn  -  dpl_dn) / 2.;				// temporary macro statement (replace with if(hydro.eos))
 #endif
 
 
@@ -616,10 +608,7 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	precision WTz_z_NabT_u = WtTz * z_NabTt_u  -  WxTz * z_NabTx_u  -  WyTz * z_NabTy_u  -  t2 * WnTz * z_NabTn_u;
 
 	precision IplW = - 2. * WTz_D_z  +  lambda_WuL * WTz_Dz_u  +  lambda_WTL * WTz_z_NabT_u;
-
-#if (PT_MATCHING == 1)
 	precision IptW = WTz_D_z  +  lambda_WuT * WTz_Dz_u  -  lambda_WTT * WTz_z_NabT_u;
-#endif
 
 	// WTz transport coefficients
 	precision eta_uW = aniso.eta_uW;
@@ -703,14 +692,11 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	precision Wtt = 0, Wtx = 0, Wty = 0, Wtn = 0, Wxn = 0, Wyn = 0, Wnn = 0;
 	precision dWtt_dx = 0, dWtt_dy = 0, dWtt_dn = 0, dWtx_dx = 0, dWtx_dy = 0, dWtx_dn = 0, dWty_dx = 0, dWty_dy = 0, dWty_dn = 0, dWtn_dx = 0, dWtn_dy = 0, dWtn_dn = 0, dWxn_dx = 0,dWxn_dn = 0, dWyn_dy = 0, dWyn_dn = 0, dWnn_dn = 0;
 
-	precision IplW = 0;
-
 	precision WTz_Dz_u = 0;
 	precision WTz_z_NabT_u = 0;
 
-#if (PT_MATCHING == 1)
+	precision IplW = 0;
 	precision IptW = 0;
-#endif
 #endif
 
 	// conservation laws (check again except last line comments)
@@ -743,28 +729,25 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	a++;
 #endif
 
-	// pl relaxation equation
-	precision dpl = - dp * taupiInv / 1.5  +  zeta_LL * thetaL  +  zeta_TL * thetaT  +  IplW  -  lambda_piL * pi_sT;
-	S[a] =	dpl / ut  +  div_v * pl;	a++;
+	// pl and pt relaxation equation
+	precision dpl = - dp * taupi_inverse / 1.5  +  zeta_LL * thetaL  +  zeta_TL * thetaT  +  IplW  -  lambda_piL * pi_sT;
+	precision dpt =	dp * taupi_inverse / 3.  +  zeta_LT * thetaL  +  zeta_TT * thetaT  +  IptW  +  lambda_piT * pi_sT;
 
-	// pt relaxation equation
-#if (PT_MATCHING == 1)
-	precision dpt =	dp * taupiInv / 3.  +  zeta_LT * thetaL  +  zeta_TT * thetaT  +  IptW  +  lambda_piT * pi_sT;
+	S[a] = dpl / ut  +  div_v * pl;		a++;
 	S[a] = dpt / ut  +  div_v * pt;		a++;
-#endif
 
 	// piT relaxation equation (checked it, looks ok)
 #ifdef PIMUNU
-	precision dpitt = - pitt * taupiInv  +  Itt  +  Ptt  -  Gtt;
-	precision dpitx = - pitx * taupiInv  +  Itx  +  Ptx  -  Gtx;
-	precision dpity = - pity * taupiInv  +  Ity  +  Pty  -  Gty;
-	precision dpitn = - pitn * taupiInv  +  Itn  +  Ptn  -  Gtn;
-	precision dpixx = - pixx * taupiInv  +  Ixx  +  Pxx;
-	precision dpixy = - pixy * taupiInv  +  Ixy  +  Pxy;
-	precision dpixn = - pixn * taupiInv  +  Ixn  +  Pxn  -  Gxn;
-	precision dpiyy = - piyy * taupiInv  +  Iyy  +  Pyy;
-	precision dpiyn = - piyn * taupiInv  +  Iyn  +  Pyn  -  Gyn;
-	precision dpinn = - pinn * taupiInv  +  Inn  +  Pnn  -  Gnn;
+	precision dpitt = - pitt * taupi_inverse  +  Itt  +  Ptt  -  Gtt;
+	precision dpitx = - pitx * taupi_inverse  +  Itx  +  Ptx  -  Gtx;
+	precision dpity = - pity * taupi_inverse  +  Ity  +  Pty  -  Gty;
+	precision dpitn = - pitn * taupi_inverse  +  Itn  +  Ptn  -  Gtn;
+	precision dpixx = - pixx * taupi_inverse  +  Ixx  +  Pxx;
+	precision dpixy = - pixy * taupi_inverse  +  Ixy  +  Pxy;
+	precision dpixn = - pixn * taupi_inverse  +  Ixn  +  Pxn  -  Gxn;
+	precision dpiyy = - piyy * taupi_inverse  +  Iyy  +  Pyy;
+	precision dpiyn = - piyn * taupi_inverse  +  Iyn  +  Pyn  -  Gyn;
+	precision dpinn = - pinn * taupi_inverse  +  Inn  +  Pnn  -  Gnn;
 
 	S[a] = dpitt / ut  +  div_v * pitt;		a++;
 	S[a] = dpitx / ut  +  div_v * pitx;		a++;
@@ -786,10 +769,10 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 
 	// WTz relaxation equation
 #ifdef WTZMU
-	precision dWtTz = - WtTz * taupiInv  +  It  +  Pt  -  Gt;
-	precision dWxTz = - WxTz * taupiInv  +  Ix  +  Px;
-	precision dWyTz = - WyTz * taupiInv  +  Iy  +  Py;
-	precision dWnTz = - WnTz * taupiInv  +  In  +  Pn  -  Gn;
+	precision dWtTz = - WtTz * taupi_inverse  +  It  +  Pt  -  Gt;
+	precision dWxTz = - WxTz * taupi_inverse  +  Ix  +  Px;
+	precision dWyTz = - WyTz * taupi_inverse  +  Iy  +  Py;
+	precision dWnTz = - WnTz * taupi_inverse  +  In  +  Pn  -  Gn;
 
 	S[a] = dWtTz / ut  +  div_v * WtTz;		a++;
 	S[a] = dWxTz / ut  +  div_v * WxTz;		a++;
@@ -864,7 +847,7 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	precision etas = eta_over_s(T, hydro);
 	viscous.compute_shear_transport_coefficients(etas);
 
-	precision taupiInv = viscous.taupi_inverse;
+	precision taupi_inverse = viscous.taupi_inverse;
 	precision betapi = viscous.betapi;
 	precision delta_pipi = viscous.delta_pipi;
 	precision tau_pipi = viscous.tau_pipi;
@@ -1175,16 +1158,16 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 #endif
 
 #ifdef PIMUNU 	// shear relaxation equation
-	precision dpitt = - pitt * taupiInv  +  Itt  -  Ptt  -  Gtt;
-	precision dpitx = - pitx * taupiInv  +  Itx  -  Ptx  -  Gtx;
-	precision dpity = - pity * taupiInv  +  Ity  -  Pty  -  Gty;
-	precision dpitn = - pitn * taupiInv  +  Itn  -  Ptn  -  Gtn;
-	precision dpixx = - pixx * taupiInv  +  Ixx  -  Pxx;
-	precision dpixy = - pixy * taupiInv  +  Ixy  -  Pxy;
-	precision dpixn = - pixn * taupiInv  +  Ixn  -  Pxn  -  Gxn;
-	precision dpiyy = - piyy * taupiInv  +  Iyy  -  Pyy;
-	precision dpiyn = - piyn * taupiInv  +  Iyn  -  Pyn  -  Gyn;
-	precision dpinn = - pinn * taupiInv  +  Inn  -  Pnn  -  Gnn;
+	precision dpitt = - pitt * taupi_inverse  +  Itt  -  Ptt  -  Gtt;
+	precision dpitx = - pitx * taupi_inverse  +  Itx  -  Ptx  -  Gtx;
+	precision dpity = - pity * taupi_inverse  +  Ity  -  Pty  -  Gty;
+	precision dpitn = - pitn * taupi_inverse  +  Itn  -  Ptn  -  Gtn;
+	precision dpixx = - pixx * taupi_inverse  +  Ixx  -  Pxx;
+	precision dpixy = - pixy * taupi_inverse  +  Ixy  -  Pxy;
+	precision dpixn = - pixn * taupi_inverse  +  Ixn  -  Pxn  -  Gxn;
+	precision dpiyy = - piyy * taupi_inverse  +  Iyy  -  Pyy;
+	precision dpiyn = - piyn * taupi_inverse  +  Iyn  -  Pyn  -  Gyn;
+	precision dpinn = - pinn * taupi_inverse  +  Inn  -  Pnn  -  Gnn;
 
 	S[a] = dpitt / ut  +  div_v * pitt;		a++;
 	S[a] = dpitx / ut  +  div_v * pitx;		a++;

@@ -64,9 +64,8 @@ void aniso_transport_coefficients::compute_hypergeometric_functions(precision z)
 		t_201 = (1.  +  (z - 1.) * t) / z;
 		t_240 = (3.  +  2. * z  -  3. * (1. + z) * t) / z2;
 		t_221 = (-3.  +  (3. + z) * t) / z2;
-	#if (PT_MATCHING == 1 || PIMUNU_COMPONENTS != 0)
 		t_202 = (3.  +  z  +  (z - 3.) * (1. + z) * t) / (z2 * (1. + z));
-	#endif
+
 	#if (NUMBER_OF_RESIDUAL_CURRENTS != 0)
 		t_421 = (3.  +  z  +  (1. + z) * (z - 3.) * t) / (4. * z2);
 		t_402 = (3. * (z - 1.)  +  (z * (3.*z - 2.) + 3.) * t) / (4. * z2);
@@ -85,9 +84,8 @@ void aniso_transport_coefficients::compute_hypergeometric_functions(precision z)
 		t_201 = (1.  +  (z - 1.) * t) / z;
 		t_240 = (3.  +  2. * z  -  3. * (1. + z) * t) / z2;
 		t_221 = (-3.  +  (3. + z) * t) / z2;
-	#if (PT_MATCHING == 1 || PIMUNU_COMPONENTS != 0)
 		t_202 = (3.  +  z  +  (z - 3.) * (1. + z) * t) / (z2 * (1. + z));
-	#endif
+
 	#if (NUMBER_OF_RESIDUAL_CURRENTS != 0)
 		t_421 = (3.  +  z  +  (1. + z) * (z - 3.) * t) / (4. * z2);
 		t_402 = (3. * (z - 1.)  +  (z * (3.*z - 2.) + 3.) * t) / (4. * z2);
@@ -112,9 +110,7 @@ void aniso_transport_coefficients::compute_hypergeometric_functions(precision z)
 
 		t_221 = 0.2666666666666668 - 0.22857142857142854*z + 0.19047619047619047*z2 - 0.1616161616161616*z3 + 0.13986013986013987*z4 - 0.12307692307692308*z5 + 0.10980392156862744*z6;
 
-	#if (PT_MATCHING == 1 || PIMUNU_COMPONENTS != 0)
 		t_202 = 1.0666666666666664 - 1.3714285714285712*z + 1.5238095238095237*z2 - 1.616161616161616*z3 + 1.6783216783216781*z4 - 1.7230769230769227*z5 + 1.756862745098039*z6;
-	#endif
 
 	#if (NUMBER_OF_RESIDUAL_CURRENTS != 0)
    		t_421 = 0.2666666666666666 - 0.0761904761904762*z + 0.0380952380952381*z2 - 0.023088023088023088*z3 + 0.015540015540015537*z4 - 0.011188811188811189*z5 + 0.00844645550527904*z6;
@@ -231,9 +227,8 @@ void aniso_transport_coefficients::compute_transport_coefficients(precision e, p
 	// anisotropic functions
 	precision I_240 = prefactor * t_240 * aL2;
 	precision I_221 = prefactor * t_221 / 2.;
-#if (PT_MATCHING == 1 || PIMUNU_COMPONENTS != 0)
 	precision I_202 = prefactor * t_202 / (8. * aL2);
-#endif
+
 #if (NUMBER_OF_RESIDUAL_CURRENTS != 0)
 	precision I_421 = prefactor * t_421 * Lambda2 * aL2 * 10.;
 	precision I_402 = prefactor * t_402 * Lambda2 * 2.5;
@@ -257,8 +252,8 @@ void aniso_transport_coefficients::compute_transport_coefficients(precision e, p
 #else
 	lambda_piL = 0;
 #endif
+	
 	// pt transport coefficients
-#if (PT_MATCHING == 1)
 	zeta_LT = I_221  -  pt;
 	zeta_TT = 2. * (I_202 - pt);
 #ifdef WTZMU
@@ -268,12 +263,13 @@ void aniso_transport_coefficients::compute_transport_coefficients(precision e, p
 	lambda_WTT = 0;
 	lambda_WuT = 0;
 #endif
+
 #ifdef PIMUNU
 	lambda_piT = 1.  -  3. * I_403 / I_402;
 #else
 	lambda_piT = 0;
 #endif
-#endif
+
 	// WTz transport coefficients
 #ifdef WTZMU
 	eta_uW = 0.5 * (pl - I_221);
