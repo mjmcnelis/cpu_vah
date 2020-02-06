@@ -20,6 +20,7 @@ inline precision central_derivative(const precision * const __restrict__ f, int 
 
 void source_terms_aniso_hydro(precision * const __restrict__ S, const precision * const __restrict__ q, precision e, precision t, const precision * const __restrict__ qi1, const precision * const __restrict__ qj1, const precision * const __restrict__ qk1, const precision * const __restrict__ e1, const precision * const __restrict__ ui1, const precision * const __restrict__ uj1, const precision * const __restrict__ uk1, precision ux, precision uy, precision un, precision ux_p, precision uy_p, precision un_p, precision dt_prev, precision dx, precision dy, precision dn, hydro_parameters hydro)
 {
+#ifdef ANISO_HYDRO
 // useful expressions
 //-------------------------------------------------
 	precision t2 = t * t;
@@ -779,12 +780,14 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	S[a] = dWyTz / ut  +  div_v * WyTz;		a++;
 	S[a] = dWnTz / ut  +  div_v * WnTz;
 #endif
+#endif
 }
 
 
 
 void source_terms_viscous_hydro(precision * const __restrict__ S, const precision * const __restrict__ q, precision e, precision t, const precision * const __restrict__ qi1, const precision * const __restrict__ qj1, const precision * const __restrict__ qk1, const precision * const __restrict__ e1, const precision * const __restrict__ ui1, const precision * const __restrict__ uj1, const precision * const __restrict__ uk1, precision ux, precision uy, precision un, precision ux_p, precision uy_p, precision un_p, precision dt_prev, precision dx, precision dy, precision dn, hydro_parameters hydro)
 {
+#ifndef ANISO_HYDRO
 	precision t2 = t * t;
 	precision t4 = t2 * t2;
 	precision tun = t * un;
@@ -1191,6 +1194,8 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	precision dPi = - Pi * taubulkInv  -  (betabulk  +  delta_bulkPibulkPi * Pi) * theta  +  lambda_bulkPipi * pi_sigma;
 
 	S[a] = dPi / ut  +  div_v * Pi;
+#endif
+
 #endif
 }
 

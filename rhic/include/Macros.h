@@ -12,8 +12,8 @@
 
 
 // I want to get rid of these two macros and use parameters instead
-//#define LATTICE_QCD				// use lattice qcd equation of state
-#define CONFORMAL_EOS			// use conformal equation of state (if both are defined, will transition eos)
+#define LATTICE_QCD				// use lattice qcd equation of state
+//#define CONFORMAL_EOS			// use conformal equation of state (if both are defined, will transition eos)
 
 
 

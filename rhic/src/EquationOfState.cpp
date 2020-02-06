@@ -57,7 +57,7 @@ precision equation_of_state::equilibrium_pressure()
 {
 	double p;
 
-	// for equation of state switching, should avoid macros
+	// for equation of state switching, should avoid macros (right this needs to be updated eventually)
 #ifdef LATTICE_QCD
 #ifdef BEST 				 	// BEST equation of state
 	p = (7.190009839568977e-11 - 1.395774723345131e-6*e1 - 0.0007294542973192687*e2 - 0.02755303080259852*e3 +

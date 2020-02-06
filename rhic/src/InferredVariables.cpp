@@ -116,8 +116,6 @@ void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict
 				precision ut_numerator = Mt  +  pt  -  Ltt;
 
 				precision e_s = energy_density_cutoff(e_min, Mt  -  Ltt  -  (Mx * Mx  +  My * My) / ut_numerator  -  t2 * Mn * Mn * ut_numerator / (Mt + pl) / (Mt + pl));
-
-				precision ut_numerator = Mt  +  pt  -  (pl - pt) * zt2;
 			#else
 				precision zt2  = zt * zt;
 				precision ztzn = zt * zn;

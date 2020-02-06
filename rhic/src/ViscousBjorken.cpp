@@ -31,6 +31,7 @@ double de_dt_vh(double e, double pi, double bulk, double t, hydro_parameters hyd
 
 double dpi_dt(double e, double pi, double bulk, double t, hydro_parameters hydro)
 {
+#ifndef ANISO_HYDRO
 #ifdef PIMUNU
 	equation_of_state eos(e);
 	double p = eos.equilibrium_pressure();
@@ -57,10 +58,14 @@ double dpi_dt(double e, double pi, double bulk, double t, hydro_parameters hydro
 #else
 	return 0;
 #endif
+#else
+	return 0;
+#endif
 }
 
 double dbulk_dt(double e, double pi, double bulk, double t, hydro_parameters hydro)
 {
+#ifndef ANISO_HYDRO
 #ifdef PI
 	equation_of_state eos(e);
 	double p = eos.equilibrium_pressure();
@@ -85,6 +90,9 @@ double dbulk_dt(double e, double pi, double bulk, double t, hydro_parameters hyd
 #endif
 
 	return - taubulk_inverse * (bulk  +  zeta / t)  +  (- deltabulkbulk * bulk  +  lambdabulkpi * pi) / t;
+#else
+	return 0;
+#endif
 #else
 	return 0;
 #endif
@@ -131,16 +139,22 @@ void run_semi_analytic_viscous_bjorken(lattice_parameters lattice, initial_condi
 	ofstream pl_pt_plot;
 	ofstream Rpi_inv_plot;
 	ofstream Rbulk_inv_plot;
+	ofstream T_plot; 
 	e_e0_plot.open("semi_analytic/e_e0_viscous_bjorken.dat", ios::out);
 	pl_pt_plot.open("semi_analytic/pl_pt_viscous_bjorken.dat", ios::out);
 	Rpi_inv_plot.open("semi_analytic/Rpi_inv_viscous_bjorken.dat", ios::out);
 	Rbulk_inv_plot.open("semi_analytic/Rbulk_inv_viscous_bjorken.dat", ios::out);
+	T_plot.open("semi_analytic/T_viscous_bjorken.dat", ios::out);
+
+	//dt = 0.001;
 
 	while(true)
 	{
 		//p = equilibriumPressure(e);
 		equation_of_state EoS(e);
 		p = EoS.equilibrium_pressure();
+		
+		double T = EoS.effective_temperature(hydro.conformal_eos_prefactor);
 
 		pl = p  +  bulk  -  pi;
 		pt = p  +  bulk  +  pi/2.;
@@ -149,6 +163,7 @@ void run_semi_analytic_viscous_bjorken(lattice_parameters lattice, initial_condi
 		pl_pt_plot     << fixed << setprecision(decimal + 1) << t << "\t" << scientific << setprecision(12) << pl / pt                 << endl;
 		Rpi_inv_plot   << fixed << setprecision(decimal + 1) << t << "\t" << scientific << setprecision(12) << fabs(pi / sqrt(2.) / p) << endl;
 		Rbulk_inv_plot << fixed << setprecision(decimal + 1) << t << "\t" << scientific << setprecision(12) << fabs(bulk / p)          << endl;
+		T_plot 		   << fixed << setprecision(decimal + 1) << t << "\t" << scientific << setprecision(12) << T        			   << endl;
 
 		if(e < e_freeze) break;
 
@@ -179,6 +194,7 @@ void run_semi_analytic_viscous_bjorken(lattice_parameters lattice, initial_condi
 	pl_pt_plot.close();
 	Rpi_inv_plot.close();
 	Rbulk_inv_plot.close();
+	T_plot.close();
 }
 
 

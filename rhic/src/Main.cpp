@@ -6,14 +6,12 @@
 -------------------------------------------------------
 | Date created	| 10/12/15
 -------------------------------------------------------
-| Last edited	| 8/2/19
+| Last edited	| 2/6/20
 -------------------------------------------------------
 | Description 	| A viscous anisotropic hydrodynamic
 |				| simulation of a heavy-ion collision
 -------------------------------------------------------
  */
-
-// only ~ 6300 lines of code
 
 #include <iostream>
 #include "../include/Parameters.h"
