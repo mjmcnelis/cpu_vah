@@ -8,11 +8,14 @@
 #include "Parameters.h"
 
 // todo: possibly use cubic spline interpolation for the xi data (could be more accurate than a fit)
+// I don't think this is really critical 
 
 const precision delta = 0.01;	// piecewise interval where hypergeometric functions are Taylor expanded
 
 class aniso_transport_coefficients
 {
+	// conformal vahydro transport coefficients (nonconformal case will be a separate class) 
+
 	private:
 		int alpha;			// # generalized powers (0 : alpha - 1)
 		int points;			// # quadrature points
@@ -79,19 +82,12 @@ class aniso_transport_coefficients
 		aniso_transport_coefficients();
 		~aniso_transport_coefficients();
 
-		void test_kinetic_solution(precision e, precision pl, precision pt, precision aL2, precision prefactor);
+		void test_kinetic_solution(precision e, precision pl, precision pt, precision aL2, precision prefactor);			// do I still need this?
 
 		void compute_hypergeometric_functions(precision z);
 
-		// gauss-laguerre data
-		//void load_roots_and_weights();
-
-		// have a root-solver here (it will be called in a root-finding kernel)
-
 		void compute_transport_coefficients(precision e, precision pl, precision pt, precision conformal_eos_prefactor);
-		// my idea last night was to use PL-PT matching (conformal EOS)
-		// to propagate initial conditions instead of free-streaming
-		// vahydro captures free-streaming (the problem is starting too early, may need change of variables)
+		// my idea last night was to use conformal vahydro to propagate initial conditions instead of free-streaming
 };
 
 
