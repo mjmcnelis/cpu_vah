@@ -5,7 +5,7 @@ DIR_H          = $(DIR_MAIN)rhic/include
 DIR_BUILD      = $(DIR_MAIN)build/
 DIR_OBJ        = $(DIR_BUILD)rhic
 
-COMPILER       = icpc
+COMPILER       = gcc
 DEBUG          =
 OPTIMIZATION   = -O3
 FLOWTRACE      =
@@ -13,8 +13,8 @@ OPTIONS        =
 LINK_OPTIONS   =
 CFLAGS         = -std=c++11 $(DEBUG) $(OPTIMIZATION) $(FLOWTRACE) $(OPTIONS)
 
-#LIBS     = -L /usr/local/lib -lm -lgsl -lgslcblas -lc++
-LIBS     = -L /usr/local/lib -lm -lgsl -lgslcblas
+LIBS     = -L /usr/local/lib -lm -lgsl -lgslcblas -lc++
+#LIBS     = -L /usr/local/lib -lm -lgsl -lgslcblas
 INCLUDES = -I /usr/local/include -I rhic/include
 
 CPP := $(shell find $(DIR_SRC) -name '*.cpp')
