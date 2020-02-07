@@ -41,7 +41,7 @@ void aniso_transport_coefficients_nonconformal::compute_hypergeometric_functions
 	if(z > delta)
 	{
 		precision sqrtz = sqrt(z);
-		precision t = atan(sqrtz) / sqrtz;				
+		precision t = atan(sqrtz) / sqrtz;
 
 		t_240 = (3.  +  2. * z  -  3. * (1. + z) * t) / z2;
 		t_221 = (-3.  +  (3. + z) * t) / z2;
@@ -77,7 +77,7 @@ void aniso_transport_coefficients_nonconformal::compute_hypergeometric_functions
 
 
 void aniso_transport_coefficients_nonconformal::compute_transport_coefficients(precision pl, precision pt, precision lambda, precision aT, precision aL, precision mbar)
-{	
+{
 	// can I cross-check with the conformal case by setting mbar = 0?
 
 	precision lambda2 = lambda * lambda;
@@ -89,6 +89,7 @@ void aniso_transport_coefficients_nonconformal::compute_transport_coefficients(p
 	precision mbar2 = mbar * mbar;
 	precision aT2_minus_aL2 = aT2 - aL2;
 
+	// integration variables
 	precision pbar, weight, pbar2, Ebar, exp_factor, total_weight;
 	precision w, w2, w3, z;
 
@@ -100,12 +101,14 @@ void aniso_transport_coefficients_nonconformal::compute_transport_coefficients(p
 	double pbar_weight_a2[pbar_pts] = {0.00825033790777967,0.0671033262747106,0.206386098255352,0.368179392999486,0.446389764546666,0.397211321904435,0.270703020914857,0.144937243765141,0.0619302157291065,0.0213227539141068,0.00594841159169929,0.00134795257769464,0.000248166548996264,3.7053223540482e-05,4.47057760459712e-06,4.33555258401213e-07,3.35571417159735e-08,2.05432200435071e-09,9.83646900727572e-11,3.63364388210833e-12,1.01834576904109e-13,2.12110313498633e-15,3.20100105319804e-17,3.39007439648141e-19,2.41904571899768e-21,1.10270714408855e-23,2.98827103874582e-26,4.34972188455989e-29,2.92108431650778e-32,7.0533942409897e-36,3.81617106981223e-40,1.39864930768275e-45};
 
 	precision I_240 = 0;
+	precision I_221 = 0;
+	precision I_202 = 0;
 
-	for(i = 0; i < pbar_pts; i++)						// gauss integration loop by hand (can reduce time this way)
-	{	
+	for(int i = 0; i < pbar_pts; i++)					// gauss integration loop by hand (can reduce time this way)
+	{
 		// compute n = 2 moments
 		pbar = pbar_root_a2[i];							// pbar roots / weights for a = n = 2
-		weight = pbar_weight_a2[i];						
+		weight = pbar_weight_a2[i];
 
 		pbar2 = pbar * pbar;
 		Ebar = sqrt(pbar2 + mbar2);
@@ -119,19 +122,23 @@ void aniso_transport_coefficients_nonconformal::compute_transport_coefficients(p
 
 		compute_hypergeometric_functions_n_equals_2(z);
 
-		I_240 += total_weight * t_240 / w3;	
-		I_221 += total_weight * t_221 / w3;	
-		I_202 += total_weight * t_202 / w3;	
+		I_240 += total_weight * t_240 / w3;
+		I_221 += total_weight * t_221 / w3;
+		I_202 += total_weight * t_202 / w3;
 
 
 		// then repeat for n = 4
 
 	}
 
-	
+
 	I_240 *= aL2 * aL2 * common_prefactor;
 	I_221 *= aT2 * aL2 * common_prefactor / 2.;
 	I_202 *= aT2 * aT2 * common_prefactor / 8.;
+
+	printf("I_240 = %lf\n", I_240);
+	printf("I_221 = %lf\n", I_221);
+	exit(-1);
 
 
 // #if (NUMBER_OF_RESIDUAL_CURRENTS != 0)
@@ -159,7 +166,7 @@ void aniso_transport_coefficients_nonconformal::compute_transport_coefficients(p
 #else
 	lambda_piL = 0;
 #endif
-*/	
+*/
 	// pt transport coefficients
 	zeta_LT = I_221  -  pt;
 	zeta_TT = 2. * (I_202 - pt);

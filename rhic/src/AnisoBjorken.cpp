@@ -7,6 +7,7 @@
 #include <cmath>
 #include "../include/EquationOfState.h"
 #include "../include/TransportAniso.h"
+#include "../include/TransportAnisoNonconformal.h"
 #include "../include/TransportViscous.h"
 #include "../include/Viscosities.h"
 #include "../include/Hydrodynamics.h"
@@ -69,13 +70,18 @@ double dpl_dt(double e, double pl, double pt, double B, double lambda, double aT
 	double taupiInv = eos.beta_shear(T, conformal) / (s * eta_over_s(T, hydro));
 	double taubulkInv = eos.beta_bulk(T) / (s * zeta_over_s(T, hydro));
 
+	aniso_transport_coefficients_nonconformal aniso;
+	aniso.compute_transport_coefficients(pl, pt, lambda, aT, aL, mbar);
+
+	double zeta_LL = aniso.zeta_LL;
+
 	//double I240 = I240_function(lambda, aT, aL, mbar);	// I need to use something else (put in a class?)
 	//double I020 = I020_function(lambda, aT, aL, mbar);
 
-	double zetaLL = 0;
+	zeta_LL = 0;
 	//double zetaLL = I240  -  3.*(pl + B)  +  mdmde * (e + pl) * (I020 + (2.*pt + pl - e + 4.*B) / (m * m));
 
-	return taubulkInv * (p - (2.*pt + pl) / 3.)  -  2./3. * taupiInv * (pl - pt)  +  zetaLL / t;
+	return taubulkInv * (p - (2.*pt + pl) / 3.)  -  2./3. * taupiInv * (pl - pt)  +  zeta_LL / t;
 }
 
 double dpt_dt(double e, double pl, double pt, double B, double lambda, double aT, double aL, double t, hydro_parameters hydro)
@@ -156,6 +162,7 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 	double betabulk = eos.beta_bulk(T);
 	double taubulk = (zetas * s0) / betabulk;
 
+	printf("\n");
 	printf("initial energy density = %lf fm^-4\n", e0);
 	printf("initial thermal pressure = %lf fm^-4\n", p0);
 	printf("initial entropy density = %lf fm^-4\n", s0);
@@ -190,14 +197,14 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 
 	double B = B0 + dB0asy;														// initial mean field
 	double lambda = T;															// equilibrium anisotropic variables for now
-	double aT = 1.;
-	double aL = 1.;
+	double aT = 1.0;
+	double aL = 1.0;
 
 	printf("initial pl = %lf fm^-4\n", pl);
 	printf("initial pt = %lf fm^-4\n", pt);
 	printf("initial dB = %lf fm^-4\n", dB0asy);
 	printf("initial B  = %lf fm^-4\n", B);
-	printf("initial lambda = %lf fm^-1\n", lambda);
+	printf("initial lambda = %lf fm^-1\n\n", lambda);
 	//exit(-1);
 
 	//:::::::::::::::::::::::::::::::::::::::::::::::::::::::
