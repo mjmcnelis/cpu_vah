@@ -8,6 +8,7 @@
 #include "../include/EquationOfState.h"
 #include "../include/TransportAniso.h"
 #include "../include/TransportAnisoNonconformal.h"
+#include "../include/AnisoVariables.h"
 #include "../include/TransportViscous.h"
 #include "../include/Viscosities.h"
 #include "../include/Hydrodynamics.h"
@@ -272,10 +273,16 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 		double pt_mid = pt + dpt1;
 		double B_mid = B + dB1;
 
-		printf("e_mid = %lf\n", e_mid);
-		printf("pl_mid = %lf\n", pl_mid);
-		printf("pt_mid = %lf\n", pt_mid);
-		printf("B_mid = %lf\n", B_mid);
+		// printf("e_mid = %lf\n", e_mid);
+		// printf("pl_mid = %lf\n", pl_mid);
+		// printf("pt_mid = %lf\n", pt_mid);
+		// printf("B_mid = %lf\n\n", B_mid);
+
+		equation_of_state eos_mid(e_mid);
+		double T_mid = eos_mid.effective_temperature(hydro.conformal_eos_prefactor);
+		double mass_mid = T_mid * eos_mid.z_quasi(T_mid);
+
+		aniso_variables X = find_anisotropic_variables(e_mid, pl_mid, pt_mid, B_mid, mass_mid, lambda, aT, aL);
 		exit(-1);
 
 		// compute anisotropic variables from intermediate values (e_mid, pl_mid, pt_mid)
