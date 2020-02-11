@@ -7,7 +7,7 @@
 #include "../include/TransportAniso.h"
 #include "../include/AnisoVariables.h"
 #include "../include/Precision.h"
-
+using namespace std;
 
 void compute_F(precision Ea, precision PTa, precision PLa, precision mass, precision * X, precision * F)
 {
@@ -19,7 +19,7 @@ void compute_F(precision Ea, precision PTa, precision PLa, precision mass, preci
 	precision aL2 = aL * aL;
 	precision aT2_minus_aL2 = aT2 - aL2;
 
-	precision mbar = mass / lambda;    
+	precision mbar = mass / lambda;
 	precision mbar2 = mbar * mbar;
 
 	precision prefactor = g * aT2 * aL * lambda * lambda * lambda * lambda / (4. * M_PI * M_PI);
@@ -30,10 +30,10 @@ void compute_F(precision Ea, precision PTa, precision PLa, precision mass, preci
 	precision I_220 = 0;
 	precision I_201 = 0;
 
-	for(int i = 0; i < pbar_pts; i++)														// gauss integration 
+	for(int i = 0; i < pbar_pts; i++)														// gauss integration
 	{
 		precision pbar = pbar_root_a2[i];													// pbar roots / weights for a = 2 (a = n + s)
-		precision total_weight = pbar * pbar_weight_a2[i] * exp(pbar - sqrt(pbar * pbar + mbar2));		
+		precision total_weight = pbar * pbar_weight_a2[i] * exp(pbar - sqrt(pbar * pbar + mbar2));
 
 		precision w = sqrt(aL2  +  mbar2 / (pbar * pbar));
 		precision z = aT2_minus_aL2 / (w * w);
@@ -115,7 +115,7 @@ void compute_J(precision Ea, precision PTa, precision PLa, precision mass, preci
 			precision aL2 = aL * aL;
 			precision aT2_minus_aL2 = aT2 - aL2;
 
-			precision mbar = mass / lambda;    
+			precision mbar = mass / lambda;
 			precision mbar2 = mbar * mbar;
 
 			precision lambda_aT3 = lambda * aT2 * aT;
@@ -143,7 +143,7 @@ void compute_J(precision Ea, precision PTa, precision PLa, precision mass, preci
 				precision w = sqrt(aL2  +  mbar2 / pbar2);
 				precision z = aT2_minus_aL2 / (w * w);
 				precision z2 =  z * z;
-				
+
 				if(z > delta)																		// compute hypergeometric functions
 				{
 					precision sqrtz = sqrt(z);
@@ -199,7 +199,7 @@ void compute_J(precision Ea, precision PTa, precision PLa, precision mass, preci
 
 				I_402m1 += pbar2 / Ebar * common_weight * t_402 / w;
 		    	I_421m1 += pbar2 / Ebar * common_weight * t_421 / w;
-		    	I_440m1 += pbar2 / Ebar * common_weight * t_440 / w; 
+		    	I_440m1 += pbar2 / Ebar * common_weight * t_440 / w;
 			}
 
 			I_2001 *= prefactor;
@@ -243,7 +243,7 @@ void compute_J(precision Ea, precision PTa, precision PLa, precision mass, preci
 				for(int j = 0; j < 3; j++)
 				{
 					Jcurrent_dX[i] += Jcurrent[i][j] * dX[j];
-				} 
+				}
 			}
     		for(int i = 0; i < 3; i++)
     		{
@@ -431,7 +431,7 @@ void line_backtracking(precision *l, precision Ea, precision PTa, precision PLa,
 	// I got this algorithm from Numerical Recipes in C
 	//line_backtracking(&l, Ea, PTa, PLa, mass, Xcurrent, dX, fcurrent, F, gradf); (for reference)
 
-	// g0 = fcurrent 
+	// g0 = fcurrent
 
 	precision ls = 1.0;         					// starting value for l
 	precision alpha = 0.0001;   					// descent parameter
@@ -440,7 +440,7 @@ void line_backtracking(precision *l, precision Ea, precision PTa, precision PLa,
 
 	precision X[3];
 
-	for(int j = 0; j < 3; j++)							
+	for(int j = 0; j < 3; j++)
 	{
 		X[j] = Xcurrent[j] + ls * dX[j];
 	}
@@ -448,7 +448,8 @@ void line_backtracking(precision *l, precision Ea, precision PTa, precision PLa,
 	compute_F(Ea, PTa, PLa, mass, X, F);			// update F at least once
 
 
-	if(ls < (tol_dX / dX_abs))						// what does this mean?		
+
+	if(ls < (tol_dX / dX_abs))						// what does this mean?
 	{
 		*l = ls;
 		return;
@@ -471,29 +472,24 @@ void line_backtracking(precision *l, precision Ea, precision PTa, precision PLa,
 		exit(-1);
 	}
 
-	precision lroot;
-	precision lprev;
-	precision fprev;
-
-	precision a;
-	precision b;
-	precision z;
+	precision lroot, lprev, fprev, z;
 
 	for(int i = 0; i < 10; i++)						// line search iterations (max is 10)
 	{
-		if(f <= g0  +  ls * alpha * gprime0)		// check for sufficient decrease
+		if(f <= g0  +  ls * alpha * gprime0)		// check for sufficient decrease in f
 		{
+			//if(i == 0) printf("Use full step: i = 0\n");
 			*l = ls;
 			return;
 		}
 		else if(i == 0)								// start with quadratic formula
 		{
-			lroot = - gprime0 / (2.*(g1 - g0 - gprime0));
+			lroot = - gprime0 / (2. * (g1 - g0 - gprime0));
 		}
 		else 										// cubic formula for the rest of iterations
 		{
-			a = ((g1  -  gprime0 * ls  -  g0) / (ls * ls)  -  (fprev  -  gprime0 * lprev  -  g0) / (lprev * lprev)) / (ls - lprev);
-			b = (-lprev*(g1-gprime0*ls-g0)/(ls*ls) + ls*(fprev-gprime0*lprev-g0)/(lprev*lprev)) / (ls-lprev);
+			precision a = ((g1  -  gprime0 * ls  -  g0) / (ls * ls)  -  (fprev  -  gprime0 * lprev  -  g0) / (lprev * lprev)) / (ls - lprev);
+			precision b = (-lprev * (g1  -  gprime0 * ls  -  g0) / (ls * ls)  +  ls * (fprev  -  gprime0 * lprev  -  g0)  /  (lprev * lprev)) / (ls - lprev);
 
 			if(a == 0) 								// solve dg/dl = 0 at a = 0
 			{
@@ -501,12 +497,16 @@ void line_backtracking(precision *l, precision Ea, precision PTa, precision PLa,
 			}
 			else
 			{
-				z = b*b - 3.0*a*gprime0;
+				z = b * b  -  3. * a * gprime0;
 
-				if(z < 0.0)
-					lroot = 0.5*ls;
+				if(z < 0)
+				{
+					lroot = ls / 2.;
+				}
 				else
-					lroot = (-b + sqrt(z)) / (3.0*a);
+				{
+					lroot = (-b + sqrt(z)) / (3. * a);
+				}
 
 				// does result change if I used general formula?
 
@@ -517,27 +517,23 @@ void line_backtracking(precision *l, precision Ea, precision PTa, precision PLa,
 				// else
 				// 	lroot = - gprime0 / (b + sqrt(z));  // ?????
 			}
-			if(lroot > 0.5*ls) lroot = 0.5*ls;
 
+			lroot = fmin(lroot, ls / 2.);
 		}
 
-
-		// store current values for next iteration
-		lprev = ls;
+		lprev = ls;									// store current values for next iteration
 		fprev = f;
 
+		ls = fmax(lroot, 0.1 * ls);					// update l and f
 
-		// update l and f
-		ls = fmax(lroot, 0.1*ls);
-
-		for(int k = 0; k < n; k++)
+		for(int j = 0; j < 3; j++)
 		{
-			X[k] = Xcurrent[k] + ls*dX[k];
+			X[j] = Xcurrent[j]  +  ls * dX[j];
 		}
 
-		calcF(Ea, PTa, PLa, thermal_mass, X, F, n);
+		compute_F(Ea, PTa, PLa, mass, X, F);
 
-		f = 0.5*(F[0]*F[0] + F[1]*F[1] + F[2]*F[2]);
+		f = (F[0] * F[0]  +  F[1] * F[1]  +  F[2] * F[2]) / 2.;
 	}
 
 	*l = ls;
@@ -558,7 +554,7 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 	const precision PTa = pt + B;										// kinetic transverse pressure
 	const precision PLa = pl + B;										// kinetic longitudinal pressure
 
-	if(Ea < 0 || PTa < 0 || PLa < 0) 
+	if(Ea < 0 || PTa < 0 || PLa < 0)
 	{
 		printf("find_anisotropic_variables error: (E_a, PT_a, PL_a) = (%lf, %lf, %lf) is negative\n", Ea, PTa, PLa);
 		exit(-1);
@@ -570,10 +566,10 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 	precision aT = aT_0;
 	precision aL = aL_0;
 
-	precision X[3] = {lambda, aT, aL};									// updated solution 
-	precision Xcurrent[3] = {lambda, aT, aL};			     			// current solution 
+	precision X[3] = {lambda, aT, aL};									// updated solution
+	precision Xcurrent[3] = {lambda, aT, aL};			     			// current solution
 	precision dX[3];							 				 		// dX iteration
-  	precision F[3];  											 		// F(X) 
+  	precision F[3];  											 		// F(X)
   	precision Fcurrent[3];  									 		// F(Xcurrent)
   	precision dX_abs;             										// magnitude of dX
 	precision F_abs;		      										// magnitude of F
@@ -588,7 +584,7 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 		J[k] = (precision*)malloc(3*sizeof(precision));
  		Jcurrent[k] = (precision*)malloc(3*sizeof(precision));
  	}
-	
+
  	int pvector[3];									  		 			// permutation vector for LUP solver
 
  	jacobian method = newton;                               			// jacobian method (start with newton)
@@ -601,12 +597,15 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 	stepmax *= fmax(sqrt(X[0]*X[0] + X[1]*X[1] + X[2]*X[2]), 3. * sqrt(3.0));		// why??? (never used anyway..)
 
 
-	compute_F(Ea, PTa, PLa, mass, Xcurrent, F);							// first compute F for the first iteration					
+	compute_F(Ea, PTa, PLa, mass, Xcurrent, F);							// first compute F for the first iteration
 
 	// printf("F_0 = %lf\n", F[0]);
 	// printf("F_1 = %lf\n", F[1]);
 	// printf("F_2 = %lf\n\n", F[2]);
-	
+
+	int number_newton = 1;
+	int number_broyden = 0;
+
 
 	printf("Start search for anisotropic variables\n");					// there's a lot about this finder that I don't remember
 
@@ -614,32 +613,37 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 	{
 		if(i > 0)														// compute at least one Newton iteration before checking for convergence
 		{
+			printf("X = (%lf, %lf, %lf)\n", X[0], X[1], X[2]);
+			printf("dX = (%lf, %lf, %lf)\n", dX[0], dX[1], dX[2]);
+			printf("F = (%.6g, %.6g, %.6g)\n", F[0], F[1], F[2]);
+			printf("(|dX|, |dF|) = (%.6g, %.6g)\n\n", dX_abs, F_abs);
+
 			if(dX_abs <= tol_dX && F_abs <= tol_F)						// why do I need both, don't I just need F?
 			{
-				//cout << i << " ";
+				printf("(newton, broyden) = (%d, %d)\n", number_newton, number_broyden);
 
 				aniso_variables variables;
 				variables.lambda = X[0];
 				variables.aT = X[1];
 				variables.aL = X[2];
 
-				free_2D(J, 3);											// free allocated memory 
-				free_2D(Jcurrent, 3);									// can I do something else? 
+				free_2D(J, 3);											// free allocated memory
+				free_2D(Jcurrent, 3);									// can I do something else?
 
-				return variables; 
+				return variables;
 			}
 
 			method = broyden;											// default method is Broyden for i > 0
 		}
 
 		// default J and f at Xcurrent
-	    compute_J(Ea, PTa, PLa, mass, Xcurrent, dX, F, Fcurrent, J, Jcurrent, method);		
+	    compute_J(Ea, PTa, PLa, mass, Xcurrent, dX, F, Fcurrent, J, Jcurrent, method);
 	    fcurrent = (F[0] * F[0]  +  F[1] * F[1]  +  F[2] * F[2]) / 2.;
 
 	    for(int j = 0; j < 3; j++)
     	{
     		Fcurrent[j] = F[j];											// store current F,  default J and compute
-    		gradf[j] = 0; 												// gradient of f at Xcurrent (gradf_j = F_k * J_kj)		
+    		gradf[j] = 0; 												// gradient of f at Xcurrent (gradf_j = F_k * J_kj)
 
     		for(int k = 0; k < 3; k++)
     		{
@@ -656,24 +660,24 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 		//:::::::::::::::::::::::::::::::::::::::::
 	    for(int j = 0; j < 3; j++) 										// change sign of F first
 	    {
-	    	F[j] *= -1.;  
+	    	F[j] *= -1.;
 	    }
 
 	    LUP_decomposition(J, 3, pvector);          						// LUP of J now stored in J (pvector also updated)
 	    LUP_solve(J, 3, pvector, F);               						// F now stores dX
 
-	    for(int j = 0; j < 3; j++) 
+	    for(int j = 0; j < 3; j++)
 	    {
 	    	dX[j] = F[j];   											// load full Newton/Broyden iteration dX
 	    }
 	    //:::::::::::::::::::::::::::::::::::::::::
-	   
+
 		// printf("dX_0 = %lf\n", dX[0]);
 		// printf("dX_1 = %lf\n", dX[1]);
 		// printf("dX_2 = %lf\n", dX[2]);
 
 	    // rescale dX if too large
-	    dX_abs = sqrt(dX[0] * dX[0]  +  dX[1] * dX[1]  +  dX[2] * dX[2]);	
+	    dX_abs = sqrt(dX[0] * dX[0]  +  dX[1] * dX[1]  +  dX[2] * dX[2]);
 
 		if(dX_abs > stepmax)
 		{
@@ -687,9 +691,9 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 
 		precision gprime0 = 0;											// compute gradient descent derivative
 
-		for(int j = 0; j < 3; j++)										
+		for(int j = 0; j < 3; j++)
 		{
-			gprime0 += gradf[j] * dX[j];
+			gprime0 += gradf[j] * dX[j];								// can I move this down to broyden update?
 		}
 
 		switch(method)													// check that descent derivative is negative
@@ -713,8 +717,8 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 			}
 		}
 
-		printf("gprime_0 = %lf\n", gprime0);
-		exit(-1);
+		//printf("gprime_0 = %lf\n", gprime0);
+		//exit(-1);
 
 
 		switch(method)													// update solution X or redo iteration with newton
@@ -725,6 +729,9 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 				// does l reset to a default value??
 
 				line_backtracking(&l, Ea, PTa, PLa, mass, Xcurrent, dX, fcurrent, F, gradf);
+
+				// printf("default newton l = %lf\n", l);
+				// exit(-1);
 
 			    for(int j = 0; j < 3; j++)
 			    {
@@ -744,12 +751,12 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 				f = (F[0] * F[0]  +  F[1] * F[1]  +  F[2] * F[2]) / 2.;
 
 				if(f > (fcurrent  -  0.2 * fabs(gprime0)))				// if Broyden step doesn't decrease f sufficiently
-				{	
+				{
 					method = newton;									// compute exact Jacobian and redo iteration with newton
 
 			    	for(int j = 0; j < 3; j++)							// reset F
-			    	{		
-			    		F[j] = Fcurrent[j];								
+			    	{
+			    		F[j] = Fcurrent[j];
 			    	}
 
 			    	compute_J(Ea, PTa, PLa, mass, Xcurrent, dX, F, Fcurrent, J, Jcurrent, method);	// recompute J as exact
@@ -767,30 +774,30 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 
 				    // resolve the matrix equation: J * dX = - F
 				    //:::::::::::::::::::::::::::::::::::::::::
-				    for(int j = 0; j < 3; j++) 										
+				    for(int j = 0; j < 3; j++)
 				    {
-				    	F[j] *= -1.;  
+				    	F[j] *= -1.;
 				    }
 
-				    LUP_decomposition(J, 3, pvector);          						
-				    LUP_solve(J, 3, pvector, F);               						
+				    LUP_decomposition(J, 3, pvector);
+				    LUP_solve(J, 3, pvector, F);
 
-				    for(int j = 0; j < 3; j++) 
+				    for(int j = 0; j < 3; j++)
 				    {
-				    	dX[j] = F[j];   											
+				    	dX[j] = F[j];
 				    }
 				    //:::::::::::::::::::::::::::::::::::::::::
-				  
+
 				    dX_abs = sqrt(dX[0] * dX[0]  +  dX[1] * dX[1]  +  dX[2] * dX[2]);
 
 					if(dX_abs > stepmax)
 					{
-						for(int j = 0; j < 3; j++) 
+						for(int j = 0; j < 3; j++)
 						{
 							dX[j] *= stepmax / dX_abs;
 						}
 					}
-					
+
 					for(int j = 0; j < 3; j++) 							// default newton iteration
 					{
 						X[j] = Xcurrent[j] + dX[j];
@@ -799,11 +806,17 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 					// line backtracking algorithm updates l and F(Xcurrent + l.dX)
 					//
 					line_backtracking(&l, Ea, PTa, PLa, mass, Xcurrent, dX, fcurrent, F, gradf);
-					
+
 				    for(int j = 0; j < 3; j++)							// redo update for X
 				    {
 					    X[j] = Xcurrent[j]  +  l * dX[j];
 				    }
+
+				    number_newton++;
+				}
+				else
+				{
+					number_broyden++;
 				}
 				break;
 			}
@@ -814,26 +827,38 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 			}
 		} // updated X
 
+	    F_abs = sqrt(F[0] * F[0]  +  F[1] * F[1]  +  F[2] * F[2]);		// update convergence values
+	    dX_abs = sqrt(dX[0] * dX[0]  +  dX[1] * dX[1]  +  dX[2] * dX[2]);
 
+		for(int j = 0; j < 3; j++)										// store current solution
+		{
+			Xcurrent[j] = X[j];
+		}
 
+	    // for some reason the solution can yield negative values at initialization
 
-
-
-
-
+		if(X[0] < 0 || X[1] < 0 || X[2] < 0)
+		{
+			printf("find_anisotropic_variables error: (lamnda, aT, aL) = (%lf, %lf, %lf)\n", X[0], X[1], X[2]);
+			exit(-1);
+		}
 	}	// newton iteration (i)
+
+
+	// printf("(newton, broyden) steps = (%d, %d)", number_newton, number_broyden);
+	// exit(-1);
 
 	// I should make a counter that tells me how many times I use newton-redo or broyden (or make a string)
 
 	printf("find_anisotropic_variables error: number of iterations exceed maximum\n");
 
-	aniso_variables variables;			// does algorithm ever get stuck searching (e.g. hit local min)? 
+	aniso_variables variables;			// does algorithm ever get stuck searching (e.g. hit local min)?
 	variables.lambda = X[0];
 	variables.aT = X[1];
 	variables.aL = X[2];
 
-	free_2D(J, 3);										
-	free_2D(Jcurrent, 3);	
+	free_2D(J, 3);
+	free_2D(Jcurrent, 3);
 
 	return variables;
 }
