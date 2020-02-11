@@ -257,7 +257,7 @@ void compute_J(precision Ea, precision PTa, precision PLa, precision mass, preci
     	}
     	default:
     	{
-    		printf("compute_J error: fix Jacobian method\n");
+    		printf("compute_J error: no Jacobian method specified\n");
     		exit(-1);
     	}
     }
@@ -278,7 +278,7 @@ void compute_J(precision Ea, precision PTa, precision PLa, precision mass, preci
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 
-void LUP_decomposition(double ** A, int n, int * pvector)
+void LUP_decomposition(precision ** A, int n, int * pvector)
 {
 	// takes A and decomposes it into LU (with row permutations P)
 	// A = n x n matrix; function does A -> PA = LU; (L,U) of PA stored in same ** array
@@ -290,10 +290,10 @@ void LUP_decomposition(double ** A, int n, int * pvector)
 	int j;	   // columns
 	int k;     // dummy matrix index
 	int imax;  // pivot row index
-	double big;
-	double sum;
-	double temp;
-	double implicit_scale[n];
+	precision big;
+	precision sum;
+	precision temp;
+	precision implicit_scale[n];
 
 	// Initialize permutation vector
 	// to default no-pivot values
@@ -383,7 +383,7 @@ void LUP_decomposition(double ** A, int n, int * pvector)
 }
 
 
-void LUP_solve(double ** PA, int n, int * pvector, double b[])
+void LUP_solve(precision ** PA, int n, int * pvector, precision b[])
 {
 	// input vector b is transformed to the solution x  of Ax = b
 	// PA is the input permutated matrix from LUP_decomposition (will not be updated here)
@@ -392,7 +392,7 @@ void LUP_solve(double ** PA, int n, int * pvector, double b[])
 	int j;       // columns
 	int m = -1;  // used to skip first few for loops (j) involving a zero (priorly permutated) b[j] element (pointless to multiply by 0)
 	int ip;      // assigned permutation row index pvector[i]
-	double sum;
+	precision sum;
 	// Forward substitution routine for Ly = b
 	for(i = 0; i < n; i++)
 	{
@@ -422,6 +422,126 @@ void LUP_solve(double ** PA, int n, int * pvector, double b[])
 		}
 		b[i] = sum / PA[i][i];            // update x[i] and store in b (FINAL SOLUTION)
 	}
+}
+
+
+
+void line_backtracking(precision *l, precision Ea, precision PTa, precision PLa, precision mass, precision * Xcurrent, precision * dX, precision g0, precision * F, precision * gradf)
+{
+	// I got this algorithm from Numerical Recipes in C
+	//line_backtracking(&l, Ea, PTa, PLa, mass, Xcurrent, dX, fcurrent, F, gradf); (for reference)
+
+	// g0 = fcurrent 
+
+	precision ls = 1.0;         					// starting value for l
+	precision alpha = 0.0001;   					// descent parameter
+
+	precision dX_abs = sqrt(dX[0] * dX[0]  +  dX[1]*dX[1]  +  dX[2] * dX[2]);
+
+	precision X[3];
+
+	for(int j = 0; j < 3; j++)							
+	{
+		X[j] = Xcurrent[j] + ls * dX[j];
+	}
+
+	compute_F(Ea, PTa, PLa, mass, X, F);			// update F at least once
+
+
+	if(ls < (tol_dX / dX_abs))						// what does this mean?		
+	{
+		*l = ls;
+		return;
+	}
+
+	precision f = (F[0] * F[0]  +  F[1] * F[1]  +  F[2] * F[2]) / 2.;
+	precision g1 = f;
+
+	precision gprime0 = 0;
+
+	for(int j = 0; j < 3; j++)
+	{
+		gprime0 += gradf[j] * dX[j];				// can I just pass this?
+	}
+
+	if(gprime0 >= 0)
+	{
+		// roundoff issue with gradient descent
+		printf("line_backtracking error: descent derivative is not negative\n");
+		exit(-1);
+	}
+
+	precision lroot;
+	precision lprev;
+	precision fprev;
+
+	precision a;
+	precision b;
+	precision z;
+
+	for(int i = 0; i < 10; i++)						// line search iterations (max is 10)
+	{
+		if(f <= g0  +  ls * alpha * gprime0)		// check for sufficient decrease
+		{
+			*l = ls;
+			return;
+		}
+		else if(i == 0)								// start with quadratic formula
+		{
+			lroot = - gprime0 / (2.*(g1 - g0 - gprime0));
+		}
+		else 										// cubic formula for the rest of iterations
+		{
+			a = ((g1  -  gprime0 * ls  -  g0) / (ls * ls)  -  (fprev  -  gprime0 * lprev  -  g0) / (lprev * lprev)) / (ls - lprev);
+			b = (-lprev*(g1-gprime0*ls-g0)/(ls*ls) + ls*(fprev-gprime0*lprev-g0)/(lprev*lprev)) / (ls-lprev);
+
+			if(a == 0) 								// solve dg/dl = 0 at a = 0
+			{
+				lroot = - gprime0 / (2. * b);
+			}
+			else
+			{
+				z = b*b - 3.0*a*gprime0;
+
+				if(z < 0.0)
+					lroot = 0.5*ls;
+				else
+					lroot = (-b + sqrt(z)) / (3.0*a);
+
+				// does result change if I used general formula?
+
+				// if(z < 0.0)
+				// 	lroot = 0.5*ls;
+				// else if(b <= 0.0)
+				// 	lroot = (-b + sqrt(z)) / (3.0*a);
+				// else
+				// 	lroot = - gprime0 / (b + sqrt(z));  // ?????
+			}
+			if(lroot > 0.5*ls) lroot = 0.5*ls;
+
+		}
+
+
+		// store current values for next iteration
+		lprev = ls;
+		fprev = f;
+
+
+		// update l and f
+		ls = fmax(lroot, 0.1*ls);
+
+		for(int k = 0; k < n; k++)
+		{
+			X[k] = Xcurrent[k] + ls*dX[k];
+		}
+
+		calcF(Ea, PTa, PLa, thermal_mass, X, F, n);
+
+		f = 0.5*(F[0]*F[0] + F[1]*F[1] + F[2]*F[2]);
+	}
+
+	*l = ls;
+	return;
 }
 
 
@@ -472,7 +592,7 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
  	int pvector[3];									  		 			// permutation vector for LUP solver
 
  	jacobian method = newton;                               			// jacobian method (start with newton)
- 	precision l = 1; 		  											// default partial step parameter
+ 	precision l = 1.0; 		  											// default partial step parameter
 
  	// not sure
  	precision tolmin = 1.0e-6;   										// tolerance for spurious convergence to local min of f = F.F/2 (what does this mean?)
@@ -494,7 +614,6 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 	{
 		if(i > 0)														// compute at least one Newton iteration before checking for convergence
 		{
-			//if(dX_abs <= tol_dX & F_abs <= tol_F)						// was this a bug???
 			if(dX_abs <= tol_dX && F_abs <= tol_F)						// why do I need both, don't I just need F?
 			{
 				//cout << i << " ";
@@ -534,21 +653,10 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 		// printf("gradf_2 = %lf\n", gradf[2]);
 
 		// solve matrix equation: J * dX = - F (stick with LUP routine for now...)
-		// would it be more effective if solved equation in dimensionless units?
-		// I could try normalizing this equation later
-		// for(int j = 0; j < 3; j++) 									// normalizing equation doesn't appear to make a difference
-		// {	
-		// 	F[j] /= pow(lambda, 4);
-
-		// 	for(int k = 0; k < 3; k++)
-  //   		{
-  //   			J[j][k] /= pow(lambda, 4);
-  //   		}
-		// }
-
+		//:::::::::::::::::::::::::::::::::::::::::
 	    for(int j = 0; j < 3; j++) 										// change sign of F first
 	    {
-	    	F[j] *= -1;  
+	    	F[j] *= -1.;  
 	    }
 
 	    LUP_decomposition(J, 3, pvector);          						// LUP of J now stored in J (pvector also updated)
@@ -556,8 +664,9 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 
 	    for(int j = 0; j < 3; j++) 
 	    {
-	    	 dX[j] = F[j];   											// load full Newton/Broyden iteration dX
+	    	dX[j] = F[j];   											// load full Newton/Broyden iteration dX
 	    }
+	    //:::::::::::::::::::::::::::::::::::::::::
 	   
 		// printf("dX_0 = %lf\n", dX[0]);
 		// printf("dX_1 = %lf\n", dX[1]);
@@ -576,19 +685,18 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 			}
 		}
 
-		// compute gradient descent derivative
-		precision gprime0 = 0;		
+		precision gprime0 = 0;											// compute gradient descent derivative
 
 		for(int j = 0; j < 3; j++)										
 		{
 			gprime0 += gradf[j] * dX[j];
 		}
 
-		switch(method)
+		switch(method)													// check that descent derivative is negative
 		{
 			case newton:
 			{
-				if(gprime0 >= 0) 
+				if(gprime0 >= 0) 	// should I only check this for newton bc jacobian exact?
 				{
 					printf("find_anisotropic_variables error: gradient descent = %lf has wrong sign\n", gprime0);
     				exit(-1);
@@ -600,7 +708,7 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 			}
 			default:
 			{
-				printf("find_anisotropic_variables error: gradient descent has no Jacobian method\n");
+				printf("find_anisotropic_variables error: gradient descent has no Jacobian method specified\n");
     			exit(-1);
 			}
 		}
@@ -614,8 +722,9 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 			case newton:												// compute line backtracking step
 			{
 				// line backtracking algorithm updates l and F(Xcurrent + l.dX)
-				// 
-				linebacktrack(&l, Ea, PTa, PLa, mass, Xcurrent, dX, fcurrent, F, gradf, tol_dX);
+				// does l reset to a default value??
+
+				line_backtracking(&l, Ea, PTa, PLa, mass, Xcurrent, dX, fcurrent, F, gradf);
 
 			    for(int j = 0; j < 3; j++)
 			    {
@@ -634,67 +743,76 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 				compute_F(Ea, PTa, PLa, mass, X, F);					// compute default values for F and f at updated X
 				f = (F[0] * F[0]  +  F[1] * F[1]  +  F[2] * F[2]) / 2.;
 
-
 				if(f > (fcurrent  -  0.2 * fabs(gprime0)))				// if Broyden step doesn't decrease f sufficiently
-				{														// compute exact Jacobian and redo iteration with newton
-					//cout << "Hey" << endl;
-					// reset F
-			    	for(int k = 0; k < n; k++)
-			    	{
-			    		F[k] = Fcurrent[k];
+				{	
+					method = newton;									// compute exact Jacobian and redo iteration with newton
+
+			    	for(int j = 0; j < 3; j++)							// reset F
+			    	{		
+			    		F[j] = Fcurrent[j];								
 			    	}
 
-			    	jtype = newton;
+			    	compute_J(Ea, PTa, PLa, mass, Xcurrent, dX, F, Fcurrent, J, Jcurrent, method);	// recompute J as exact
 
-			    	// reinitialize J as exact
-			    	calcJ(Ea, PTa, PLa, thermal_mass, Xcurrent, dX, F, Fcurrent, J, Jcurrent, jtype, n);
-
-
-			    	// store J and calculate gradf
-			    	for(int k = 0; k < n; k++)
+			    	for(int j = 0; j < 3; j++)							// store J and calculate gradf again
 			    	{
-			    		for(int j = 0; j < n; j++)
+			    		gradf[j] = 0;
+
+			    		for(int k = 0; k < 3; k++)
 			    		{
-			    			Jcurrent[k][j] = J[k][j];
+			    			Jcurrent[j][k] = J[j][k];
+			    			gradf[j] += F[k] * J[k][j];
 			    		}
-				    	gradf_sum = 0.0; // clear sum
-				    	for(int m = 0; m < n; m++) gradf_sum += F[m] * J[m][k];
-				    	gradf[k] = gradf_sum;
 				    }
 
-				    // resolve matrix equation
-				    for(int k = 0; k < n; k++) F[k] = - F[k];
-				    LUP_decomposition(J, n, pvector);
-				    LUP_solve(J, n, pvector, F);
-				    for(int k = 0; k < n; k++) dX[k] = F[k];
+				    // resolve the matrix equation: J * dX = - F
+				    //:::::::::::::::::::::::::::::::::::::::::
+				    for(int j = 0; j < 3; j++) 										
+				    {
+				    	F[j] *= -1.;  
+				    }
 
+				    LUP_decomposition(J, 3, pvector);          						
+				    LUP_solve(J, 3, pvector, F);               						
 
-				    dXabs = sqrt(dX[0]*dX[0]+dX[1]*dX[1]+dX[2]*dX[2]);
-					if(dXabs > stepmax)
+				    for(int j = 0; j < 3; j++) 
+				    {
+				    	dX[j] = F[j];   											
+				    }
+				    //:::::::::::::::::::::::::::::::::::::::::
+				  
+				    dX_abs = sqrt(dX[0] * dX[0]  +  dX[1] * dX[1]  +  dX[2] * dX[2]);
+
+					if(dX_abs > stepmax)
 					{
-						for(int k = 0; k < n; k++) dX[k] *= (stepmax/dXabs);
+						for(int j = 0; j < 3; j++) 
+						{
+							dX[j] *= stepmax / dX_abs;
+						}
+					}
+					
+					for(int j = 0; j < 3; j++) 							// default newton iteration
+					{
+						X[j] = Xcurrent[j] + dX[j];
 					}
 
-
-					// default Newton iteration
-					for(int k = 0; k < n; k++) X[k] = Xcurrent[k] + dX[k];
-
-
-					// line backtracking
-					linebacktrack(&l, Ea, PTa, PLa, thermal_mass, Xcurrent, dX, fcurrent, F, gradf, toldX, n);
-
-
-					// redo update for X
-				    for(int k = 0; k < n; k++)
+					// line backtracking algorithm updates l and F(Xcurrent + l.dX)
+					//
+					line_backtracking(&l, Ea, PTa, PLa, mass, Xcurrent, dX, fcurrent, F, gradf);
+					
+				    for(int j = 0; j < 3; j++)							// redo update for X
 				    {
-					    X[k] = Xcurrent[k] + l*dX[k];
+					    X[j] = Xcurrent[j]  +  l * dX[j];
 				    }
 				}
 				break;
 			}
 			default:
-				throw "correct line backtracking routine\n";
-		}
+			{
+				printf("find_anisotropic_variables error: update X has no Jacobian method specified\n");
+    			exit(-1);
+			}
+		} // updated X
 
 
 
