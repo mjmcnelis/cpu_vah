@@ -88,6 +88,10 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	pt  = (e - pl) / 2.;			// I don't think I need this (because it's already regulated to conformal formula)
 #endif
 
+#ifdef B_FIELD
+	precision b = q[a];		a++;
+#endif
+
 #ifdef PIMUNU
 	precision pitt = q[a];	a++;
 	precision pitx = q[a];	a++;
@@ -144,6 +148,8 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 #endif
 
 
+// 1)
+
 // relaxation times and transport coefficients
 //-------------------------------------------------
 #ifdef CONFORMAL_EOS
@@ -154,11 +160,22 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	precision taubulkInv = 1.;
 #endif
 
+
+
+
+
+// 2)
 	aniso_transport_coefficients aniso;
 	aniso.compute_transport_coefficients(e, pl, pt, conformal_eos_prefactor);
 
+
+
+
+
+
+
 	// pl coefficients
-	precision zeta_LL = aniso.zeta_LL;
+	precision zeta_LL = aniso.zeta_LL;								// I think these can be left alone 
 	precision zeta_TL = aniso.zeta_TL;
 	precision lambda_WuL = aniso.lambda_WuL;
 	precision lambda_WTL = aniso.lambda_WTL;
@@ -199,6 +216,11 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	dpt_dx = (de_dx  -  dpl_dx) / 2.;
 	dpt_dy = (de_dy  -  dpl_dy) / 2.;
 	dpt_dn = (de_dn  -  dpl_dn) / 2.;				// temporary macro statement (replace with if(hydro.eos))
+#endif
+
+
+#ifdef B_FIELD										// I don't think I need b derivatives, so just skip it
+	n += 2;
 #endif
 
 
@@ -736,6 +758,16 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 
 	S[a] = dpl / ut  +  div_v * pl;		a++;
 	S[a] = dpt / ut  +  div_v * pt;		a++;
+
+
+	// b field relaxation equation
+#ifdef B_FIELD
+	precision edot = - (e + pl) * thetaL  -  (e + pt) * thetaT;				// this is temporary (need to add more terms)
+
+	precision db = (beq - b) * taubulk_inverse  +  mdmde * edot * (e_s - 2.*pt - pl - 4.*b) / (mass * mass);
+
+	S[a] = db / ut  +  div_v * b;		a++;
+#endif
 
 	// piT relaxation equation (checked it, looks ok)
 #ifdef PIMUNU

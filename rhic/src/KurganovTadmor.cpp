@@ -102,6 +102,10 @@ const precision * const __restrict__ e_current, const fluid_velocity * const __r
 				qs[a] = q_current[s].pt; a++;
 			#endif
 
+			#ifdef B_FIELD
+				qs[a] = q_current[s].b; a++;
+			#endif
+
 			#ifdef PIMUNU
 				qs[a] = q_current[s].pitt; a++;
 				qs[a] = q_current[s].pitx; a++;
@@ -206,6 +210,10 @@ const precision * const __restrict__ e_current, const fluid_velocity * const __r
 					q_update[s].pt = f[a]; a++;
 				#endif
 
+				#ifdef B_FIELD
+					q_update[s].b = f[a]; a++;
+				#endif
+
 				#ifdef PIMUNU
 					q_update[s].pitt = f[a]; a++;
 					q_update[s].pitx = f[a]; a++;
@@ -258,6 +266,10 @@ const precision * const __restrict__ e_current, const fluid_velocity * const __r
 				#ifdef ANISO_HYDRO
 					q_update[s].pl = qs[a]; a++;
 					q_update[s].pt = qs[a]; a++;
+				#endif
+
+				#ifdef B_FIELD
+					q_update[s].b = qs[a]; a++;
 				#endif
 
 				#ifdef PIMUNU
@@ -313,6 +325,10 @@ const precision * const __restrict__ e_current, const fluid_velocity * const __r
 				#ifdef ANISO_HYDRO
 					q_update[s].pl = (q[s].pl  +  qs[a]) / 2.; a++;
 					q_update[s].pt = (q[s].pt  +  qs[a]) / 2.; a++;
+				#endif
+
+				#ifdef B_FIELD
+					q_update[s].b = (q[s].b  +  qs[a]) / 2.; a++;
 				#endif
 
 				#ifdef PIMUNU
@@ -380,6 +396,10 @@ void recompute_euler_step(const hydro_variables * const __restrict__ q_current, 
 			#ifdef ANISO_HYDRO
 				q_update[s].pl  = q_current[s].pl  +  dt * q_update[s].pl;
 				q_update[s].pt  = q_current[s].pt  +  dt * q_update[s].pt;
+			#endif
+
+			#ifdef B_FIELD
+				q_update[s].b  = q_current[s].b  +  dt * q_update[s].b;
 			#endif
 
 			#ifdef PIMUNU

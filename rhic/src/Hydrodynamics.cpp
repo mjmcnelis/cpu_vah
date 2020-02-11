@@ -121,11 +121,15 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 	allocate_memory(lattice);
 
 	precision t = hydro.tau_initial;					// initial longitudinal proper time
+
 	set_initial_conditions(t, lattice, initial, hydro);	// initial conditions for (q, e, u)
+
 	set_ghost_cells(q, e, u, lattice);					// initialize ghost cells in (q, e, u)
 
 	precision t_out = t;								// output times
 	precision dt_out = lattice.output_interval;
+
+	exit(-1);
 
 #ifdef BOOST_INVARIANT
 	printf("Running 2+1d hydro simulation...\n\n");

@@ -146,6 +146,11 @@ void print_parameters(lattice_parameters lattice, hydro_parameters hydro)
 #else
 	printf("Longitudinal momentum diffusion = Off\n");
 #endif
+#ifdef B_FIELD
+	printf("Mean field                      = On\n");
+#else
+	printf("Mean field                      = Off\n");
+#endif
 #else
 #ifdef PIMUNU
 	printf("Shear stress  = On\n");

@@ -204,6 +204,11 @@ void get_hydro_neighbor_cells(hydro_variables qm, hydro_variables qp, precision 
 	q[n + 1] = qp.pt;	n += 2;
 #endif
 
+#ifdef B_FIELD
+	q[n]	 = qm.b;
+	q[n + 1] = qp.b;	n += 2;
+#endif
+
 #ifdef PIMUNU
 	q[n]	 = qm.pitt;
 	q[n + 1] = qp.pitt;	n += 2;

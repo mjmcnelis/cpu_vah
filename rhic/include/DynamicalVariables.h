@@ -44,12 +44,19 @@
 #endif
 
 
+#ifdef B_FIELD
+	#define B_FIELD_COMPONENTS 1			// do I need to regulate mean field? or is mean field equation exact in pl-pt matching?
+#else
+	#define B_FIELD_COMPONENTS 0
+#endif
+
+
 #define NUMBER_OF_RESIDUAL_CURRENTS (PIMUNU_COMPONENTS + WTZMU_COMPONENTS)
 #define NUMBER_OF_VISCOUS_CURRENTS (PIMUNU_COMPONENTS + PI_COMPONENTS)
 
 
 #ifdef ANISO_HYDRO
-	#define NUMBER_CONSERVED_VARIABLES (CONSERVATION_LAWS + 2 + NUMBER_OF_RESIDUAL_CURRENTS)
+	#define NUMBER_CONSERVED_VARIABLES (CONSERVATION_LAWS + 2 + B_FIELD_COMPONENTS + NUMBER_OF_RESIDUAL_CURRENTS)
 #else
 	#define NUMBER_CONSERVED_VARIABLES (CONSERVATION_LAWS + NUMBER_OF_VISCOUS_CURRENTS)
 #endif
@@ -67,7 +74,11 @@ typedef struct
 
 #ifdef ANISO_HYDRO
 	precision pl;
-	precision pt;
+	precision pt;					
+#endif
+
+#ifdef B_FIELD
+	precision b;		
 #endif
 
 #ifdef PIMUNU
@@ -122,7 +133,7 @@ typedef struct
 // external variables
 extern hydro_variables *q, *Q, *qI;
 extern fluid_velocity *u, *up, *uI;
-extern precision *e;
+extern precision *e, *lambda, *aT, *aL;
 
 
 // swap variables

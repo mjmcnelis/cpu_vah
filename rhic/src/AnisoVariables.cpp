@@ -524,7 +524,9 @@ void line_backtracking(precision *l, precision Ea, precision PTa, precision PLa,
 		lprev = ls;									// store current values for next iteration
 		fprev = f;
 
-		ls = fmax(lroot, 0.1 * ls);					// update l and f
+		ls = fmax(lroot, 0.5 * ls);					// update l and f
+		//ls = fmax(lroot, 0.1 * ls);				// update l and f
+		
 
 		for(int j = 0; j < 3; j++)
 		{
@@ -591,10 +593,9 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
  	precision l = 1.0; 		  											// default partial step parameter
 
  	// not sure
- 	precision tolmin = 1.0e-6;   										// tolerance for spurious convergence to local min of f = F.F/2 (what does this mean?)
-	precision stepmax = 100;   											// scaled maximum step length allowed in line searches (what does this mean?)
-
-	stepmax *= fmax(sqrt(X[0]*X[0] + X[1]*X[1] + X[2]*X[2]), 3. * sqrt(3.0));		// why??? (never used anyway..)
+ 	//precision tolmin = 1.0e-6;   										// tolerance for spurious convergence to local min of f = F.F/2 (what does this mean?)
+	//precision stepmax = 100;   											// scaled maximum step length allowed in line searches (what does this mean?)
+	//stepmax *= fmax(sqrt(X[0]*X[0] + X[1]*X[1] + X[2]*X[2]), 3. * sqrt(3.));		// why??? (never used anyway..)
 
 
 	compute_F(Ea, PTa, PLa, mass, Xcurrent, F);							// first compute F for the first iteration
@@ -606,21 +607,19 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 	int number_newton = 1;
 	int number_broyden = 0;
 
-
-	printf("Start search for anisotropic variables\n");					// there's a lot about this finder that I don't remember
-
 	for(int i = 0; i < N_max; i++)										// Newton-Broyden iteration loop
 	{
 		if(i > 0)														// compute at least one Newton iteration before checking for convergence
 		{
-			printf("X = (%lf, %lf, %lf)\n", X[0], X[1], X[2]);
-			printf("dX = (%lf, %lf, %lf)\n", dX[0], dX[1], dX[2]);
-			printf("F = (%.6g, %.6g, %.6g)\n", F[0], F[1], F[2]);
-			printf("(|dX|, |dF|) = (%.6g, %.6g)\n\n", dX_abs, F_abs);
+			// printf("X = (%lf, %lf, %lf)\n", X[0], X[1], X[2]);
+			// printf("dX = (%lf, %lf, %lf)\n", dX[0], dX[1], dX[2]);
+			// printf("F = (%.6g, %.6g, %.6g)\n", F[0], F[1], F[2]);
+			// printf("(|dX|, |dF|) = (%.6g, %.6g)\n\n", dX_abs, F_abs);
 
 			if(dX_abs <= tol_dX && F_abs <= tol_F)						// why do I need both, don't I just need F?
 			{
-				printf("(newton, broyden) = (%d, %d)\n", number_newton, number_broyden);
+				//printf("(newton, broyden) = (%d, %d)\n", number_newton, number_broyden);
+				//exit(-1);
 
 				aniso_variables variables;
 				variables.lambda = X[0];
@@ -677,24 +676,19 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 		// printf("dX_2 = %lf\n", dX[2]);
 
 	    // rescale dX if too large
-	    dX_abs = sqrt(dX[0] * dX[0]  +  dX[1] * dX[1]  +  dX[2] * dX[2]);
+	    //dX_abs = sqrt(dX[0] * dX[0]  +  dX[1] * dX[1]  +  dX[2] * dX[2]);
 
-		if(dX_abs > stepmax)
-		{
-			printf("dX is too large, rescale it by stepmax\n");			// I don't think this ever happens...
+		// if(dX_abs > stepmax)
+		// {
+		// 	printf("dX is too large, rescale it by stepmax\n");			// I don't think this ever happens...
 
-			for(int j = 0; j < 3; j++)
-			{
-				dX[j] *= stepmax / dX_abs;
-			}
-		}
+		// 	for(int j = 0; j < 3; j++)
+		// 	{
+		// 		dX[j] *= stepmax / dX_abs;
+		// 	}
+		// }
 
-		precision gprime0 = 0;											// compute gradient descent derivative
-
-		for(int j = 0; j < 3; j++)
-		{
-			gprime0 += gradf[j] * dX[j];								// can I move this down to broyden update?
-		}
+		precision gprime0 = gradf[0] * dX[0]  +  gradf[1] * dX[1]  +  gradf[2] * dX[2];	// compute gradient descent derivative. can I move this down to broyden update?
 
 		switch(method)													// check that descent derivative is negative
 		{
@@ -720,7 +714,6 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 		//printf("gprime_0 = %lf\n", gprime0);
 		//exit(-1);
 
-
 		switch(method)													// update solution X or redo iteration with newton
 		{
 			case newton:												// compute line backtracking step
@@ -731,9 +724,9 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 				line_backtracking(&l, Ea, PTa, PLa, mass, Xcurrent, dX, fcurrent, F, gradf);
 
 				// printf("default newton l = %lf\n", l);
-				// exit(-1);
+				// //exit(-1);
 
-			    for(int j = 0; j < 3; j++)
+				for(int j = 0; j < 3; j++)
 			    {
 			    	X[j] = Xcurrent[j]  +  l * dX[j];
 			    }
@@ -788,15 +781,15 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 				    }
 				    //:::::::::::::::::::::::::::::::::::::::::
 
-				    dX_abs = sqrt(dX[0] * dX[0]  +  dX[1] * dX[1]  +  dX[2] * dX[2]);
+				    // dX_abs = sqrt(dX[0] * dX[0]  +  dX[1] * dX[1]  +  dX[2] * dX[2]);
 
-					if(dX_abs > stepmax)
-					{
-						for(int j = 0; j < 3; j++)
-						{
-							dX[j] *= stepmax / dX_abs;
-						}
-					}
+					// if(dX_abs > stepmax)
+					// {
+					// 	for(int j = 0; j < 3; j++)
+					// 	{
+					// 		dX[j] *= stepmax / dX_abs;
+					// 	}
+					// }
 
 					for(int j = 0; j < 3; j++) 							// default newton iteration
 					{
@@ -806,6 +799,8 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 					// line backtracking algorithm updates l and F(Xcurrent + l.dX)
 					//
 					line_backtracking(&l, Ea, PTa, PLa, mass, Xcurrent, dX, fcurrent, F, gradf);
+
+					//printf("newton l = %lf\n", l);
 
 				    for(int j = 0; j < 3; j++)							// redo update for X
 				    {
@@ -839,16 +834,12 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 
 		if(X[0] < 0 || X[1] < 0 || X[2] < 0)
 		{
-			printf("find_anisotropic_variables error: (lamnda, aT, aL) = (%lf, %lf, %lf)\n", X[0], X[1], X[2]);
+			printf("find_anisotropic_variables error: iteration i = %d\t(lambda, aT, aL) = (%lf, %lf, %lf)\n", i, X[0], X[1], X[2]);
 			exit(-1);
 		}
 	}	// newton iteration (i)
 
-
-	// printf("(newton, broyden) steps = (%d, %d)", number_newton, number_broyden);
-	// exit(-1);
-
-	// I should make a counter that tells me how many times I use newton-redo or broyden (or make a string)
+	printf("(newton, broyden) steps = (%d, %d)", number_newton, number_broyden);
 
 	printf("find_anisotropic_variables error: number of iterations exceed maximum\n");
 

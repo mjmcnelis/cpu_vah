@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include "../include/Precision.h"
 #include "../include/DynamicalVariables.h"
 #include "../include/Parameters.h"
@@ -6,26 +7,36 @@
 
 hydro_variables *q, *Q, *qI;
 fluid_velocity *u, *up, *uI;
-precision *e;
+precision *e, *lambda, *aT, *aL;
+
+// need anisotropic variables
 
 
 void allocate_memory(lattice_parameters lattice)
 {
 	// allocate memory for the dynamical variables
 
-	int nx = lattice.lattice_points_x;		// physical grid points
+	int nx = lattice.lattice_points_x;				// physical grid points
 	int ny = lattice.lattice_points_y;
 	int nz = lattice.lattice_points_eta;
 
-	int ncx = nx + 4;						// computational grid points = physical + ghost + white
+	int ncx = nx + 4;								// computational grid points = physical + ghost + white
 	int ncy = ny + 4;
 	int ncz = nz + 4;
 
-	int length = ncx * ncy * ncz;			// size of each array
+	int length = ncx * ncy * ncz;					// size of each array
 
 	size_t bytes = sizeof(precision);
 
 	e = (precision *)calloc(length, bytes);
+
+#ifdef ANISO_HYDRO 									// anisotropic variables 
+#ifdef LATTICE_QCD
+	lambda = (precision *)calloc(length, bytes);
+	aT = (precision *)calloc(length, bytes);
+	aL = (precision *)calloc(length, bytes);
+#endif
+#endif
 
 	u  = (fluid_velocity *)calloc(length, sizeof(fluid_velocity));
 	up = (fluid_velocity *)calloc(length, sizeof(fluid_velocity));

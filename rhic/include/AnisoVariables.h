@@ -4,9 +4,9 @@
 
 #include "Precision.h"
 
-const int N_max = 200;	      			// max number of iterations   (probably need to adjust)
-const precision tol_dX = 1.0e-5;    	// tolerance for dX
-const precision tol_F = 1.0e-8;    	// tolerance for F
+const int N_max = 1000;	      			// max number of iterations   (probably need to adjust)
+const precision tol_dX = 1.0e-6;    	// tolerance for dX
+const precision tol_F = 1.0e-6;    		// tolerance for F
 
 typedef enum {newton, broyden} jacobian;
 
