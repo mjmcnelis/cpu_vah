@@ -64,6 +64,12 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	precision p = eos.equilibrium_pressure();
 	precision T = eos.effective_temperature(conformal_eos_prefactor);
 
+#ifdef B_FIELD
+	precision beq = eos.equilibrium_mean_field(T);
+	precision mass = T * eos.z_quasi(T);
+	precision mdmde = eos.mdmde_quasi();
+#endif
+
 	// shear and bulk viscosities
 	precision etabar = eta_over_s(T, hydro);
 	precision zetabar = zeta_over_s(T, hydro);
@@ -87,6 +93,8 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 #ifdef CONFORMAL_EOS
 	pt  = (e - pl) / 2.;			// I don't think I need this (because it's already regulated to conformal formula)
 #endif
+
+	precision pavg = (pl + 2.*pt) / 3.;
 
 #ifdef B_FIELD
 	precision b = q[a];		a++;
@@ -154,10 +162,10 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 //-------------------------------------------------
 #ifdef CONFORMAL_EOS
 	precision taupi_inverse = T / (5. * etabar);
-	precision taubulkInv = 0;
+	precision taubulk_inverse = 0;
 #else
 	precision taupi_inverse = 1.;	// fill in quasiparticle later
-	precision taubulkInv = 1.;
+	precision taubulk_inverse = 1.;
 #endif
 
 
@@ -175,7 +183,7 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 
 
 	// pl coefficients
-	precision zeta_LL = aniso.zeta_LL;								// I think these can be left alone 
+	precision zeta_LL = aniso.zeta_LL;								// I think these can be left alone
 	precision zeta_TL = aniso.zeta_TL;
 	precision lambda_WuL = aniso.lambda_WuL;
 	precision lambda_WTL = aniso.lambda_WTL;
@@ -764,7 +772,7 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 #ifdef B_FIELD
 	precision edot = - (e + pl) * thetaL  -  (e + pt) * thetaT;				// this is temporary (need to add more terms)
 
-	precision db = (beq - b) * taubulk_inverse  +  mdmde * edot * (e_s - 2.*pt - pl - 4.*b) / (mass * mass);
+	precision db = (beq - b) * taubulk_inverse  +  mdmde * edot * (e - 2.*pt - pl - 4.*b) / (mass * mass);
 
 	S[a] = db / ut  +  div_v * b;		a++;
 #endif
