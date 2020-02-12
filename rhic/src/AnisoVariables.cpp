@@ -884,10 +884,10 @@ void set_anisotropic_variables(const hydro_variables * const __restrict__ q, con
 				precision pt = q[s].pt;	
 				precision b = q[s].b;
 
-				printf("e = %lf\n", e_s);
-				printf("pl = %lf\n", pl);
-				printf("pt = %lf\n", pt);
-				printf("b = %lf\n", b);
+				// printf("e = %lf\n", e_s);
+				// printf("pl = %lf\n", pl);
+				// printf("pt = %lf\n", pt);
+				// printf("b = %lf\n", b);
 
 				equation_of_state eos(e_s);
 				precision T = eos.effective_temperature(conformal_prefactor);
@@ -907,9 +907,9 @@ void set_anisotropic_variables(const hydro_variables * const __restrict__ q, con
 				aT[s] = X_s.aT;
 				aL[s] = X_s.aL;
 
-				printf("lambda = %lf\n", X_s.lambda);
-				printf("aT = %lf\n", X_s.aT);
-				printf("aL = %lf\n", X_s.aL);
+				// printf("lambda = %lf\n", X_s.lambda);
+				// printf("aT = %lf\n", X_s.aT);
+				// printf("aL = %lf\n", X_s.aL);
 				// exit(-1);
 			}
 		}

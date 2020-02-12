@@ -242,9 +242,15 @@ precision zeta_LT, zeta_TT, lambda_WuT, lambda_WTT, lambda_piT;
 	// these all need to be updated and include quasiparticle terms
 	zeta_LL = aniso.zeta_LL;								// set pl coefficients						
 	zeta_TL = aniso.zeta_TL;
+	lambda_WuL = 0;
+	lambda_WTL = 0;
+	lambda_piL = 0;
 
 	zeta_LT = aniso.zeta_LT;								// set pt coefficients
 	zeta_TT = aniso.zeta_TT;
+	lambda_WuT = 0;
+	lambda_WTT = 0;
+	lambda_piT = 0;
 
 #endif
 #endif
@@ -873,7 +879,7 @@ precision zeta_LT, zeta_TT, lambda_WuT, lambda_WTT, lambda_piT;
 
 	// pl and pt relaxation equation (need to include bulk)
 	precision dpl = (p - pavg) * taubulk_inverse  -  dp * taupi_inverse / 1.5  +  zeta_LL * thetaL  +  zeta_TL * thetaT  +  IplW  -  lambda_piL * pi_sT;
-	precision dpt =	(p - pavg) * taubulk_inverse  -  dp * taupi_inverse / 3.0  +  zeta_LT * thetaL  +  zeta_TT * thetaT  +  IptW  +  lambda_piT * pi_sT;
+	precision dpt =	(p - pavg) * taubulk_inverse  +  dp * taupi_inverse / 3.0  +  zeta_LT * thetaL  +  zeta_TT * thetaT  +  IptW  +  lambda_piT * pi_sT;
 
 	S[a] = dpl / ut  +  div_v * pl;		a++;
 	S[a] = dpt / ut  +  div_v * pt;		a++;

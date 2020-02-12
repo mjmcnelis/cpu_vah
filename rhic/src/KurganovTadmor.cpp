@@ -519,8 +519,6 @@ void evolve_hydro_one_time_step(int n, precision t, precision dt, precision dt_p
 #endif
 #endif
 
-	exit(-1);
-
 #else
 	set_inferred_variables_viscous_hydro(Q, e, up, t, lattice, hydro);
 	regulate_viscous_currents(t, Q, e, up, lattice, hydro);
