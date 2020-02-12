@@ -58,7 +58,12 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 				}
 
 			#ifdef CONFORMAL_EOS  				// temporary marco (replace with if(hydro.eos) statement)
+			#ifndef LATTICE_QCD
 				pt = (e_s - pl) / 2.;
+			#else
+				printf("regulate_residual_currents error: no eos switch for pt conformal regulation\n");
+				exit(-1);
+			#endif
 			#endif
 
 				q[s].pl = pl;					// regulate longitudinal and transverse pressures

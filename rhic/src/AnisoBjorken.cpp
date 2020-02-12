@@ -174,15 +174,20 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 	double e = e0;
 
 #ifdef CONFORMAL_EOS
+#ifndef LATTICE_QCD
 	double pl = e0 * plpt_ratio / (2. + plpt_ratio);								// using the conformal formula I think
 	double pt = e0 / (2. + plpt_ratio);
+	double B = 0;
+#endif
 #endif
 
 #ifdef LATTICE_QCD
-	// double pl = p0;																	// start with equilibrium initial conditions for now
-	// double pt = p0;
+#ifndef CONFORMAL_EOS
 	double pl = e0 * plpt_ratio / (2. + plpt_ratio);								// using the conformal formula I think
 	double pt = e0 / (2. + plpt_ratio);
+
+	// pl = p0;																	// start with equilibrium initial conditions for now
+	// pt = p0;
 
 	// asymptotic formula for non-equilibrium mean field component dB
 	double dB0asy = -3. * taubulk * mdmde * (e + pl) * (2.*pt/3. + pl/3. - p0) / (t * mass2) / (1.  +  4. * taubulk * mdmde * (e + pl) / (t * mass2));														// keep dB = 0 for now
@@ -200,12 +205,25 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 	aT = X0.aT;
 	aL = X0.aL;
 #endif
+#endif
 
-	// printf("pl = %lf fm^-4\n", pl);
-	// printf("pt = %lf fm^-4\n", pt);
-	// printf("dB = %lf fm^-4\n", dB0asy);
-	// printf("B  = %lf fm^-4\n", B);
-	// printf("lambda = %lf fm^-1\n\n", lambda);
+#ifdef CONFORMAL_EOS
+#ifdef LATTICE_QCD
+	printf("run_semi_analytic_aniso_bjorken: no transition eos yet\n");
+	exit(-1);
+#endif
+#endif
+
+	// printf("e = %lf\n", e);
+	// printf("T = %lf\n", T);
+	// printf("pl = %lf\n", pl);
+	// printf("pt = %lf\n", pt);
+	// printf("beq = %lf\n", B0);
+	// printf("db = %lf\n", dB0asy);
+	// printf("b  = %lf\n", B);
+	// printf("lambda = %lf\n", lambda);
+	// printf("aT     = %lf\n", aT);
+	// printf("aL     = %lf\n\n", aL);
 	//exit(-1);
 
 	//:::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -253,6 +271,7 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 
 	// I need to think about how to use these macro if statements correctly
 	#ifdef CONFORMAL_EOS
+	#ifndef LATTICE_QCD
 		double ek1  = dt *  de_dt_conformal(e, pl, t, hydro);
 		double plk1 = dt * dpl_dt_conformal(e, pl, t, hydro);
 
@@ -269,9 +288,10 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 		pl += (plk1  +  2. * plk2  +  2. * plk3  +  plk4) / 6.;
 		pt = (e - pl) / 2.;
 	#endif
+	#endif
 
 	#ifdef LATTICE_QCD
-
+	#ifndef CONFORMAL_EOS
 		// let's just use the RK2 method for now since the old code uses that
 		double de1  = dt *  de_dt(e, pl, pt, B, lambda, aT, aL, t, hydro);
 		double dpl1 = dt * dpl_dt(e, pl, pt, B, lambda, aT, aL, t, hydro);
@@ -283,11 +303,8 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 		double pt_mid = pt + dpt1;
 		double B_mid = B + dB1;
 
-		// printf("e_mid = %lf\n", e_mid);
-		// printf("pl_mid = %lf\n", pl_mid);
-		// printf("pt_mid = %lf\n", pt_mid);
-		// printf("B_mid = %lf\n\n", B_mid);
 
+		
 		equation_of_state eos_mid(e_mid);
 		double T_mid = eos_mid.effective_temperature(hydro.conformal_eos_prefactor);
 		double mass_mid = T_mid * eos_mid.z_quasi(T_mid);
@@ -297,6 +314,19 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 		lambda = X_mid.lambda;
 		aT = X_mid.aT;
 		aL = X_mid.aL;
+
+		if(steps == 0)
+		{
+			printf("e_mid = %lf\n", e_mid);
+			printf("pl_mid = %lf\n", pl_mid);
+			printf("pt_mid = %lf\n", pt_mid);
+			printf("B_mid = %lf\n\n", B_mid);
+
+			printf("lambda = %lf\n", lambda);
+			printf("aT     = %lf\n", aT);
+			printf("aL     = %lf\n\n", aL);
+		}
+
 		// exit(-1);
 
 		// compute anisotropic variables from intermediate values (e_mid, pl_mid, pt_mid)
@@ -317,6 +347,8 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 		// printf("B_end = %lf\n\n", B);
 		// exit(-1);
 
+
+
 		equation_of_state eos_end(e);
 		double T_end = eos_end.effective_temperature(hydro.conformal_eos_prefactor);
 		double mass_end = T_end * eos_mid.z_quasi(T_end);
@@ -326,6 +358,27 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 		lambda = X_end.lambda;
 		aT = X_end.aT;
 		aL = X_end.aL;
+
+		if(steps == 0)
+		{
+			printf("e_end = %lf\n", e);
+			printf("pl_end = %lf\n", pl);
+			printf("pt_end = %lf\n", pt);
+			printf("B_end = %lf\n\n", B);
+
+			printf("lambda = %lf\n", lambda);
+			printf("aT     = %lf\n", aT);
+			printf("aL     = %lf\n\n", aL);
+		}
+	#endif
+	#endif
+
+
+	#ifdef CONFORMAL_EOS
+	#ifdef LATTICE_QCD
+		printf("run_semi_analytic_aniso_bjorken: no transition eos yet\n");
+		exit(-1);
+	#endif
 	#endif
 
 		t += dt;
@@ -360,21 +413,10 @@ void set_aniso_bjorken_initial_condition(int nx, int ny, int nz, initial_conditi
 	precision T0 = initial.initialCentralTemperatureGeV / hbarc;				// central temperature (fm^-1)
 	precision e0 = equilibrium_energy_density(T0, conformal_eos_prefactor);		// energy density
 
-	if(e0 < e_min)
-	{
-		printf("set_aniso_bjorken_initial_condition error: initial temperature is too low\n");
-		exit(-1);
-	}
-	else
-	{
-		e0 = energy_density_cutoff(e_min, e0);
-	}
-	
 	precision pl0 = e0 * plpt_ratio / (2. + plpt_ratio);						// conformal initialization of pl, pt 
 	precision pt0 =  e0 / (2. + plpt_ratio);
 
 	equation_of_state eos(e0);													// compute mean field components
-	T0 = eos.effective_temperature(hydro.conformal_eos_prefactor);				// readjust T0 (doesn't really do anything)
 	precision b0 = eos.equilibrium_mean_field(T0);								// thermal mean field
 	precision p0 = eos.equilibrium_pressure();																		
 	precision mass = T0 * eos.z_quasi(T0);										// quasiparticle mass and derivative
@@ -392,6 +434,15 @@ void set_aniso_bjorken_initial_condition(int nx, int ny, int nz, initial_conditi
 	// printf("db = %lf fm^-4\n", db0_asy);
 	// printf("b  = %lf fm^-4\n", b0 + db0_asy);
 
+	// printf("\ne = %lf\n", e0);
+	// printf("T = %lf\n", T0);
+	// printf("pl = %lf\n", pl0);
+	// printf("pt = %lf\n", pt0);
+	// printf("beq = %lf\n", b0);
+	// printf("db = %lf\n", db0_asy);
+	// printf("b  = %lf\n", b0 + db0_asy);
+
+
 	// initialize anisotropic variables
 	precision lambda0 = T0;														// initial guess
 	precision aT0 = 1.0;
@@ -403,9 +454,9 @@ void set_aniso_bjorken_initial_condition(int nx, int ny, int nz, initial_conditi
 	aT0 = X.aT;
 	aL0 = X.aL;
 
-	printf("lambda  = %lf fm^-1\n", lambda0);
-	printf("aT      = %lf\n", aT0);
-	printf("aL      = %lf\n", aL0);
+	// printf("lambda  = %lf\n", lambda0);
+	// printf("aT      = %lf\n", aT0);
+	// printf("aL      = %lf\n", aL0);
 
 	for(int i = 2; i < nx + 2; i++)
 	{
@@ -421,7 +472,7 @@ void set_aniso_bjorken_initial_condition(int nx, int ny, int nz, initial_conditi
 				q[s].pl = pl0; 	
 				q[s].pt = pt0;
 
-			#ifdef B_FIElD
+			#ifdef B_FIELD
 				q[s].b = b0 + db0_asy;
 			#endif
 

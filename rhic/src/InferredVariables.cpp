@@ -110,13 +110,20 @@ void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict
 				precision My = ky  -  WyTz * zt;
 				precision Mn = kn  -  WtTz * zn  -  WnTz * zt;
 
+				// this needs a switching 
+
 				// solution for e
+			#ifdef LATTICE_QCD
 			#ifndef CONFORMAL_EOS
 				precision Ltt = (pl - pt) * zt * zt;
 				precision ut_numerator = Mt  +  pt  -  Ltt;
 
 				precision e_s = energy_density_cutoff(e_min, Mt  -  Ltt  -  (Mx * Mx  +  My * My) / ut_numerator  -  t2 * Mn * Mn * ut_numerator / (Mt + pl) / (Mt + pl));
-			#else
+			#endif
+			#endif
+
+			#ifdef CONFORMAL_EOS
+			#ifndef LATTICE_QCD
 				precision zt2  = zt * zt;
 				precision ztzn = zt * zn;
 
@@ -130,6 +137,14 @@ void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict
 				pt = (e_s - pl) / 2.;
 
 				precision ut_numerator = Mt  +  pt  -  (pl - pt) * zt2;
+			#endif
+			#endif
+
+			#ifdef CONFORMAL_EOS
+			#ifdef LATTICE_QCD
+				printf("\nget_inferred_variables_aniso_hydro error: not eos switch here yet\n");
+				exit(-1);
+			#endif
 			#endif
 
 				// solution for u^mu

@@ -7,6 +7,7 @@
 #include "../include/TransportAniso.h"
 #include "../include/AnisoVariables.h"
 #include "../include/Precision.h"
+#include "../include/Macros.h"
 using namespace std;
 
 void compute_F(precision Ea, precision PTa, precision PLa, precision mass, precision * X, precision * F)
@@ -855,8 +856,66 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 }
 
 
+inline int linear_column_index(int i, int j, int k, int nx, int ny)
+{
+	return i  +  nx * (j  +  ny * k);
+}
 
 
+void set_anisotropic_variables(const hydro_variables * const __restrict__ q, const precision * const __restrict__ e, precision * const __restrict__ lambda, precision * const __restrict__ aT, precision * const __restrict__ aL, lattice_parameters lattice, hydro_parameters hydro)
+{
+#ifdef ANISO_HYDRO
+	int nx = lattice.lattice_points_x;
+	int ny = lattice.lattice_points_y;
+	int nz = lattice.lattice_points_eta;
+
+	precision conformal_prefactor = hydro.conformal_eos_prefactor;
+
+	for(int k = 2; k < nz + 2; k++)
+	{
+		for(int j = 2; j < ny + 2; j++)
+		{
+			for(int i = 2; i < nx + 2; i++)
+			{
+				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
+
+				precision e_s = e[s];
+				precision pl = q[s].pl;
+				precision pt = q[s].pt;	
+				precision b = q[s].b;
+
+				printf("e = %lf\n", e_s);
+				printf("pl = %lf\n", pl);
+				printf("pt = %lf\n", pt);
+				printf("b = %lf\n", b);
+
+				equation_of_state eos(e_s);
+				precision T = eos.effective_temperature(conformal_prefactor);
+				precision mass = T * eos.z_quasi(T);
+
+				precision lambda_prev = lambda[s];
+				precision aT_prev = aT[s];
+				precision aL_prev = aL[s];
+
+				// printf("lambda_prev = %lf\n", lambda_prev);
+				// printf("aT_prev = %lf\n", aT_prev);
+				// printf("aL_prev = %lf\n", aL_prev);
+
+				aniso_variables X_s = find_anisotropic_variables(e_s, pl, pt, b, mass, lambda_prev, aT_prev, aL_prev);
+
+				lambda[s] = X_s.lambda;				// update anisotropic variables
+				aT[s] = X_s.aT;
+				aL[s] = X_s.aL;
+
+				printf("lambda = %lf\n", X_s.lambda);
+				printf("aT = %lf\n", X_s.aT);
+				printf("aL = %lf\n", X_s.aL);
+				// exit(-1);
+			}
+		}
+	}
+#endif
+}
 
 
 

@@ -1,8 +1,10 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include <math.h>
 #include "../include/Macros.h"
 #include "../include/Precision.h"
 #include "../include/DynamicalVariables.h"
+#include "../include/AnisoVariables.h"
 #include "../include/GhostCells.h"
 #include "../include/FluxTerms.h"
 #include "../include/SourceTerms.h"
@@ -17,7 +19,7 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 
 
 void euler_step(precision t, const hydro_variables * const __restrict__ q_current, hydro_variables * const __restrict__ q_update,
-const precision * const __restrict__ e_current, const fluid_velocity * const __restrict__ u_previous, const fluid_velocity * const __restrict__ u_current, precision dt, precision dt_prev, lattice_parameters lattice, hydro_parameters hydro, int update, int RK2)
+const precision * const __restrict__ e_current, const precision * const __restrict__ lambda_current, const precision * const __restrict__ aT_current, const precision * const __restrict__ aL_current, const fluid_velocity * const __restrict__ u_previous, const fluid_velocity * const __restrict__ u_current, precision dt, precision dt_prev, lattice_parameters lattice, hydro_parameters hydro, int update, int RK2)
 {
 	int nx = lattice.lattice_points_x;
 	int ny = lattice.lattice_points_y;
@@ -106,6 +108,8 @@ const precision * const __restrict__ e_current, const fluid_velocity * const __r
 				qs[a] = q_current[s].b; a++;
 			#endif
 
+
+
 			#ifdef PIMUNU
 				qs[a] = q_current[s].pitt; a++;
 				qs[a] = q_current[s].pitx; a++;
@@ -140,7 +144,19 @@ const precision * const __restrict__ e_current, const fluid_velocity * const __r
 				qs[a] = q_current[s].Pi;
 			#endif
 
-				precision e_s = e_current[s];
+				precision e_s = e_current[s];		// primary variable
+
+			#ifdef ANISO_HYDRO 						// anisotropic variables
+			#ifdef LATTICE_QCD
+				precision lambda_s = lambda_current[s];
+				precision aT_s = aT_current[s];
+				precision aL_s = aL_current[s];
+			#else
+				precision lambda_s = 0;
+				precision aT_s = 0;
+				precision aL_s = 0;
+			#endif
+			#endif
 
 				precision ux = u_current[s].ux;		// current fluid velocity
 				precision uy = u_current[s].uy;
@@ -176,7 +192,7 @@ const precision * const __restrict__ e_current, const fluid_velocity * const __r
 
 				// compute external source term (S)
 			#ifdef ANISO_HYDRO
-				source_terms_aniso_hydro(S, qs, e_s, t, qi1, qj1, qk1, e1, ui1, uj1, uk1, ux, uy, un, ux_p, uy_p, un_p, dt_prev, dx, dy, dn, hydro);
+				source_terms_aniso_hydro(S, qs, e_s, lambda_s, aT_s, aL_s, t, qi1, qj1, qk1, e1, ui1, uj1, uk1, ux, uy, un, ux_p, uy_p, un_p, dt_prev, dx, dy, dn, hydro);
 			#else
 				source_terms_viscous_hydro(S, qs, e_s, t, qi1, qj1, qk1, e1, ui1, uj1, uk1, ux, uy, un, ux_p, uy_p, un_p, dt_prev, dx, dy, dn, hydro);
 			#endif
@@ -449,7 +465,7 @@ void evolve_hydro_one_time_step(int n, precision t, precision dt, precision dt_p
 	{																		// qI = q + dt.(S - dHx/dx - dHy/dy - dHn/dn)
 		if(n == 0)
 		{
-			euler_step(t, q, qI, e, up, u, dt, dt_prev, lattice, hydro, update, RK2);
+			euler_step(t, q, qI, e, lambda, aT, aL, up, u, dt, dt_prev, lattice, hydro, update, RK2);
 		}
 		else
 		{
@@ -458,15 +474,24 @@ void evolve_hydro_one_time_step(int n, precision t, precision dt, precision dt_p
 	}
 	else
 	{
-		euler_step(t, q, qI, e, up, u, dt, dt_prev, lattice, hydro, update, RK2);
+		euler_step(t, q, qI, e, lambda, aT, aL, up, u, dt, dt_prev, lattice, hydro, update, RK2);
 	}
 
 	t += dt;																// next intermediate time step
 
-
 #ifdef ANISO_HYDRO
 	set_inferred_variables_aniso_hydro(qI, e, uI, t, lattice, hydro);		// compute (uI, e)
 	regulate_residual_currents(t, qI, e, uI, lattice, hydro);				// regulate qI
+
+#ifdef LATTICE_QCD
+#ifndef CONFORMAL_EOS
+	set_anisotropic_variables(qI, e, lambda, aT, aL, lattice, hydro);		// compute (lambda, aT, aL)
+#else
+	printf("evolve_hydro_one_time_step error: no eos switch for anisotropic variables\n");
+	exit(-1);
+#endif
+#endif
+
 #else
 	set_inferred_variables_viscous_hydro(qI, e, uI, t, lattice, hydro);
 	regulate_viscous_currents(t, qI, e, uI, lattice, hydro);
@@ -478,12 +503,24 @@ void evolve_hydro_one_time_step(int n, precision t, precision dt, precision dt_p
 
 	RK2 = 1;
 
-	euler_step(t, qI, Q, e, u, uI, dt, dt_prev, lattice, hydro, update, RK2);	// second intermediate euler step
+	euler_step(t, qI, Q, e, lambda, aT, aL, u, uI, dt, dt_prev, lattice, hydro, update, RK2);	// second intermediate euler step
 																			// Q = qI + dt.(S - dHx/dx - dHy/dy - dHn/dn)
 
 #ifdef ANISO_HYDRO
-	set_inferred_variables_aniso_hydro(Q, e, up, t, lattice, hydro);			// compute (u, e)
-	regulate_residual_currents(t, Q, e, up, lattice, hydro);					// regulate Q
+	set_inferred_variables_aniso_hydro(Q, e, up, t, lattice, hydro);		// compute (u, e)
+	regulate_residual_currents(t, Q, e, up, lattice, hydro);				// regulate Q
+
+#ifdef LATTICE_QCD
+#ifndef CONFORMAL_EOS
+	set_anisotropic_variables(Q, e, lambda, aT, aL, lattice, hydro);		// compute (lambda, aT, aL)
+#else
+	printf("evolve_hydro_one_time_step error: no eos switch for anisotropic variables\n");
+	exit(-1);
+#endif
+#endif
+
+	exit(-1);
+
 #else
 	set_inferred_variables_viscous_hydro(Q, e, up, t, lattice, hydro);
 	regulate_viscous_currents(t, Q, e, up, lattice, hydro);

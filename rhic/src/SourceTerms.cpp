@@ -6,6 +6,7 @@
 #include "../include/DynamicalVariables.h"
 #include "../include/EquationOfState.h"
 #include "../include/TransportAniso.h"
+#include "../include/TransportAnisoNonconformal.h"
 #include "../include/Viscosities.h"
 #include "../include/TransportViscous.h"
 #include "../include/Projections.h"
@@ -18,7 +19,7 @@ inline precision central_derivative(const precision * const __restrict__ f, int 
 }
 
 
-void source_terms_aniso_hydro(precision * const __restrict__ S, const precision * const __restrict__ q, precision e, precision t, const precision * const __restrict__ qi1, const precision * const __restrict__ qj1, const precision * const __restrict__ qk1, const precision * const __restrict__ e1, const precision * const __restrict__ ui1, const precision * const __restrict__ uj1, const precision * const __restrict__ uk1, precision ux, precision uy, precision un, precision ux_p, precision uy_p, precision un_p, precision dt_prev, precision dx, precision dy, precision dn, hydro_parameters hydro)
+void source_terms_aniso_hydro(precision * const __restrict__ S, const precision * const __restrict__ q, precision e_s, precision lambda_s, precision aT_s, precision aL_s, precision t, const precision * const __restrict__ qi1, const precision * const __restrict__ qj1, const precision * const __restrict__ qk1, const precision * const __restrict__ e1, const precision * const __restrict__ ui1, const precision * const __restrict__ uj1, const precision * const __restrict__ uk1, precision ux, precision uy, precision un, precision ux_p, precision uy_p, precision un_p, precision dt_prev, precision dx, precision dy, precision dn, hydro_parameters hydro)
 {
 #ifdef ANISO_HYDRO
 // useful expressions
@@ -60,14 +61,19 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 //-------------------------------------------------
 	precision conformal_eos_prefactor = hydro.conformal_eos_prefactor;
 
-	equation_of_state eos(e);
+	equation_of_state eos(e_s);
 	precision p = eos.equilibrium_pressure();
 	precision T = eos.effective_temperature(conformal_eos_prefactor);
+	precision s = (e_s + p) / T;
 
 #ifdef B_FIELD
 	precision beq = eos.equilibrium_mean_field(T);
 	precision mass = T * eos.z_quasi(T);
 	precision mdmde = eos.mdmde_quasi();
+	precision mbar = mass / lambda_s;
+#else
+	precision mass = 0;
+	precision mdmde = 0;
 #endif
 
 	// shear and bulk viscosities
@@ -91,14 +97,20 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	precision pt  = q[a];	a++;
 
 #ifdef CONFORMAL_EOS
-	pt  = (e - pl) / 2.;			// I don't think I need this (because it's already regulated to conformal formula)
+#ifndef LATTICE_QCD
+	pt  = (e - pl) / 2.;						// I don't think I need this (because it's already regulated to conformal formula)
+#else
+	printf("source_terms_aniso_hydro error: no eos switch for pt conformal identity\n");
+	exit(-1);
+#endif
 #endif
 
-	precision pavg = (pl + 2.*pt) / 3.;
+	precision pavg = (pl + 2.*pt) / 3.;			// average pressure
 
 #ifdef B_FIELD
 	precision b = q[a];		a++;
 #endif
+
 
 #ifdef PIMUNU
 	precision pitt = q[a];	a++;
@@ -156,45 +168,155 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 #endif
 
 
-// 1)
 
 // relaxation times and transport coefficients
 //-------------------------------------------------
-#ifdef CONFORMAL_EOS
-	precision taupi_inverse = T / (5. * etabar);
-	precision taubulk_inverse = 0;
-#else
-	precision taupi_inverse = 1.;	// fill in quasiparticle later
-	precision taubulk_inverse = 1.;
+
+// pl, pt transport coefficients
+precision zeta_LL, zeta_TL, lambda_WuL, lambda_WTL, lambda_piL;
+precision zeta_LT, zeta_TT, lambda_WuT, lambda_WTT, lambda_piT;
+
+// piT transport coefficients
+#ifdef PIMUNU
+	precision eta_T, delta_pipi, tau_pipi, lambda_pipi, lambda_Wupi, lambda_WTpi;
+#endif
+
+// WTz transport coefficients
+#ifdef WTZMU
+	eta_uW, eta_TW, tau_zW, delta_WW, lambda_WuW, lambda_WTW, lambda_piuW, lambda_piTW;
 #endif
 
 
+#ifdef CONFORMAL_EOS        								// conformal eos only
+#ifndef LATTICE_QCD
+	precision taupi_inverse = T / (5. * etabar);			// set relaxation times
+	precision taubulk_inverse = 0;
 
-
-
-// 2)
 	aniso_transport_coefficients aniso;
-	aniso.compute_transport_coefficients(e, pl, pt, conformal_eos_prefactor);
+	aniso.compute_transport_coefficients(e_s, pl, pt, conformal_eos_prefactor);	
+
+	zeta_LL = aniso.zeta_LL;								// set pl coefficients						
+	zeta_TL = aniso.zeta_TL;
+	lambda_WuL = aniso.lambda_WuL;
+	lambda_WTL = aniso.lambda_WTL;
+	lambda_piL = aniso.lambda_piL;
+
+	zeta_LT = aniso.zeta_LT;								// set pt coefficients
+	zeta_TT = aniso.zeta_TT;
+	lambda_WuT = aniso.lambda_WuT;
+	lambda_WTT = aniso.lambda_WTT;
+	lambda_piT = aniso.lambda_piT;
+
+#ifdef PIMUNU
+	eta_T = aniso.eta_T;									// set piT coefficients
+	delta_pipi = aniso.delta_pipi;
+	tau_pipi = aniso.tau_pipi;
+	lambda_pipi = aniso.lambda_pipi;
+	lambda_Wupi = aniso.lambda_Wupi;
+	lambda_WTpi = aniso.lambda_WTpi;
+#endif
+
+#ifdef WTZMU
+	eta_uW = aniso.eta_uW;									// set WTz coefficients
+	eta_TW = aniso.eta_TW;
+	tau_zW = aniso.tau_zW;
+	delta_WW = aniso.delta_WW;
+	lambda_WuW = aniso.lambda_WuW;
+	lambda_WTW = aniso.lambda_WTW;
+	lambda_piuW = aniso.lambda_piuW;
+	lambda_piTW = aniso.lambda_piTW;
+#endif
+
+#endif
+#endif
 
 
+#ifdef LATTICE_QCD 											// lattice qcd only
+#ifndef CONFORMAL_EOS
+	precision taupi_inverse = eos.beta_shear(T, conformal_eos_prefactor) / (s * etabar);		// set relaxation times 
+	precision taubulk_inverse = eos.beta_bulk(T) / (s * zetabar);
+
+	aniso_transport_coefficients_nonconformal aniso;
+	aniso.compute_transport_coefficients(e_s, pl, pt, b, lambda_s, aT_s, aL_s, mbar, mass, mdmde);
+
+	// these all need to be updated and include quasiparticle terms
+	zeta_LL = aniso.zeta_LL;								// set pl coefficients						
+	zeta_TL = aniso.zeta_TL;
+
+	zeta_LT = aniso.zeta_LT;								// set pt coefficients
+	zeta_TT = aniso.zeta_TT;
+
+#endif
+#endif
+
+#ifdef CONFORMAL_EOS 										// conformal or switched to lattice
+#ifdef LATTICE_QCD
+	printf("source_terms_aniso_hydro error: don't have eos switch mechanism yet (e.g. switch_eos = false)\n");
+	exit(-1);
+
+	precision taupi_inverse;
+	precision taubulk_inverse;
+
+	if(switch_eos)
+	{
+		taupi_inverse = eos.beta_shear(T, conformal_eos_prefactor) / (s * etabar);
+		taubulk_inverse = eos.beta_bulk(T) / (s * zetabar);
+
+		aniso_transport_coefficients_nonconformal aniso;
+		aniso.compute_transport_coefficients(e_s, pl, pt, b, lambda_s, aT_s, aL_s, mbar, mass, mdmde);
+
+		// these all need to be updated and include quasiparticle terms
+		zeta_LL = aniso.zeta_LL;								// set pl coefficients						
+		zeta_TL = aniso.zeta_TL;
+
+		zeta_LT = aniso.zeta_LT;								// set pt coefficients
+		zeta_TT = aniso.zeta_TT;
+	}
+	else
+	{
+		taupi_inverse = T / (5. * etabar);
+		taubulk_inverse = 0;
+
+		aniso_transport_coefficients aniso;
+		aniso.compute_transport_coefficients(e_s, pl, pt, conformal_eos_prefactor);	
+
+		zeta_LL = aniso.zeta_LL;								// set pl coefficients						
+		zeta_TL = aniso.zeta_TL;
+		lambda_WuL = aniso.lambda_WuL;
+		lambda_WTL = aniso.lambda_WTL;
+		lambda_piL = aniso.lambda_piL;
+
+		zeta_LT = aniso.zeta_LT;								// set pt coefficients
+		zeta_TT = aniso.zeta_TT;
+		lambda_WuT = aniso.lambda_WuT;
+		lambda_WTT = aniso.lambda_WTT;
+		lambda_piT = aniso.lambda_piT;
+
+	#ifdef PIMUNU
+		eta_T = aniso.eta_T;									// set piT coefficients
+		delta_pipi = aniso.delta_pipi;
+		tau_pipi = aniso.tau_pipi;
+		lambda_pipi = aniso.lambda_pipi;
+		lambda_Wupi = aniso.lambda_Wupi;
+		lambda_WTpi = aniso.lambda_WTpi;
+	#endif
+
+	#ifdef WTZMU
+		eta_uW = aniso.eta_uW;									// set WTz coefficients
+		eta_TW = aniso.eta_TW;
+		tau_zW = aniso.tau_zW;
+		delta_WW = aniso.delta_WW;
+		lambda_WuW = aniso.lambda_WuW;
+		lambda_WTW = aniso.lambda_WTW;
+		lambda_piuW = aniso.lambda_piuW;
+		lambda_piTW = aniso.lambda_piTW;
+	#endif
+	}
+#endif
+#endif
+//-------------------------------------------------
 
 
-
-
-
-	// pl coefficients
-	precision zeta_LL = aniso.zeta_LL;								// I think these can be left alone
-	precision zeta_TL = aniso.zeta_TL;
-	precision lambda_WuL = aniso.lambda_WuL;
-	precision lambda_WTL = aniso.lambda_WTL;
-	precision lambda_piL = aniso.lambda_piL;
-
-	// pt coefficients
-	precision zeta_LT = aniso.zeta_LT;
-	precision zeta_TT = aniso.zeta_TT;
-	precision lambda_WuT = aniso.lambda_WuT;
-	precision lambda_WTT = aniso.lambda_WTT;
-	precision lambda_piT = aniso.lambda_piT;
 
 // primary variable derivatives
 //-------------------------------------------------
@@ -220,10 +342,16 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	precision dpt_dx = central_derivative(qi1, n, dx);
 	precision dpt_dy = central_derivative(qj1, n, dy);
 	precision dpt_dn = central_derivative(qk1, n, dn);		n += 2;
+
 #ifdef CONFORMAL_EOS
+#ifndef LATTICE_QCD
 	dpt_dx = (de_dx  -  dpl_dx) / 2.;
 	dpt_dy = (de_dy  -  dpl_dy) / 2.;
 	dpt_dn = (de_dn  -  dpl_dn) / 2.;				// temporary macro statement (replace with if(hydro.eos))
+#else
+	printf("source_terms_aniso_hydro error: no eos switch for pt spatial derivatives\n");
+	exit(-1);
+#endif
 #endif
 
 
@@ -469,18 +597,11 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	precision dLnn_dn = (dpl_dn - dpt_dn) * zn2  +  2. * dp * zn * dzn_dn;
 
 #ifdef PIMUNU
-	// piT transport coefficients
-	precision eta_T = aniso.eta_T;
-	precision delta_pipi = aniso.delta_pipi;
-	precision tau_pipi = aniso.tau_pipi;
-	precision lambda_pipi = aniso.lambda_pipi;
-	precision lambda_Wupi = aniso.lambda_Wupi;
-	precision lambda_WTpi = aniso.lambda_WTpi;
-
 	precision two_eta_T = 2. * eta_T;
 	precision delta_pipi_thetaT = delta_pipi * thetaT;
 	precision lambda_pipi_thetaL = lambda_pipi * thetaL;
 
+	//piT^{\mu\nu} . sigmaT_{\mu\nu} 
 	precision pi_sT = pitt * sTtt  +  pixx * sTxx  +  piyy * sTyy  +  t4 * pinn * sTnn  +  2. * (pixy * sTxy  -  pitx * sTtx  -  pity * sTty  +  t2 * (pixn * sTxn  +  piyn * sTyn  -  pitn * sTtn));
 
 	// \tau^\pi_\pi . \pi_T^{\alpha (\mu} . \sigma_T^{\nu)}_\alpha
@@ -641,16 +762,6 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	precision IplW = - 2. * WTz_D_z  +  lambda_WuL * WTz_Dz_u  +  lambda_WTL * WTz_z_NabT_u;
 	precision IptW = WTz_D_z  +  lambda_WuT * WTz_Dz_u  -  lambda_WTT * WTz_z_NabT_u;
 
-	// WTz transport coefficients
-	precision eta_uW = aniso.eta_uW;
-	precision eta_TW = aniso.eta_TW;
-	precision tau_zW = aniso.tau_zW;
-	precision delta_WW = aniso.delta_WW;
-	precision lambda_WuW = aniso.lambda_WuW;
-	precision lambda_WTW = aniso.lambda_WTW;
-	precision lambda_piuW = aniso.lambda_piuW;
-	precision lambda_piTW = aniso.lambda_piTW;
-
 	// gradient terms in dWTz (some are unprojected)
 	precision It = 2. * eta_uW * Dz_ut;
 	precision Ix = 2. * eta_uW * Dz_ux;
@@ -731,7 +842,7 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 #endif
 
 	// conservation laws (check again except last line comments)
-	precision tnn = (e + pt) * un2  +  pt / t2  +  Lnn  +  Wnn  +  pinn;
+	precision tnn = (e_s + pt) * un2  +  pt / t2  +  Lnn  +  Wnn  +  pinn;
 
 	S[0] =	- (ttt / t  +  t * tnn)  +  div_v * (Ltt  +  Wtt  +  pitt  -  pt)
 			+  vx * (dLtt_dx  +  dWtt_dx  +  dpitt_dx  -  dpt_dx)  -  dWtx_dx  -  dpitx_dx
@@ -760,9 +871,9 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	a++;
 #endif
 
-	// pl and pt relaxation equation
-	precision dpl = - dp * taupi_inverse / 1.5  +  zeta_LL * thetaL  +  zeta_TL * thetaT  +  IplW  -  lambda_piL * pi_sT;
-	precision dpt =	dp * taupi_inverse / 3.  +  zeta_LT * thetaL  +  zeta_TT * thetaT  +  IptW  +  lambda_piT * pi_sT;
+	// pl and pt relaxation equation (need to include bulk)
+	precision dpl = (p - pavg) * taubulk_inverse  -  dp * taupi_inverse / 1.5  +  zeta_LL * thetaL  +  zeta_TL * thetaT  +  IplW  -  lambda_piL * pi_sT;
+	precision dpt =	(p - pavg) * taubulk_inverse  -  dp * taupi_inverse / 3.0  +  zeta_LT * thetaL  +  zeta_TT * thetaT  +  IptW  +  lambda_piT * pi_sT;
 
 	S[a] = dpl / ut  +  div_v * pl;		a++;
 	S[a] = dpt / ut  +  div_v * pt;		a++;
@@ -770,9 +881,8 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 
 	// b field relaxation equation
 #ifdef B_FIELD
-	precision edot = - (e + pl) * thetaL  -  (e + pt) * thetaT;				// this is temporary (need to add more terms)
-
-	precision db = (beq - b) * taubulk_inverse  +  mdmde * edot * (e - 2.*pt - pl - 4.*b) / (mass * mass);
+	precision edot = - (e_s + pl) * thetaL  -  (e_s + pt) * thetaT  +  pi_sT  -  WTz_Dz_u  +  WTz_z_NabT_u;		// energy conservation law
+	precision db = (beq - b) * taubulk_inverse  -  mdmde * edot * (e_s - 2.*pt - pl - 4.*b) / (mass * mass);
 
 	S[a] = db / ut  +  div_v * b;		a++;
 #endif

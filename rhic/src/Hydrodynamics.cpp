@@ -74,7 +74,7 @@ precision set_the_time_step(int n, precision t, precision dt_prev, precision t_n
 
 			if(!hit_CFL_bound)		// assumes that dt_source remains > dt_CFL after hit bound
 			{
-				euler_step(t, q, qI, e, up, u, dt_prev, dt_prev, lattice, hydro, 0, 0);		// compute source function
+				euler_step(t, q, qI, e, lambda, aT, aL, up, u, dt_prev, dt_prev, lattice, hydro, 0, 0);		// compute source function
 
 				dt_source = compute_dt_source(t, Q, q, qI, dt_prev, lattice);
 
@@ -128,8 +128,6 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 
 	precision t_out = t;								// output times
 	precision dt_out = lattice.output_interval;
-
-	exit(-1);
 
 #ifdef BOOST_INVARIANT
 	printf("Running 2+1d hydro simulation...\n\n");
