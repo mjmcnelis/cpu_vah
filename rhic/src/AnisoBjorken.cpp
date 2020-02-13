@@ -246,7 +246,7 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 	ofstream B_plot;
 	e_e0_plot.open("semi_analytic/e_e0_aniso_bjorken.dat", ios::out);
 	pl_pt_plot.open("semi_analytic/pl_pt_aniso_bjorken.dat", ios::out);
-	B_plot.open("semi_analytic/B_aniso_bjorken.dat", ios::out);
+	B_plot.open("semi_analytic/b_pavg_aniso_bjorken.dat", ios::out);
 	//:::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 
@@ -264,7 +264,7 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 		{
 			e_e0_plot  << fixed << setprecision(decimal + 1) << t << "\t" << scientific << setprecision(12) << e / e0 << endl;
 			pl_pt_plot << fixed << setprecision(decimal + 1) << t << "\t" << scientific << setprecision(12) << pl / pt << endl;
-			B_plot     << fixed << setprecision(decimal + 1) << t << "\t" << scientific << setprecision(12) << B << endl;
+			B_plot     << fixed << setprecision(decimal + 1) << t << "\t" << scientific << setprecision(12) << 3. * B / (pl + 2.*pt) << endl;
 		
 			if(e < e_freeze) break;
 		}

@@ -291,6 +291,14 @@ void output_aniso_bjorken(const hydro_variables * const __restrict__ q, const pr
 	fprintf(energy, 	"%.8f\t%.8e\n", t, e_s / e0);
 	fprintf(plptratio, 	"%.8f\t%.8e\n", t, pl / pt);
 
+#ifdef B_FIELD
+	FILE *bfield;
+	bfield = fopen("output/bpavgratio.dat", "a");
+	precision b = q[s].b;
+	fprintf(bfield, "%.8f\t%.8e\n", t, 3. * b / (pl + 2.*pt));		// b / pavg
+	fclose(bfield);
+#endif
+
 	fclose(energy);
 	fclose(plptratio);
 #endif

@@ -32,78 +32,72 @@ const precision pbar_root_a3[pbar_pts] = {0.299618729049241,0.701981065353977,1.
 
 const precision pbar_weight_a3[pbar_pts] = {0.00660146448073508,0.0813584931042281,0.347537436309438,0.809963198105261,1.22739584119905,1.32050782861975,1.06049919505728,0.655616488144915,0.318173017008472,0.122743109012855,0.0379333897858022,0.00943187028689987,0.00188978713293874,0.000304914974586437,3.95130877631855e-05,4.09377958251348e-06,3.36921618654073e-07,2.1841295448875e-08,1.10337736506627e-09,4.28638379146177e-11,1.25966453444067e-12,2.74423030367617e-14,4.32175197361363e-16,4.76686817705967e-18,3.53643350342934e-20,1.67355018349782e-22,4.70254099995936e-25,7.09116556196869e-28,4.93082516196282e-31,1.23284946609868e-34,6.91389702736573e-39,2.63586492716958e-44};
 
-		  	
+//:::::::::::::::::::::::::::::
+
+const precision pbar_root_a4[pbar_pts] = {0.4179092349285205164,0.88953757977412956343,1.5031343535821892418,2.2622772467922400713,3.1691609081884946231,4.2259814223739388132,5.4352075859025698526,6.7996801473429795616,8.3226739971421950501,10.00795481066206095,11.859840697138091813,13.883274215094546335,16.08390900396634473,18.468215606636866113,21.043612172303404879,23.818627569275657412,26.803107200065090088,30.008475918731580888,33.448078637568861185,37.137628733701203404,41.095809422480242898,45.345097823469503332,49.912922981558044551,54.833342392061308785,60.149557510492311786,65.917856460530624905,72.214139807179640278,79.145505977910217234,86.872842716877578922,95.661150475367234798,	106.0174125440344689,119.24607484686785852};	
+
+const precision pbar_weight_a4[pbar_pts] = {0.0081035021776870674224,0.13934980269565479628,0.77892765820920495419,2.270688477817657329,4.162019786788386281,5.2778864167004716975,4.8948590924479342971,3.437172809206616944,1.8690454619642390358,0.79876388700087097392,0.27085216482965314289,0.073287879591448861235,0.015867148817090025692,0.002749473720138891225,0.00038059786010185430023,0.000041923441122147192945,3.6530960788398492826e-6,2.4980951271919747913e-7,1.3268752725228344442e-8,5.403883159066006477e-10,1.6605449308744093245e-11,3.7739278121221075136e-13,6.1875744797835908925e-15,7.0924760328904819544e-17,5.4595039769778605091e-19,2.6771369913592442615e-21,7.786426605077152367e-24,1.2143682326490162623e-26,8.729513743508775062e-30,2.2566202260183591845e-33,1.3097904910237646072e-37,5.1860151170004670833e-43};	
+
 
 class aniso_transport_coefficients_nonconformal
 {
 	// nonconformal vahydro transport coefficients
-
 	private:
 
 	public:
-
 		precision zeta_LL;			// pl coefficients
 		precision zeta_TL;
-		// precision lambda_WuL;
-		// precision lambda_WTL;
-		// precision lambda_piL;
+		precision lambda_WuL;
+		precision lambda_WTL;
+		precision lambda_piL;
 
 		precision zeta_LT;			// pt coefficients
 		precision zeta_TT;
-		// precision lambda_WuT;
-		// precision lambda_WTT;
-		// precision lambda_piT;
+		precision lambda_WuT;
+		precision lambda_WTT;
+		precision lambda_piT;
 
-	// #ifdef WTZMU
-	// 	precision eta_uW;			// WTz coefficients
-	// 	precision eta_TW;
-	// 	precision tau_zW;
-	// 	precision delta_WW;
-	// 	precision lambda_WuW;
-	// 	precision lambda_WTW;
-	// 	precision lambda_piuW;
-	// 	precision lambda_piTW;
-	// #endif
+	#ifdef WTZMU
+		precision eta_uW;			// WTz coefficients
+		precision eta_TW;
+		precision tau_zW;
+		precision delta_WW;
+		precision lambda_WuW;
+		precision lambda_WTW;
+		precision lambda_piuW;
+		precision lambda_piTW;
+	#endif
 
-	// #ifdef PIMUNU 					// piT coefficients
-	// 	precision eta_T;
-	// 	precision delta_pipi;
-	// 	precision tau_pipi;
-	// 	precision lambda_pipi;
-	// 	precision lambda_Wupi;
-	// 	precision lambda_WTpi;
-	// #endif
+	#ifdef PIMUNU 					// piT coefficients
+		precision eta_T;
+		precision delta_pipi;
+		precision tau_pipi;
+		precision lambda_pipi;
+		precision lambda_Wupi;
+		precision lambda_WTpi;
+	#endif
 
-		// hypergeometric functions needed
-		// precision t_200;
-		// precision t_220;
-		// precision t_201;
-
-		precision t_020;
+		precision t_020;			// hypergeometric functions 
 		precision t_001;
 
 		precision t_240;
 		precision t_221;
 		precision t_202;
 
-	// 	// for now just assume WTz and pi both included (easier to sort organize)
-	// #if (NUMBER_OF_RESIDUAL_CURRENTS != 0)
-	// 	precision t_441;
-	// 	precision t_421;
-	// 	precision t_402;
-
-	// 	precision t_422;
-	// 	precision t_403;
-	// #endif
-
+		precision t_441;
+		precision t_421;
+		precision t_402;
+		precision t_422;
+		precision t_403;
 
 		aniso_transport_coefficients_nonconformal();
 		~aniso_transport_coefficients_nonconformal();
 
 		void compute_hypergeometric_functions_n_equals_0(precision z);
 		void compute_hypergeometric_functions_n_equals_2(precision z);
+		void compute_hypergeometric_functions_n_equals_4(precision z);
 
-		void compute_transport_coefficients(precision e, precision pl, precision pt, precision B, precision lambda, precision aT, precision aL, precision mbar, precision mass, precision mdmde);
+		void compute_transport_coefficients(precision e, precision pl, precision pt, precision b, precision lambda, precision aT, precision aL, precision mbar, precision mass, precision mdmde);
 };
 
 
