@@ -156,12 +156,15 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 	double taubulk = (zetas * s0) / betabulk;
 
 	// printf("\n");
+	// printf("T = %lf fm^-1\n", T);
 	// printf("e = %lf fm^-4\n", e0);
 	// printf("p = %lf fm^-4\n", p0);
 	// printf("s = %lf fm^-4\n", s0);
-	//printf("Beq = %lf fm^-4\n", B0);
+	// printf("Beq = %lf fm^-4\n", B0);
+	// printf("z = %lf\n", eos.z_quasi(T));
 	// printf("mass = %lf\n", mass);
 	// printf("mdmde = %lf\n", mdmde);
+	// exit(-1);
 	// printf("zetaS = %lf\n", zetas);
 	// printf("betabulk = %lf fm^-4\n", betabulk);
 	// printf("taubulk = %lf fm\n\n", taubulk);
