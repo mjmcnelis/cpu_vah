@@ -9,7 +9,32 @@ precision energy_density_cutoff(precision e_min, precision e);
 precision equilibrium_energy_density(precision T, precision conformal_prefactor);
 
 
-const bool use_e = true;			// default true. this is only used to test temperature dependent functions) 
+class equation_of_state_new
+{
+	private:
+		double e1;
+		double conformal_prefactor;
+		double T1, T2, T3, T4, T5, T6, T7, T8, T9, T10;
+		double T11, T12, T13, T14, T15, T16, T17, T18, T19, T20;
+		double T21, T22;
+	public:
+		precision T;
+
+		equation_of_state_new(precision e1_in, precision conformal_prefactor_in);
+		~equation_of_state_new();
+
+		precision equilibrium_pressure();			// lattice qcd
+		precision speed_of_sound_squared();
+
+		precision z_quasi();						// quasiparticle
+		precision mdmde_quasi();
+		precision equilibrium_mean_field();
+
+
+		// these need to be updated!!
+		precision beta_shear();						// viscosity / relaxation time
+		precision beta_bulk();
+};
 
 
 class equation_of_state
@@ -35,7 +60,7 @@ class equation_of_state
 		precision z_quasi(precision T);		// (temporary, should use e instead of T)
 		precision mdmde_quasi();
 		//precision mdmdT_quasi(precision T);															// is this still used anywhere?
-		//precision equilibrium_kinetic_pressure(precision T, precision conformal_prefactor);			// is this still used anywhere? 
+		//precision equilibrium_kinetic_pressure(precision T, precision conformal_prefactor);			// is this still used anywhere?
 		precision equilibrium_mean_field(precision T);
 
 		// viscosity coefficients

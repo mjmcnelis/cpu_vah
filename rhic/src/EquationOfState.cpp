@@ -15,6 +15,311 @@ precision energy_density_cutoff(precision e_min, precision e)
 }
 
 
+
+
+equation_of_state_new::equation_of_state_new(precision e1_in, precision conformal_prefactor_in)
+{
+	e1 = e1_in;
+	conformal_prefactor = conformal_prefactor_in;
+
+#ifdef LATTICE_QCD
+#ifndef CONFORMAL_EOS
+	precision e2  = e1  * e1;
+	precision e3  = e2  * e1;
+	precision e4  = e3  * e1;
+	precision e5  = e4  * e1;
+	precision e6  = e5  * e1;
+	precision e7  = e6  * e1;
+	precision e8  = e7  * e1;
+	precision e9  = e8  * e1;
+	precision e10 = e9  * e1;
+	precision e11 = e10 * e1;
+	precision e12 = e11 * e1;
+	precision e13 = e12 * e1;
+	precision e14 = e13 * e1;
+	precision e15 = e14 * e1;
+	precision e16 = e15 * e1;
+	precision e17 = e16 * e1;
+	precision e18 = e17 * e1;
+
+	T = (0.000017501666790163825 + 0.03699450264229552*e1 + 9.53079264346692*e2 + 478.0574558421746*e3 + 4815.265814410284*e4 + 6071.818762824047*e5 - 3242.07917034678*e6 + 3586.8908905829185*e7 - 1492.4308460848283*e8 + 260.90789608163226*e9 + 2.9614572565180657*e10 - 5.4725878573028615*e11 + 0.3606239543966032*e12 + 0.01307881666327972*e13 + 0.00008243332949376859*e14 + 1.3829509318667127e-7*e15 + 6.517489614388798e-11*e16 + 7.742208716620397e-15*e17 + 1.5150865275249154e-19*e18)/(0.00011098075835081602 + 0.14893326363389814*e1 + 27.151183301353235*e2 + 1004.4336510123287*e3 + 7661.3372953228045*e4 + 6316.605157020178*e5 - 3679.435967309141*e6 + 4512.891498218059*e7 - 2114.5174086096513*e8 + 464.103808135828*e9 - 30.418708324615274*e10 - 3.133493850682989*e11 + 0.3625655777300751*e12 + 0.007981157499556196*e13 + 0.000036132179693799986*e14 + 4.4597353454908245e-8*e15 + 1.525105645624315e-11*e16 + 1.234200041943215e-15*e17 + 1.2919403060748804e-20*e18);
+#endif
+#endif
+
+#ifdef CONFORMAL_EOS
+#ifndef LATTICE_QCD
+	T = pow(e1 / conformal_prefactor, 0.25);
+#endif
+#endif
+
+#ifdef CONFORMAL_EOS
+#ifdef LATTICE_QCD
+	printf("equation_of_state_new::equation_of_state_new error: not eos switch yet\n");
+	exit(-1);
+#endif
+#endif
+
+	T1 = T;
+	T2 = T1 * T1;
+	T3 = T2 * T1;
+	T4 = T3 * T1;
+	T5 = T4 * T1;
+	T6 = T5 * T1;
+	T7 = T6 * T1;
+	T8 = T7 * T1;
+	T9 = T8 * T1;
+	T10 = T9 * T1;
+	T11 = T10 * T1;
+	T12 = T11 * T1;
+	T13 = T12 * T1;
+	T14 = T13 * T1;
+	T15 = T14 * T1;
+	T16 = T15 * T1;
+	T17 = T16 * T1;
+	T18 = T17 * T1;
+	T19 = T18 * T1;
+	T20 = T19 * T1;
+	T21 = T20 * T1;
+	T22 = T21 * T1;
+}
+
+
+equation_of_state_new::~equation_of_state_new()
+{
+
+}
+
+
+precision equation_of_state_new::equilibrium_pressure()
+{
+	precision p;
+
+#ifdef LATTICE_QCD
+#ifndef CONFORMAL_EOS
+	p = (380.1314073917778 - 7680.033526326507*T1 + 68602.08760067614*T2 - 359106.2417553722*T3 + 1.2389284083604014e6*T4 - 3.04440599633009e6*T5 + 5.709246989662066e6*T6 - 8.66341866186127e6*T7 + 1.0835954146449104e7*T8 - 1.0664248361631993e7*T9 + 7.473285898937746e6*T10 - 3.213922187759718e6*T11 + 626648.5339141666*T12)/(-13940.851869899469 + 87266.66293844217*T1 - 186446.89426907562*T2 + 77592.80031839639*T3 + 373353.71023107687*T4 - 823775.2162777347*T5 + 813419.0979858796*T6 - 413342.5682364177*T7 + 79476.33235382187*T8 + 7351.581336605625*T9 - 829.7870887229601*T10 + 55.35878026074939*T11 - 1.6527010061152714*T12);
+#endif
+#endif
+
+#ifdef CONFORMAL_EOS
+#ifndef LATTICE_QCD
+	p = e1 / 3.;
+#endif
+#endif
+
+#ifdef CONFORMAL_EOS
+#ifdef LATTICE_QCD
+	printf("equation_of_state_new::equilibrium_pressure error: not eos switch yet\n");
+	exit(-1);
+#endif
+#endif
+
+	if(p < 0)
+	{
+		printf("equation_of_state_new::equilibrium_pressure error: p = %lf is negative. Enforcing positive equilibrium_pressure\n", p);
+		p = fmax(p, 0.);
+	}
+	return p;
+}
+
+
+precision equation_of_state_new::speed_of_sound_squared()
+{
+	precision cs2;
+
+#ifdef LATTICE_QCD
+#ifndef CONFORMAL_EOS
+	cs2 = (-0.28269533732608904 + 9.795100529341218*T1 - 88.02039352141522*T2 + 396.3568943492647*T3 - 1054.1593908781763*T4 + 1675.8066832885186*T5 - 1266.9814782940746*T6 - 550.0957286372637*T7 + 2108.7175083550146*T8 - 1060.4095987288595*T9 - 2032.4961002057378*T10 + 3457.9927779991444*T11 - 1135.821740237249*T12 - 2487.542017457926*T13 + 3922.812440884798*T14 - 2826.984002733641*T15 + 1179.041785013648*T16 - 276.090105534535*T17 + 28.36006120492868*T18)/(1.8215578803318528 - 1.919551715217968*T1 - 108.04292192746387*T2 + 804.1669648293796*T3 - 2897.7934908524808*T4 + 6237.002516638373*T5 - 7989.399116914714*T6 + 4478.6226678142475*T7 + 2977.837996285879*T8 - 7263.759282392347*T9 + 4854.78645806174*T10 - 1936.5615884900997*T11 + 5184.0221841281555*T12 - 11356.100393452223*T13 + 12838.831974996214*T14 - 8611.788755995802*T15 + 3528.5290442427595*T16 - 825.5150041085104*T17 + 85.25874124597529*T18);
+#endif
+#endif
+
+#ifdef CONFORMAL_EOS
+#ifndef LATTICE_QCD
+	cs2 = 1./3.;
+#endif
+#endif
+
+#ifdef CONFORMAL_EOS
+#ifdef LATTICE_QCD
+	printf("equation_of_state_new::speed_of_sound_squared error: not eos switch yet\n");
+	exit(-1);
+#endif
+#endif
+
+	return cs2;
+}
+
+
+precision equation_of_state_new::z_quasi()
+{
+	precision z;
+
+#ifdef LATTICE_QCD
+#ifndef CONFORMAL_EOS
+	z = (0.08303600003873625 - 0.31663876548255276*T1 - 0.3437654480323534*T2 + 3.1935438876025226*T3 - 1.8505414089256629*T4 - 20.103250346043314*T5 + 65.63805450196016*T6 - 102.7208024206455*T7 + 94.78859714874518*T8 - 49.90533697850738*T9 + 9.46999942889758*T10 + 4.6616791100921775*T11 - 3.1325717479601183*T12 + 0.521050748486101*T13 + 0.016946659040681687*T14)/(-0.0013528615203112476 + 0.16110349970479615*T1 - 1.5724445522755603*T2 + 7.583977032359246*T3 - 23.86307662651365*T4 + 55.24608845445409*T5 - 99.50129972931308*T6 + 141.4504474648258*T7 - 156.72733620989175*T8 + 131.3886248621511*T9 - 79.65025242023526*T10 + 32.4639587790247*T11 - 7.690588987983213*T12 + 0.654617821652585*T13 + 0.05753361056246534*T14);
+#endif
+#endif
+
+#ifdef CONFORMAL_EOS
+#ifndef LATTICE_QCD
+	z = 0;
+#endif
+#endif
+
+#ifdef CONFORMAL_EOS
+#ifdef LATTICE_QCD
+	printf("equation_of_state_new::z_quasi error: not eos switch yet\n");
+	exit(-1);
+#endif
+#endif
+
+	return z;
+}
+
+
+precision equation_of_state_new::mdmde_quasi()
+{
+	precision mdmde;
+
+#ifdef LATTICE_QCD
+#ifndef CONFORMAL_EOS
+	mdmde = (72.6878665548801 - 382.52170027983834*T1 + 644.3762319130602*T2 - 129.19135072153108*T3 - 634.5356306099509*T4 + 356.5209109636042*T5 + 324.89682684648994*T6 - 478.88942323317116*T7 + 332.9743774340843*T8 + 618.0973965604695*T9 - 1171.439436577495*T10 - 628.7476208107144*T11 + 1515.062832254186*T12 + 835.8529297487167*T13 - 1672.7519285091576*T14 - 840.4005410364722*T15 + 1925.9539310948414*T16 - 89.64113010803419*T17 - 1359.2904984693519*T18 + 1075.955079416841*T19 - 372.5115164916778*T20 + 61.625265972066614*T21 - 4.083321698953611*T22)/(0.4136588243656204 - 10.885009497755833*T1 + 117.16425450104548*T2 - 672.2563826169645*T3 + 2364.751507966597*T4 - 5211.1359137398*T5 + 6490.575169088332*T6 - 2208.3477746327376*T7 - 4654.8752588888465*T8 + 3251.1047628382885*T9 + 5476.1400511200545*T10 - 3576.274191301569*T11 - 7423.831257839161*T12 + 2443.1019713623186*T13 + 10262.74306696526*T14 - 385.2515628289653*T15 - 12417.625007308698*T16 - 1873.514054527994*T17 + 14520.545047537851*T18 - 1021.296289119715*T19 - 12124.52644556774*T20 + 8427.140010025205*T21 - 1773.8514147774117*T22);
+#endif
+#endif
+
+#ifdef CONFORMAL_EOS
+#ifndef LATTICE_QCD
+	mdmde = 0;
+#endif
+#endif
+
+#ifdef CONFORMAL_EOS
+#ifdef LATTICE_QCD
+	printf("equation_of_state_new::mdmde_quasi error: not eos switch yet\n");
+	exit(-1);
+#endif
+#endif
+
+	return mdmde;
+}
+
+
+precision equation_of_state_new::equilibrium_mean_field()
+{
+	precision Beq;
+
+#ifdef LATTICE_QCD
+#ifndef CONFORMAL_EOS
+	Beq = (-527.7198740151986 + 10083.738278232428*T1 - 83215.1096774566*T2 + 390612.31737945497*T3 - 1.156005341824903e6*T4 + 2.275888848621547e6*T5 - 3.061067641368322e6*T6 + 2.821552088783961e6*T7 - 1.734981576383687e6*T8 + 650753.3294530859*T9 - 102948.4969857233*T10 - 20516.9754475802*T11 + 12000.461040175463*T12 - 1654.3346738122705*T13 + 25.18968917586496*T14)/(-138191.2734866683 + 1.011801904770102e6*T1 - 3.3275105856632143e6*T2 + 6.497780831943228e6*T3 - 8.392061222991193e6*T4 + 7.557844214173838e6*T5 - 4.87965141702813e6*T6 + 2.2944968338930537e6*T7 - 797052.503381821*T8 + 208803.7925704919*T9 - 41919.097781420365*T10 + 6233.939818848559*T11 - 615.2405051998173*T12 + 36.26133736071459*T13 - 0.9678722816941575*T14);
+#endif
+#endif
+
+#ifdef CONFORMAL_EOS
+#ifndef LATTICE_QCD
+	Beq = 0;
+#endif
+#endif
+
+#ifdef CONFORMAL_EOS
+#ifdef LATTICE_QCD
+	printf("equation_of_state_new::equilibrium_mean_field error: not eos switch yet\n");
+	exit(-1);
+#endif
+#endif
+
+	return Beq;
+}
+
+
+precision equation_of_state_new::beta_shear()
+{
+	precision beta_shear;
+
+#ifdef LATTICE_QCD
+#ifndef CONFORMAL_EOS
+	beta_shear = (0.11389523069479185 - 2.705127789711982*T + 28.742274634585783*T2 - 179.70799505135633*T3 + 730.506119388531*T4 - 2007.1240462918665*T5 +
+	3721.0091345659325*T6 - 4366.923562236631*T7 + 2347.927819272824*T8 + 1559.8495170149938*T9 - 4257.643429592799*T10 +
+	3938.5865394866464*T11 - 1999.1891431300426*T12 + 551.2544143662707*T13 - 64.67817053548931*T14)/
+	(-8.065469391396581 + 92.36219194757648*T - 453.6119231622029*T2 + 1282.9299920278522*T3 - 2333.58921706985*T4 + 2843.5221412837436*T5 -
+	2291.373282720429*T6 + 1092.688273629689*T7 - 140.80190149751965*T8 - 177.18993543735297*T9 + 126.47676060292035*T10 -
+	39.29732109229348*T11 + 6.547795713678674*T12 - 0.6094551149533467*T13 + 0.023633386710670345*T14);
+#endif
+#endif
+
+
+#ifdef CONFORMAL_EOS
+#ifndef LATTICE_QCD
+   beta_shear = 4./15. * conformal_prefactor * T1 * T1 * T1 * T1;
+#endif
+#endif
+
+#ifdef CONFORMAL_EOS
+#ifdef LATTICE_QCD
+	printf("equation_of_state_new::beta_shear error: not eos switch yet\n");
+	exit(-1);
+#endif
+#endif
+
+	return beta_shear;
+}
+
+
+precision equation_of_state_new::beta_bulk()
+{
+	precision beta_bulk;
+
+#ifdef LATTICE_QCD
+#ifndef CONFORMAL_EOS
+	beta_bulk = (-0.07227796340001295 + 1.3143764840615304*T1 - 10.618632711354438*T2 + 50.49226038033788*T3 - 157.4895501326704*T4 + 339.56597470170806*T5 -
+	518.8479144079654*T6 + 565.401177446674*T7 - 434.90715638011426*T8 + 229.10104947248428*T9 - 77.73510380062434*T10 +
+	14.99701288452569*T11 - 1.2012010330086933*T12)/
+	(36.286491731381375 - 385.4575151988946*T1 + 1863.5710590765027*T2 - 5417.869823144005*T3 + 10538.668878148343*T4 - 14431.58178913021*T5 +
+	14242.335632907661*T6 - 10182.425674573899*T7 + 5216.5453702051245*T8 - 1858.714375839709*T9 + 434.4504198478326*T10 -
+	59.390426532205105*T11 + 3.581827839432567*T12);
+#endif
+#endif
+
+#ifdef CONFORMAL_EOS
+#ifndef LATTICE_QCD
+   beta_bulk = 0;
+#endif
+#endif
+
+#ifdef CONFORMAL_EOS
+#ifdef LATTICE_QCD
+	printf("equation_of_state_new::beta_bulk error: not eos switch yet\n");
+	exit(-1);
+#endif
+#endif
+
+   return beta_bulk;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // it might be better to make an equation class to store the variables
 // what would be better to use? a fit function or interpolation?
 
@@ -91,7 +396,7 @@ precision equation_of_state::effective_temperature(precision conformal_prefactor
 {
 	precision T;
 
-#ifdef LATTICE_QCD				 	
+#ifdef LATTICE_QCD
 	T = (1.0097526475300114e-7 + 0.00021838483878330327*e1 + 0.0527665048468103*e2 + 1.3443038870124433*e3 - 29.734024004370692*e4 + 269.2769967747579*e5 + 1866.2652129862722*e6 - 3760.609426819512*e7 - 7339.004735460014*e8 + 1606.4002928709317*e9 + 22406.963604607237*e10 - 20502.863988381978*e11 - 1681.250215337671*e12 + 31774.024065918482*e13 - 8929.575720414807*e14 + 1060.5047767092692*e15 + 1556.1430619374776*e16 + 79.24641177767323*e17 + 0.8843663758438196*e18 + 0.002262761812575013*e19 + 9.097931466167723e-7*e20)/(6.52335668683017e-7 + 0.0008874335630072429*e1 + 0.1442403491043538*e2 + 1.6787993054371462*e3 - 56.63303674664881*e4 + 699.7663335101611*e5 + 1778.0902926314081*e6 - 4084.075030043697*e7 - 17409.764307553494*e8 + 24711.788909162286*e9 - 2882.4287321466554*e10 + 2951.387363303661*e11 - 20969.597421345836*e12 + 53914.5094221402*e13 - 19175.577404922642*e14 + 4057.4347774133366*e15 + 1550.173009591607*e16 + 54.95207917670983*e17 + 0.43418792515403754*e18 + 0.00074734801321898*e19 + 1.598170725740521e-7*e20);
 #else
 	T = pow(e1 / conformal_prefactor, 0.25);
@@ -100,7 +405,7 @@ precision equation_of_state::effective_temperature(precision conformal_prefactor
 }
 
 
-precision equation_of_state::z_quasi(precision T)		
+precision equation_of_state::z_quasi(precision T)
 {
 	precision z;	// mass / T
 
@@ -193,7 +498,7 @@ precision equation_of_state::beta_shear(precision T, precision conformal_prefact
 precision equation_of_state::beta_bulk(precision T)
 {
 	double beta_bulk;
-	
+
 #ifdef LATTICE_QCD
 	double T1 = (double)T;
 	double T2  = T1  * T1;
@@ -221,12 +526,13 @@ precision equation_of_state::beta_bulk(precision T)
 }
 
 
-// seperate this? this is only used in initial conditions (negligible cost to be super accurate)
+// this is only used in initial conditions (This is the BEST version)
+/*
 precision equilibrium_energy_density(precision T, precision conformal_prefactor)
 {
 	precision e;
 
-#ifdef LATTICE_QCD			
+#ifdef LATTICE_QCD
 	double T1 = (double)T;
 	double T2 = T1 * T1;
 	double T3 = T2 * T1;
@@ -252,6 +558,54 @@ precision equilibrium_energy_density(precision T, precision conformal_prefactor)
 #else
 	e = conformal_prefactor * T * T * T * T;
 #endif
+	return e;
+}
+*/
+
+
+// This is the HOTQCD + SMASH version
+precision equilibrium_energy_density(precision T, precision conformal_prefactor)
+{
+	precision e;
+
+#ifdef LATTICE_QCD
+#ifndef CONFORMAL_EOS
+	double T1 = T;
+	double T2 = T1 * T1;
+	double T3 = T2 * T1;
+	double T4 = T3 * T1;
+	double T5 = T4 * T1;
+	double T6 = T5 * T1;
+	double T7 = T6 * T1;
+	double T8 = T7 * T1;
+	double T9 = T8 * T1;
+	double T10 = T9 * T1;
+	double T11 = T10 * T1;
+	double T12 = T11 * T1;
+	double T13 = T12 * T1;
+	double T14 = T13 * T1;
+	double T15 = T14 * T1;
+	double T16 = T15 * T1;
+	double T17 = T16 * T1;
+	double T18 = T17 * T1;
+
+	e = (-0.40698677369016695 + 26.90263255626566*T1 - 451.40931096731606*T2 + 3748.50059581573*T3 - 18498.9525114122*T4 + 57417.46806755477*T5 - 109624.23666681767*T6 + 105527.65145392402*T7 + 24561.692186035198*T8 - 187413.3245788481*T9 + 143250.8494521164*T10 + 143393.6299794811*T11 - 337897.5513221823*T12 + 177408.70085616288*T13 + 137332.23093322886*T14 - 264268.15252307296*T15 + 175507.67395950254*T16 - 58067.60179151776*T17 + 8046.346263452795*T18)/(-173.8835104731062 + 1529.128399904588*T1 - 5768.283494742235*T2 + 11835.156422023792*T3 - 13416.39237101848*T4 + 6707.496209857805*T5 + 437.7325829205757*T6 + 704.6255257249378*T7 - 2851.15588379858*T8 - 5693.046198149581*T9 + 18686.5840958459*T10 - 21262.903672709494*T11 + 12920.1164479426*T12 - 4290.49508258817*T13 + 652.3067905178337*T14 - 18.705607055329114*T15 + 1.824854560118584*T16 - 0.10710494603163746*T17 + 0.002855313723557289*T18);
+#endif
+#endif
+
+#ifdef CONFORMAL_EOS
+#ifndef LATTICE_QCD
+	e = conformal_prefactor * T * T * T * T;
+#endif
+#endif
+
+#ifdef CONFORMAL_EOS
+#ifdef LATTICE_QCD
+	printf("equilibrium_energy_density error: not eos switch yet\n");
+	exit(-1);
+#endif
+#endif
+
 	return e;
 }
 
