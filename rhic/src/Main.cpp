@@ -4,9 +4,9 @@
 -------------------------------------------------------
 | Authors      	| Dennis Bazow, Mike McNelis
 -------------------------------------------------------
-| Date created	| 10/12/15
+| Date created	| 10/12/15 by Dennis Bazow
 -------------------------------------------------------
-| Last edited	| 2/6/20
+| Last edited	| 2/6/20 by Mike McNelis
 -------------------------------------------------------
 | Description 	| A viscous anisotropic hydrodynamic
 |				| simulation of a heavy-ion collision
