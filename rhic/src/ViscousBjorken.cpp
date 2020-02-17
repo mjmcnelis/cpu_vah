@@ -33,10 +33,17 @@ double dpi_dt(double e, double pi, double bulk, double t, hydro_parameters hydro
 {
 #ifndef ANISO_HYDRO
 #ifdef PIMUNU
-	equation_of_state eos(e);
+// hotQCD
+	equation_of_state_new eos(e, hydro.conformal_eos_prefactor);
 	double p = eos.equilibrium_pressure();
-	double T = eos.effective_temperature(hydro.conformal_eos_prefactor);
+	double T = eos.T;
 	double s = (e + p) / T;
+
+// BEST 	
+	// equation_of_state eos(e);
+	// double p = eos.equilibrium_pressure();
+	// double T = eos.effective_temperature(hydro.conformal_eos_prefactor);
+	// double s = (e + p) / T;
 
 	double etas = eta_over_s(T, hydro);
 	double eta = s * etas;
@@ -67,11 +74,19 @@ double dbulk_dt(double e, double pi, double bulk, double t, hydro_parameters hyd
 {
 #ifndef ANISO_HYDRO
 #ifdef PI
-	equation_of_state eos(e);
+// hotQCD
+	equation_of_state_new eos(e, hydro.conformal_eos_prefactor);
 	double p = eos.equilibrium_pressure();
-	double T = eos.effective_temperature(hydro.conformal_eos_prefactor);
+	double T = eos.T;
 	double s = (e + p) / T;
 	double cs2 = eos.speed_of_sound_squared();
+
+// BEST
+	// equation_of_state eos(e);
+	// double p = eos.equilibrium_pressure();
+	// double T = eos.effective_temperature(hydro.conformal_eos_prefactor);
+	// double s = (e + p) / T;
+	// double cs2 = eos.speed_of_sound_squared();
 
 	double zetas = zeta_over_s(T, hydro);
 	double zeta = s * zetas;
@@ -111,14 +126,24 @@ void run_semi_analytic_viscous_bjorken(lattice_parameters lattice, initial_condi
 	int decimal = - log10(dt);													// setprecision value for t output
 
 	double conformal_eos_prefactor = hydro.conformal_eos_prefactor;
-	double e0 = equilibrium_energy_density(T0/hbarc, conformal_eos_prefactor);	// initial energy density
+
+	// using hotQCD
+	//double e0 = equilibrium_energy_density(T0/hbarc, conformal_eos_prefactor);	// initial energy density
+	double e0 = equilibrium_energy_density_new(T0/hbarc, conformal_eos_prefactor);	// initial energy density
 
 	double plpt_ratio = hydro.plpt_ratio_initial;								// initial pl/pt ratio
 
 	double e = e0;
 
-	equation_of_state eos(e);
+	// BEST
+	// equation_of_state eos(e);
+	// double p = eos.equilibrium_pressure();
+
+	// hotQCD
+	equation_of_state_new eos(e, conformal_eos_prefactor);
 	double p = eos.equilibrium_pressure();
+
+
 	double pl = e * plpt_ratio / (2. + plpt_ratio);
 	double pt = (e - pl) / 2.;
 
@@ -133,7 +158,10 @@ void run_semi_analytic_viscous_bjorken(lattice_parameters lattice, initial_condi
 #endif
 
 	double T_freeze = hydro.freezeout_temperature_GeV;
-	double e_freeze = equilibrium_energy_density(T_freeze / hbarc, conformal_eos_prefactor);
+
+	// using hotQCD
+	//double e_freeze = equilibrium_energy_density(T_freeze / hbarc, conformal_eos_prefactor);
+	double e_freeze = equilibrium_energy_density_new(T_freeze / hbarc, conformal_eos_prefactor);
 
 	ofstream e_e0_plot;
 	ofstream pl_pt_plot;
@@ -150,11 +178,16 @@ void run_semi_analytic_viscous_bjorken(lattice_parameters lattice, initial_condi
 
 	while(true)
 	{
-		//p = equilibriumPressure(e);
-		equation_of_state EoS(e);
+		// hotQCD
+		equation_of_state_new EoS(e, hydro.conformal_eos_prefactor);
 		p = EoS.equilibrium_pressure();
+		double T = EoS.T;
+
+		// BEST 
+		// equation_of_state EoS(e);
+		// p = EoS.equilibrium_pressure();
 		
-		double T = EoS.effective_temperature(hydro.conformal_eos_prefactor);
+		// double T = EoS.effective_temperature(hydro.conformal_eos_prefactor);
 
 		pl = p  +  bulk  -  pi;
 		pt = p  +  bulk  +  pi/2.;

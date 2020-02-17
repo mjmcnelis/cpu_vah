@@ -17,6 +17,8 @@
 #include "../include/AnisoGubser.h"
 #include "../include/EquationOfState.h"
 #include "../include/Projections.h"
+#include "../include/AnisoVariables.h"
+#include "../include/Viscosities.h"
 using namespace std;
 
 #define THETA_FUNCTION(X) ((double)X < (double)0 ? (double)0 : (double)1)
@@ -188,12 +190,52 @@ void set_anisotropic_initial_condition(int nx, int ny, int nz, hydro_parameters 
 
 				precision e_s = e[s];
 
-				precision pl = e_s * plpt_ratio / (2. + plpt_ratio);
-				precision pt = e_s / (2. + plpt_ratio);
+				equation_of_state eos(e_s);	
+				precision p = eos.equilibrium_pressure();	
+				precision pl = p;
+				precision pt = p;
+				// precision pl = e_s * plpt_ratio / (2. + plpt_ratio);
+				// precision pt = e_s / (2. + plpt_ratio);
 
-			#ifdef ANISO_HYDRO
+				//printf("(i, j, e, pl, pt) = (%d, %d, %lf, %lf, %lf)\n", i, j, e_s, pl, pt);
+
+			#ifdef ANISO_HYDRO						// anisotropic hydro initial conditions
 				q[s].pl = pl;						// conformal approximation
 				q[s].pt = pt;
+
+			#ifdef LATTICE_QCD						// initialize mean field and anisotropic variables 
+			#ifndef CONFORMAL_EOS
+										
+				precision T = eos.effective_temperature(hydro.conformal_eos_prefactor);
+				
+				precision beq = eos.equilibrium_mean_field(T);
+				precision mass = T * eos.z_quasi(T);										
+				precision mdmde = eos.mdmde_quasi();
+				//precision taubulk = zeta_over_s(T, hydro) * (e_s + p) / (T * eos.beta_bulk(T));		
+				//precision db_asy = -3. * taubulk * mdmde * (e_s + pl) * (2.*pt/3. + pl/3. - p) / (t * mass * mass) / (1.  +  4. * taubulk * mdmde * (e_s + pl) / (t * mass * mass));
+
+				precision b = beq;
+				//precision b = beq + db_asy;
+
+				precision lambda0 = T;				// initial guess for anisotropic variables
+				precision aT0 = 1.0;
+				precision aL0 = 1.0;
+
+				//printf("(i, j, e, pl, pt, b, beq, db_asy) = (%d, %d, %lf, %lf, %lf, %lf, %lf, %lf)\n", i, j, e_s, pl, pt, b, beq, db_asy);
+
+				aniso_variables X = find_anisotropic_variables(e_s, pl, pt, b, mass, lambda0, aT0, aL0);
+
+				//printf("(i, j, T, L, aT, aL) = (%d, %d, %lf, %lf, %lf, %lf)\n", i, j, T, X.lambda, X.aT, X.aL);
+
+				q[s].b = b;
+				lambda[s] = X.lambda;
+				aT[s] = X.aT;
+				aL[s] = X.aL;
+			#else
+				printf("set_anisotropic_initial_condition error: no eos switch\n");
+				exit(-1);
+			#endif
+			#endif
 			
 			#ifdef PIMUNU
 		  		q[s].pitt = 0;
@@ -217,7 +259,7 @@ void set_anisotropic_initial_condition(int nx, int ny, int nz, hydro_parameters 
 		  		q[s].WnTz = 0;
 			#endif
 
-			#else
+			#else 									// viscous hydro initial conditions
 
 		 	#ifdef PIMUNU
 		  		precision ux = u[s].ux;
@@ -258,7 +300,6 @@ void set_anisotropic_initial_condition(int nx, int ny, int nz, hydro_parameters 
 			}
 		}
 	}
-
 }
 
 
@@ -301,6 +342,7 @@ void set_Glauber_energy_density_and_flow_profile(int nx, int ny, int nz, double 
 	{
 		MC_Glauber_energy_density_transverse_profile(eT, nx, ny, dx, dy, initial);
 	}
+
 	longitudinal_Energy_Density_Profile(eL, nz, dz, initial);
 
 	for(int k = 2; k < nz + 2; k++)
@@ -359,7 +401,7 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 	printf("\nInitial conditions = ");
 	switch(initial.initialConditionType)
 	{
-		case 1:
+		case 1:		// Viscous hydro or Anisotropic hydro Bjorken 
 		{
 			printf("Bjorken\n\n");
 
@@ -382,7 +424,7 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 
 			break;
 		}
-		case 2:
+		case 2:		// Viscous hydro Gubser 
 		{
 		#ifdef PIMUNU
 			printf("Viscous Gubser\n\n");
@@ -417,7 +459,7 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 
 			break;
 		}
-		case 3:
+		case 3:		// Anisotropic hydro Gubser
 		{
 			printf("Anisotropic Gubser (residual shear stress initialized to zero)\n\n");
 
@@ -451,7 +493,7 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 
 			break;
 		}
-		case 4:
+		case 4:		// Optical Glauber
 		{
 			printf("Optical Glauber (fluid velocity initialized to zero)\n\n");
 

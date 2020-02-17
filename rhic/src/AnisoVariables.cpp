@@ -525,8 +525,8 @@ void line_backtracking(precision *l, precision Ea, precision PTa, precision PLa,
 		lprev = ls;									// store current values for next iteration
 		fprev = f;
 
-		ls = fmax(lroot, 0.5 * ls);					// update l and f
-		//ls = fmax(lroot, 0.1 * ls);				// update l and f
+		ls = fmax(lroot, 0.5 * ls);				// update l and f
+		//ls = fmax(lroot, 0.1 * ls);					// update l and f
 		
 
 		for(int j = 0; j < 3; j++)
@@ -634,6 +634,7 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 			}
 
 			method = broyden;											// default method is Broyden for i > 0
+			//method = newton;
 		}
 
 		// default J and f at Xcurrent
@@ -882,6 +883,9 @@ void set_anisotropic_variables(const hydro_variables * const __restrict__ q, con
 				precision e_s = e[s];
 				precision pl = q[s].pl;
 				precision pt = q[s].pt;	
+
+			#ifdef LATTICE_QCD	
+			#ifndef CONFORMAL_EOS
 				precision b = q[s].b;
 
 				// printf("e = %lf\n", e_s);
@@ -906,6 +910,11 @@ void set_anisotropic_variables(const hydro_variables * const __restrict__ q, con
 				lambda[s] = X_s.lambda;				// update anisotropic variables
 				aT[s] = X_s.aT;
 				aL[s] = X_s.aL;
+			#else
+				printf("set_anisotropic_variables error: no eos transition\n");
+				exit(-1);
+			#endif
+			#endif
 
 				// printf("lambda = %lf\n", X_s.lambda);
 				// printf("aT = %lf\n", X_s.aT);

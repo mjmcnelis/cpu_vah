@@ -7,7 +7,7 @@
 precision energy_density_cutoff(precision e_min, precision e);
 
 precision equilibrium_energy_density(precision T, precision conformal_prefactor);
-
+precision equilibrium_energy_density_new(precision T, precision conformal_prefactor);
 
 class equation_of_state_new
 {

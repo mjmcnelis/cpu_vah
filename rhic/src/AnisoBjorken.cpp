@@ -39,15 +39,13 @@ double de_dt(double e, double pl, double pt, double B, double lambda, double aT,
 double dpl_dt_conformal(double e, double pl, double t, hydro_parameters hydro)
 {
 	double conformal = hydro.conformal_eos_prefactor;
-
-	equation_of_state eos(e);
-	double p = eos.equilibrium_pressure();
-	double T = eos.effective_temperature(conformal);
+	double p = e / 3.;
+	double T = pow(e / conformal, 0.25);
 
 	double etas = eta_over_s(T, hydro);
 	double taupiInv = T / (5. * etas);
 
-	double pt = (e - pl) / 2.; 	// temporary
+	double pt = (e - pl) / 2.; 
 
 	aniso_transport_coefficients aniso;
 	aniso.compute_transport_coefficients(e, pl, pt, conformal);
@@ -60,7 +58,20 @@ double dpl_dt_conformal(double e, double pl, double t, hydro_parameters hydro)
 double dpl_dt(double e, double pl, double pt, double B, double lambda, double aT, double aL, double t, hydro_parameters hydro)
 {
 	double conformal = hydro.conformal_eos_prefactor;
+// HOTQCD version
+	equation_of_state_new eos(e, conformal);
+	double p = eos.equilibrium_pressure();
+	double T = eos.T;
+	double s = (e + p) / T;
+	double mass = T * eos.z_quasi();				     // m(T)
+	double mbar = mass / lambda;       					 // m(T) / lambda
+	double mdmde = eos.mdmde_quasi();
 
+	double taupiInv = eos.beta_shear() / (s * eta_over_s(T, hydro));
+	double taubulkInv = eos.beta_bulk() / (s * zeta_over_s(T, hydro));
+
+// BEST version
+/*
 	equation_of_state eos(e);
 	double p = eos.equilibrium_pressure();
 	double T = eos.effective_temperature(conformal);
@@ -71,7 +82,7 @@ double dpl_dt(double e, double pl, double pt, double B, double lambda, double aT
 
 	double taupiInv = eos.beta_shear(T, conformal) / (s * eta_over_s(T, hydro));
 	double taubulkInv = eos.beta_bulk(T) / (s * zeta_over_s(T, hydro));
-
+*/
 	aniso_transport_coefficients_nonconformal aniso;
 	aniso.compute_transport_coefficients(e, pl, pt, B, lambda, aT, aL, mbar, mass, mdmde);
 
@@ -83,6 +94,20 @@ double dpt_dt(double e, double pl, double pt, double B, double lambda, double aT
 {
 	double conformal = hydro.conformal_eos_prefactor;
 
+// HOTQCD version
+	equation_of_state_new eos(e, conformal);
+	double p = eos.equilibrium_pressure();
+	double T = eos.T;
+	double s = (e + p) / T;
+	double mass = T * eos.z_quasi();				     // m(T)
+	double mbar = mass / lambda;       					 // m(T) / lambda
+	double mdmde = eos.mdmde_quasi();
+
+	double taupiInv = eos.beta_shear() / (s * eta_over_s(T, hydro));
+	double taubulkInv = eos.beta_bulk() / (s * zeta_over_s(T, hydro));
+
+// BEST version
+/*
 	equation_of_state eos(e);
 	double p = eos.equilibrium_pressure();
 	double T = eos.effective_temperature(conformal);
@@ -93,6 +118,7 @@ double dpt_dt(double e, double pl, double pt, double B, double lambda, double aT
 
 	double taupiInv = eos.beta_shear(T, conformal) / (s * eta_over_s(T, hydro));
 	double taubulkInv = eos.beta_bulk(T) / (s * zeta_over_s(T, hydro));
+*/
 
 	aniso_transport_coefficients_nonconformal aniso;
 	aniso.compute_transport_coefficients(e, pl, pt, B, lambda, aT, aL, mbar, mass, mdmde);
@@ -105,6 +131,18 @@ double dB_dt(double e, double pl, double pt, double B, double lambda, double aT,
 {
 	double conformal = hydro.conformal_eos_prefactor;
 
+// HOT QCD version
+	equation_of_state_new eos(e, conformal);
+	double p = eos.equilibrium_pressure();
+	double T = eos.T;
+	double s = (e + p) / T;
+	double mass = T * eos.z_quasi();
+	double Beq = eos.equilibrium_mean_field();
+	double mdmde = eos.mdmde_quasi();
+	double taubulkInv = eos.beta_bulk() / (s * zeta_over_s(T, hydro));
+
+// BEST version
+/*
 	equation_of_state eos(e);
 	double p = eos.equilibrium_pressure();
 	double T = eos.effective_temperature(conformal);
@@ -113,6 +151,7 @@ double dB_dt(double e, double pl, double pt, double B, double lambda, double aT,
 	double Beq = eos.equilibrium_mean_field(T);
 	double mdmde = eos.mdmde_quasi();
 	double taubulkInv = eos.beta_bulk(T) / (s * zeta_over_s(T, hydro));
+*/
 
 	return - taubulkInv * (B - Beq)  -  (2.*pt + pl - e + 4.*B) * mdmde * (e + pl) / (t * mass * mass);
 }
@@ -140,8 +179,11 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 	double T = T0 / hbarc;
 	double plpt_ratio = hydro.plpt_ratio_initial;								// initial pl/pt ratio
 	double conformal_prefactor = hydro.conformal_eos_prefactor;
-	double e0 = equilibrium_energy_density(T, conformal_prefactor);				// initial energy density
 
+// BEST version
+/*
+	double e0 = equilibrium_energy_density(T, conformal_prefactor);				// initial energy density
+				// initial energy density
 	equation_of_state eos(e0);
 	double p0 = eos.equilibrium_pressure();										// initial thermal pressure
 	double s0 = (e0 + p0) / T;													// initial entropy density
@@ -154,6 +196,25 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 	double zetas = zeta_over_s(T, hydro);										// compute bulk relaxation time for asymptotic dB
 	double betabulk = eos.beta_bulk(T);
 	double taubulk = (zetas * s0) / betabulk;
+*/
+
+// HotQCD version
+	double e0 = equilibrium_energy_density_new(T, conformal_prefactor);	
+	equation_of_state_new eos(e0, conformal_prefactor);
+	double p0 = eos.equilibrium_pressure();										// initial thermal pressure
+	double s0 = (e0 + p0) / T;													// initial entropy density
+	double cs2 = eos.speed_of_sound_squared();
+	double B0 = eos.equilibrium_mean_field();									// initial thermal mean field
+	double mass = T * eos.z_quasi();											// quasiparticle mass
+	double mass2 = mass * mass;
+	double mdmde = eos.mdmde_quasi();
+
+	double zetas = zeta_over_s(T, hydro);										// compute bulk relaxation time for asymptotic dB
+	double betabulk = eos.beta_bulk();
+	double taubulk = (zetas * s0) / betabulk;
+
+
+
 
 	// printf("\n");
 	// printf("T = %lf fm^-1\n", T);
@@ -237,7 +298,8 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 	// freezeout condition
 	//:::::::::::::::::::::::::::::::::::::::::::::::::::::::
 	double T_freeze = hydro.freezeout_temperature_GeV;
-	double e_freeze = equilibrium_energy_density(T_freeze / hbarc, conformal_prefactor);
+	//double e_freeze = equilibrium_energy_density(T_freeze / hbarc, conformal_prefactor);
+	double e_freeze = equilibrium_energy_density_new(T_freeze / hbarc, conformal_prefactor);	// using hotqcd version
 	//:::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 
@@ -308,9 +370,14 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 
 
 		
-		equation_of_state eos_mid(e_mid);
-		double T_mid = eos_mid.effective_temperature(hydro.conformal_eos_prefactor);
-		double mass_mid = T_mid * eos_mid.z_quasi(T_mid);
+		equation_of_state_new eos_mid(e_mid, conformal_prefactor);
+		double T_mid = eos_mid.T;
+		double mass_mid = T_mid * eos_mid.z_quasi();
+
+		// BEST version
+		// equation_of_state eos_mid(e_mid);
+		// double T_mid = eos_mid.effective_temperature(hydro.conformal_eos_prefactor);
+		// double mass_mid = T_mid * eos_mid.z_quasi(T_mid);
 
 		aniso_variables X_mid = find_anisotropic_variables(e_mid, pl_mid, pt_mid, B_mid, mass_mid, lambda, aT, aL);
 
@@ -350,11 +417,14 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 		// printf("B_end = %lf\n\n", B);
 		// exit(-1);
 
+		equation_of_state_new eos_end(e, conformal_prefactor);
+		double T_end = eos_end.T;
+		double mass_end = T_end * eos_end.z_quasi();
 
-
-		equation_of_state eos_end(e);
-		double T_end = eos_end.effective_temperature(hydro.conformal_eos_prefactor);
-		double mass_end = T_end * eos_mid.z_quasi(T_end);
+		// BEST
+		// equation_of_state eos_end(e);
+		// double T_end = eos_end.effective_temperature(hydro.conformal_eos_prefactor);
+		// double mass_end = T_end * eos_end.z_quasi(T_end);
 
 		aniso_variables X_end = find_anisotropic_variables(e, pl, pt, B, mass_end, lambda, aT, aL);
 

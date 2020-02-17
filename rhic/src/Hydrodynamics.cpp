@@ -123,6 +123,7 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 	precision t = hydro.tau_initial;					// initial longitudinal proper time
 
 	set_initial_conditions(t, lattice, initial, hydro);	// initial conditions for (q, e, u)
+	//exit(-1);
 
 	set_ghost_cells(q, e, u, lattice);					// initialize ghost cells in (q, e, u)
 
@@ -145,6 +146,7 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 	{
 		dt = set_the_time_step(n, t, dt_prev, t_out + dt_out, lattice, initial, hydro);
 
+		printf("%d\t%lf\n", n, t);
 		if(hydro.run_hydro == 1)		// outputs hydro data at regular time intervals
 		{
 			if(n == 0 || initial.initialConditionType == 1)

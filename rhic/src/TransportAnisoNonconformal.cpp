@@ -337,7 +337,7 @@ void aniso_transport_coefficients_nonconformal::compute_transport_coefficients(p
 	eta_T 		= pt + b - I_202;
 	tau_pipi 	= 2.  -  4. * I_403 / I_402;
 	delta_pipi	= (3. * tau_pipi  + 2.) / 4.  -  mdmde * (e + pt) * I_202 / I_402;		
-	lambda_pipi = lambda_piuW  -  1.  +  mdmde * (e + pl) * I_202 / I_402;
+	lambda_pipi = I_422 / I_402  -  1.  +  mdmde * (e + pl) * I_202 / I_402;
 #ifdef WTZMU
 	lambda_Wupi = lambda_WTW  -  1.;
 	lambda_WTpi = lambda_WuW  +  2.;

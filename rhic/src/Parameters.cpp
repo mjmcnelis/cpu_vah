@@ -186,6 +186,16 @@ hydro_parameters load_hydro_parameters()
 	printf("rho_max                    = %.2f\n", 	hydro.rho_max);
 	printf("\n");
 
+	#ifdef LATTICE_QCD
+	double hotqcd_e_min = 0.00175;			// min energy density in fm^-4 rounded up to 3 SFs (see notebook in eos/hotqcd_smash)
+
+	if(hydro.energy_min < hotqcd_e_min)
+	{
+		printf("load_hydro_parameters error: energy_min = %.3f is smaller than minimum energy density = %lf in hotqcd eos table\n", hydro.energy_min, hotqcd_e_min);
+		exit(-1);
+	}
+	#endif
+
 	if(hydro.tau_initial == 0)
 	{
 		printf("load_hydro_parameters error: tau_initial = %.3f is not allowed\n", hydro.tau_initial);

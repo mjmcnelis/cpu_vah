@@ -98,7 +98,7 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 
 #ifdef CONFORMAL_EOS
 #ifndef LATTICE_QCD
-	pt  = (e - pl) / 2.;						// I don't think I need this (because it's already regulated to conformal formula)
+	pt  = (e_s - pl) / 2.;						// I don't think I need this (because it's already regulated to conformal formula)
 #else
 	printf("source_terms_aniso_hydro error: no eos switch for pt conformal identity\n");
 	exit(-1);
@@ -238,19 +238,38 @@ precision zeta_LT, zeta_TT, lambda_WuT, lambda_WTT, lambda_piT;
 
 	aniso_transport_coefficients_nonconformal aniso;
 	aniso.compute_transport_coefficients(e_s, pl, pt, b, lambda_s, aT_s, aL_s, mbar, mass, mdmde);
-
-	// these all need to be updated and include quasiparticle terms
+	
 	zeta_LL = aniso.zeta_LL;								// set pl coefficients						
 	zeta_TL = aniso.zeta_TL;
-	lambda_WuL = 0;
-	lambda_WTL = 0;
-	lambda_piL = 0;
+	lambda_WuL = aniso.lambda_WuL;
+	lambda_WTL = aniso.lambda_WTL;
+	lambda_piL = aniso.lambda_piL;
 
 	zeta_LT = aniso.zeta_LT;								// set pt coefficients
 	zeta_TT = aniso.zeta_TT;
-	lambda_WuT = 0;
-	lambda_WTT = 0;
-	lambda_piT = 0;
+	lambda_WuT = aniso.lambda_WuT;
+	lambda_WTT = aniso.lambda_WTT;
+	lambda_piT = aniso.lambda_piT;
+
+#ifdef PIMUNU
+	eta_T = aniso.eta_T;									// set piT coefficients
+	delta_pipi = aniso.delta_pipi;
+	tau_pipi = aniso.tau_pipi;
+	lambda_pipi = aniso.lambda_pipi;
+	lambda_Wupi = aniso.lambda_Wupi;
+	lambda_WTpi = aniso.lambda_WTpi;
+#endif
+
+#ifdef WTZMU
+	eta_uW = aniso.eta_uW;									// set WTz coefficients
+	eta_TW = aniso.eta_TW;
+	tau_zW = aniso.tau_zW;
+	delta_WW = aniso.delta_WW;
+	lambda_WuW = aniso.lambda_WuW;
+	lambda_WTW = aniso.lambda_WTW;
+	lambda_piuW = aniso.lambda_piuW;
+	lambda_piTW = aniso.lambda_piTW;
+#endif
 
 #endif
 #endif
@@ -262,7 +281,7 @@ precision zeta_LT, zeta_TT, lambda_WuT, lambda_WTT, lambda_piT;
 
 	precision taupi_inverse;
 	precision taubulk_inverse;
-
+/*
 	if(switch_eos)
 	{
 		taupi_inverse = eos.beta_shear(T, conformal_eos_prefactor) / (s * etabar);
@@ -318,6 +337,7 @@ precision zeta_LT, zeta_TT, lambda_WuT, lambda_WTT, lambda_piT;
 		lambda_piTW = aniso.lambda_piTW;
 	#endif
 	}
+*/
 #endif
 #endif
 //-------------------------------------------------
