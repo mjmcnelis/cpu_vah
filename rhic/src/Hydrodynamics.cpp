@@ -146,7 +146,8 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 	{
 		dt = set_the_time_step(n, t, dt_prev, t_out + dt_out, lattice, initial, hydro);
 
-		printf("%d\t%lf\n", n, t);
+		//printf("%d\t%lf\n", n, t);
+
 		if(hydro.run_hydro == 1)		// outputs hydro data at regular time intervals
 		{
 			if(n == 0 || initial.initialConditionType == 1)

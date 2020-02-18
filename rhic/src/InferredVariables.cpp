@@ -271,7 +271,10 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 
 				int n;
 
-				for(n = 1; n <= 10; n++)				// root solving algorithm (update e)
+				const int max_iterations = 20;
+				const double energy_tolerance = 1.e-5;
+
+				for(n = 1; n <= max_iterations; n++)	// root solving algorithm (update e)
 				{
 					equation_of_state EoS(e_s);
 					precision p = EoS.equilibrium_pressure();
@@ -292,17 +295,20 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 
 					e_s += de;
 
-					if(e_s < e_min)						// stop iterating if e -> 0
+					if(e_s < e_min)						// stop iterating if e < e_min
 					{
 						break;
 					}
-					else if(fabs(de / e_s) <= 1.e-5)
+					else if(fabs(de / e_s) <= energy_tolerance)
 					{
 						break;
 					}
 				}
 
-				if(n > 10) printf("newton method (eprev, e_s, de) = (%.6g, %.6g, %.6g) failed to converge at (i, j, k) = (%d, %d, %d)\n", eprev, e_s, de, i, j, k);
+				if(n > max_iterations) 
+				{
+					printf("newton method (eprev, e_s, |de/e_s|) = (%.6g, %.6g, %.6g) failed to converge within desired percentage tolerance %lf at (i, j, k) = (%d, %d, %d)\n", eprev, e_s, fabs(de / e_s), energy_tolerance i, j, k);
+				}
 
 			#endif
 				e_s = energy_density_cutoff(e_min, e_s);

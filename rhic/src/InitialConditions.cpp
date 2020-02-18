@@ -292,8 +292,8 @@ void set_anisotropic_initial_condition(int nx, int ny, int nz, hydro_parameters 
 		  	#endif
 
 		  	#ifdef PI
-		  		equation_of_state eos(e_s);
-		  		q[s].Pi = e_s/3.  -  eos.equilibrium_pressure();	// switching from conformal eos to lattice
+		  		//equation_of_state eos(e_s);
+		  		q[s].Pi = (pl + 2.*pt)/3.  -  p;	// switching from conformal eos to lattice
 		  	#endif
 
 		  	#endif
