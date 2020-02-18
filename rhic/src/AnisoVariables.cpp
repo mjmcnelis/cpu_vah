@@ -525,8 +525,8 @@ void line_backtracking(precision *l, precision Ea, precision PTa, precision PLa,
 		lprev = ls;									// store current values for next iteration
 		fprev = f;
 
-		ls = fmax(lroot, 0.5 * ls);				// update l and f
-		//ls = fmax(lroot, 0.1 * ls);					// update l and f
+		//ls = fmax(lroot, 0.2 * ls);				// update l and f
+		ls = fmax(lroot, 0.1 * ls);					// update l and f
 		
 
 		for(int j = 0; j < 3; j++)

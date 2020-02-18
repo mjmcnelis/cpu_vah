@@ -192,10 +192,10 @@ void set_anisotropic_initial_condition(int nx, int ny, int nz, hydro_parameters 
 
 				equation_of_state eos(e_s);	
 				precision p = eos.equilibrium_pressure();	
-				precision pl = p;
-				precision pt = p;
-				// precision pl = e_s * plpt_ratio / (2. + plpt_ratio);
-				// precision pt = e_s / (2. + plpt_ratio);
+				// precision pl = p;
+				// precision pt = p;
+				precision pl = e_s * plpt_ratio / (2. + plpt_ratio);
+				precision pt = e_s / (2. + plpt_ratio);
 
 				//printf("(i, j, e, pl, pt) = (%d, %d, %lf, %lf, %lf)\n", i, j, e_s, pl, pt);
 
@@ -211,17 +211,22 @@ void set_anisotropic_initial_condition(int nx, int ny, int nz, hydro_parameters 
 				precision beq = eos.equilibrium_mean_field(T);
 				precision mass = T * eos.z_quasi(T);										
 				precision mdmde = eos.mdmde_quasi();
-				//precision taubulk = zeta_over_s(T, hydro) * (e_s + p) / (T * eos.beta_bulk(T));		
-				//precision db_asy = -3. * taubulk * mdmde * (e_s + pl) * (2.*pt/3. + pl/3. - p) / (t * mass * mass) / (1.  +  4. * taubulk * mdmde * (e_s + pl) / (t * mass * mass));
+				precision taubulk = zeta_over_s(T, hydro) * (e_s + p) / (T * eos.beta_bulk(T));		
 
-				precision b = beq;
-				//precision b = beq + db_asy;
+
+				// maybe try switching between the two approximations 
+				//precision db = -3. * taubulk * mdmde * (e_s + pl) * (2.*pt/3. + pl/3. - p) / (t * mass * mass) / (1.  +  4. * taubulk * mdmde * (e_s + pl) / (t * mass * mass));
+				precision db = - 3. * taubulk * mdmde * (e_s + p) * (2.*pt/3. + pl/3. - p) / (t * mass * mass);
+
+
+				//precision b = beq;
+				precision b = beq + db;
 
 				precision lambda0 = T;				// initial guess for anisotropic variables
 				precision aT0 = 1.0;
 				precision aL0 = 1.0;
 
-				//printf("(i, j, e, pl, pt, b, beq, db_asy) = (%d, %d, %lf, %lf, %lf, %lf, %lf, %lf)\n", i, j, e_s, pl, pt, b, beq, db_asy);
+				printf("(i, j, e, pl, pt, b, beq, db) = (%d, %d, %lf, %lf, %lf, %lf, %lf, %lf)\n", i, j, e_s, pl, pt, b, beq, db);
 
 				aniso_variables X = find_anisotropic_variables(e_s, pl, pt, b, mass, lambda0, aT0, aL0);
 
@@ -300,6 +305,8 @@ void set_anisotropic_initial_condition(int nx, int ny, int nz, hydro_parameters 
 			}
 		}
 	}
+	printf("Initialized anisotropic variables\n");
+	exit(-1);
 }
 
 

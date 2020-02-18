@@ -222,13 +222,14 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 	// printf("p = %lf fm^-4\n", p0);
 	// printf("s = %lf fm^-4\n", s0);
 	// printf("Beq = %lf fm^-4\n", B0);
-	// printf("z = %lf\n", eos.z_quasi(T));
+	// printf("z = %lf\n", eos.z_quasi());
 	// printf("mass = %lf\n", mass);
 	// printf("mdmde = %lf\n", mdmde);
-	// exit(-1);
+	
 	// printf("zetaS = %lf\n", zetas);
 	// printf("betabulk = %lf fm^-4\n", betabulk);
 	// printf("taubulk = %lf fm\n\n", taubulk);
+	// exit(-1);
 	//:::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 
@@ -254,10 +255,13 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 	// pt = p0;
 
 	// asymptotic formula for non-equilibrium mean field component dB
-	double dB0asy = -3. * taubulk * mdmde * (e + pl) * (2.*pt/3. + pl/3. - p0) / (t * mass2) / (1.  +  4. * taubulk * mdmde * (e + pl) / (t * mass2));														// keep dB = 0 for now
+	//double dB0 = -3. * taubulk * mdmde * (e + pl) * (2.*pt/3. + pl/3. - p0) / (t * mass2) / (1.  +  4. * taubulk * mdmde * (e + pl) / (t * mass2));														// keep dB = 0 for now
 																				// simulation needs different initialization formula than Bjorken
 
-	double B = B0 + dB0asy;														// initial mean field
+	// try the 2nd order approximation (less sensitive at lower temperatures)
+	double dB0 = - 3. * taubulk * mdmde * (e + p0) * (2.*pt/3. + pl/3. - p0) / (t * mass2);
+
+	double B = B0 + dB0;														// initial mean field
 
 	double lambda = T;															// initial guess for anisotropic variables
 	double aT = 1.0;
@@ -283,12 +287,12 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 	// printf("pl = %lf\n", pl);
 	// printf("pt = %lf\n", pt);
 	// printf("beq = %lf\n", B0);
-	// printf("db = %lf\n", dB0asy);
+	// printf("db = %lf\n", dB0);
 	// printf("b  = %lf\n", B);
 	// printf("lambda = %lf\n", lambda);
 	// printf("aT     = %lf\n", aT);
 	// printf("aL     = %lf\n\n", aL);
-	//exit(-1);
+	// exit(-1);
 
 	//:::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
@@ -501,11 +505,12 @@ void set_aniso_bjorken_initial_condition(int nx, int ny, int nz, initial_conditi
 	// pt0 = p0;
 
 	// bjorken asymptotic non-equilibrium mean field component
-	precision db0_asy = -3. * taubulk * mdmde * (e0 + pl0) * (2.*pt0/3. + pl0/3. - p0) / (t * mass * mass) / (1.  +  4. * taubulk * mdmde * (e0 + pl0) / (t * mass * mass));		
+	//precision db0 = -3. * taubulk * mdmde * (e0 + pl0) * (2.*pt0/3. + pl0/3. - p0) / (t * mass * mass) / (1.  +  4. * taubulk * mdmde * (e0 + pl0) / (t * mass * mass));		
+	precision db0 = - 3. * taubulk * mdmde * (e0 + p0) * (2.*pt0/3. + pl0/3. - p0) / (t * mass * mass);
 
 	// printf("b0  = %lf fm^-4\n", b0);
 	// printf("db = %lf fm^-4\n", db0_asy);
-	// printf("b  = %lf fm^-4\n", b0 + db0_asy);
+	// printf("b  = %lf fm^-4\n", b0 + db0);
 
 	// printf("\ne = %lf\n", e0);
 	// printf("T = %lf\n", T0);
@@ -513,7 +518,7 @@ void set_aniso_bjorken_initial_condition(int nx, int ny, int nz, initial_conditi
 	// printf("pt = %lf\n", pt0);
 	// printf("beq = %lf\n", b0);
 	// printf("db = %lf\n", db0_asy);
-	// printf("b  = %lf\n", b0 + db0_asy);
+	// printf("b  = %lf\n", b0 + db0);
 
 
 	// initialize anisotropic variables
@@ -521,7 +526,7 @@ void set_aniso_bjorken_initial_condition(int nx, int ny, int nz, initial_conditi
 	precision aT0 = 1.0;
 	precision aL0 = 1.0;
 
-	aniso_variables X = find_anisotropic_variables(e0, pl0, pt0, b0 + db0_asy, mass, lambda0, aT0, aL0);
+	aniso_variables X = find_anisotropic_variables(e0, pl0, pt0, b0 + db0, mass, lambda0, aT0, aL0);
 
 	lambda0 = X.lambda;
 	aT0 = X.aT;
@@ -546,7 +551,7 @@ void set_aniso_bjorken_initial_condition(int nx, int ny, int nz, initial_conditi
 				q[s].pt = pt0;
 
 			#ifdef B_FIELD
-				q[s].b = b0 + db0_asy;
+				q[s].b = b0 + db0;
 			#endif
 
 				// need to initialize anisotropic variables
