@@ -174,7 +174,7 @@ void set_equilibrium_initial_condition(int nx, int ny, int nz)
 	}
 }
 
-
+/*
 void set_anisotropic_initial_condition(int nx, int ny, int nz, hydro_parameters hydro)
 {
 	precision plpt_ratio = hydro.plpt_ratio_initial;
@@ -308,6 +308,97 @@ void set_anisotropic_initial_condition(int nx, int ny, int nz, hydro_parameters 
 	printf("Initialized anisotropic variables\n");
 	exit(-1);
 }
+*/
+
+
+
+void set_anisotropic_initial_condition(int nx, int ny, int nz, hydro_parameters hydro)
+{
+	precision plpt_ratio = hydro.plpt_ratio_initial;
+	precision t = hydro.tau_initial;
+
+	int j = 121;
+	int k = 2;
+
+	precision lambda0, aT0, aL0;
+
+	int n = 0;
+	int n_found = 0;
+	
+	for(int i = 2; i < 123; i++)
+	//for(int i = 122; i > 1; i--)
+	{
+		int s = linear_column_index(i, j, k, nx + 4, ny + 4);
+
+		precision e_s = e[s];
+
+		equation_of_state_new eos(e_s, hydro.conformal_eos_prefactor);	
+		precision p = eos.equilibrium_pressure();	
+		precision pl = e_s * plpt_ratio / (2. + plpt_ratio);
+		precision pt = e_s / (2. + plpt_ratio);
+
+	#ifdef ANISO_HYDRO						// anisotropic hydro initial conditions
+
+	#ifdef LATTICE_QCD						// initialize mean field and anisotropic variables 
+	#ifndef CONFORMAL_EOS
+								
+		precision T = eos.T;
+		precision beq = eos.equilibrium_mean_field();
+		precision mass = T * eos.z_quasi();										
+		precision mdmde = eos.mdmde_quasi();
+		precision taubulk = zeta_over_s(T, hydro) * (e_s + p) / (T * eos.beta_bulk());		
+
+		// maybe try switching between the two approximations 
+		//precision db = -3. * taubulk * mdmde * (e_s + pl) * (2.*pt/3. + pl/3. - p) / (t * mass * mass) / (1.  +  4. * taubulk * mdmde * (e_s + pl) / (t * mass * mass));
+		//precision db = - 3. * taubulk * mdmde * (e_s + p) * (2.*pt/3. + pl/3. - p) / (t * mass * mass);
+		//precision db = 0;
+		//precision b = beq + db;
+	
+		if(i == 2)
+		{
+			lambda0 = T;		
+			aT0 = 1.0;
+			aL0 = 1.0;
+		}
+
+		aniso_variables X = find_anisotropic_variables(e_s, pl, pt, b, mass, lambda0, aT0, aL0);
+
+		// let's adjust it so that I get nan (for )
+
+		printf("(i, T (fm^-1), T (GeV), L, aT, aL) = (%d, %lf, %lf, %lf, %lf, %lf)\n", i, T, T * hbarc, X.lambda, X.aT, X.aL);
+
+		// lambda0 = X.lambda;		
+		// aT0 = X.aT;
+		// aL0 = X.aL;
+
+		if(std::isnan(X.lambda) || std::isinf(X.lambda) || X.lambda < 0)
+		{
+			lambda0 = T;		
+			aT0 = 1.0;
+			aL0 = 1.0;
+		}
+		else
+		{
+			lambda0 = X.lambda;		
+			aT0 = X.aT;
+			aL0 = X.aL;
+			n_found++;
+		}
+
+		n++;
+
+	#else
+		printf("set_anisotropic_initial_condition error: no eos switch\n");
+		exit(-1);
+	#endif
+	#endif
+	
+
+  	#endif
+	}
+	printf("\nInitialized %d / %d anisotropic variables\n", n_found, n);
+	exit(-1);
+}
 
 
 // Longitudinal energy density profile function eL(eta)
@@ -333,7 +424,9 @@ void set_Glauber_energy_density_and_flow_profile(int nx, int ny, int nz, double 
 	int initialConditionType = initial.initialConditionType;
 
 	double T0 = initial.initialCentralTemperatureGeV;									// central temperature (GeV)
-	double e0 = equilibrium_energy_density(T0 / hbarc, hydro.conformal_eos_prefactor);	// energy density scale factor
+	//double e0 = equilibrium_energy_density(T0 / hbarc, hydro.conformal_eos_prefactor);	// energy density scale factor
+	double e0 = equilibrium_energy_density_new(T0 / hbarc, hydro.conformal_eos_prefactor);	// energy density scale factor
+
 
 	precision e_min = hydro.energy_min;
 
