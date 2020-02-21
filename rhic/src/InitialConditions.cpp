@@ -351,10 +351,10 @@ void set_anisotropic_initial_condition(int nx, int ny, int nz, hydro_parameters 
 		// maybe try switching between the two approximations 
 		//precision db = -3. * taubulk * mdmde * (e_s + pl) * (2.*pt/3. + pl/3. - p) / (t * mass * mass) / (1.  +  4. * taubulk * mdmde * (e_s + pl) / (t * mass * mass));
 		//precision db = - 3. * taubulk * mdmde * (e_s + p) * (2.*pt/3. + pl/3. - p) / (t * mass * mass);
-		//precision db = 0;
-		//precision b = beq + db;
+		precision db = 0;
+		precision b = beq + db;
 	
-		if(i == 2)
+		if(n == 0)
 		{
 			lambda0 = T;		
 			aT0 = 1.0;

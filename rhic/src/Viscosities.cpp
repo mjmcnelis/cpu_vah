@@ -5,6 +5,12 @@
 #include "../include/Precision.h"
 #include "../include/Parameters.h"
 
+inline precision sign(precision x)
+{
+	if(x > 0.) return 1.;
+	else if(x < 0.) return -1.;
+	else return 0.;
+}
 
 precision eta_over_s(precision T, hydro_parameters hydro)
 {
@@ -22,24 +28,35 @@ precision eta_over_s(precision T, hydro_parameters hydro)
 
 precision zeta_over_s(precision T, hydro_parameters hydro)
 {
-	precision Tpeak = hydro.zetas_peak_temperature_GeV / hbarc;
-	precision x = T / Tpeak;
+	//precision Tpeak = hydro.zetas_peak_temperature_GeV / hbarc;
+	// precision x = T / Tpeak;
 
-	precision zetas;
+	// precision zetas;
 
-	if(x > 1.05)
-	{
-		zetas = 0.9 * exp(-(x - 1.) / 0.025)  +  0.25 * exp(-(x - 1.) / 0.13)  +  0.001;
-	}
-	else if(x < 0.995)
-	{
-		zetas = 0.9 * exp((x - 1.) / 0.0025)  +  0.22 * exp((x - 1.) / 0.022)  +  0.03;
-	}
-	else
-	{
-		zetas = - 13.77 * x * x  +  27.55 * x  -  13.45;
-	}
-	return zetas * hydro.zetas_normalization_factor;
+	// if(x > 1.05)
+	// {
+	// 	zetas = 0.9 * exp(-(x - 1.) / 0.025)  +  0.25 * exp(-(x - 1.) / 0.13)  +  0.001;
+	// }
+	// else if(x < 0.995)
+	// {
+	// 	zetas = 0.9 * exp((x - 1.) / 0.0025)  +  0.22 * exp((x - 1.) / 0.022)  +  0.03;
+	// }
+	// else
+	// {
+	// 	zetas = - 13.77 * x * x  +  27.55 * x  -  13.45;
+	// }
+	// return zetas * hydro.zetas_normalization_factor;
+
+
+
+	precision norm = hydro.zetas_normalization_factor;
+	precision Tpeak = hydro.zetas_peak_temperature_GeV / hbarc;		// peak temperature in fm^-1
+	precision width = 0.025 / hbarc;								// width in fm^-1
+	precision skew = -0.03;
+
+	precision Lambda = width * (1.  +  skew * sign(T - Tpeak));
+
+	return norm * Lambda * Lambda / (Lambda * Lambda  +  (T - Tpeak) * (T - Tpeak));
 }
 
 

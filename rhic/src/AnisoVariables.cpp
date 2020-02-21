@@ -434,10 +434,11 @@ void line_backtracking(precision *l, precision Ea, precision PTa, precision PLa,
 
 	// g0 = fcurrent
 
-	precision ls = 1.0;         				// starting value for l
+	precision ls = 0.1;         				// starting value for l
 	precision alpha = 0.0001;   					// descent parameter (default was 0.0001)
 
-	precision dX_abs = sqrt(dX[0] * dX[0]  +  dX[1]*dX[1]  +  dX[2] * dX[2]);
+	//precision dX_abs = sqrt(dX[0] * dX[0]  +  dX[1]*dX[1]  +  dX[2] * dX[2]);
+	precision dX_abs = sqrt(ls) * sqrt(dX[0] * dX[0]  +  dX[1]*dX[1]  +  dX[2] * dX[2]);
 
 	precision X[3];
 
@@ -447,8 +448,6 @@ void line_backtracking(precision *l, precision Ea, precision PTa, precision PLa,
 	}
 
 	compute_F(Ea, PTa, PLa, mass, X, F);			// update F at least once
-
-
 
 	if(ls < (tol_dX / dX_abs))						// what does this mean?
 	{
@@ -613,8 +612,8 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 
  	// not sure
  	//precision tolmin = 1.0e-6;   										// tolerance for spurious convergence to local min of f = F.F/2 (what does this mean?)
-	//precision stepmax = 100;   											// scaled maximum step length allowed in line searches (what does this mean?)
-	//stepmax *= fmax(sqrt(X[0]*X[0] + X[1]*X[1] + X[2]*X[2]), 3. * sqrt(3.));		// why??? (never used anyway..)
+	precision stepmax = 100;   											// scaled maximum step length allowed in line searches (what does this mean?)
+	stepmax *= fmax(sqrt(X[0]*X[0] + X[1]*X[1] + X[2]*X[2]), 3. * sqrt(3.));		// why??? (never used anyway..)
 
 
 	compute_F(Ea, PTa, PLa, mass, Xcurrent, F);							// first compute F for the first iteration
@@ -696,17 +695,17 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 		// printf("dX_2 = %lf\n", dX[2]);
 
 	    // rescale dX if too large
-	    //dX_abs = sqrt(dX[0] * dX[0]  +  dX[1] * dX[1]  +  dX[2] * dX[2]);
+	    dX_abs = sqrt(dX[0] * dX[0]  +  dX[1] * dX[1]  +  dX[2] * dX[2]);
 
-		// if(dX_abs > stepmax)
-		// {
-		// 	printf("dX is too large, rescale it by stepmax\n");			// I don't think this ever happens...
+		if(dX_abs > stepmax)
+		{
+			//printf("dX is too large, rescale it by stepmax\n");			// I don't think this ever happens...
 
-		// 	for(int j = 0; j < 3; j++)
-		// 	{
-		// 		dX[j] *= stepmax / dX_abs;
-		// 	}
-		// }
+			for(int j = 0; j < 3; j++)
+			{
+				dX[j] *= stepmax / dX_abs;
+			}
+		}
 
 		precision gprime0 = gradf[0] * dX[0]  +  gradf[1] * dX[1]  +  gradf[2] * dX[2];	// compute gradient descent derivative. can I move this down to broyden update?
 
@@ -801,15 +800,15 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 				    }
 				    //:::::::::::::::::::::::::::::::::::::::::
 
-				    // dX_abs = sqrt(dX[0] * dX[0]  +  dX[1] * dX[1]  +  dX[2] * dX[2]);
+				    dX_abs = sqrt(dX[0] * dX[0]  +  dX[1] * dX[1]  +  dX[2] * dX[2]);
 
-					// if(dX_abs > stepmax)
-					// {
-					// 	for(int j = 0; j < 3; j++)
-					// 	{
-					// 		dX[j] *= stepmax / dX_abs;
-					// 	}
-					// }
+					if(dX_abs > stepmax)
+					{
+						for(int j = 0; j < 3; j++)
+						{
+							dX[j] *= stepmax / dX_abs;
+						}
+					}
 
 					for(int j = 0; j < 3; j++) 							// default newton iteration
 					{
