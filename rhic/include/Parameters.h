@@ -53,8 +53,10 @@ typedef struct
 	int adaptive_time_step;
 	double min_time_step;		// minimum time step set for the program
 
-	double delta_0;
+	double delta_0;				
 	double alpha;
+
+	int tau_coarse_factor;
 
 } lattice_parameters;
 

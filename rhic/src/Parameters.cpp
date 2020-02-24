@@ -12,7 +12,7 @@
 using namespace std;
 
 
-bool starting_time_step_within_CFL_bound(double dt, lattice_parameters lattice)
+bool time_step_within_CFL_bound(double dt, lattice_parameters lattice)
 {
 	double dx = lattice.lattice_spacing_x;
 	double dy = lattice.lattice_spacing_y;
@@ -20,9 +20,16 @@ bool starting_time_step_within_CFL_bound(double dt, lattice_parameters lattice)
 
 	double dt_CFL = 0.125 * fmin(dx, fmin(dy, dn));
 
-	if(dt <= dt_CFL) return true;
-	else return false;
+	if(dt <= dt_CFL) 
+	{
+		return true;
+	}
+	else
+	{ 
+		return false;
+	}
 }
+
 
 
 double compute_conformal_prefactor(double flavors)
@@ -294,6 +301,12 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro)
 		delimiterPos = line.find("=");
 		line = line.substr(delimiterPos + 1);
 		lattice.alpha = atof(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		lattice.tau_coarse_factor = atoi(line.c_str());
 	}
 	else
 	{
@@ -322,15 +335,25 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro)
 	printf("min_time_step            = %.2e\n", lattice.min_time_step);
 	printf("delta_0                  = %.3g\n", lattice.delta_0);
 	printf("alpha                    = %.3g\n", lattice.alpha);
+	printf("tau_coarse_factor        = %d\n", 	lattice.tau_coarse_factor);
 	printf("\n");
 
-	double dt = lattice.fixed_time_step;						// dt = starting time step
+	double dt = lattice.fixed_time_step;						// dt = default starting time step
 
-	if(lattice.adaptive_time_step) dt = lattice.min_time_step;
-
-	if(!starting_time_step_within_CFL_bound(dt, lattice))
+	if(!time_step_within_CFL_bound(dt, lattice))
 	{
-		printf("load_lattice_parameters error: starting time step dt = %.2g greater than CFL bound\n", dt);
+		printf("load_lattice_parameters error: fixed time step dt = %.2g greater than strict CFL bound\n", dt);
+		exit(-1);
+	}
+
+	if(lattice.adaptive_time_step)
+	{
+		dt = lattice.min_time_step;								// if adaptive, starting time step is min
+	}
+
+	if(!time_step_within_CFL_bound(dt, lattice))
+	{
+		printf("load_lattice_parameters error: starting time step dt = %.2g greater than strict CFL bound\n", dt);
 		exit(-1);
 	}
 

@@ -13,6 +13,7 @@
 #include "../include/InitialConditions.h"
 #include "../include/KurganovTadmor.h"
 #include "../include/AdaptiveTimeStep.h"
+#include "../include/FreezeoutFinder.h"
 using namespace std;
 
 bool hit_CFL_bound = false;
@@ -20,8 +21,10 @@ bool hit_CFL_bound = false;
 bool after_output = false;
 precision dt_after_output;
 
-const int freezeout_frequency = 10;
 const precision dt_eps = 1.e-8;
+
+int n_freeze = 0;						// default time step where started to search for freezeout surface cells
+										// adjusted in set_the_time_step() if adaptive_time_step = 2
 
 
 inline int linear_column_index(int i, int j, int k, int nx, int ny)
@@ -37,7 +40,8 @@ bool all_cells_below_freezeout_temperature(lattice_parameters lattice, hydro_par
 	int nz = lattice.lattice_points_eta;
 
 	precision T_switch = hydro.freezeout_temperature_GeV;
-	precision e_switch = equilibrium_energy_density(T_switch / hbarc, hydro.conformal_eos_prefactor);
+	//precision e_switch = equilibrium_energy_density(T_switch / hbarc, hydro.conformal_eos_prefactor);
+	precision e_switch = equilibrium_energy_density_new(T_switch / hbarc, hydro.conformal_eos_prefactor);
 
 	for(int k = 2; k < nz + 2; k++)
 	{
@@ -51,24 +55,32 @@ bool all_cells_below_freezeout_temperature(lattice_parameters lattice, hydro_par
 			}
 		}
 	}
-	printf("\nAll cells below freezeout temperature\n\n");
+	//printf("\nAll cells below freezeout temperature\n\n");
 	return true;
 }
 
 
 precision set_the_time_step(int n, precision t, precision dt_prev, precision t_next_output, lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro)
 {
+	precision dt_fix = lattice.fixed_time_step;		
 	precision dt_min = lattice.min_time_step;
 
-	precision dt = lattice.fixed_time_step;		// default time step
+	precision dt = dt_fix;										// default time step is fixed
 
-	if(lattice.adaptive_time_step)				// adaptive time step
+	if(lattice.adaptive_time_step)								// adaptive time step
 	{
-		dt = dt_min;
-
-		if(n > 0)
+		if(n == 0)
 		{
-			precision dt_CFL = compute_dt_CFL(t, lattice, hydro);
+			dt = dt_min;
+		}
+		else
+		{
+			precision dt_CFL = dt_fix;							// strict CFL condition <= dx / 8 (lattice.fixed_time_step required to be <= dx / 8)
+
+			if(lattice.adaptive_time_step == 1)
+			{
+				dt_CFL = compute_dt_CFL(t, lattice, hydro);		// less strict CFL condition dx / (8.ax)
+			}
 
 			precision dt_source = 1./0.;
 
@@ -78,12 +90,24 @@ precision set_the_time_step(int n, precision t, precision dt_prev, precision t_n
 
 				dt_source = compute_dt_source(t, Q, q, qI, dt_prev, lattice);
 
-				if(dt_source >= dt_CFL) hit_CFL_bound = true;
+				if(dt_source >= dt_CFL) 
+				{
+					printf("\nHit CFL bound at t = %lf\n\n", t);
+					n_freeze = n;
+					hit_CFL_bound = true;
+				}
 			}
 
 			dt = compute_adaptive_time_step(t, dt_CFL, dt_source, dt_min);
+
+			// if(hit_CFL_bound)
+			// {
+			// 	printf("dt = %lf\n", dt);
+			// 	exit(-1);
+			// }
 		}
 	}
+
 	if(hydro.run_hydro == 1 && initial.initialConditionType != 1)						// adjust dt further (for timed hydro outputs, except Bjorken)
 	{
 		if(after_output)
@@ -136,9 +160,13 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 	printf("Running 3+1d hydro simulation...\n\n");
 #endif
 
+	freezeout_finder fo_surface(lattice);				// freezeout finder class 
+	int freezeout_period = lattice.tau_coarse_factor;	// time steps between freezeout finder calls
+	int freezeout_finder_below_Tswitch = 0;				// number of time steps where freezeout finder is below Tswitch
+	int freezeout_depth = 3;							// max number of time steps freezeout finder goes below Tswitch
+
 	double steps = 0;
 	clock_t start = clock();
-
 
 	// fluid dynamic evolution
 	//----------------------------------------------------------
@@ -146,34 +174,85 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 	{
 		dt = set_the_time_step(n, t, dt_prev, t_out + dt_out, lattice, initial, hydro);
 
-		//printf("%d\t%lf\n", n, t);
+		printf("%d\t%lf\n", n, t);
 
-		if(hydro.run_hydro == 1)		// outputs hydro data at regular time intervals
+		if(hydro.run_hydro == 1)													// outputs hydro data at regular time intervals
 		{
-			if(n == 0 || initial.initialConditionType == 1)
+			if(n == 0 || initial.initialConditionType == 1)							// output first time || output bjorken at every time step
 			{
 				print_hydro_center(n, t, lattice, hydro);
 				output_dynamical_variables(t, dt_prev, lattice, initial, hydro);
 
-				if(all_cells_below_freezeout_temperature(lattice, hydro)) break;
+				if(all_cells_below_freezeout_temperature(lattice, hydro)) 
+				{
+					break;
+				}
 			}
 			else if(fabs(t - t_out - dt_out) < dt_eps)
 			{
 				print_hydro_center(n, t, lattice, hydro);
 				output_dynamical_variables(t, dt_prev, lattice, initial, hydro);
 
-				if(all_cells_below_freezeout_temperature(lattice, hydro)) break;
+				if(all_cells_below_freezeout_temperature(lattice, hydro)) 
+				{
+					break;
+				}
 
 				t_out += dt_out;
 			}
 		}
-		else if(hydro.run_hydro == 2)	// finding the freezeout surface
+		else if(hydro.run_hydro == 2)												// finding the freezeout surface
 		{
-			if(n % freezeout_frequency == 0)
+			if(lattice.adaptive_time_step == 0)
 			{
-				print_hydro_center(n, t, lattice, hydro);
+				if(n % freezeout_period == 0)										// Derek uses coarse graining factor parameter
+				{
+					print_hydro_center(n, t, lattice, hydro);
 
-				if(all_cells_below_freezeout_temperature(lattice, hydro)) break; 	// replace with freezeout finder
+
+
+					// call freezeout finder here 
+
+
+
+					if(all_cells_below_freezeout_temperature(lattice, hydro)) 
+					{
+						freezeout_finder_below_Tswitch++;
+						printf("Number of times grid went below freezeout temperature during freezeout finder call: %d\n", freezeout_finder_below_Tswitch);
+					}
+				}
+			}
+			else if(lattice.adaptive_time_step == 1)
+			{
+				printf("run_hydro error: adaptive_time_step = 1 not compatible with freezeout finder, which assumes a fixed time step\n");
+				exit(-1);
+			}
+			else if(lattice.adaptive_time_step == 2 && hit_CFL_bound)
+			{
+				// I need to effectively reset n but another n! 
+				// n_freeze
+
+				if((n - n_freeze) % freezeout_period == 0)							// Derek uses coarse graining factor parameter
+				{
+					print_hydro_center(n, t, lattice, hydro);
+
+
+
+					// call freezeout finder here
+
+
+
+					if(all_cells_below_freezeout_temperature(lattice, hydro)) 
+					{
+						freezeout_finder_below_Tswitch++;
+						printf("Number of times grid went below freezeout temperature during freezeout finder call: %d\n", freezeout_finder_below_Tswitch);
+					}
+				}
+			}
+			
+			if(freezeout_finder_below_Tswitch >= freezeout_depth)
+			{
+				break;
 			}
 		}
 
