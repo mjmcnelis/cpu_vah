@@ -174,7 +174,7 @@ void set_equilibrium_initial_condition(int nx, int ny, int nz)
 	}
 }
 
-/*
+
 void set_anisotropic_initial_condition(int nx, int ny, int nz, hydro_parameters hydro)
 {
 	precision plpt_ratio = hydro.plpt_ratio_initial;
@@ -305,13 +305,11 @@ void set_anisotropic_initial_condition(int nx, int ny, int nz, hydro_parameters 
 			}
 		}
 	}
-	printf("Initialized anisotropic variables\n");
-	exit(-1);
 }
-*/
 
 
 
+/*
 void set_anisotropic_initial_condition(int nx, int ny, int nz, hydro_parameters hydro)
 {
 	precision plpt_ratio = hydro.plpt_ratio_initial;
@@ -399,6 +397,7 @@ void set_anisotropic_initial_condition(int nx, int ny, int nz, hydro_parameters 
 	printf("\nInitialized %d / %d anisotropic variables\n", n_found, n);
 	exit(-1);
 }
+*/
 
 
 // Longitudinal energy density profile function eL(eta)

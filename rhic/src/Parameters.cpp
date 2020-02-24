@@ -303,6 +303,7 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro)
 	lattice.min_time_step = 5. * pow(10., round(log10(hydro.tau_initial)) - 2.);		// min time step ~ 20x smaller than t0
 
 #ifdef BOOST_INVARIANT
+	printf("load_lattice_parameters: BOOST_INVARIANT is defined but you set lattice_spacing_eta = %d. Setting lattice_spacing_eta = 1\n", lattice.lattice_points_eta);
 	lattice.lattice_points_eta = 1;		// automatic default
 #endif
 

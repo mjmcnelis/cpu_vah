@@ -15,8 +15,8 @@
 
 // to keep eos fixed, define only one equation of state
 // or define both to transition from conformal -> lattice
-//#define CONFORMAL_EOS			// conformal equation of state 
-#define LATTICE_QCD				// lattice qcd equation of state
+#define CONFORMAL_EOS			// conformal equation of state 
+//#define LATTICE_QCD				// lattice qcd equation of state
 
 
 #ifdef ANISO_HYDRO				// residual shear stress
