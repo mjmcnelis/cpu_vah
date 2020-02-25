@@ -162,7 +162,7 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 
 	freezeout_finder fo_surface(lattice);				// freezeout finder class 
 	int freezeout_period = lattice.tau_coarse_factor;	// time steps between freezeout finder calls
-	int freezeout_finder_below_Tswitch = 0;				// number of time steps where freezeout finder is below Tswitch
+	int freezeout_finder_below_Tswitch = 0;				// number of time steps where freezeout finder went below Tswitch
 	int freezeout_depth = 3;							// max number of time steps freezeout finder goes below Tswitch
 
 	double steps = 0;
@@ -211,14 +211,19 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 
 
 
+
 					// call freezeout finder here 
+					fo_surface.swap_and_set_energy_density_hydrodynamic_evolution(q, e, u);
+					
+
+
 
 
 
 					if(all_cells_below_freezeout_temperature(lattice, hydro)) 
 					{
 						freezeout_finder_below_Tswitch++;
-						printf("Number of times grid went below freezeout temperature during freezeout finder call: %d\n", freezeout_finder_below_Tswitch);
+						printf("\nNumber of times grid went below freezeout temperature during freezeout finder call: %d\n\n", freezeout_finder_below_Tswitch);
 					}
 				}
 			}
@@ -238,14 +243,19 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 
 
 
-					// call freezeout finder here
+
+					// call freezeout finder here 
+					fo_surface.swap_and_set_energy_density_hydrodynamic_evolution(q, e, u);
+					
+
+
 
 
 
 					if(all_cells_below_freezeout_temperature(lattice, hydro)) 
 					{
 						freezeout_finder_below_Tswitch++;
-						printf("Number of times grid went below freezeout temperature during freezeout finder call: %d\n", freezeout_finder_below_Tswitch);
+						printf("\nNumber of times grid went below freezeout temperature during freezeout finder call: %d\n\n", freezeout_finder_below_Tswitch);
 					}
 				}
 			}
@@ -273,6 +283,8 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 	print_run_time(duration, steps, lattice);
 
 	free_memory();
+	fo_surface.close_file();
+	fo_surface.free_memory();
 
 	printf("\nFinished hydro\n");
 }
