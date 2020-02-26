@@ -165,6 +165,7 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 	int freezeout_finder_below_Tswitch = 0;				// number of time steps where freezeout finder went below Tswitch
 	int freezeout_depth = 3;							// max number of time steps freezeout finder goes below Tswitch
 
+
 	double steps = 0;
 	clock_t start = clock();
 

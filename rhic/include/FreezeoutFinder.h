@@ -24,10 +24,8 @@ class freezeout_finder
 		int dimension;										// dimension of freezeout surface 
 		double *lattice_spacing;							// spacetime lattice spacing is uniform
 
-		
+		double e_switch;									// freezeout energy density
 		int independent_hydro_variables;					// default value is 10 (independent components of Tmunu)
-
-		
 
 	public:
 		
@@ -45,15 +43,12 @@ class freezeout_finder
 
 
 		double ****energy_density_evolution;				// for storing hydro information on Nx.Ny.Nz.tau_coarse_factor hypergrid
-		double *****hydrodynamic_evolution;					// ux, uy, un, e, pl, pt, piTxx, piTxy, WTzx, WTzy
+		double *****hydro_evolution;						// ux, uy, un, e, pl, pt, piTxx, piTxy, WTzx, WTzy
 
 		std::ofstream freezeout_surface_file;
 
-		void swap_and_set_energy_density_hydrodynamic_evolution(hydro_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u);
-
-		void write_to_file();
-		void close_file();
-		void free_memory();
+		void swap_and_set_energy_density_hydro_evolution(hydro_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u);
+		void close_file_and_free_memory();
 };
 
 
