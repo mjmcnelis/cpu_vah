@@ -5,7 +5,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <fstream>
-#include <vector>
+//#include <vector>
+#include "Precision.h"
 #include "Parameters.h"
 #include "DynamicalVariables.h"
 
@@ -25,31 +26,37 @@ class freezeout_finder
 		double *lattice_spacing;							// spacetime lattice spacing is uniform
 
 		double e_switch;									// freezeout energy density
-		int independent_hydro_variables;					// default value is 10 (independent components of Tmunu)
+		int independent_hydro_variables;					// default value is 10 (independent components of Tmunu)  
+
+		double ****hyper_cube;								// 3+1d hypercube 
+		double ***cube;										// 2+1d hypercube
+
+		double *****hydro_evolution;						// for storing hydro information on Nx.Ny.Nz.tau_coarse_factor hypergrid
+
+		std::ofstream freezeout_surface_file;
+		// FILE * freezeout_surface_file;						// freezeout surface file 
 
 	public:
 		
-		freezeout_finder(lattice_parameters lattice);
+		freezeout_finder(lattice_parameters lattice, hydro_parameters hydro);
 		~freezeout_finder();
-
-		double ****hyperCube4D;								// 3+1d hypercube 
-		double ***hyperCube3D;								// 2+1d hypercube
 
 		// not sure what this is for yet 
 		//std::vector<FO_Element> fo_surf;					// for holding freezeout cell info (for JETSCAPE?)
 
-
-		// why need energy density evolution if already in hydrodynamic_evolution?
-
-
-		double ****energy_density_evolution;				// for storing hydro information on Nx.Ny.Nz.tau_coarse_factor hypergrid
-		double *****hydro_evolution;						// ux, uy, un, e, pl, pt, piTxx, piTxy, WTzx, WTzy
-
-		std::ofstream freezeout_surface_file;
-
-		void swap_and_set_energy_density_hydro_evolution(hydro_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u);
+		void swap_and_set_hydro_evolution(hydro_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u);
+		void construct_energy_density_cube(double ****energy_density, int ix, int iy);
+		void find_2d_freezeout_cells(double t_current, hydro_parameters hydro);
+		void find_3d_freezeout_cells(double t_current, hydro_parameters hydro);
 		void close_file_and_free_memory();
 };
 
 
 #endif
+
+
+
+
+
+
+

@@ -147,7 +147,6 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 	precision t = hydro.tau_initial;					// initial longitudinal proper time
 
 	set_initial_conditions(t, lattice, initial, hydro);	// initial conditions for (q, e, u)
-	//exit(-1);
 
 	set_ghost_cells(q, e, u, lattice);					// initialize ghost cells in (q, e, u)
 
@@ -160,11 +159,10 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 	printf("Running 3+1d hydro simulation...\n\n");
 #endif
 
-	freezeout_finder fo_surface(lattice);				// freezeout finder class 
+	freezeout_finder fo_surface(lattice, hydro);		// freezeout finder class 
 	int freezeout_period = lattice.tau_coarse_factor;	// time steps between freezeout finder calls
 	int freezeout_finder_below_Tswitch = 0;				// number of time steps where freezeout finder went below Tswitch
 	int freezeout_depth = 3;							// max number of time steps freezeout finder goes below Tswitch
-
 
 	double steps = 0;
 	clock_t start = clock();
@@ -179,7 +177,7 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 
 		if(hydro.run_hydro == 1)													// outputs hydro data at regular time intervals
 		{
-			if(n == 0 || initial.initialConditionType == 1)							// output first time || output bjorken at every time step
+			if(n == 0 || initial.initialConditionType == 1)							// output first time or output bjorken at every time step
 			{
 				print_hydro_center(n, t, lattice, hydro);
 				output_dynamical_variables(t, dt_prev, lattice, initial, hydro);
@@ -202,24 +200,21 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 				t_out += dt_out;
 			}
 		}
-		else if(hydro.run_hydro == 2)												// finding the freezeout surface
+		else if(hydro.run_hydro == 2)												// construct freezeout surface
 		{
 			if(lattice.adaptive_time_step == 0)
 			{
-				if(n % freezeout_period == 0)										// Derek uses coarse graining factor parameter
+				if(n % freezeout_period == 0)										
 				{
 					print_hydro_center(n, t, lattice, hydro);
 
-
-
-
-					// call freezeout finder here 
-					fo_surface.swap_and_set_energy_density_hydrodynamic_evolution(q, e, u);
+					fo_surface.swap_and_set_hydro_evolution(q, e, u);
 					
-
-
-
-
+				#ifdef BOOST_INVARIANT
+					fo_surface.find_2d_freezeout_cells(t, hydro);
+				#else
+					fo_surface.find_3d_freezeout_cells(t, hydro);
+				#endif
 
 					if(all_cells_below_freezeout_temperature(lattice, hydro)) 
 					{
@@ -235,23 +230,17 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 			}
 			else if(lattice.adaptive_time_step == 2 && hit_CFL_bound)
 			{
-				// I need to effectively reset n but another n! 
-				// n_freeze
-
-				if((n - n_freeze) % freezeout_period == 0)							// Derek uses coarse graining factor parameter
+				if((n - n_freeze) % freezeout_period == 0)						
 				{
 					print_hydro_center(n, t, lattice, hydro);
 
-
-
-
-					// call freezeout finder here 
-					fo_surface.swap_and_set_energy_density_hydrodynamic_evolution(q, e, u);
+					fo_surface.swap_and_set_hydro_evolution(q, e, u);
 					
-
-
-
-
+				#ifdef BOOST_INVARIANT
+					fo_surface.find_2d_freezeout_cells(t, hydro);
+				#else
+					fo_surface.find_3d_freezeout_cells(t, hydro);
+				#endif
 
 					if(all_cells_below_freezeout_temperature(lattice, hydro)) 
 					{
@@ -284,8 +273,7 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 	print_run_time(duration, steps, lattice);
 
 	free_memory();
-	fo_surface.close_file();
-	fo_surface.free_memory();
+	fo_surface.close_file_and_free_memory();
 
 	printf("\nFinished hydro\n");
 }
