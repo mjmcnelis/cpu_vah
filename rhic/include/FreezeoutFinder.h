@@ -28,10 +28,10 @@ class freezeout_finder
 		double e_switch;									// freezeout energy density
 		int independent_hydro_variables;					// default value is 10 (independent components of Tmunu)  
 
-		double ****hyper_cube;								// 3+1d hypercube 
 		double ***cube;										// 2+1d hypercube
+		double ****hypercube;								// 3+1d hypercube 
 
-		double *****hydro_evolution;						// for storing hydro information on Nx.Ny.Nz.tau_coarse_factor hypergrid
+		double *****hydro_evolution;						// for storing hydro information on 2.nx.ny.nz hypergrid
 
 		std::ofstream freezeout_surface_file;
 		// FILE * freezeout_surface_file;						// freezeout surface file 
@@ -43,11 +43,15 @@ class freezeout_finder
 
 		// not sure what this is for yet 
 		//std::vector<FO_Element> fo_surf;					// for holding freezeout cell info (for JETSCAPE?)
-
+		void set_hydro_evolution(hydro_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u);
 		void swap_and_set_hydro_evolution(hydro_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u);
+
 		void construct_energy_density_cube(double ****energy_density, int ix, int iy);
+		void construct_energy_density_hypercube(double ****energy_density, int ix, int iy, int iz);
+
 		void find_2d_freezeout_cells(double t_current, hydro_parameters hydro);
 		void find_3d_freezeout_cells(double t_current, hydro_parameters hydro);
+
 		void close_file_and_free_memory();
 };
 
