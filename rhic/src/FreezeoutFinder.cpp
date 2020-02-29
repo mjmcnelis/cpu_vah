@@ -21,7 +21,7 @@ freezeout_finder::freezeout_finder(lattice_parameters lattice, hydro_parameters 
 	independent_hydro_variables = 10;
 
   //precision e_switch = equilibrium_energy_density(hydro.freezeout_temperature_GeV / hbarc, hydro.conformal_eos_prefactor);
-  e_switch = (double)equilibrium_energy_density_new(hydro.freezeout_temperature_GeV / hbarc, hydro.conformal_eos_prefactor);     
+  e_switch = (double)equilibrium_energy_density_new(hydro.freezeout_temperature_GeV / hbarc, hydro.conformal_eos_prefactor);
 
 	nx = lattice.lattice_points_x;
 	ny = lattice.lattice_points_y;
@@ -37,8 +37,8 @@ freezeout_finder::freezeout_finder(lattice_parameters lattice, hydro_parameters 
 #ifdef BOOST_INVARIANT
 	dimension = 3;
 	lattice_spacing = new double[dimension];
-	lattice_spacing[0] = dt * (double)tau_coarse_factor;  
-  lattice_spacing[1] = dx;                              
+	lattice_spacing[0] = dt * (double)tau_coarse_factor;
+  lattice_spacing[1] = dx;
   lattice_spacing[2] = dy;
 
 	if(!(nx > 1 && ny > 1))
@@ -50,8 +50,8 @@ freezeout_finder::freezeout_finder(lattice_parameters lattice, hydro_parameters 
 #else
 	dimension = 4;
 	lattice_spacing = new double[dimension];
-	lattice_spacing[0] = dt * tau_coarse_factor;  
-  lattice_spacing[1] = dx;                              
+	lattice_spacing[0] = dt * tau_coarse_factor;
+  lattice_spacing[1] = dx;
   lattice_spacing[2] = dy;
   lattice_spacing[3] = dz;
 
@@ -63,14 +63,14 @@ freezeout_finder::freezeout_finder(lattice_parameters lattice, hydro_parameters 
 #endif
 
  	// allocate memory
- 	hypercube = calloc_4d_array(hypercube, 2, 2, 2, 2);           
+ 	hypercube = calloc_4d_array(hypercube, 2, 2, 2, 2);
  	cube = calloc_3d_array(cube, 2, 2, 2);
  	hydro_evolution = calloc_5d_array(hydro_evolution, independent_hydro_variables, 2, nx, ny, nz);
 }
 
 freezeout_finder::~freezeout_finder()
 {
-	
+
 }
 
 
@@ -82,11 +82,11 @@ void freezeout_finder::set_hydro_evolution(hydro_variables * const __restrict__ 
     {
       for(int k = 2; k < nz + 2; k++)
       {
-        int s = linear_column_index(i, j, k, nx + 4, ny + 4); 
+        int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
         // set current hydro variables written to first index 1:
 
-        hydro_evolution[0][1][i-2][j-2][k-2] = (double)u[s].ux;       
+        hydro_evolution[0][1][i-2][j-2][k-2] = (double)u[s].ux;
         hydro_evolution[1][1][i-2][j-2][k-2] = (double)u[s].uy;
 
       #ifndef BOOST_INVARIANT
@@ -95,7 +95,7 @@ void freezeout_finder::set_hydro_evolution(hydro_variables * const __restrict__ 
 
         hydro_evolution[3][1][i-2][j-2][k-2] = (double)e[s];
 
-      #ifdef ANISO_HYDRO                                              // independent anisotropic hydro variables 
+      #ifdef ANISO_HYDRO                                              // independent anisotropic hydro variables
         hydro_evolution[4][1][i-2][j-2][k-2] = (double)q[s].pl;
         hydro_evolution[5][1][i-2][j-2][k-2] = (double)q[s].pt;
 
@@ -129,8 +129,8 @@ void freezeout_finder::set_hydro_evolution(hydro_variables * const __restrict__ 
 
       #endif
       }
-    } 
-  } 
+    }
+  }
 }
 
 
@@ -142,18 +142,18 @@ void freezeout_finder::swap_and_set_hydro_evolution(hydro_variables * const __re
     {
       for(int k = 2; k < nz + 2; k++)
       {
-        int s = linear_column_index(i, j, k, nx + 4, ny + 4); 
+        int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
         // swap hydro variables from previous freezeout finder call written to zeroth index 0:
 
         for(int n = 0; n < independent_hydro_variables; n++)
         {
           hydro_evolution[n][0][i-2][j-2][k-2] = hydro_evolution[n][1][i-2][j-2][k-2];
-        }        
+        }
 
         // set current hydro variables written to first index 1:
 
-        hydro_evolution[0][1][i-2][j-2][k-2] = (double)u[s].ux;				
+        hydro_evolution[0][1][i-2][j-2][k-2] = (double)u[s].ux;
         hydro_evolution[1][1][i-2][j-2][k-2] = (double)u[s].uy;
 
       #ifndef BOOST_INVARIANT
@@ -162,7 +162,7 @@ void freezeout_finder::swap_and_set_hydro_evolution(hydro_variables * const __re
 
         hydro_evolution[3][1][i-2][j-2][k-2] = (double)e[s];
 
-      #ifdef ANISO_HYDRO														                  // independent anisotropic hydro variables 
+      #ifdef ANISO_HYDRO														                  // independent anisotropic hydro variables
         hydro_evolution[4][1][i-2][j-2][k-2] = (double)q[s].pl;
         hydro_evolution[5][1][i-2][j-2][k-2] = (double)q[s].pt;
 
@@ -196,8 +196,8 @@ void freezeout_finder::swap_and_set_hydro_evolution(hydro_variables * const __re
 
       #endif
       }
-    } 
-  } 
+    }
+  }
 }
 
 
@@ -221,14 +221,14 @@ double linear_interpolate_3d(double ****f, int ix, int iy, double x0, double x1,
 {
   // 3d linear interpolation
 
-  return    (1.-x0) * (1.-x1) * (1.-x2) * f[0][ix  ][iy  ][0]
-          + (x0)    * (1.-x1) * (1.-x2) * f[1][ix  ][iy  ][0]
-          + (1.-x0) * (x1)    * (1.-x2) * f[0][ix+1][iy  ][0]
-          + (1.-x0) * (1.-x1) * (x2)    * f[0][ix  ][iy+1][0]
-          + (x0)    * (x1)    * (1.-x2) * f[1][ix+1][iy  ][0]
-          + (x0)    * (1.-x1) * (x2)    * f[1][ix  ][iy+1][0]
-          + (1.-x0) * (x1)    * (x2)    * f[0][ix+1][iy+1][0]
-          + (x0)    * (x1)    * (x2)    * f[1][ix+1][iy+1][0];
+  return    (1. - x0)  *  (1. - x1)  *  (1. - x2)  *  f[0][ix  ][iy  ][0]
+          + (x0)       *  (1. - x1)  *  (1. - x2)  *  f[1][ix  ][iy  ][0]
+          + (1. - x0)  *  (x1)       *  (1. - x2)  *  f[0][ix+1][iy  ][0]
+          + (1. - x0)  *  (1. - x1)  *  (x2)       *  f[0][ix  ][iy+1][0]
+          + (x0)       *  (x1)       *  (1. - x2)  *  f[1][ix+1][iy  ][0]
+          + (x0)       *  (1. - x1)  *  (x2)       *  f[1][ix  ][iy+1][0]
+          + (1. - x0)  *  (x1)       *  (x2)       *  f[0][ix+1][iy+1][0]
+          + (x0)       *  (x1)       *  (x2)       *  f[1][ix+1][iy+1][0];
 }
 
 
@@ -242,11 +242,11 @@ void freezeout_finder::find_2d_freezeout_cells(double t_current, hydro_parameter
 
   double conformal_prefactor = hydro.conformal_eos_prefactor;
 
-  for(int i = 0; i < nx - 1; i++)                                                             
+  for(int i = 0; i < nx - 1; i++)
   {
     for(int j = 0; j < ny - 1; j++)
     {
-      double cell_t = t_current - lattice_spacing[0];                           // lower left corner of freezeout grid   
+      double cell_t = t_current - lattice_spacing[0];                           // lower left corner of freezeout grid
       double cell_x = dx * ((double)i  -  (double)(nx - 1) / 2.);
       double cell_y = dy * ((double)j  -  (double)(ny - 1) / 2.);
       double cell_z = 0;
@@ -264,7 +264,7 @@ void freezeout_finder::find_2d_freezeout_cells(double t_current, hydro_parameter
         double t_frac = cornelius.get_centroid_elem(n, 0) / lattice_spacing[0];
         double x_frac = cornelius.get_centroid_elem(n, 1) / lattice_spacing[1];
         double y_frac = cornelius.get_centroid_elem(n, 2) / lattice_spacing[2];
-        
+
         double t = cornelius.get_centroid_elem(n, 0) + cell_t;                // centroid position of freezeout cell
         double x = cornelius.get_centroid_elem(n, 1) + cell_x;
         double y = cornelius.get_centroid_elem(n, 2) + cell_y;
@@ -278,7 +278,7 @@ void freezeout_finder::find_2d_freezeout_cells(double t_current, hydro_parameter
 
         double ds0 = t_current * cornelius.get_normal_elem(n, 0);               // covariant surface normal vector
         double ds1 = t_current * cornelius.get_normal_elem(n, 1);
-        double ds2 = t_current * cornelius.get_normal_elem(n, 2);               // don't I want to use tau instead of t_current 
+        double ds2 = t_current * cornelius.get_normal_elem(n, 2);               // don't I want to use tau instead of t_current
         double ds3 = 0;
 
         // interpolate contravariant flow velocity
@@ -298,7 +298,7 @@ void freezeout_finder::find_2d_freezeout_cells(double t_current, hydro_parameter
         double p = eos.equilibrium_pressure();
 
         // interpolate anisotropic or viscous hydrodynamic variables
-      #ifdef ANISO_HYDRO                          
+      #ifdef ANISO_HYDRO
         double pl = linear_interpolate_3d(hydro_evolution[4], i, j, t_frac, x_frac, y_frac);
         double pt = linear_interpolate_3d(hydro_evolution[5], i, j, t_frac, x_frac, y_frac);
 
@@ -328,11 +328,11 @@ void freezeout_finder::find_2d_freezeout_cells(double t_current, hydro_parameter
                                 << ds0  << " " << ds1  << " " << ds2  << " " << ds3  << " "
                                 << ux   << " " << uy   << " " << un   << " "
                                 << e    << " " << T    << " " << p    << " "
-                                << pl   << " " << pt   << " " 
-                                << pixx << " " << pixy << " "  
+                                << pl   << " " << pt   << " "
+                                << pixx << " " << pixy << " "
                                 << WTzx << " " << WTzy << endl;
-      #else                                       
-      
+      #else
+
       #ifdef PIMUNU
         double pixx = linear_interpolate_3d(hydro_evolution[4], i, j, t_frac, x_frac, y_frac);
         double pixy = linear_interpolate_3d(hydro_evolution[5], i, j, t_frac, x_frac, y_frac);
@@ -370,12 +370,12 @@ void freezeout_finder::find_2d_freezeout_cells(double t_current, hydro_parameter
                                 << Pi   << endl;
       #endif
 
-      } 
+      }
 
-    } 
+    }
 
-   
-  } 
+
+  }
 }
 
 
@@ -404,21 +404,26 @@ void freezeout_finder::construct_energy_density_hypercube(double ****energy_dens
 }
 
 
-double linear_interpolate_4d(double ****f, int ix, int iy, int ik, double x0, double x1, double x2, double x3)
+double linear_interpolate_4d(double ****f, int ix, int iy, int iz, double x0, double x1, double x2, double x3)
 {
   // 4d linear interpolation
 
-  printf("linear_interpolate_4d error: nothing here yet!\n");
-  exit(-1);
-  // this is 3d interpolation still:
-  // return    (1.-x0) * (1.-x1) * (1.-x2) * f[0][ix  ][iy  ][0]
-  //         + (x0)    * (1.-x1) * (1.-x2) * f[1][ix  ][iy  ][0]
-  //         + (1.-x0) * (x1)    * (1.-x2) * f[0][ix+1][iy  ][0]
-  //         + (1.-x0) * (1.-x1) * (x2)    * f[0][ix  ][iy+1][0]
-  //         + (x0)    * (x1)    * (1.-x2) * f[1][ix+1][iy  ][0]
-  //         + (x0)    * (1.-x1) * (x2)    * f[1][ix  ][iy+1][0]
-  //         + (1.-x0) * (x1)    * (x2)    * f[0][ix+1][iy+1][0]
-  //         + (x0)    * (x1)    * (x2)    * f[1][ix+1][iy+1][0];
+  return  (1. - x0)  *  (1. - x1)  *  (1. - x2)  *  (1. - x3)  *  f[0][ix  ][iy  ][iz  ]
+        + (x0)       *  (1. - x1)  *  (1. - x2)  *  (1. - x3)  *  f[1][ix  ][iy  ][iz  ]
+        + (1. - x0)  *  (x1)       *  (1. - x2)  *  (1. - x3)  *  f[0][ix+1][iy  ][iz  ]
+        + (1. - x0)  *  (1. - x1)  *  (x2)       *  (1. - x3)  *  f[0][ix  ][iy+1][iz  ]
+        + (1. - x0)  *  (1. - x1)  *  (1. - x2)  *  (x3)       *  f[0][ix  ][iy  ][iz+1]
+        + (x0)       *  (x1)       *  (1. - x2)  *  (1. - x3)  *  f[1][ix+1][iy  ][iz  ]
+        + (x0)       *  (1. - x1)  *  (x2)       *  (1. - x3)  *  f[1][ix  ][iy+1][iz  ]
+        + (x0)       *  (1. - x1)  *  (1. - x2)  *  (x3)       *  f[1][ix  ][iy  ][iz+1]
+        + (1. - x0)  *  (x1)       *  (x2)       *  (1. - x3)  *  f[0][ix+1][iy+1][iz  ]
+        + (1. - x0)  *  (x1)       *  (1. - x2)  *  (x3)       *  f[0][ix+1][iy  ][iz+1]
+        + (1. - x0)  *  (1. - x1)  *  (x2)       *  (x3)       *  f[0][ix  ][iy+1][iz+1]
+        + (x0)       *  (x1)       *  (x2)       *  (1. - x3)  *  f[1][ix+1][iy+1][iz  ]
+        + (x0)       *  (x1)       *  (1. - x2)  *  (x3)       *  f[1][ix+1][iy  ][iz+1]
+        + (x0)       *  (1. - x1)  *  (x2)       *  (x3)       *  f[1][ix  ][iy+1][iz+1]
+        + (1. - x0)  *  (x1)       *  (x2)       *  (x3)       *  f[0][ix+1][iy+1][iz+1]
+        + (x0)       *  (x1)       *  (x2)       *  (x3)       *  f[1][ix+1][iy+1][iz+1];
 }
 
 
@@ -431,13 +436,13 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
 
   double conformal_prefactor = hydro.conformal_eos_prefactor;
 
-  for(int i = 0; i < nx - 1; i++)                                                             
+  for(int i = 0; i < nx - 1; i++)
   {
     for(int j = 0; j < ny - 1; j++)
     {
       for(int k = 0; k < nz - 1; k++)
       {
-        double cell_t = t_current - lattice_spacing[0];                           // lower left corner of freezeout grid   
+        double cell_t = t_current - lattice_spacing[0];                           // lower left corner of freezeout grid
         double cell_x = dx * ((double)i  -  (double)(nx - 1) / 2.);
         double cell_y = dy * ((double)j  -  (double)(ny - 1) / 2.);
         double cell_z = dz * ((double)k  -  (double)(nz - 1) / 2.);
@@ -456,7 +461,7 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
           double x_frac = cornelius.get_centroid_elem(n, 1) / lattice_spacing[1];
           double y_frac = cornelius.get_centroid_elem(n, 2) / lattice_spacing[2];
           double z_frac = cornelius.get_centroid_elem(n, 3) / lattice_spacing[3];
-          
+
           double t   = cornelius.get_centroid_elem(n, 0) + cell_t;              // centroid position of freezeout cell
           double x   = cornelius.get_centroid_elem(n, 1) + cell_x;
           double y   = cornelius.get_centroid_elem(n, 2) + cell_y;
@@ -471,7 +476,7 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
           // I thought needed to scale by t_current for 2+1d case only?
           double ds0 = t_current * cornelius.get_normal_elem(n, 0);               // covariant surface normal vector
           double ds1 = t_current * cornelius.get_normal_elem(n, 1);
-          double ds2 = t_current * cornelius.get_normal_elem(n, 2);               // don't I want to use tau instead of t_current 
+          double ds2 = t_current * cornelius.get_normal_elem(n, 2);               // don't I want to use tau instead of t_current
           double ds3 = t_current * cornelius.get_normal_elem(n, 3);
 
           // interpolate contravariant flow velocity
@@ -491,7 +496,7 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
           double p = eos.equilibrium_pressure();
 
           // interpolate anisotropic or viscous hydrodynamic variables
-        #ifdef ANISO_HYDRO                          
+        #ifdef ANISO_HYDRO
           double pl = linear_interpolate_4d(hydro_evolution[4], i, j, k, t_frac, x_frac, y_frac, z_frac);
           double pt = linear_interpolate_4d(hydro_evolution[5], i, j, k, t_frac, x_frac, y_frac, z_frac);
 
@@ -521,11 +526,11 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
                                   << ds0  << " " << ds1  << " " << ds2  << " " << ds3  << " "
                                   << ux   << " " << uy   << " " << un   << " "
                                   << e    << " " << T    << " " << p    << " "
-                                  << pl   << " " << pt   << " " 
-                                  << pixx << " " << pixy << " "  
+                                  << pl   << " " << pt   << " "
+                                  << pixx << " " << pixy << " "
                                   << WTzx << " " << WTzy << endl;
-        #else                                       
-        
+        #else
+
         #ifdef PIMUNU
           double pixx = linear_interpolate_4d(hydro_evolution[4], i, j, k, t_frac, x_frac, y_frac, z_frac);
           double pixy = linear_interpolate_4d(hydro_evolution[5], i, j, k, t_frac, x_frac, y_frac, z_frac);
@@ -563,10 +568,10 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
                                   << Pi   << endl;
         #endif
 
-        } 
+        }
       }
-    } 
-  } 
+    }
+  }
 }
 
 
@@ -577,7 +582,7 @@ void freezeout_finder::close_file_and_free_memory()
   freezeout_surface_file.close();
   //fclose(freezeout_surface_file);
 
-	delete [] lattice_spacing; 
+	delete [] lattice_spacing;
 	free_5d_array(hydro_evolution, independent_hydro_variables, 2, nx, ny);
 	free_4d_array(hypercube, 2, 2, 2);
 	free_3d_array(cube, 2, 2);
