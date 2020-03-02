@@ -51,12 +51,45 @@ bool all_cells_below_freezeout_temperature(lattice_parameters lattice, hydro_par
 			{
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
-				if(e[s] > e_switch) return false;
+				if(e[s] >= e_switch)
+				{
+					return false;
+				}
 			}
 		}
 	}
-	//printf("\nAll cells below freezeout temperature\n\n");
 	return true;
+}
+
+
+long number_of_cells_below_freezeout_temperature(lattice_parameters lattice, hydro_parameters hydro)
+{
+	int nx = lattice.lattice_points_x;
+	int ny = lattice.lattice_points_y;
+	int nz = lattice.lattice_points_eta;
+
+	precision T_switch = hydro.freezeout_temperature_GeV;
+	//precision e_switch = equilibrium_energy_density(T_switch / hbarc, hydro.conformal_eos_prefactor);
+	precision e_switch = equilibrium_energy_density_new(T_switch / hbarc, hydro.conformal_eos_prefactor);
+
+	long cells = 0;
+
+	for(int k = 2; k < nz + 2; k++)
+	{
+		for(int j = 2; j < ny + 2; j++)
+		{
+			for(int i = 2; i < nx + 2; i++)
+			{
+				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
+
+				if(e[s] < e_switch)
+				{
+					cells++;
+				}
+			}
+		}
+	}
+	return cells;
 }
 
 
@@ -179,20 +212,28 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 		{
 			if(n == 0 || initial.initialConditionType == 1)							// output first time or output bjorken at every time step
 			{
+				long cells_below_Tswitch = number_of_cells_below_freezeout_temperature(lattice, hydro);
+
 				print_hydro_center(n, t, lattice, hydro);
 				output_dynamical_variables(t, dt_prev, lattice, initial, hydro);
 
-				if(all_cells_below_freezeout_temperature(lattice, hydro)) 
+				printf("%.4g %%\n", 100 * (double)cells_below_Tswitch / (241. * 241.));
+
+				if(cells_below_Tswitch == 0) 
 				{
 					break;
 				}
 			}
 			else if(fabs(t - t_out - dt_out) < dt_eps)
 			{
+				long cells_below_Tswitch = number_of_cells_below_freezeout_temperature(lattice, hydro);
+
 				print_hydro_center(n, t, lattice, hydro);
 				output_dynamical_variables(t, dt_prev, lattice, initial, hydro);
 
-				if(all_cells_below_freezeout_temperature(lattice, hydro)) 
+				printf("%.4g %%\n", 100 * (double)cells_below_Tswitch / (241. * 241.));
+
+				if(cells_below_Tswitch == 0) 
 				{
 					break;
 				}

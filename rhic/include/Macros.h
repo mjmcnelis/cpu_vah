@@ -21,7 +21,7 @@
 
 #ifdef ANISO_HYDRO				// residual shear stress
 
-	#define PIMUNU 				// transverse shear stress
+	//#define PIMUNU 				// transverse shear stress
 
 	#ifndef BOOST_INVARIANT
 		#define WTZMU 			// longitudinal momentum diffusion current

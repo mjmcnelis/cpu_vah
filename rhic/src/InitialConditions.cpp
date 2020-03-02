@@ -605,9 +605,8 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 
 		case 5:
 		{
-			printf("MC Glauber");
+			printf("MC Glauber (fluid velocity initialized to zero)\n\n");
 			set_Glauber_energy_density_and_flow_profile(nx, ny, nz, dx, dy, dz, initial, hydro);
-			printf("(fluid velocity and viscous pressures initialized to zero)\n\n");
 			set_anisotropic_initial_condition(nx, ny, nz, hydro);
 			set_initial_T_taumu_variables(t, nx, ny, nz);
 
@@ -615,7 +614,7 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 		}
 		case 6:
 		{
-			printf("Trento + F.S.");
+			printf("Trento (fluid velocity initialized to zero)");
 			printf("\t(nothing here yet! Exiting...)\n");
 			exit(-1);
 

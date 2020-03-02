@@ -8,7 +8,8 @@
 using namespace std;
 
 
-const double SIG0 = 0.46;			// gaussian width
+//const double SIG0 = 0.46;			// gaussian width
+const double SIG0 = 0.8;			// nucleon width
 const double two_pi = 2.0 * M_PI;
 
 // generates A samples corresponding to Woods-Saxon nucleus with A nucleons
@@ -16,7 +17,7 @@ const double two_pi = 2.0 * M_PI;
 // note: assumes that the the random number generator has already been seeded
 void sampleWoodsSaxon(int A, double * const __restrict__ x, double * const __restrict__ y)
 {
-	const double M = 1.001 * 4.5310551374155095;	// max value of weight for Pb-Pb (with a fudge factor)
+	const double M = 1.01 * 4.5310551374155095;	// max value of weight for Pb-Pb (with a fudge factor)
 
 	const double rmax = 20;		// max radius (technically infinity)
 

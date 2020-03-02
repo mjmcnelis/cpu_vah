@@ -401,7 +401,7 @@ void output_gubser(const hydro_variables * const __restrict__ q, const fluid_vel
 }
 
 
-void output_optical_glauber(const hydro_variables * const __restrict__ q, const fluid_velocity  * const __restrict__ u, const precision * const e, double t, lattice_parameters lattice)
+void output_glauber(const hydro_variables * const __restrict__ q, const fluid_velocity  * const __restrict__ u, const precision * const e, double t, lattice_parameters lattice)
 {
 	int nx = lattice.lattice_points_x;
 	int ny = lattice.lattice_points_y;
@@ -519,9 +519,9 @@ void output_dynamical_variables(double t, double dt, lattice_parameters lattice,
 		output_gubser(q, u, e, t, lattice);
 		output_residual_shear_validity(q, u, e, t, lattice);
 	}
-	else if(initial_type == 4)
+	else if(initial_type == 4 || initial_type == 5)
 	{
-		output_optical_glauber(q, u, e, t, lattice);
+		output_glauber(q, u, e, t, lattice);
 		output_residual_shear_validity(q, u, e, t, lattice);
 		output_inverse_reynolds_number(q, e, t, lattice);
 	}

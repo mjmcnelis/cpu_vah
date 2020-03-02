@@ -1,4 +1,5 @@
 #include <gsl/gsl_integration.h>
+#include <stdio.h>
 #include "../include/OpticalGlauber.h"
 #include "../include/Parameters.h"
 
@@ -29,7 +30,7 @@ double nuclearThicknessFunctionIntegrand(double s, void * params)
 	double y = ta_params->y;
 	double A = ta_params->A;
 
-	double z = (1.0 - s) / s;		// variable substitution dz = ds / s2
+	double z = (1. - s) / s;		// variable substitution dz = ds / s2
 	double s2 = s * s;
 
 	return woodsSaxonDistribution(sqrt(x * x  +  y * y  +  z * z), A) / s2;
@@ -50,10 +51,10 @@ double nuclearThicknessFunction(double x, double y, double A)
 
 	// gsl integrate wrt s
 	gsl_integration_workspace * w = gsl_integration_workspace_alloc(n);
-	gsl_integration_qags(&F, 0.0, 1.0, epsabs, epsrel, n, w, &result, &error);
+	gsl_integration_qags(&F, 0., 1., epsabs, epsrel, n, w, &result, &error);
 	gsl_integration_workspace_free(w);
 
-	return 2.0 * result;
+	return 2. * result;
 }
 
 double binaryCollisionPairs(double TA, double TB, double snn)
@@ -63,10 +64,10 @@ double binaryCollisionPairs(double TA, double TB, double snn)
 
 double woundedNucleons(double TA, double TB, double A, double B, double snn)
 {
-	double part_A = 1.0  -  snn * TA * fermiToMilliBarns / A;
-	double part_B = 1.0  -  snn * TB * fermiToMilliBarns / B;
+	double part_A = 1.  -  snn * TA * fermiToMilliBarns / A;
+	double part_B = 1.  -  snn * TB * fermiToMilliBarns / B;
 
-	return TA * (1.0 - pow(1.0 - part_B, B))  +  TB * (1.0 - pow(1.0 - part_A, A));
+	return TA * (1. - pow(1. - part_B, B))  +  TB * (1. - pow(1. - part_A, A));
 }
 
 
@@ -82,30 +83,28 @@ void Optical_Glauber_energy_density_transverse_profile(double * const __restrict
 
 
 	// normalization factors
-	double TA_norm = nuclearThicknessFunction(0.0, 0.0, A);
-	double TB_norm = nuclearThicknessFunction(0.0, 0.0, B);
-	double binary_norm = 1.0 / binaryCollisionPairs(TA_norm, TB_norm, snn);
-	double wounded_norm = 1.0 / woundedNucleons(TA_norm, TB_norm, A, B, snn);
-
-	double b_over2 = b / 2.0;
+	double TA_norm = nuclearThicknessFunction(0, 0, A);
+	double TB_norm = nuclearThicknessFunction(0, 0, B);
+	double binary_norm = 1. / binaryCollisionPairs(TA_norm, TB_norm, snn);
+	double wounded_norm = 1. / woundedNucleons(TA_norm, TB_norm, A, B, snn);
 
 	// normalized transverse energy density profile
 	for(int i = 0; i < nx; i++)
 	{
-		double x = (i  -  (nx - 1.0)/2.0) * dx;
+		double x = (i  -  (nx - 1.)/2.) * dx;
 
 		for(int j = 0; j < ny; j++)
 		{
-			double y = (j  -  (ny - 1.0)/2.0) * dy;
+			double y = (j  -  (ny - 1.)/2.) * dy;
 
-			double TA = nuclearThicknessFunction(x - b_over2, y, A);
-			double TB = nuclearThicknessFunction(x + b_over2, y, B);
+			double TA = nuclearThicknessFunction(x - b/2., y, A);
+			double TB = nuclearThicknessFunction(x + b/2., y, B);
 
 			// binary collision and wounded nucleon energy density profiles
 			double energy_density_binary = alpha * binary_norm * binaryCollisionPairs(TA, TB, snn);
-			double energy_density_wounded = (1.0 - alpha) * wounded_norm * woundedNucleons(TA, TB, A, B, snn);
+			double energy_density_wounded = (1. - alpha) * wounded_norm * woundedNucleons(TA, TB, A, B, snn);
 
-			energyDensityTransverse[i  +  j * nx] = (energy_density_binary + energy_density_wounded);
+			energyDensityTransverse[i  +  j * nx] = energy_density_binary + energy_density_wounded;
 		}
 	}
 }
