@@ -22,6 +22,16 @@ inline precision tanh_function(precision p)
 }
 
 
+inline precision pressure_cutoff(precision p_min, precision p)
+{
+	precision p_cut = fmax(0., p);
+
+	return p_cut  +  p_min * exp(- p_cut / p_min);	// regulated energy density asymptotes to p_min
+													// as pl, pt -> 0 (avoids discontinuites in pressure profile)
+	//return fmax(p_min, p);						// hard cutoff
+}
+
+
 void regulate_residual_currents(precision t, hydro_variables * const __restrict__ q, precision * const __restrict__ e, const fluid_velocity * const __restrict__ u, lattice_parameters lattice, hydro_parameters hydro)
 {
 #ifdef ANISO_HYDRO
@@ -48,18 +58,22 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 				precision pl  = q[s].pl;
 				precision pt  = q[s].pt;
 
-				if(pl < pressure_min)		
-				{
-					pl = pressure_min;			// cutoff like energy density?
-				}
-				if(pt < pressure_min)
-				{
-					pt = pressure_min;
-				}
+				pl = pressure_cutoff(pressure_min, pl);
+				pt = pressure_cutoff(pressure_min, pt);
+
+				// if(pl < pressure_min)		
+				// {
+				// 	pl = pressure_min;			// cutoff like energy density?
+				// }
+				// if(pt < pressure_min)
+				// {
+				// 	pt = pressure_min;
+				// }
 
 			#ifdef CONFORMAL_EOS  				// temporary marco (replace with if(hydro.eos) statement)
 			#ifndef LATTICE_QCD
 				pt = (e_s - pl) / 2.;
+				pt = pressure_cutoff(pressure_min, pt);
 			#else
 				printf("regulate_residual_currents error: no eos switch for pt conformal regulation\n");
 				exit(-1);

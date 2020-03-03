@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string>
+#include <math.h>
 #include "../include/Macros.h"
 #include "../include/Hydrodynamics.h"
 #include "../include/FileIO.h"
@@ -9,6 +10,10 @@
 #include "../include/Parameters.h"
 using namespace std;
 
+inline int linear_column_index(int i, int j, int k, int nx, int ny)
+{
+	return i  +  nx * (j  +  ny * k);
+}
 
 void print_line()
 {
@@ -46,14 +51,49 @@ void print_run_time(double duration, double steps, lattice_parameters lattice)
 	printf("Average time/cell/step   = %.4g ms\n", 1000. * duration / (nx * ny * nz * steps));
 }
 
+precision compute_max_ut(const fluid_velocity * const __restrict__ u, precision t, lattice_parameters lattice)
+{
+	int nx = lattice.lattice_points_x;
+	int ny = lattice.lattice_points_y;
+	int nz = lattice.lattice_points_eta;
 
-void print_hydro_center(int n, double t, lattice_parameters lattice, hydro_parameters hydro)
+	precision max = 0.0;
+
+	for(int k = 2; k < nz + 2; k++)
+	{
+		for(int j = 2; j < ny + 2; j++)
+		{
+			for(int i = 2; i < nx + 2; i++)
+			{
+				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
+
+				precision ux = u[s].ux;
+				precision uy = u[s].uy;
+			#ifndef BOOST_INVARIANT
+				precision un = u[s].un;
+			#else
+				precision un = 0;
+			#endif
+				precision ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t * t * un * un);
+
+				if(ut > max)
+				{
+					max = ut;
+				}
+			}
+		}
+	}
+	return max;
+}
+
+
+void print_hydro_center(int n, double t, lattice_parameters lattice, hydro_parameters hydro, long cells_above_Tswitch)
 {
 	int s = central_index(lattice);
 
 	if(n == 0)
 	{
-		printf("\tn\t|\tt (fm/c)\t|\tT (GeV)\t\t|\te (GeV/fm^3)\t|\tpeq (GeV/fm^3)\t|\tpl (GeV/fm^3)\t|\tpt (GeV/fm^3)\n");
+		printf("\tn\t|\tt\t|\tT\t|\te\t|\tp\t|\tpl\t|\tpt\t|\tut_max\t|\tT > Tsw\t|\n");
 		print_line();
 	}
 	precision e_s = e[s] * hbarc;
@@ -64,8 +104,21 @@ void print_hydro_center(int n, double t, lattice_parameters lattice, hydro_param
 #ifdef ANISO_HYDRO
 	precision pl = q[s].pl * hbarc;
 	precision pt = q[s].pt * hbarc;
+
+	// cells %
+	// gamma max 
+	precision gamma_max = compute_max_ut(u, t, lattice);
+
+	long nx = lattice.lattice_points_x;
+	long ny = lattice.lattice_points_y;
+	long nz = lattice.lattice_points_eta;
+
+	precision percent_above_Tsw = 100. * (double)cells_above_Tswitch / (nx * ny * nz);
+
+	// T = GeV
+	// e, pl, pt = GeV/fm^3
 	
-	printf("\t%d\t|\t%.3f\t\t|\t%.3f\t\t|\t%.3f\t\t|\t%.3f\t\t|\t%.3f\t\t|\t%.3f\n", n, t, T, e_s, p, pl, pt);
+	printf("\t%d\t|\t%.4g\t|\t%.4g\t|\t%.5g\t|\t%.5g\t|\t%.5g\t|\t%.5g\t|\t%.5g\t|\t%.3f%%\t|\n", n, t, T, e_s, p, pl, pt, gamma_max, percent_above_Tsw);
 #else
 	printf("%d\tt = %.3f fm/c\t\te = %.3f GeV/fm^3\tpeq = %.3f GeV/fm^3\tT = %.3f GeV\n", n, t, e_s, p, T);
 #endif

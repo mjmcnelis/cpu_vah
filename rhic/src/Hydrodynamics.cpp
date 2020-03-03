@@ -62,7 +62,7 @@ bool all_cells_below_freezeout_temperature(lattice_parameters lattice, hydro_par
 }
 
 
-long number_of_cells_below_freezeout_temperature(lattice_parameters lattice, hydro_parameters hydro)
+long number_of_cells_above_freezeout_temperature(lattice_parameters lattice, hydro_parameters hydro)
 {
 	int nx = lattice.lattice_points_x;
 	int ny = lattice.lattice_points_y;
@@ -82,7 +82,7 @@ long number_of_cells_below_freezeout_temperature(lattice_parameters lattice, hyd
 			{
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
-				if(e[s] < e_switch)
+				if(e[s] >= e_switch)
 				{
 					cells++;
 				}
@@ -212,28 +212,24 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 		{
 			if(n == 0 || initial.initialConditionType == 1)							// output first time or output bjorken at every time step
 			{
-				long cells_below_Tswitch = number_of_cells_below_freezeout_temperature(lattice, hydro);
+				long cells_above_Tswitch = number_of_cells_above_freezeout_temperature(lattice, hydro);
 
-				print_hydro_center(n, t, lattice, hydro);
+				print_hydro_center(n, t, lattice, hydro, cells_above_Tswitch);
 				output_dynamical_variables(t, dt_prev, lattice, initial, hydro);
 
-				printf("%.4g %%\n", 100 * (double)cells_below_Tswitch / (241. * 241.));
-
-				if(cells_below_Tswitch == 0) 
+				if(cells_above_Tswitch == 0) 
 				{
 					break;
 				}
 			}
 			else if(fabs(t - t_out - dt_out) < dt_eps)
 			{
-				long cells_below_Tswitch = number_of_cells_below_freezeout_temperature(lattice, hydro);
+				long cells_above_Tswitch = number_of_cells_above_freezeout_temperature(lattice, hydro);
 
-				print_hydro_center(n, t, lattice, hydro);
+				print_hydro_center(n, t, lattice, hydro, cells_above_Tswitch);
 				output_dynamical_variables(t, dt_prev, lattice, initial, hydro);
 
-				printf("%.4g %%\n", 100 * (double)cells_below_Tswitch / (241. * 241.));
-
-				if(cells_below_Tswitch == 0) 
+				if(cells_above_Tswitch == 0) 
 				{
 					break;
 				}
@@ -251,7 +247,9 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 				}
 				else if(n % freezeout_period == 0)									// find freezeout cells				
 				{
-					print_hydro_center(n, t, lattice, hydro);
+					long cells_above_Tswitch = number_of_cells_above_freezeout_temperature(lattice, hydro);
+
+					print_hydro_center(n, t, lattice, hydro, cells_above_Tswitch);
 
 					fo_surface.swap_and_set_hydro_evolution(q, e, u);
 					
@@ -281,7 +279,9 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 				}
 				else if((n - n_freeze) % freezeout_period == 0)						// find freezeout cells	
 				{
-					print_hydro_center(n, t, lattice, hydro);
+					long cells_above_Tswitch = number_of_cells_above_freezeout_temperature(lattice, hydro);
+
+					print_hydro_center(n, t, lattice, hydro, cells_above_Tswitch);
 
 					fo_surface.swap_and_set_hydro_evolution(q, e, u);
 					
