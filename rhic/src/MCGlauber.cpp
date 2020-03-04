@@ -9,7 +9,7 @@ using namespace std;
 
 
 //const double SIG0 = 0.46;			// gaussian width
-const double SIG0 = 0.8;			// nucleon width
+const double w = 0.8;				// nucleon width
 const double two_pi = 2.0 * M_PI;
 
 // generates A samples corresponding to Woods-Saxon nucleus with A nucleons
@@ -39,10 +39,10 @@ void sampleWoodsSaxon(int A, double * const __restrict__ x, double * const __res
 
 		if(propose < weight)
 		{
-			double costheta = 2.0 * (((double)rand()) / ((double)RAND_MAX) - 0.5);
+			double costheta = 2. * (((double)rand()) / ((double)RAND_MAX) - 0.5);
 			double phi = two_pi * ((double)rand()) / ((double)RAND_MAX);
 
-			double sintheta = sqrt(1.0 - costheta * costheta);
+			double sintheta = sqrt(1. - costheta * costheta);
 
 			x[nucleon] = r * sintheta * cos(phi);	// set sampled nucleon positions
 			y[nucleon] = r * sintheta * sin(phi);
@@ -103,23 +103,28 @@ void MC_Glauber_energy_density_transverse_profile(double * const __restrict__ en
    	srand(1328398221);
 
 	int wounded_nucleons = numberWoundedNucleons(A, b, xp, yp, snn);
-	printf(": %d wounded nucleons ", wounded_nucleons);
+	printf("%d wounded nucleons\n\n", wounded_nucleons);
 
 	for(int i = 0; i < nx; i++)
 	{
-		double x = (i - (nx - 1.0)/2.0) * dx;
+		double x = (i - (nx - 1.)/2.) * dx;
 
    		for(int j = 0; j < ny; j++)
    	 	{
-   	 		double y = (j - (ny - 1.0)/2.0) * dy;
+   	 		double y = (j - (ny - 1.)/2.) * dy;
 
-   	 		double eT = 0.0;
+   	 		double eT = 0;
+
 	      	for(int n = 0; n < wounded_nucleons; ++n)
 	      	{
 	         	double dx = x - xp[n];
 	            double dy = y - yp[n];
 
-	            eT += exp( - (dx * dx  +  dy * dy) / (2.0 * SIG0 * SIG0));  // gaussion bump in energy density
+	            //eT += exp( - (dx * dx  +  dy * dy) / (2. * w * w));  // gaussion bump in energy density
+
+	            // normalized gaussian bump
+
+	            eT += exp( - (dx * dx  +  dy * dy) / (2. * w * w)) / (w * sqrt(two_pi));
 	        }
 
 	        energyDensityTransverse[i + j * nx] = eT;

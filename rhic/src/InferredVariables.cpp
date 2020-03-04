@@ -312,15 +312,8 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 				}
 
 			#endif
+
 				e_s = energy_density_cutoff(e_min, e_s);
-
-				precision de_over_e = (e_s - eprev) / eprev;
-
-				if(de_over_e > 1.0)
-				{
-					//printf("(eprev, e_s, |de/e|) = (%.6g, %.6g, %.6g) at %d, %d \n", eprev, e_s, de_over_e, i, j);
-					e_s = eprev;
-				}
 
 				equation_of_state eos(e_s);
 				precision p = eos.equilibrium_pressure();
@@ -336,15 +329,36 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 				precision un = 0;
 			#endif
 
-				//e_s = energy_density_cutoff(e_min, e_s);
-
-
-
 				if(std::isnan(e_s) || std::isnan(ut))
 				{
 					printf("\nget_inferred_variables_viscous_hydro error: (e, ut, P, Mt) = (%lf, %lf, %lf, %lf) \n", e_s, ut, P, Mt);
 					exit(-1);
 				}
+
+
+				precision de_over_e = (e_s - eprev) / eprev;
+
+				if(de_over_e > 1.0)
+				{
+					//printf("(eprev, e_s, |de/e|) = (%.6g, %.6g, %.6g) at %d, %d \n", eprev, e_s, de_over_e, i, j);
+					e_s = 1.5 * eprev;
+				}
+
+				precision ut_max = 10.0;
+
+				ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t2 * un * un);
+
+				if(ut > ut_max)
+				{
+					//printf("(ut, ut_max) = (%.5g, %.5g) at %d, %d \n", ut, ut_max, i, j);
+
+					precision norm = fmin(1., sqrt(fabs((ut_max * ut_max - 1.) / (ut * ut - 1.))));
+
+					ux *= norm;
+					uy *= norm;
+					un *= norm;
+				}
+
 
 			#ifdef TEST_TTAUMU
 				ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t2 * un * un);
