@@ -51,7 +51,7 @@ void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict
 			#endif
 
 				precision pl  = q[s].pl;
-				precision pt  = q[s].pt;		
+				precision pt  = q[s].pt;
 
 			#ifdef PIMUNU
 				precision pitt = q[s].pitt;
@@ -110,7 +110,7 @@ void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict
 				precision My = ky  -  WyTz * zt;
 				precision Mn = kn  -  WtTz * zn  -  WnTz * zt;
 
-				// this needs a switching 
+				// this needs a switching
 
 				// solution for e
 			#ifdef LATTICE_QCD
@@ -260,11 +260,12 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 
 				precision M_squared = Mx * Mx  +  My * My  +  t2 * Mn * Mn;
 
-			#ifdef CONFORMAL_EOS
-				precision e_s = energy_density_cutoff(e_min, - Mt  +  sqrt(fabs(4. * Mt * Mt  -  3. * M_squared)));
-			#else
-
 				precision eprev = e[s];
+
+			#ifdef CONFORMAL_EOS
+				//precision e_s = energy_density_cutoff(e_min, - Mt  +  sqrt(fabs(4. * Mt * Mt  -  3. * M_squared)));
+				precision e_s = - Mt  +  sqrt(fabs(4. * Mt * Mt  -  3. * M_squared));
+			#else
 
 				precision e_s = eprev;					// initial guess is previous energy density
 				precision de;
@@ -305,7 +306,7 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 					}
 				}
 
-				if(n > max_iterations) 
+				if(n > max_iterations)
 				{
 					printf("newton method (eprev, e_s, |de/e_s|) = (%.6g, %.6g, %.6g) failed to converge within desired percentage tolerance %lf at (i, j, k) = (%d, %d, %d)\n", eprev, e_s, fabs(de / e_s), energy_tolerance, i, j, k);
 				}
@@ -313,10 +314,18 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 			#endif
 				e_s = energy_density_cutoff(e_min, e_s);
 
+				precision de_over_e = (e_s - eprev) / eprev;
+
+				if(de_over_e > 1.0)
+				{
+					//printf("(eprev, e_s, |de/e|) = (%.6g, %.6g, %.6g) at %d, %d \n", eprev, e_s, de_over_e, i, j);
+					e_s = eprev;
+				}
+
 				equation_of_state eos(e_s);
 				precision p = eos.equilibrium_pressure();
 
-				precision P = fmax(0., p + Pi);
+				precision P = fmax(0., p + Pi);								// should I smooth regulate it?
 
 				precision ut = sqrt(fabs((Mt + P) / (e_s + P)));
 				precision ux = Mx / ut / (e_s + P);
@@ -327,9 +336,13 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 				precision un = 0;
 			#endif
 
+				//e_s = energy_density_cutoff(e_min, e_s);
+
+
+
 				if(std::isnan(e_s) || std::isnan(ut))
 				{
-					printf("\nget_inferred_variables_viscous_hydro error: (e, ut) = (%lf, %lf) \n", e_s, ut);
+					printf("\nget_inferred_variables_viscous_hydro error: (e, ut, P, Mt) = (%lf, %lf, %lf, %lf) \n", e_s, ut, P, Mt);
 					exit(-1);
 				}
 

@@ -193,9 +193,9 @@ precision zeta_LT, zeta_TT, lambda_WuT, lambda_WTT, lambda_piT;
 	precision taubulk_inverse = 0;
 
 	aniso_transport_coefficients aniso;
-	aniso.compute_transport_coefficients(e_s, pl, pt, conformal_eos_prefactor);	
+	aniso.compute_transport_coefficients(e_s, pl, pt, conformal_eos_prefactor);
 
-	zeta_LL = aniso.zeta_LL;								// set pl coefficients						
+	zeta_LL = aniso.zeta_LL;								// set pl coefficients
 	zeta_TL = aniso.zeta_TL;
 	lambda_WuL = aniso.lambda_WuL;
 	lambda_WTL = aniso.lambda_WTL;
@@ -233,13 +233,13 @@ precision zeta_LT, zeta_TT, lambda_WuT, lambda_WTT, lambda_piT;
 
 #ifdef LATTICE_QCD 											// lattice qcd only
 #ifndef CONFORMAL_EOS
-	precision taupi_inverse = eos.beta_shear(T, conformal_eos_prefactor) / (s * etabar);		// set relaxation times 
+	precision taupi_inverse = eos.beta_shear(T, conformal_eos_prefactor) / (s * etabar);		// set relaxation times
 	precision taubulk_inverse = eos.beta_bulk(T) / (s * zetabar);
 
 	aniso_transport_coefficients_nonconformal aniso;
 	aniso.compute_transport_coefficients(e_s, pl, pt, b, lambda_s, aT_s, aL_s, mbar, mass, mdmde);
-	
-	zeta_LL = aniso.zeta_LL;								// set pl coefficients						
+
+	zeta_LL = aniso.zeta_LL;								// set pl coefficients
 	zeta_TL = aniso.zeta_TL;
 	lambda_WuL = aniso.lambda_WuL;
 	lambda_WTL = aniso.lambda_WTL;
@@ -291,7 +291,7 @@ precision zeta_LT, zeta_TT, lambda_WuT, lambda_WTT, lambda_piT;
 		aniso.compute_transport_coefficients(e_s, pl, pt, b, lambda_s, aT_s, aL_s, mbar, mass, mdmde);
 
 		// these all need to be updated and include quasiparticle terms
-		zeta_LL = aniso.zeta_LL;								// set pl coefficients						
+		zeta_LL = aniso.zeta_LL;								// set pl coefficients
 		zeta_TL = aniso.zeta_TL;
 
 		zeta_LT = aniso.zeta_LT;								// set pt coefficients
@@ -303,9 +303,9 @@ precision zeta_LT, zeta_TT, lambda_WuT, lambda_WTT, lambda_piT;
 		taubulk_inverse = 0;
 
 		aniso_transport_coefficients aniso;
-		aniso.compute_transport_coefficients(e_s, pl, pt, conformal_eos_prefactor);	
+		aniso.compute_transport_coefficients(e_s, pl, pt, conformal_eos_prefactor);
 
-		zeta_LL = aniso.zeta_LL;								// set pl coefficients						
+		zeta_LL = aniso.zeta_LL;								// set pl coefficients
 		zeta_TL = aniso.zeta_TL;
 		lambda_WuL = aniso.lambda_WuL;
 		lambda_WTL = aniso.lambda_WTL;
@@ -627,7 +627,7 @@ precision zeta_LT, zeta_TT, lambda_WuT, lambda_WTT, lambda_piT;
 	precision delta_pipi_thetaT = delta_pipi * thetaT;
 	precision lambda_pipi_thetaL = lambda_pipi * thetaL;
 
-	//piT^{\mu\nu} . sigmaT_{\mu\nu} 
+	//piT^{\mu\nu} . sigmaT_{\mu\nu}
 	precision pi_sT = pitt * sTtt  +  pixx * sTxx  +  piyy * sTyy  +  t4 * pinn * sTnn  +  2. * (pixy * sTxy  -  pitx * sTtx  -  pity * sTty  +  t2 * (pixn * sTxn  +  piyn * sTyn  -  pitn * sTtn));
 
 	// \tau^\pi_\pi . \pi_T^{\alpha (\mu} . \sigma_T^{\nu)}_\alpha
@@ -1310,6 +1310,7 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 #endif
 
 	// conservation laws (looks fine to me)
+
 	precision tnn = (e + p + Pi) * un * un  +  (p + Pi) / t2  +  pinn;
 
 	S[0] =	- (ttt / t  +  t * tnn)  +  div_v * (pitt  -  p  -  Pi)

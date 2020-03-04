@@ -1,4 +1,3 @@
-
 #include "../include/Macros.h"
 #include "../include/FreezeoutFinder.h"
 #include "../include/Memory.h"

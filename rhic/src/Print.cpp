@@ -93,7 +93,11 @@ void print_hydro_center(int n, double t, lattice_parameters lattice, hydro_param
 
 	if(n == 0)
 	{
+	#ifdef ANISO_HYDRO
 		printf("\tn\t|\tt\t|\tT\t|\te\t|\tp\t|\tpl\t|\tpt\t|\tut_max\t|\tT > Tsw\t|\n");
+	#else
+		printf("\tn\t|\tt\t|\tT\t|\te\t|\tp\t|\tut_max\t|\tT > Tsw\t|\n");
+	#endif
 		print_line();
 	}
 	precision e_s = e[s] * hbarc;
@@ -101,12 +105,7 @@ void print_hydro_center(int n, double t, lattice_parameters lattice, hydro_param
 	equation_of_state eos(e[s]);
 	precision p = eos.equilibrium_pressure() * hbarc;
 	precision T = eos.effective_temperature(hydro.conformal_eos_prefactor) * hbarc;
-#ifdef ANISO_HYDRO
-	precision pl = q[s].pl * hbarc;
-	precision pt = q[s].pt * hbarc;
 
-	// cells %
-	// gamma max 
 	precision gamma_max = compute_max_ut(u, t, lattice);
 
 	long nx = lattice.lattice_points_x;
@@ -114,13 +113,16 @@ void print_hydro_center(int n, double t, lattice_parameters lattice, hydro_param
 	long nz = lattice.lattice_points_eta;
 
 	precision percent_above_Tsw = 100. * (double)cells_above_Tswitch / (nx * ny * nz);
+#ifdef ANISO_HYDRO
+	precision pl = q[s].pl * hbarc;
+	precision pt = q[s].pt * hbarc;
 
 	// T = GeV
 	// e, pl, pt = GeV/fm^3
-	
+
 	printf("\t%d\t|\t%.4g\t|\t%.4g\t|\t%.5g\t|\t%.5g\t|\t%.5g\t|\t%.5g\t|\t%.5g\t|\t%.3f%%\t|\n", n, t, T, e_s, p, pl, pt, gamma_max, percent_above_Tsw);
 #else
-	printf("%d\tt = %.3f fm/c\t\te = %.3f GeV/fm^3\tpeq = %.3f GeV/fm^3\tT = %.3f GeV\n", n, t, e_s, p, T);
+	printf("\t%d\t|\t%.4g\t|\t%.4g\t|\t%.5g\t|\t%.5g\t|\t%.5g\t|\t%.3f%%\t|\n", n, t, T, e_s, p, gamma_max, percent_above_Tsw);
 #endif
 }
 
@@ -154,24 +156,24 @@ void print_parameters(lattice_parameters lattice, hydro_parameters hydro)
 	printf("Initial time 	    = %.3g fm/c\n", hydro.tau_initial);
 	printf("Initial pl/pt ratio = %.3g\n\n", 	hydro.plpt_ratio_initial);
 
-	if(hydro.temperature_etas)	
+	if(hydro.temperature_etas)
 	{
 		printf("Shear viscosity model:\teta/s = max(%.3f, %.3f  +  %.3f(T / GeV - 0.154))\n\n", hydro.etas_min, hydro.etas_min, hydro.etas_slope);
 	}
 	else
-	{		
+	{
 		printf("Shear viscosity model:\teta/s = %.3f (fixed)\n\n", hydro.constant_etas);
 	}
 
 	printf("Bulk viscosity normalization    = %.3g\n", 			hydro.zetas_normalization_factor);
 	printf("Bulk viscosity peak temperature = %.3g MeV\n\n", 	hydro.zetas_peak_temperature_GeV * 1000.);
 
-	if(hydro.kinetic_theory_model == 0)	
+	if(hydro.kinetic_theory_model == 0)
 	{
 		printf("Kinetic theory model = Small mass expansion\n\n");
 	}
 	else
-	{							
+	{
 		printf("Kinetic theory model = Quasiparticle\n\n");
 	}
 
