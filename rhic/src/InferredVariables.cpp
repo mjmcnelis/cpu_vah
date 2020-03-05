@@ -5,6 +5,7 @@
 #include <cmath>
 #include "../include/Precision.h"
 #include "../include/Macros.h"
+#include "../include/Hydrodynamics.h"
 #include "../include/DynamicalVariables.h"
 #include "../include/Parameters.h"
 #include "../include/EquationOfState.h"
@@ -27,6 +28,12 @@ void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict
 	int nx = lattice.lattice_points_x;
 	int ny = lattice.lattice_points_y;
 	int nz = lattice.lattice_points_eta;
+
+	precision T_switch = hydro.freezeout_temperature_GeV;
+	//precision e_switch = equilibrium_energy_density(T_switch / hbarc, hydro.conformal_eos_prefactor);
+	precision e_switch = equilibrium_energy_density_new(T_switch / hbarc, hydro.conformal_eos_prefactor);
+
+	//printf("%lf\n", e_switch * hbarc);
 
 	precision e_min = hydro.energy_min;
 
@@ -112,6 +119,8 @@ void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict
 
 				// this needs a switching
 
+				precision eprev = e[s];
+
 				// solution for e
 			#ifdef LATTICE_QCD
 			#ifndef CONFORMAL_EOS
@@ -161,6 +170,34 @@ void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict
 				{
 					printf("\nget_inferred_variables_aniso_hydro error: u^mu = (%lf, %lf, %lf, %lf) is nan\n", ut_s, ux_s, uy_s, un_s);
 					exit(-1);
+				}
+
+				precision de_over_e = (e_s - eprev) / eprev;
+
+				if(de_over_e > 1.0)
+				//if(de_over_e > 0.5 && eprev < e_switch)
+				{
+					// if(eprev > e_switch)
+					// {
+					// 	printf("(eprev, e_s, |de/e|) = (%.6g, %.6g, %.6g) at %d, %d \n", eprev, e_s, de_over_e, i, j);
+					// }
+
+					e_s = 1.5 * eprev;
+				}
+
+				precision ut_max = 10.0;
+
+				ut_s = sqrt(1.  +  ux_s * ux_s  +  uy_s * uy_s  +  t2 * un_s * un_s);
+
+				if(ut_s > ut_max)
+				{
+					//printf("(ut, ut_max) = (%.5g, %.5g) at %d, %d \n", ut, ut_max, i, j);
+
+					precision norm = fmin(1., sqrt(fabs((ut_max * ut_max - 1.) / (ut_s * ut_s - 1.))));
+
+					ux_s *= norm;
+					uy_s *= norm;
+					un_s *= norm;
 				}
 
 			#ifdef TEST_TTAUMU
@@ -344,7 +381,7 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 					e_s = 1.5 * eprev;
 				}
 
-				precision ut_max = 10.0;
+				precision ut_max = 15.0;
 
 				ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t2 * un * un);
 

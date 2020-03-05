@@ -4,7 +4,7 @@
 
 // macro parameters to fix hydrodynamic variables at compile time
 
-//#define ANISO_HYDRO				// run anisotropic hydro (comment to run 2nd order viscous hydro)
+#define ANISO_HYDRO				// run anisotropic hydro (comment to run 2nd order viscous hydro)
 #define BOOST_INVARIANT 		// run 2+1d hydro (comment to run 3+1d hydro)
 
 
@@ -21,7 +21,7 @@
 
 #ifdef ANISO_HYDRO				// residual shear stress
 
-	//#define PIMUNU 				// transverse shear stress
+	#define PIMUNU 				// transverse shear stress
 
 	#ifndef BOOST_INVARIANT
 		#define WTZMU 			// longitudinal momentum diffusion current
@@ -33,7 +33,7 @@
 
 #else							// viscous stress tensor
 
-	//#define PIMUNU				// shear stress
+	#define PIMUNU				// shear stress
 
 	#ifndef CONFORMAL_EOS
 		#define PI 				// bulk pressure
