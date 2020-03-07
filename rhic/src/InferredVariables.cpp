@@ -174,15 +174,16 @@ void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict
 
 				precision de_over_e = (e_s - eprev) / eprev;
 
-				if(de_over_e > 1.0)
-				//if(de_over_e > 0.5 && eprev < e_switch)
+				if(de_over_e > 0.1)
 				{
-					// if(eprev > e_switch)
-					// {
-					// 	printf("(eprev, e_s, |de/e|) = (%.6g, %.6g, %.6g) at %d, %d \n", eprev, e_s, de_over_e, i, j);
-					// }
+					if(eprev > e_switch)
+					{
+						printf("(eprev, e_s, |de/e|) = (%.6g, %.6g, %.6g) at (%d, %d, %lf) \n", eprev, e_s, de_over_e, i, j, t);
+					}
 
-					e_s = 1.5 * eprev;
+					e_s = 1.0 * eprev;
+
+					e_regulation[s] += 1;
 				}
 
 				precision ut_max = 10.0;
@@ -198,6 +199,8 @@ void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict
 					ux_s *= norm;
 					uy_s *= norm;
 					un_s *= norm;
+
+					ut_regulation[s] += 1;
 				}
 
 			#ifdef TEST_TTAUMU
@@ -246,6 +249,12 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 	int nx = lattice.lattice_points_x;
 	int ny = lattice.lattice_points_y;
 	int nz = lattice.lattice_points_eta;
+
+	precision T_switch = hydro.freezeout_temperature_GeV;
+	//precision e_switch = equilibrium_energy_density(T_switch / hbarc, hydro.conformal_eos_prefactor);
+	precision e_switch = equilibrium_energy_density_new(T_switch / hbarc, hydro.conformal_eos_prefactor);
+
+	//printf("%lf\n", e_switch * hbarc);
 
 	precision e_min = hydro.energy_min;
 
@@ -342,11 +351,12 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 						break;
 					}
 				}
-
+/*
 				if(n > max_iterations)
 				{
 					printf("newton method (eprev, e_s, |de/e_s|) = (%.6g, %.6g, %.6g) failed to converge within desired percentage tolerance %lf at (i, j, k) = (%d, %d, %d)\n", eprev, e_s, fabs(de / e_s), energy_tolerance, i, j, k);
 				}
+*/
 
 			#endif
 
@@ -372,16 +382,23 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 					exit(-1);
 				}
 
-
+/*
 				precision de_over_e = (e_s - eprev) / eprev;
 
-				if(de_over_e > 1.0)
+				if(de_over_e > 0.1)
 				{
-					//printf("(eprev, e_s, |de/e|) = (%.6g, %.6g, %.6g) at %d, %d \n", eprev, e_s, de_over_e, i, j);
-					e_s = 1.5 * eprev;
+					if(eprev > e_switch)
+					{
+						printf("(eprev, e_s, |de/e|) = (%.6g, %.6g, %.6g) at (%d, %d, %lf) \n", eprev, e_s, de_over_e, i, j, t);
+					}
+
+					e_s = 1.0 * eprev;
+
+					e_regulation[s] += 1;
 				}
 
-				precision ut_max = 15.0;
+
+				precision ut_max = 10.0;
 
 				ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t2 * un * un);
 
@@ -394,7 +411,10 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 					ux *= norm;
 					uy *= norm;
 					un *= norm;
+
+					ut_regulation[s] += 1;
 				}
+*/
 
 
 			#ifdef TEST_TTAUMU

@@ -74,11 +74,11 @@ typedef struct
 
 #ifdef ANISO_HYDRO
 	precision pl;
-	precision pt;					
+	precision pt;
 #endif
 
 #ifdef B_FIELD
-	precision b;		
+	precision b;
 #endif
 
 #ifdef PIMUNU
@@ -134,6 +134,9 @@ typedef struct
 extern hydro_variables *q, *Q, *qI;
 extern fluid_velocity *u, *up, *uI;
 extern precision *e, *lambda, *aT, *aL;
+
+extern int *e_regulation;
+extern int *ut_regulation;
 
 
 // swap variables

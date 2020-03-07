@@ -178,6 +178,11 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 	print_parameters(lattice, hydro);
 	allocate_memory(lattice);
 
+	long nx = lattice.lattice_points_x;
+	long ny = lattice.lattice_points_y;
+	long nz = lattice.lattice_points_eta;
+	long grid_size = nx * ny * nz;
+
 	precision t = hydro.tau_initial;					// initial longitudinal proper time
 
 	set_initial_conditions(t, lattice, initial, hydro);	// initial conditions for (q, e, u)
@@ -218,7 +223,7 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 				print_hydro_center(n, t, lattice, hydro, cells_above_Tswitch);
 				output_dynamical_variables(t, dt_prev, lattice, initial, hydro);
 
-				if(cells_above_Tswitch == 0)
+				if((double) cells_above_Tswitch / (double) grid_size <= 0.001)
 				{
 					break;
 				}
@@ -230,7 +235,7 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 				print_hydro_center(n, t, lattice, hydro, cells_above_Tswitch);
 				output_dynamical_variables(t, dt_prev, lattice, initial, hydro);
 
-				if(cells_above_Tswitch == 0)
+				if((double) cells_above_Tswitch / (double) grid_size <= 0.001)
 				{
 					break;
 				}

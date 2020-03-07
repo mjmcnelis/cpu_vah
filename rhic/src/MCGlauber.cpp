@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <iostream>
 #include <random>
+#include <chrono>
 //#include <gsl/gsl_integration.h>
 #include "../include/OpticalGlauber.h"
 #include "../include/MCGlauber.h"
@@ -9,7 +10,7 @@ using namespace std;
 
 
 //const double SIG0 = 0.46;			// gaussian width
-const double w = 0.8;				// nucleon width
+const double w = 0.5;				// nucleon width
 const double two_pi = 2.0 * M_PI;
 
 // generates A samples corresponding to Woods-Saxon nucleus with A nucleons
@@ -100,6 +101,10 @@ void MC_Glauber_energy_density_transverse_profile(double * const __restrict__ en
 	double snn = initial.scatteringCrossSectionNN;
 
 	double xp[2 * A], yp[2 * A];
+
+
+   	//long unsigned seed = chrono::system_clock::now().time_since_epoch().count();
+   	//srand(seed);
    	srand(1328398221);
 
 	int wounded_nucleons = numberWoundedNucleons(A, b, xp, yp, snn);

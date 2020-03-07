@@ -136,7 +136,7 @@ void aniso_transport_coefficients::compute_transport_coefficients(precision e, p
 {
 #ifdef CONFORMAL_EOS
 	precision x   = pl / e;
-	precision x2  = x   * x;
+	precision x2  = x   * x;			// perhaps an interpolation helps
 	precision x3  = x2  * x;
 	precision x4  = x3  * x;
 	precision x5  = x4  * x;
@@ -175,7 +175,7 @@ void aniso_transport_coefficients::compute_transport_coefficients(precision e, p
 
 		if(!(z >= -0.99999999 && z <= 1.e-8))
 		{
-			//printf("z = %lf is out of range\n", z);
+			//printf("z = %lf is out of range (x = %lf)\n", z, x);
 			//exit(-1);
 			z = fmax(-0.99999999, fmin(z, 1.e-8));
 		}
@@ -252,7 +252,7 @@ void aniso_transport_coefficients::compute_transport_coefficients(precision e, p
 #else
 	lambda_piL = 0;
 #endif
-	
+
 	// pt transport coefficients
 	zeta_LT = I_221  -  pt;
 	zeta_TT = 2. * (I_202 - pt);

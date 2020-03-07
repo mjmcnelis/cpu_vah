@@ -316,7 +316,9 @@ void output_gubser(const hydro_variables * const __restrict__ q, const fluid_vel
 	precision dz = lattice.lattice_spacing_eta;
 
 	FILE *energy, *plptratio, *uxplot, *urplot;
+	//FILE *ereg, *utreg;
 	char fname1[255], fname2[255], fname3[255], fname4[255];
+	//char fname5[255], fname6[255];
 
 	sprintf(fname1, "output/e_%.3f.dat", t);
 	sprintf(fname2, "output/plpt_%.3f.dat", t);
@@ -411,18 +413,24 @@ void output_glauber(const hydro_variables * const __restrict__ q, const fluid_ve
 	precision dy = lattice.lattice_spacing_y;
 	precision dz = lattice.lattice_spacing_eta;
 
-	FILE *energy, *plptratio, *uxplot, *uyplot;
+	FILE *energy, *plptratio, *uxplot, *utplot;
+	FILE *ereg, *utreg;
 	char fname1[255], fname2[255], fname3[255], fname4[255];
+	char fname5[255], fname6[255];
 
 	sprintf(fname1, "output/e_%.3f.dat", t);
 	sprintf(fname2, "output/plpt_%.3f.dat", t);
 	sprintf(fname3, "output/ux_%.3f.dat", t);
-	sprintf(fname4, "output/uy_%.3f.dat", t);
+	sprintf(fname4, "output/ut_%.3f.dat", t);
+	sprintf(fname5, "output/ereg_%.3f.dat", t);
+	sprintf(fname6, "output/utreg_%.3f.dat", t);
 
 	energy      = fopen(fname1, "w");
 	plptratio 	= fopen(fname2, "w");
 	uxplot    	= fopen(fname3, "w");
-	uyplot    	= fopen(fname4, "w");
+	utplot    	= fopen(fname4, "w");
+	ereg    	= fopen(fname5, "w");
+	utreg		= fopen(fname6, "w");
 
 	precision t2 = t * t;
 	precision t4 = t2 * t2;
@@ -445,6 +453,14 @@ void output_glauber(const hydro_variables * const __restrict__ q, const fluid_ve
 				precision uy = u[s].uy;
 				precision e_s = e[s];
 
+			#ifndef BOOST_INVARIANT
+				precision un = u[s].un;
+			#else
+				precision un = 0;
+			#endif
+
+				precision ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t2 * un * un);
+
 			#ifdef ANISO_HYDRO
 				precision pl = q[s].pl;
 				precision pt = q[s].pt;
@@ -452,16 +468,9 @@ void output_glauber(const hydro_variables * const __restrict__ q, const fluid_ve
 				equation_of_state eos(e_s);
 				precision p = eos.equilibrium_pressure();
 
-			#ifndef BOOST_INVARIANT
-				precision un = u[s].un;
-				precision ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t2 * un * un);
 				precision utperp = sqrt(1.  +  ux * ux  +  uy * uy);
 				precision zt = t * un / utperp;
 				precision zn = ut / t / utperp;
-			#else
-				precision zt = 0;
-				precision zn = 1. / t;
-			#endif
 
 			#ifdef PIMUNU
 				precision pitt = q[s].pitt;
@@ -488,14 +497,18 @@ void output_glauber(const hydro_variables * const __restrict__ q, const fluid_ve
 				fprintf(energy, 	"%.3f\t%.3f\t%.3f\t%.8e\n", x, y, z, e_s * hbarc);
 				fprintf(plptratio,	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, pl / pt);
 				fprintf(uxplot, 	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, ux);
-				fprintf(uyplot, 	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, uy);
+				fprintf(utplot, 	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, ut);
+				fprintf(ereg, 		"%.5f\t%.3f\t%.3f\t%d\n", x, y, z, e_regulation[s]);
+				fprintf(utreg, 		"%.5f\t%.3f\t%.3f\t%d\n", x, y, z, ut_regulation[s]);
 			}
 		}
 	}
 	fclose(energy);
 	fclose(plptratio);
 	fclose(uxplot);
-	fclose(uyplot);
+	fclose(utplot);
+	fclose(ereg);
+	fclose(utreg);
 }
 
 
@@ -545,10 +558,10 @@ void output_semi_analytic_solution_if_any(lattice_parameters lattice, initial_co
 		}
 		case 3:		// anisotropic Gubser
 		{
-			
-		#ifdef ANISO_HYDRO	
+
+		#ifdef ANISO_HYDRO
 			printf("\nRunning semi-analytic anisotropic Gubser solution...\n");
-			double T0_hat = run_semi_analytic_aniso_gubser(lattice, initial, hydro);	
+			double T0_hat = run_semi_analytic_aniso_gubser(lattice, initial, hydro);
 		#else
 			printf("\nRunning semi-analytic viscous Gubser solution...\n");
 			double T0_hat = run_semi_analytic_viscous_gubser(lattice, initial, hydro);
