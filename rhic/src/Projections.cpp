@@ -7,7 +7,7 @@
 #include "../include/Projections.h"
 using namespace std;
 
-double canonical(default_random_engine & generator)
+inline double canonical(default_random_engine & generator)
 {
   // random number between [0,1)
   return generate_canonical<double, numeric_limits<double>::digits>(generator);
