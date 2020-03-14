@@ -10,6 +10,7 @@
 #include "../include/Parameters.h"
 #include "../include/OpticalGlauber.h"
 #include "../include/MCGlauber.h"
+#include "../include/Trento.h"
 #include "../include/ViscousBjorken.h"
 #include "../include/AnisoBjorken.h"
 #include "../include/IdealGubser.h"
@@ -420,7 +421,7 @@ void longitudinal_Energy_Density_Profile(double * const __restrict__ eL, int nz,
 // Optical or MC glauber initial energy density profile
 void set_Glauber_energy_density_and_flow_profile(int nx, int ny, int nz, double dx, double dy, double dz, initial_condition_parameters initial, hydro_parameters hydro)
 {
-	int initialConditionType = initial.initialConditionType;
+	int initial_condition_type = initial.initial_condition_type;
 
 	double T0 = initial.initialCentralTemperatureGeV;									// central temperature (GeV)
 	//double e0 = equilibrium_energy_density(T0 / hbarc, hydro.conformal_eos_prefactor);	// energy density scale factor
@@ -433,11 +434,11 @@ void set_Glauber_energy_density_and_flow_profile(int nx, int ny, int nz, double 
 	double eL[nz];			// normalized longitudinal profile
 
 	// compute normalized transverse and longitudinal profiles
-	if(initialConditionType == 4)
+	if(initial_condition_type == 4)
 	{
 		Optical_Glauber_energy_density_transverse_profile(eT, nx, ny, dx, dy, initial);
 	}
-	else if(initialConditionType == 5)
+	else if(initial_condition_type == 5)
 	{
 		MC_Glauber_energy_density_transverse_profile(eT, nx, ny, dx, dy, initial);
 	}
@@ -498,7 +499,7 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 	if(lattice.adaptive_time_step) dt = lattice.min_time_step;
 
 	printf("\nInitial conditions = ");
-	switch(initial.initialConditionType)
+	switch(initial.initial_condition_type)
 	{
 		case 1:		// Viscous hydro or Anisotropic hydro Bjorken
 		{
@@ -603,7 +604,7 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 			break;
 		}
 
-		case 5:
+		case 5:		// MC Glauber
 		{
 			printf("MC Glauber (fluid velocity initialized to zero)\n\n");
 			set_Glauber_energy_density_and_flow_profile(nx, ny, nz, dx, dy, dz, initial, hydro);
@@ -612,16 +613,13 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 
 			break;
 		}
-		case 6:
+		case 6:		// Trento
 		{
-			printf("Trento (fluid velocity initialized to zero)");
-			printf("\t(nothing here yet! Exiting...)\n");
-			exit(-1);
+			printf("Trento (fluid velocity initialized to zero)\n\n");
+			set_trento_energy_density_and_flow_profile(lattice, initial, hydro);
+			set_anisotropic_initial_condition(nx, ny, nz, hydro);
+			set_initial_T_taumu_variables(t, nx, ny, nz);
 
-			// for setting trento + fs initial conditions
-			//  - reconstruct everything? (no need for constructing Tmunu; what's the f.s. file format?)
-			//	- I need to initialize the fluid velocity u
-			//	  and previous fluid velocity up (either up = u or somehow get the previous time step)
 			break;
 		}
 		default:

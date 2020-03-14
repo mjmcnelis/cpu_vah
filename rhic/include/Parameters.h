@@ -6,6 +6,7 @@
 typedef struct
 {
 	int run_hydro;
+	int output;
 
 	double tau_initial;
 	double plpt_ratio_initial;
@@ -53,7 +54,7 @@ typedef struct
 	int adaptive_time_step;
 	double min_time_step;		// minimum time step set for the program
 
-	double delta_0;				
+	double delta_0;
 	double alpha;
 
 	int tau_coarse_factor;
@@ -63,8 +64,9 @@ typedef struct
 
 typedef struct
 {
-	int initialConditionType;
-	int numberOfNucleonsPerNuclei;			// can only do A = B collision
+	int initial_condition_type;
+	int nucleus_A;
+	int nucleus_B;
 
 	double initialCentralTemperatureGeV;	// initial central temperature for a central collision
 	double scatteringCrossSectionNN;
@@ -76,6 +78,15 @@ typedef struct
 	double rapidityMean; 		// flat region around \ets_s = 0
 
 	double q_gubser;
+
+	double trento_normalization_GeV;		// trento parameters
+	double trento_nucleon_width;
+	double trento_min_nucleon_distance;
+	double trento_geometric_parameter;
+	int trento_average_over_events;
+	int trento_number_of_average_events;
+	double trento_gamma_standard_deviation;
+	int trento_fixed_seed;
 
 } initial_condition_parameters;
 

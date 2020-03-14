@@ -23,6 +23,7 @@ equation_of_state_new::equation_of_state_new(precision e1_in, precision conforma
 	e1 = e1_in;
 	conformal_prefactor = conformal_prefactor_in;
 
+#ifdef LATTICE_QCD
 	precision hotqcd_e_min = 0.00175;		// min energy density in fm^-4 rounded up to 3 SFs (see notebook in eos/hotqcd_smash)
 
 	if(e1 < hotqcd_e_min)
@@ -30,6 +31,7 @@ equation_of_state_new::equation_of_state_new(precision e1_in, precision conforma
 		printf("equation_of_state_new error: e1 = %.3f is smaller than minimum energy density = %lf in hotqcd eos table\n", e1, hotqcd_e_min);
 		exit(-1);
 	}
+#endif
 
 #ifdef LATTICE_QCD
 #ifndef CONFORMAL_EOS

@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include <math.h>
 #include <cmath>
 #include "../include/Hydrodynamics.h"
@@ -12,16 +13,34 @@ inline precision sign(precision x)
 	else return 0.;
 }
 
+inline precision Theta(precision x)
+{
+	if(x > 0.)
+	{
+		return 1.;
+	}
+
+	return 0.;
+}
+
 precision eta_over_s(precision T, hydro_parameters hydro)
 {
-	if(hydro.temperature_etas)								// temperature dependent piecewise parameterization
+	if(hydro.temperature_etas == 1)								// temperature dependent piecewise parameterization
 	{
-		precision etas_min = hydro.etas_min;				// etas value for T < Tc
-		precision etas_slope = hydro.etas_slope * hbarc;	// etas slope (converted to fm)
-		precision Tc = 0.154 / hbarc;						// psuedocritical temperature (fm^-1)
+		// precision etas_min = hydro.etas_min;				// etas value for T < Tc
+		// precision etas_slope = hydro.etas_slope * hbarc;	// etas slope (converted to fm)
+		// precision Tc = 0.154 / hbarc;						// psuedocritical temperature (fm^-1)
 
-		return fmax(etas_min, etas_min  +  etas_slope * (T - Tc));
+		// return fmax(etas_min, etas_min  +  etas_slope * (T - Tc));
+
+		precision aL = -0.77 * hbarc;
+		precision aH = 0.21 * hbarc;
+		precision Tk = 0.22 / hbarc;
+		precision etask = 0.093;
+
+		return etask  +  (T - Tk) * (aL * Theta(Tk - T)  +  aH * Theta(T - Tk));
 	}
+
 	return hydro.constant_etas;
 }
 
@@ -51,8 +70,8 @@ precision zeta_over_s(precision T, hydro_parameters hydro)
 
 	precision norm = hydro.zetas_normalization_factor;
 	precision Tpeak = hydro.zetas_peak_temperature_GeV / hbarc;		// peak temperature in fm^-1
-	precision width = 0.025 / hbarc;								// width in fm^-1
-	precision skew = -0.03;
+	precision width = 0.089 / hbarc;								// width in fm^-1
+	precision skew = -0.15;
 
 	precision Lambda = width * (1.  +  skew * sign(T - Tpeak));
 

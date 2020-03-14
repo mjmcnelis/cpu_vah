@@ -113,7 +113,7 @@ precision compute_dt_CFL(precision t, lattice_parameters lattice, hydro_paramete
 #ifdef ADAPTIVE_FILE
 	FILE * dt_CFL_bound;
 	dt_CFL_bound = fopen("output/dt_CFL.dat", "a");
-	fprintf(dt_CFL_bound, "%.4f\t%.8f\n", t, dt_CFL / 8.);
+	fprintf(dt_CFL_bound, "%.8f\t%.8f\n", t, dt_CFL / 8.);
 	fclose(dt_CFL_bound);
 #endif
 

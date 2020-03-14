@@ -142,7 +142,7 @@ precision set_the_time_step(int n, precision t, precision dt_prev, precision t_n
 		}
 	}
 
-	if(hydro.run_hydro == 1 && initial.initialConditionType != 1)						// adjust dt further (for timed hydro outputs, except Bjorken)
+	if(hydro.run_hydro == 1 && initial.initial_condition_type != 1)						// adjust dt further (for timed hydro outputs, except Bjorken)
 	{
 		if(after_output)
 		{
@@ -214,14 +214,18 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 
 		//printf("%d\t%lf\n", n, t);
 
-		if(hydro.run_hydro == 1)													// outputs hydro data at regular time intervals
+		if(hydro.run_hydro == 1)								// outputs hydro data at regular time intervals (if hydro.output = 1)
 		{
-			if(n == 0 || initial.initialConditionType == 1)							// output first time or output bjorken at every time step
+			if(n == 0 || initial.initial_condition_type == 1)	// output first time or output bjorken at every time step
 			{
 				long cells_above_Tswitch = number_of_cells_above_freezeout_temperature(lattice, hydro);
 
 				print_hydro_center(n, t, lattice, hydro, cells_above_Tswitch);
-				output_dynamical_variables(t, dt_prev, lattice, initial, hydro);
+
+				if(hydro.output)
+				{
+					output_dynamical_variables(t, dt_prev, lattice, initial, hydro);
+				}
 
 				if((double) cells_above_Tswitch / (double) grid_size <= 0.001)
 				{
@@ -233,7 +237,11 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 				long cells_above_Tswitch = number_of_cells_above_freezeout_temperature(lattice, hydro);
 
 				print_hydro_center(n, t, lattice, hydro, cells_above_Tswitch);
-				output_dynamical_variables(t, dt_prev, lattice, initial, hydro);
+
+				if(hydro.output)
+				{
+					output_dynamical_variables(t, dt_prev, lattice, initial, hydro);
+				}
 
 				if((double) cells_above_Tswitch / (double) grid_size <= 0.001)
 				{
@@ -243,15 +251,15 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 				t_out += dt_out;
 			}
 		}
-		else if(hydro.run_hydro == 2)												// construct freezeout surface
+		else if(hydro.run_hydro == 2)							// construct freezeout surface
 		{
 			if(lattice.adaptive_time_step == 0)
 			{
-				if(n == 0)															// initialize hydro info in freezeout finder
+				if(n == 0)										// initialize hydro info in freezeout finder
 				{
 					fo_surface.set_hydro_evolution(q, e, u);
 				}
-				else if(n % freezeout_period == 0)									// find freezeout cells
+				else if(n % freezeout_period == 0)				// find freezeout cells
 				{
 					long cells_above_Tswitch = number_of_cells_above_freezeout_temperature(lattice, hydro);
 

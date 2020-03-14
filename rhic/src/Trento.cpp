@@ -5,12 +5,33 @@
 #include <vector>
 #include "../include/MCGlauber.h"
 #include "../include/Parameters.h"
+#include "../include/DynamicalVariables.h"
+#include "../include/Macros.h"
+#include "../include/Hydrodynamics.h"
+#include <gsl/gsl_errno.h>
+#include <gsl/gsl_spline.h>
+#include <gsl/gsl_interp.h>
 using namespace std;
 
 
-//const double SIG0 = 0.46;			// gaussian width
-const double w = 0.5;				// nucleon width
-const double sgg = 20.4973;			// gluon-gluon cross section? (difference from snn?)
+inline int linear_column_index(int i, int j, int k, int nx, int ny)
+{
+	return i  +  nx * (j  +  ny * k);
+}
+
+
+inline precision Theta(precision x)
+{
+	if(x > 0)
+	{
+		return 1.;
+	}
+	else if(x < 0)
+	{
+		return 0;
+	}
+	return 0.5;
+}
 
 
 inline double canonical(default_random_engine & generator)
@@ -23,10 +44,10 @@ inline double canonical(default_random_engine & generator)
 double woods_saxon(double r, double A)
 {
 	double n0 = 0.17; 												// nuclear density [fm^-3]
-	double Rn = 1.12 * pow(A, 1./3.)  -  0.86 * pow(A, -1./3.);		// nuclear radius in fm
-	double d = 0.54; 												// surface thickness in fm (Pb only?)
+	double R = 1.12 * pow(A, 1./3.)  -  0.86 * pow(A, -1./3.);		// nuclear radius in fm
+	double d = 0.54; 												// surface thickness in fm (Pb only)
 
-	return n0 / (1. + exp((r - Rn) / d));
+	return n0 / (1. + exp((r - R) / d));
 }
 
 
@@ -42,38 +63,113 @@ double Tpp_overlap(double distance2, double w2)
 }
 
 
-void sample_nucleon_transverse_positions_in_nucleus(int A, double * x, double * y, default_random_engine & generator)
+double compute_sigma_gg(double w)
+{
+	// interpolation of sgg(w) data (note: this calculation is limited to sigma_NN = 6.4 fm^2)
+
+  	FILE * sgg_file;
+  	sgg_file = fopen("mathematica/sgg.dat", "r");
+  	if(sgg_file == NULL)
+  	{
+  		printf("Error: couldn't open sgg.dat file\n");
+  	}
+
+  	int points;
+  	fscanf(sgg_file, "%d", &points);
+
+  	double * width = (double *)calloc(points, sizeof(double));
+  	double * sgg_values = (double *)calloc(points, sizeof(double));
+
+	for(int i = 0; i < points; i++)
+	{
+		fscanf(sgg_file, "%lf\t%lf", &width[i], &sgg_values[i]);
+	}
+
+	fclose(sgg_file);
+
+  	if(!(w >= width[0] && w <= width[points - 1]))
+  	{
+  		printf("compute_sigma_gg error: nucleon width w = %lf outside range [%lf,%lf]\n", w, width[0], width[points - 1]);
+  		exit(-1);
+  	}
+
+	gsl_spline * sigma_gg_spline;
+	gsl_interp_accel * accel = gsl_interp_accel_alloc();
+
+    sigma_gg_spline = gsl_spline_alloc(gsl_interp_cspline, points);
+    gsl_spline_init(sigma_gg_spline, width, sgg_values, points);
+
+ 	double sigma_gg = gsl_spline_eval(sigma_gg_spline, w, accel);
+
+ 	printf("sigma_gg = %lf\n\n", sigma_gg);
+
+  	gsl_interp_accel_free(accel);
+    gsl_spline_free(sigma_gg_spline);
+    free(width);
+	free(sgg_values);
+
+	return sigma_gg;
+}
+
+
+void sample_nucleon_transverse_positions_in_nucleus(int A, double * xA, double * yA, double d_min, default_random_engine & generator)
 {
 	// sample the transverse positions of nucleons in nucleus A with probability r^2.woods_saxon(r, A).dr.dphi.dcostheta
+	// also enforce minimum nucleon-nucleon separation
 
   	uniform_real_distribution<double> phi_distribution(0., 2. * M_PI);
 	uniform_real_distribution<double> costheta_distribution(-1., nextafter(1., numeric_limits<double>::max()));
 
-	// r2_woods_saxon_max is A dependent; pass separately (special cases 208, 197, etc)
+	double zA[A];												// longitudinal position (z not eta)
 
-	double r2_woods_saxon_max = 4.5310551374155095;	    			// max value of r^2.woods_saxon(r, A) (for A = 208)
+	double r_max = 20.;											// technically infinity but large enough coverage
+	double r2_woods_saxon_max = 4.48620;						// max value of r^2.woods_saxon(r, 208) for Pb only
 
-	int n = 0;
+	int n = 0;													// number of sampled nucleons
 
-	while(n < A)													// keep sampling until all nucleons positions sampled
-	{		
-		double r = 20. * canonical(generator);						// sample r uniformly between 0 and 20
-		double phi = phi_distribution(generator);					// sample angles
+	while(n < A)												// accept-reject sampling until all nucleons positions filled
+	{
+		double r = r_max * canonical(generator);				// sample r uniformly between 0 and r_max
+		double phi = phi_distribution(generator);				// sample angles
 	    double costheta = costheta_distribution(generator);
 		double sintheta = sqrt(fabs(1. - costheta * costheta));
 
-		double weight = r * r * woods_saxon(r, A) / r2_woods_saxon_max;
+		double x = r * sintheta * cos(phi);						// cartesian position of proposed nucleon
+		double y = r * sintheta * sin(phi);
+		double z = r * costheta;
+
+		double separation_weight = 1.;
+
+		if(n > 0 && d_min > 0.)									// find distance btw proposed nucleon and nearest (already) sampled nucleon
+		{
+			double d = 1./0.;
+
+			for(int i = 0; i < n; i++)
+			{
+				double xi = xA[i];
+				double yi = yA[i];
+				double zi = zA[i];
+
+				double d_pair = sqrt((x - xi) * (x - xi)  + (y - yi) * (y - yi)  +  (z - zi) * (z - zi));
+
+				d = fmin(d, d_pair);
+			}
+
+			separation_weight = Theta(d - d_min);
+		}
+
+		double weight = r * r * woods_saxon(r, A) / r2_woods_saxon_max * separation_weight;
 
 		if(fabs(weight - 0.5) > 0.5)
 		{
-			printf("sample_nucleon_transverse_positions_in_nucleus error: weight = %lf\n", weight);
-			exit(-1);
+			printf("sample_nucleon_transverse_positions_in_nucleus warning: weight = %lf out of bounds\n", weight);
 		}
 
-		if(canonical(generator) < weight)			// let's not enforce |x1 - x2| >= d_min yet
+		if(canonical(generator) < weight)
 		{
-	     	x[n] = r * sintheta * cos(phi);			// set nucleon's transverse position
-			y[n] = r * sintheta * sin(phi);
+	     	xA[n] = x;											// set nucleon's transverse position
+			yA[n] = y;
+			zA[n] = z;											// this is only needed for computing nucleon-nucleon separation
 			n++;
 		}
 	}
@@ -81,23 +177,22 @@ void sample_nucleon_transverse_positions_in_nucleus(int A, double * x, double * 
 
 
 
-void wounded_nucleons(int A, int B, vector<double> * xA_wounded, vector<double> * yA_wounded, vector<double> * xB_wounded, vector<double> * yB_wounded, double b, double w, double sigma_gg, default_random_engine & generator)
+void wounded_nucleons(int A, int B, vector<double> * xA_wounded, vector<double> * yA_wounded, vector<double> * xB_wounded, vector<double> * yB_wounded, double b, double w, double d_min, double sigma_gg, default_random_engine & generator)
 {
 	// computes the transverse positions of wounded nucleons in A and B
 
-	
-	double xA[A];		// sampled transverse positions of nucleons in A
-	double yA[A];		
-	sample_nucleon_transverse_positions_in_nucleus(A, xA, yA, generator);
+	double xA[A];												// sample nucleon transverse positions in nucleus A
+	double yA[A];
+	sample_nucleon_transverse_positions_in_nucleus(A, xA, yA, d_min, generator);
 
-	double xB[B];		// sampled transverse positions of nucleons in A
+	double xB[B];												// sample nucleon transverse positions in nucleus B
 	double yB[B];
-	sample_nucleon_transverse_positions_in_nucleus(B, xB, yB, generator);
+	sample_nucleon_transverse_positions_in_nucleus(B, xB, yB, d_min, generator);
 
-	int wounded_nucleonsA[A];			// wounded nucleon tags
-	int wounded_nucleonsB[B];			// 0 = not wounded, 1 = wounded
+	int wounded_nucleonsA[A];									// wounded nucleon tags (default values are zero)
+	int wounded_nucleonsB[B];									// 0 = not wounded, 1 = wounded
 
-	for(int n = 0; n < A; n++)			// shift x positions by -/+ b/2
+	for(int n = 0; n < A; n++)									// also shift x coordinates +/- b/2
 	{
 		xA[n] -= b/2.;
 		wounded_nucleonsA[n] = 0;
@@ -109,28 +204,25 @@ void wounded_nucleons(int A, int B, vector<double> * xA_wounded, vector<double> 
 		wounded_nucleonsB[n] = 0;
 	}
 
-	
-	for(int i = 0; i < A; i++)									// loop over all possible collision pairs and sample wounded nucleons						
+	for(int i = 0; i < A; i++)									// loop over all possible collision pairs and tag wounded nucleons
 	{
 		for(int j = 0; j < B; j++)
 		{
-			double dx = xA[i] - xB[j];							// compute transverse distance between pairs
+			double dx = xA[i] - xB[j];							// compute transverse distance between colliding pairs
 			double dy = yB[i] - yB[j];
 			double distance_sq = dx * dx  +  dy * dy;
 
 			double probability_collision = 1.  -  exp(- sigma_gg * Tpp_overlap(distance_sq, w * w));
-			
+
 			if(canonical(generator) < probability_collision)	// if pair collides, tag the wounded nucleons
 			{
-				wounded_nucleonsA[i] = 1;	
+				wounded_nucleonsA[i] = 1;
 				wounded_nucleonsB[j] = 1;
 			}
+		}
+	}
 
-		} 
-	} 
-
-	
-	for(int n = 0; n < A; n++)									// get transverse positions of wounded nucleons in A and B
+	for(int n = 0; n < A; n++)									// collect transverse positions of wounded nucleons in A and B
 	{
 		if(wounded_nucleonsA[n])
 		{
@@ -150,85 +242,202 @@ void wounded_nucleons(int A, int B, vector<double> * xA_wounded, vector<double> 
 }
 
 
-void trento_transverse_energy_profile(double * const __restrict__ energy_transverse, lattice_parameters lattice, initial_condition_parameters initial)
+void trento_transverse_energy_density_profile(double * const __restrict__ energy_density_transverse, lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro)
 {
-	// set the seed
+	// set seed and initialize sampler
+
 	long unsigned seed = chrono::system_clock::now().time_since_epoch().count();
+
+	if(initial.trento_fixed_seed)
+	{
+		seed = abs(initial.trento_fixed_seed);
+	}
+
    	default_random_engine generator(seed);
 
-
-	int nx = lattice.lattice_points_x;
+	int nx = lattice.lattice_points_x;							// transverse grid
 	int ny = lattice.lattice_points_y;
 	double dx = lattice.lattice_spacing_x;
 	double dy = lattice.lattice_spacing_y;
 
-	int A = initial.numberOfNucleonsPerNuclei;					// assumes A = B nuclear collisions
-	int B = A;
+	int A = initial.nucleus_A;									// number of nucleons in nuclei A, B
+	int B = initial.nucleus_B;
 
-	double b = initial.impactParameter;
-	double snn = initial.scatteringCrossSectionNN;
+	double b = initial.impactParameter;							// impact parameter [fm]
+	double N = initial.trento_normalization_GeV;				// normalization factor [GeV]
+	double w = initial.trento_nucleon_width;					// nucleon width [fm]
 
+	double sigma_gg = compute_sigma_gg(w);						// compute parton cross section in trento model [fm^2]
+
+	double d_min = initial.trento_min_nucleon_distance;			// minimum nucleon-nucleon separation in nucleus [fm]
+	double p = initial.trento_geometric_parameter;				// geometric parameter p
+	double sigma_k = initial.trento_gamma_standard_deviation;	// gamma distribution standard deviation
+
+	double t0 = hydro.tau_initial;								// initial time
+
+	int event_averaging = initial.trento_average_over_events;	// option to do event averaging for smoother energy density profile
+	int number_of_events = 1;
+
+	if(event_averaging)
+	{
+		number_of_events = initial.trento_number_of_average_events;
+	}
+
+	double alpha = 1. / (sigma_k * sigma_k);					// alpha = k (shape parameter)
+	double beta = sigma_k * sigma_k;							// beta = 1 / alpha
+	gamma_distribution<double> gamma(alpha, beta);				// gamma distribution (mean = 1, std = sigma_k)
 
 	vector<double> * xA_wounded = new vector<double>();			// (x,y) positions of wounded nucleons in A and B
 	vector<double> * yA_wounded = new vector<double>();
 	vector<double> * xB_wounded = new vector<double>();
-	vector<double> * yB_wounded = new vector<double>();  
+	vector<double> * yB_wounded = new vector<double>();
 
-	wounded_nucleons(A, B, xA_wounded, yA_wounded, xB_wounded, yB_wounded, b, w, sgg, generator); 	
-
-	int nA_wounded = xA_wounded->size();
-	int nB_wounded = xB_wounded->size();
-
-	printf("%d wounded nucleons in A\n\n", nA_wounded);
-	printf("%d wounded nucleons in B\n\n", nB_wounded);
-
-	for(int i = 0; i < nx; i++)
+	for(int event = 0; event < number_of_events; event++)
 	{
-   		for(int j = 0; j < ny; j++)
-   	 	{
-   	 		double x = (i - (nx - 1.)/2.) * dx;			// fluid cell position
-   	 		double y = (j - (ny - 1.)/2.) * dy;
+		wounded_nucleons(A, B, xA_wounded, yA_wounded, xB_wounded, yB_wounded, b, w, d_min, sigma_gg, generator);
 
-   	 		double TA = 0;
-   	 		double TB = 0;
+		int nA_wounded = xA_wounded->size();
+		int nB_wounded = xB_wounded->size();
 
-			for(int n = 0; n < nA_wounded; n++)			// nuclear thickness function A 
+		//printf("%d wounded nucleons in A\n", nA_wounded);
+		//printf("%d wounded nucleons in B\n\n", nB_wounded);
+
+		double gamma_A[nA_wounded];									// gamma distribution samples
+		double gamma_B[nB_wounded];
+
+		for(int n = 0; n < nA_wounded; n++)
+		{
+			if(sigma_k > 0.)
 			{
-				double xA = (*xA_wounded)[n];
-				double yA = (*yA_wounded)[n];
-
-				double dx = x - xA;
-				double dy = y - yA;
-				double distance_sq = dx * dx  +  dy * dy;
-
-				TA += Tp(distance_sq, w * w);
+				gamma_A[n] = gamma(generator);
 			}
-
-			for(int n = 0; n < nB_wounded; n++)			// nuclear thickness function B = A
+			else
 			{
-				double xB = (*xB_wounded)[n];
-				double yB = (*yB_wounded)[n];
-
-				double dx = x - xB;
-				double dy = y - yB;
-				double distance_sq = dx * dx  +  dy * dy;
-				
-				TB += Tp(distance_sq, w * w);
+				gamma_A[n] = 1.;
 			}
+		}
+		for(int n = 0; n < nB_wounded; n++)
+		{
+			if(sigma_k > 0.)
+			{
+				gamma_B[n] = gamma(generator);
+			}
+			else
+			{
+				gamma_B[n] = 1.;
+			}
+		}
 
-	        //double TR = sqrt(TA * TB);				// reduced nuclear thickness function (p = 0)
-	        double TR = (TA + TB) / 2.;					// p = 1
+		for(int i = 0; i < nx; i++)									// compute the transverse energy density profile
+		{
+	   		for(int j = 0; j < ny; j++)
+	   	 	{
+	   	 		double x = (i - (nx - 1.)/2.) * dx;					// fluid cell position
+	   	 		double y = (j - (ny - 1.)/2.) * dy;
 
-	        double norm = 1;
+	   	 		double TA = 0;
 
-	        energy_transverse[i + j * nx] = norm * TR;
+				for(int n = 0; n < nA_wounded; n++)					// nuclear thickness function A [fm^-2]
+				{
+					double xA = (*xA_wounded)[n];
+					double yA = (*yA_wounded)[n];
+
+					double dx = x - xA;
+					double dy = y - yA;
+					double distance_sq = dx * dx  +  dy * dy;
+
+					TA += gamma_A[n] * Tp(distance_sq, w * w);
+				}
+
+				double TB = 0;
+
+				for(int n = 0; n < nB_wounded; n++)					// nuclear thickness function B = A [fm^-2]
+				{
+					double xB = (*xB_wounded)[n];
+					double yB = (*yB_wounded)[n];
+
+					double dx = x - xB;
+					double dy = y - yB;
+					double distance_sq = dx * dx  +  dy * dy;
+
+					TB += gamma_B[n] * Tp(distance_sq, w * w);
+				}
+
+		        double TR = pow((pow(TA, p) + pow(TB, p)) / 2., 1./p);	// reduced nuclear thickness function
+
+		        if(fabs(p) < 1.e-4)
+		        {
+		        	TR = sqrt(TA * TB);
+		        }
+
+		        energy_density_transverse[i + j * nx] += N * TR / (t0 * hbarc * (double)number_of_events);
+			} // j
+		} // i
+
+		xA_wounded->clear();
+		yA_wounded->clear();
+		xB_wounded->clear();
+		yB_wounded->clear();
+
+		cout << "\r" << event + 1 << " / " << number_of_events << " events completed" << flush;
+
+	} // events
+
+	printf("\n\n");
+}
+
+
+void set_trento_energy_density_and_flow_profile(lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro)
+{
+	precision e_min = hydro.energy_min;
+
+	int nx = lattice.lattice_points_x;
+	int ny = lattice.lattice_points_y;
+	int nz = lattice.lattice_points_eta;
+
+	double eT[nx * ny];											// transverse energy density profile [fm^-4]
+
+	for(int i = 0; i < nx; i++)									// zero energy density profile
+	{
+		for(int j = 0; j < ny; j++)
+		{
+			eT[i + j * nx] = 0;
 		}
 	}
 
+	trento_transverse_energy_density_profile(eT, lattice, initial, hydro);
 
-	// I'll take care of the normalization = N / t0 separately
+	// leave out longitudinal profile for now
+	//double eL[nz];			// normalized longitudinal profile
+	//longitudinal_Energy_Density_Profile(eL, nz, dz, initial);
+
+	for(int k = 2; k < nz + 2; k++)
+	{
+		for(int j = 2; j < ny + 2; j++)
+		{
+			for(int i = 2; i < nx + 2; i++)
+			{
+				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
+
+				precision e_s = eT[i - 2  +  (j - 2) * nx];
+
+				e[s] = energy_density_cutoff(e_min, e_s);
+
+				u[s].ux = 0.0;		// zero initial velocity
+				u[s].uy = 0.0;
+			#ifndef BOOST_INVARIANT
+				u[s].un = 0.0;
+			#endif
+
+				up[s].ux = 0.0;		// also set up = u
+				up[s].uy = 0.0;
+			#ifndef BOOST_INVARIANT
+				up[s].un = 0.0;
+			#endif
+			}
+		}
+	}
 }
-
 
 
 

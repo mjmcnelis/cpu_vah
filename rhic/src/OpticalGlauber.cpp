@@ -75,7 +75,7 @@ double woundedNucleons(double TA, double TB, double A, double B, double snn)
 void Optical_Glauber_energy_density_transverse_profile(double * const __restrict__ energyDensityTransverse, int nx, int ny, double dx, double dy, initial_condition_parameters initial)
 {
 	// nuclear collision parameters
-	double A = initial.numberOfNucleonsPerNuclei;		// assume A = B
+	double A = initial.nucleus_A;		// assume A = B
 	double B = A;
 	double b = initial.impactParameter;
 	double snn = initial.scatteringCrossSectionNN;
@@ -91,10 +91,9 @@ void Optical_Glauber_energy_density_transverse_profile(double * const __restrict
 	// normalized transverse energy density profile
 	for(int i = 0; i < nx; i++)
 	{
-		double x = (i  -  (nx - 1.)/2.) * dx;
-
 		for(int j = 0; j < ny; j++)
 		{
+			double x = (i  -  (nx - 1.)/2.) * dx;
 			double y = (j  -  (ny - 1.)/2.) * dy;
 
 			double TA = nuclearThicknessFunction(x - b/2., y, A);

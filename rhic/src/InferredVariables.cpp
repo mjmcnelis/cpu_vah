@@ -171,7 +171,7 @@ void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict
 					printf("\nget_inferred_variables_aniso_hydro error: u^mu = (%lf, %lf, %lf, %lf) is nan\n", ut_s, ux_s, uy_s, un_s);
 					exit(-1);
 				}
-
+/*
 				precision de_over_e = (e_s - eprev) / eprev;
 
 				if(de_over_e > 0.1)
@@ -202,6 +202,7 @@ void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict
 
 					ut_regulation[s] += 1;
 				}
+*/
 
 			#ifdef TEST_TTAUMU
 				ut_s = sqrt(1.  +  ux_s * ux_s  +  uy_s * uy_s  +  t2 * un_s * un_s);
@@ -351,12 +352,12 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 						break;
 					}
 				}
-/*
-				if(n > max_iterations)
-				{
-					printf("newton method (eprev, e_s, |de/e_s|) = (%.6g, %.6g, %.6g) failed to converge within desired percentage tolerance %lf at (i, j, k) = (%d, %d, %d)\n", eprev, e_s, fabs(de / e_s), energy_tolerance, i, j, k);
-				}
-*/
+
+				// if(n > max_iterations)
+				// {
+				// 	printf("newton method (eprev, e_s, |de/e_s|) = (%.6g, %.6g, %.6g) failed to converge within desired percentage tolerance %lf at (i, j, k) = (%d, %d, %d)\n", eprev, e_s, fabs(de / e_s), energy_tolerance, i, j, k);
+				// }
+
 
 			#endif
 

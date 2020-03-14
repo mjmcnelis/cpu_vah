@@ -414,23 +414,23 @@ void output_glauber(const hydro_variables * const __restrict__ q, const fluid_ve
 	precision dz = lattice.lattice_spacing_eta;
 
 	FILE *energy, *plptratio, *uxplot, *utplot;
-	FILE *ereg, *utreg;
+	//FILE *ereg, *utreg;
 	char fname1[255], fname2[255], fname3[255], fname4[255];
-	char fname5[255], fname6[255];
+	//char fname5[255], fname6[255];
 
 	sprintf(fname1, "output/e_%.3f.dat", t);
 	sprintf(fname2, "output/plpt_%.3f.dat", t);
 	sprintf(fname3, "output/ux_%.3f.dat", t);
 	sprintf(fname4, "output/ut_%.3f.dat", t);
-	sprintf(fname5, "output/ereg_%.3f.dat", t);
-	sprintf(fname6, "output/utreg_%.3f.dat", t);
+	//sprintf(fname5, "output/ereg_%.3f.dat", t);
+	//sprintf(fname6, "output/utreg_%.3f.dat", t);
 
 	energy      = fopen(fname1, "w");
 	plptratio 	= fopen(fname2, "w");
 	uxplot    	= fopen(fname3, "w");
 	utplot    	= fopen(fname4, "w");
-	ereg    	= fopen(fname5, "w");
-	utreg		= fopen(fname6, "w");
+	//ereg    	= fopen(fname5, "w");
+	//utreg		= fopen(fname6, "w");
 
 	precision t2 = t * t;
 	precision t4 = t2 * t2;
@@ -498,8 +498,8 @@ void output_glauber(const hydro_variables * const __restrict__ q, const fluid_ve
 				fprintf(plptratio,	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, pl / pt);
 				fprintf(uxplot, 	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, ux);
 				fprintf(utplot, 	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, ut);
-				fprintf(ereg, 		"%.5f\t%.3f\t%.3f\t%d\n", x, y, z, e_regulation[s]);
-				fprintf(utreg, 		"%.5f\t%.3f\t%.3f\t%d\n", x, y, z, ut_regulation[s]);
+				//fprintf(ereg, 		"%.5f\t%.3f\t%.3f\t%d\n", x, y, z, e_regulation[s]);
+				//fprintf(utreg, 		"%.5f\t%.3f\t%.3f\t%d\n", x, y, z, ut_regulation[s]);
 			}
 		}
 	}
@@ -507,14 +507,14 @@ void output_glauber(const hydro_variables * const __restrict__ q, const fluid_ve
 	fclose(plptratio);
 	fclose(uxplot);
 	fclose(utplot);
-	fclose(ereg);
-	fclose(utreg);
+	//fclose(ereg);
+	//fclose(utreg);
 }
 
 
 void output_dynamical_variables(double t, double dt, lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro)
 {
-	int initial_type = initial.initialConditionType;
+	int initial_type = initial.initial_condition_type;
 
 	if(initial_type == 1)
 	{
@@ -532,7 +532,7 @@ void output_dynamical_variables(double t, double dt, lattice_parameters lattice,
 		output_gubser(q, u, e, t, lattice);
 		output_residual_shear_validity(q, u, e, t, lattice);
 	}
-	else if(initial_type == 4 || initial_type == 5)
+	else if(initial_type == 4 || initial_type == 5 || initial_type == 6)
 	{
 		output_glauber(q, u, e, t, lattice);
 		output_residual_shear_validity(q, u, e, t, lattice);
@@ -543,7 +543,7 @@ void output_dynamical_variables(double t, double dt, lattice_parameters lattice,
 
 void output_semi_analytic_solution_if_any(lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro)
 {
-	switch(initial.initialConditionType)
+	switch(initial.initial_condition_type)
 	{
 		case 1:		// Bjorken
 		{

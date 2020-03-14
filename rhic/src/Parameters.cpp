@@ -20,12 +20,12 @@ bool time_step_within_CFL_bound(double dt, lattice_parameters lattice)
 
 	double dt_CFL = 0.125 * fmin(dx, fmin(dy, dn));
 
-	if(dt <= dt_CFL) 
+	if(dt <= dt_CFL)
 	{
 		return true;
 	}
 	else
-	{ 
+	{
 		return false;
 	}
 }
@@ -60,6 +60,12 @@ hydro_parameters load_hydro_parameters()
 		auto delimiterPos = line.find("=");
 		line = line.substr(delimiterPos + 1);
 		hydro.run_hydro = atoi(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		hydro.output = atoi(line.c_str());
 
 		getline(cFile, line);
 		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
@@ -173,6 +179,7 @@ hydro_parameters load_hydro_parameters()
 	printf("\nHydro parameters:");
 	printf("\n-----------------\n");
 	printf("run_hydro                  = %d\n",		hydro.run_hydro);
+	printf("output                     = %d\n",		hydro.output);
 	printf("tau_initial                = %.3g\n",	hydro.tau_initial);
 	printf("plpt_ratio_initial         = %.2g\n", 	hydro.plpt_ratio_initial);
 	printf("kinetic_theory_model       = %d\n", 	hydro.kinetic_theory_model);
@@ -316,26 +323,29 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro)
 	lattice.min_time_step = 5. * pow(10., round(log10(hydro.tau_initial)) - 2.);		// min time step ~ 20x smaller than t0
 
 #ifdef BOOST_INVARIANT
-	printf("load_lattice_parameters: BOOST_INVARIANT is defined but you set lattice_spacing_eta = %d. Setting lattice_spacing_eta = 1\n", lattice.lattice_points_eta);
-	lattice.lattice_points_eta = 1;		// automatic default
+	if(lattice.lattice_points_eta > 1)
+	{
+		printf("load_lattice_parameters: BOOST_INVARIANT is defined but you set lattice_spacing_eta = %d. Setting lattice_spacing_eta = 1\n", lattice.lattice_points_eta);
+		lattice.lattice_points_eta = 1;		// automatic default
+	}
 #endif
 
 	printf("Lattice parameters:");
 	printf("\n-------------------\n");
-	printf("lattice_points_x         = %d\n", 	lattice.lattice_points_x);
-	printf("lattice_points_y         = %d\n", 	lattice.lattice_points_y);
-	printf("lattice_points_eta       = %d\n", 	lattice.lattice_points_eta);
-	printf("lattice_spacing_x        = %.3g\n", lattice.lattice_spacing_x);
-	printf("lattice_spacing_y        = %.3g\n", lattice.lattice_spacing_y);
-	printf("lattice_spacing_eta      = %.3g\n", lattice.lattice_spacing_eta);
-	printf("max_time_steps           = %d\n", 	lattice.max_time_steps);
-	printf("output_interval          = %.2f\n", lattice.output_interval);
-	printf("fixed_time_step          = %.3g\n", lattice.fixed_time_step);
-	printf("adaptive_time_step       = %d\n", 	lattice.adaptive_time_step);
-	printf("min_time_step            = %.2e\n", lattice.min_time_step);
-	printf("delta_0                  = %.3g\n", lattice.delta_0);
-	printf("alpha                    = %.3g\n", lattice.alpha);
-	printf("tau_coarse_factor        = %d\n", 	lattice.tau_coarse_factor);
+	printf("lattice_points_x    = %d\n", 	lattice.lattice_points_x);
+	printf("lattice_points_y    = %d\n", 	lattice.lattice_points_y);
+	printf("lattice_points_eta  = %d\n", 	lattice.lattice_points_eta);
+	printf("lattice_spacing_x   = %.3g\n",	lattice.lattice_spacing_x);
+	printf("lattice_spacing_y   = %.3g\n", 	lattice.lattice_spacing_y);
+	printf("lattice_spacing_eta = %.3g\n", 	lattice.lattice_spacing_eta);
+	printf("max_time_steps      = %d\n", 	lattice.max_time_steps);
+	printf("output_interval     = %.2f\n", 	lattice.output_interval);
+	printf("fixed_time_step     = %.3g\n", 	lattice.fixed_time_step);
+	printf("adaptive_time_step  = %d\n", 	lattice.adaptive_time_step);
+	printf("min_time_step       = %.2e\n", 	lattice.min_time_step);
+	printf("delta_0             = %.3g\n", 	lattice.delta_0);
+	printf("alpha               = %.3g\n", 	lattice.alpha);
+	printf("tau_coarse_factor   = %d\n", 	lattice.tau_coarse_factor);
 	printf("\n");
 
 	double dt = lattice.fixed_time_step;						// dt = default starting time step
@@ -376,13 +386,19 @@ initial_condition_parameters load_initial_condition_parameters()
 		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
 		auto delimiterPos = line.find("=");
 		line = line.substr(delimiterPos + 1);
-		initial.initialConditionType = atoi(line.c_str());
+		initial.initial_condition_type = atoi(line.c_str());
 
 		getline(cFile, line);
 		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
 		delimiterPos = line.find("=");
 		line = line.substr(delimiterPos + 1);
-		initial.numberOfNucleonsPerNuclei = atoi(line.c_str());
+		initial.nucleus_A = atoi(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		initial.nucleus_B = atoi(line.c_str());
 
 		getline(cFile, line);
 		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
@@ -425,6 +441,54 @@ initial_condition_parameters load_initial_condition_parameters()
 		delimiterPos = line.find("=");
 		line = line.substr(delimiterPos + 1);
 		initial.q_gubser = atof(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		initial.trento_normalization_GeV = atof(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		initial.trento_nucleon_width = atof(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		initial.trento_min_nucleon_distance = atof(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		initial.trento_geometric_parameter = atof(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		initial.trento_gamma_standard_deviation = atof(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		initial.trento_average_over_events = atoi(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		initial.trento_number_of_average_events = atoi(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		initial.trento_fixed_seed = atoi(line.c_str());
 	}
 	else
 	{
@@ -433,15 +497,24 @@ initial_condition_parameters load_initial_condition_parameters()
 
 	printf("Initial condition parameters:");
 	printf("\n-----------------------------\n");
-	printf("initialConditionType         = %d\n", 	initial.initialConditionType);
-	printf("numberOfNucleonsPerNuclei    = %d\n", 	initial.numberOfNucleonsPerNuclei);
-	printf("initialCentralTemperatureGeV = %.3g\n", initial.initialCentralTemperatureGeV);
-	printf("scatteringCrossSectionNN     = %.3g\n", initial.scatteringCrossSectionNN);
-	printf("impactParameter              = %.3g\n", initial.impactParameter);
-	printf("fractionOfBinaryCollisions   = %.3g\n", initial.fractionOfBinaryCollisions);
-	printf("rapidityVariance             = %.3g\n", initial.rapidityVariance);
-	printf("rapidityMean                 = %.3g\n", initial.rapidityMean);
-	printf("q_gubser                     = %.3g\n", initial.q_gubser);
+	printf("initial_condition_type          = %d\n", 	initial.initial_condition_type);
+	printf("nucleus_A                       = %d\n", 	initial.nucleus_A);
+	printf("nucleus_B                       = %d\n", 	initial.nucleus_B);
+	printf("initial_central_temperature_GeV = %.3g\n",	initial.initialCentralTemperatureGeV);
+	printf("scatteringCrossSectionNN        = %.3g\n", 	initial.scatteringCrossSectionNN);
+	printf("impactParameter                 = %.2f\n", 	initial.impactParameter);
+	printf("fractionOfBinaryCollisions      = %.3g\n", 	initial.fractionOfBinaryCollisions);
+	printf("rapidityVariance                = %.3g\n", 	initial.rapidityVariance);
+	printf("rapidityMean                    = %.3g\n", 	initial.rapidityMean);
+	printf("q_gubser                        = %.2f\n", 	initial.q_gubser);
+	printf("trento_normalization_GeV        = %.2f\n", 	initial.trento_normalization_GeV);
+	printf("trento_nucleon_width            = %.2f\n", 	initial.trento_nucleon_width);
+	printf("trento_min_nucleon_distance     = %.2f\n", 	initial.trento_min_nucleon_distance);
+	printf("trento_geometric_parameter      = %.2f\n", 	initial.trento_geometric_parameter);
+	printf("trento_gamma_standard_deviation = %.2f\n", 	initial.trento_gamma_standard_deviation);
+	printf("trento_average_over_events      = %d\n", 	initial.trento_average_over_events);
+	printf("trento_number_of_average_events = %d\n", 	initial.trento_number_of_average_events);
+	printf("trento_fixed_seed               = %d\n", 	initial.trento_fixed_seed);
 	printf("\n");
 
 	return initial;

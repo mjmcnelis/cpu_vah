@@ -58,22 +58,22 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 				precision pl  = q[s].pl;
 				precision pt  = q[s].pt;
 
-				pl = pressure_cutoff(pressure_min, pl);
-				pt = pressure_cutoff(pressure_min, pt);
+				//pl = pressure_cutoff(pressure_min, pl);
+				//pt = pressure_cutoff(pressure_min, pt);
 
-				// if(pl < pressure_min)		
-				// {
-				// 	pl = pressure_min;			// cutoff like energy density?
-				// }
-				// if(pt < pressure_min)
-				// {
-				// 	pt = pressure_min;
-				// }
+				if(pl < pressure_min)
+				{
+					pl = pressure_min;			// cutoff like energy density?
+				}
+				if(pt < pressure_min)
+				{
+					pt = pressure_min;
+				}
 
 			#ifdef CONFORMAL_EOS  				// temporary marco (replace with if(hydro.eos) statement)
 			#ifndef LATTICE_QCD
 				pt = (e_s - pl) / 2.;
-				pt = pressure_cutoff(pressure_min, pt);
+				//pt = pressure_cutoff(pressure_min, pt);
 			#else
 				printf("regulate_residual_currents error: no eos switch for pt conformal regulation\n");
 				exit(-1);
