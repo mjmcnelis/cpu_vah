@@ -251,12 +251,6 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 	int ny = lattice.lattice_points_y;
 	int nz = lattice.lattice_points_eta;
 
-	precision T_switch = hydro.freezeout_temperature_GeV;
-	//precision e_switch = equilibrium_energy_density(T_switch / hbarc, hydro.conformal_eos_prefactor);
-	precision e_switch = equilibrium_energy_density_new(T_switch / hbarc, hydro.conformal_eos_prefactor);
-
-	//printf("%lf\n", e_switch * hbarc);
-
 	precision e_min = hydro.energy_min;
 
 	precision t2 = t * t;
@@ -325,7 +319,10 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 				for(n = 1; n <= max_iterations; n++)	// root solving algorithm (update e)
 				{
 					equation_of_state EoS(e_s);
+					//equation_of_state_new EoS(e_s, hydro.conformal_eos_prefactor);
 					precision p = EoS.equilibrium_pressure();
+
+					equation_of_state eos(e_s);
 
 					if(p + Pi <= 0.) 					// solution when have to regulate bulk pressure
 					{
@@ -363,7 +360,8 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 
 				e_s = energy_density_cutoff(e_min, e_s);
 
-				equation_of_state eos(e_s);
+				//equation_of_state eos(e_s);
+				equation_of_state_new eos(e_s, hydro.conformal_eos_prefactor);
 				precision p = eos.equilibrium_pressure();
 
 				precision P = fmax(0., p + Pi);								// should I smooth regulate it?

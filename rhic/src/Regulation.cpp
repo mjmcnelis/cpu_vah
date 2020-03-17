@@ -58,17 +58,17 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 				precision pl  = q[s].pl;
 				precision pt  = q[s].pt;
 
-				//pl = pressure_cutoff(pressure_min, pl);
-				//pt = pressure_cutoff(pressure_min, pt);
+				pl = pressure_cutoff(pressure_min, pl);
+				pt = pressure_cutoff(pressure_min, pt);
 
-				if(pl < pressure_min)
-				{
-					pl = pressure_min;			// cutoff like energy density?
-				}
-				if(pt < pressure_min)
-				{
-					pt = pressure_min;
-				}
+				// if(pl < pressure_min)
+				// {
+				// 	pl = pressure_min;			// cutoff like energy density?
+				// }
+				// if(pt < pressure_min)
+				// {
+				// 	pt = pressure_min;
+				// }
 
 			#ifdef CONFORMAL_EOS  				// temporary marco (replace with if(hydro.eos) statement)
 			#ifndef LATTICE_QCD
@@ -259,7 +259,10 @@ void regulate_viscous_currents(precision t, hydro_variables * const __restrict__
 			{
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
-				equation_of_state eos(e[s]);
+				//equation_of_state eos(e[s]);
+				//precision p = eos.equilibrium_pressure();
+
+				equation_of_state_new eos(e[s], hydro.conformal_eos_prefactor);
 				precision p = eos.equilibrium_pressure();
 
 				precision ux = u[s].ux;

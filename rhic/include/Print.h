@@ -2,6 +2,15 @@
 #define PRINT_H_
 
 #include "Parameters.h"
+#include "Precision.h"
+
+typedef struct
+{
+	precision ut_max;
+	precision e_max;
+	precision T_max;
+
+} hydro_max;
 
 void print_hydro_mode(hydro_parameters hydro);
 

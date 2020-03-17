@@ -61,14 +61,22 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 //-------------------------------------------------
 	precision conformal_eos_prefactor = hydro.conformal_eos_prefactor;
 
-	equation_of_state eos(e_s);
+	// equation_of_state eos(e_s);
+	// precision p = eos.equilibrium_pressure();
+	// precision T = eos.effective_temperature(conformal_eos_prefactor);
+
+	equation_of_state_new eos(e_s, conformal_eos_prefactor);
 	precision p = eos.equilibrium_pressure();
-	precision T = eos.effective_temperature(conformal_eos_prefactor);
+	precision T = eos.T;
+
 	precision s = (e_s + p) / T;
 
 #ifdef B_FIELD
-	precision beq = eos.equilibrium_mean_field(T);
-	precision mass = T * eos.z_quasi(T);
+	// precision beq = eos.equilibrium_mean_field(T);
+	// precision mass = T * eos.z_quasi(T);
+	// precision mdmde = eos.mdmde_quasi();
+	precision beq = eos.equilibrium_mean_field();
+	precision mass = T * eos.z_quasi();
 	precision mdmde = eos.mdmde_quasi();
 	precision mbar = mass / lambda_s;
 #else
@@ -233,8 +241,11 @@ precision zeta_LT, zeta_TT, lambda_WuT, lambda_WTT, lambda_piT;
 
 #ifdef LATTICE_QCD 											// lattice qcd only
 #ifndef CONFORMAL_EOS
-	precision taupi_inverse = eos.beta_shear(T, conformal_eos_prefactor) / (s * etabar);		// set relaxation times
-	precision taubulk_inverse = eos.beta_bulk(T) / (s * zetabar);
+	//precision taupi_inverse = eos.beta_shear(T, conformal_eos_prefactor) / (s * etabar);		// set relaxation times
+	//precision taubulk_inverse = eos.beta_bulk(T) / (s * zetabar);
+
+	precision taupi_inverse = eos.beta_shear() / (s * etabar);		// set relaxation times
+	precision taubulk_inverse = eos.beta_bulk() / (s * zetabar);
 
 	aniso_transport_coefficients_nonconformal aniso;
 	aniso.compute_transport_coefficients(e_s, pl, pt, b, lambda_s, aT_s, aL_s, mbar, mass, mdmde);
@@ -680,7 +691,9 @@ precision zeta_LT, zeta_TT, lambda_WuT, lambda_WTT, lambda_piT;
 #ifndef BOOST_INVARIANT
 	if(hydro.include_vorticity)
 	{
-		Itt += 0;	// vorticity terms not worked out yet...
+		printf("source_terms_aniso_hydro error: no vorticity terms yet\n");
+		exit(-1);
+		Itt += 0;
 		Itx += 0;
 		Ity += 0;
 		Itn += 0;
@@ -973,10 +986,15 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	precision vy = uy / ut;
 	precision vn = un / ut;
 
-	equation_of_state eos(e);
+	// equation_of_state eos(e);
+	// precision p = eos.equilibrium_pressure();
+	// precision cs2 = eos.speed_of_sound_squared();
+	// precision T = eos.effective_temperature(hydro.conformal_eos_prefactor);
+
+	equation_of_state_new eos(e, hydro.conformal_eos_prefactor);
 	precision p = eos.equilibrium_pressure();
 	precision cs2 = eos.speed_of_sound_squared();
-	precision T = eos.effective_temperature(hydro.conformal_eos_prefactor);
+	precision T = eos.T;
 
 #if (NUMBER_OF_VISCOUS_CURRENTS != 0)
 	viscous_transport_coefficients viscous(T, e, p, hydro.kinetic_theory_model);
@@ -1252,7 +1270,9 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 #ifndef BOOST_INVARIANT
 	if(hydro.include_vorticity)
 	{
-		Itt += 0.;	// vorticity terms haven't been worked out yet
+		printf("source_terms_viscous_hydro error: no vorticity terms yet\n");
+		exit(-1);
+		Itt += 0.;
 		Itx += 0.;
 		Ity += 0.;
 		Itn += 0.;

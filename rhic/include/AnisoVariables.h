@@ -7,7 +7,7 @@
 #include "Parameters.h"
 
 const int N_max = 1000;	      			// max number of iterations   (probably need to adjust)
-const precision tol_dX = 1.0e-5;    	// tolerance for dX
+const precision tol_dX = 1.0e-4;    	// tolerance for dX
 const precision tol_F = 1.0e-6;    		// tolerance for F
 
 typedef enum {newton, broyden} jacobian;

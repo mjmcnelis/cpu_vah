@@ -434,8 +434,8 @@ void line_backtracking(precision *l, precision Ea, precision PTa, precision PLa,
 
 	// g0 = fcurrent
 
-	precision ls = 0.1;         				// starting value for l
-	precision alpha = 0.0001;   					// descent parameter (default was 0.0001)
+	precision ls = 1.0;         				// starting value for l
+	precision alpha = 0.0001;   				// descent parameter (default was 0.0001)
 
 	//precision dX_abs = sqrt(dX[0] * dX[0]  +  dX[1]*dX[1]  +  dX[2] * dX[2]);
 	precision dX_abs = sqrt(ls) * sqrt(dX[0] * dX[0]  +  dX[1]*dX[1]  +  dX[2] * dX[2]);
@@ -499,16 +499,16 @@ void line_backtracking(precision *l, precision Ea, precision PTa, precision PLa,
 			{
 				z = b * b  -  3. * a * gprime0;
 
-				
+
 				// if(z < 0)
 				// {
 				// 	lroot = ls / 2.;
 				// }
-				// else 
+				// else
 				// {
 				// 	lroot = (-b + sqrt(z)) / (3. * a);
 				// }
-				
+
 
 				// try using the general formula
 				if(z < 0)
@@ -516,7 +516,7 @@ void line_backtracking(precision *l, precision Ea, precision PTa, precision PLa,
 					lroot = ls / 2.;
 				}
 				else if(b <= 0)
-				{ 
+				{
 					lroot = (-b + sqrt(z)) / (3. * a);
 				}
 				else
@@ -531,9 +531,9 @@ void line_backtracking(precision *l, precision Ea, precision PTa, precision PLa,
 		lprev = ls;									// store current values for next iteration
 		fprev = f;
 
-		ls = fmax(lroot, 0.1 * ls);				// update l and f
+		ls = fmax(lroot, 0.2 * ls);				// update l and f
 		//ls = fmax(lroot, 0.1 * ls);					// update l and f
-		
+
 
 		for(int j = 0; j < 3; j++)
 		{
@@ -563,21 +563,27 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 	const precision PTa = pt + B;										// kinetic transverse pressure
 	const precision PLa = pl + B;										// kinetic longitudinal pressure
 
-	// if(Ea < 0 || PTa < 0 || PLa < 0)
-	// {
-	// 	printf("find_anisotropic_variables error: (E_a, PT_a, PL_a) = (%lf, %lf, %lf) is negative\n", Ea, PTa, PLa);
-	// 	exit(-1);
-	// }
-
 	if(Ea < 0 || PTa < 0 || PLa < 0)
 	{
-		aniso_variables variables;
-		variables.lambda = 0./0.;
-		variables.aT = 0./0.;
-		variables.aL = 0./0.;
+		printf("find_anisotropic_variables error: (E_a, PT_a, PL_a) = (%lf, %lf, %lf) is negative\n", Ea, PTa, PLa);
+		//exit(-1);
 
+		aniso_variables variables;
+		variables.lambda = lambda_0;
+		variables.aT = aT_0;
+		variables.aL = aL_0;
 		return variables;
 	}
+
+	// if(Ea < 0 || PTa < 0 || PLa < 0)
+	// {
+	// 	aniso_variables variables;
+	// 	variables.lambda = 0./0.;
+	// 	variables.aT = 0./0.;
+	// 	variables.aL = 0./0.;
+
+	// 	return variables;
+	// }
 
 
 	// let's keep the matrix solver for now
@@ -851,11 +857,16 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 
 	    // for some reason the solution can yield negative values at initialization
 
-		// if(X[0] < 0 || X[1] < 0 || X[2] < 0)
-		// {
-		// 	printf("find_anisotropic_variables error: iteration i = %d\t(lambda, aT, aL) = (%lf, %lf, %lf)\n", i, X[0], X[1], X[2]);
-		// 	exit(-1);
-		// }
+		if(X[0] < 0 || X[1] < 0 || X[2] < 0)
+		{
+			printf("find_anisotropic_variables error: iteration i = %d\t(lambda, aT, aL) = (%lf, %lf, %lf)\n", i, X[0], X[1], X[2]);
+			//exit(-1);
+			aniso_variables variables;
+			variables.lambda = lambda_0;
+			variables.aT = aT_0;
+			variables.aL = aL_0;
+			return variables;
+		}
 
 		// if(X[0] < 0 || X[1] < 0 || X[2] < 0)
 		// {
@@ -871,17 +882,17 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 
 	//printf("(newton, broyden) steps = (%d, %d)", number_newton, number_broyden);
 
-	//printf("find_anisotropic_variables error: number of iterations exceed maximum\n");
+	printf("find_anisotropic_variables error: number of iterations on (lambda_0, aT_0, aL_0) = (%lf, %lf, %lf) exceed maximum (%lf, %lf, %lf)\n", lambda_0, aT_0, aL_0, X[0], X[1], X[2]);
 
-	// aniso_variables variables;			// does algorithm ever get stuck searching (e.g. hit local min)?
-	// variables.lambda = X[0];
-	// variables.aT = X[1];
-	// variables.aL = X[2];
-
-	aniso_variables variables;			// does algorithm ever get stuck searching (e.g. hit local min)?
-	variables.lambda = 1./0.;
+	aniso_variables variables;				// does algorithm ever get stuck searching (e.g. hit local min)?
+	variables.lambda = X[0];
 	variables.aT = X[1];
 	variables.aL = X[2];
+
+	// aniso_variables variables;			// does algorithm ever get stuck searching (e.g. hit local min)?
+	// variables.lambda = 1./0.;
+	// variables.aT = X[1];
+	// variables.aL = X[2];
 
 	free_2D(J, 3);
 	free_2D(Jcurrent, 3);
@@ -915,9 +926,9 @@ void set_anisotropic_variables(const hydro_variables * const __restrict__ q, con
 
 				precision e_s = e[s];
 				precision pl = q[s].pl;
-				precision pt = q[s].pt;	
+				precision pt = q[s].pt;
 
-			#ifdef LATTICE_QCD	
+			#ifdef LATTICE_QCD
 			#ifndef CONFORMAL_EOS
 				precision b = q[s].b;
 
@@ -926,9 +937,13 @@ void set_anisotropic_variables(const hydro_variables * const __restrict__ q, con
 				// printf("pt = %lf\n", pt);
 				// printf("b = %lf\n", b);
 
-				equation_of_state eos(e_s);
-				precision T = eos.effective_temperature(conformal_prefactor);
-				precision mass = T * eos.z_quasi(T);
+				// equation_of_state eos(e_s);
+				// precision T = eos.effective_temperature(conformal_prefactor);
+				// precision mass = T * eos.z_quasi(T);
+
+				equation_of_state_new eos(e_s, conformal_prefactor);
+				precision T = eos.T;
+				precision mass = T * eos.z_quasi();
 
 				precision lambda_prev = lambda[s];
 				precision aT_prev = aT[s];

@@ -31,7 +31,7 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 }
 
 
-void set_initial_T_taumu_variables(double t, int nx, int ny, int nz)
+void set_initial_T_taumu_variables(double t, int nx, int ny, int nz, hydro_parameters hydro)
 {
 	for(int k = 2; k < nz + 2; k++)
 	{
@@ -65,7 +65,10 @@ void set_initial_T_taumu_variables(double t, int nx, int ny, int nz)
 				precision pl = q[s].pl;
 				precision pt = q[s].pt;
 			#else
-				equation_of_state eos(e_s);
+				// equation_of_state eos(e_s);
+				// precision p = eos.equilibrium_pressure();
+
+				equation_of_state_new eos(e_s, hydro.conformal_eos_prefactor);
 				precision p = eos.equilibrium_pressure();
 			#endif
 
@@ -124,7 +127,7 @@ void set_initial_T_taumu_variables(double t, int nx, int ny, int nz)
 }
 
 
-void set_equilibrium_initial_condition(int nx, int ny, int nz)
+void set_equilibrium_initial_condition(int nx, int ny, int nz, hydro_parameters hydro)
 {
 	for(int k = 2; k < nz + 2; k++)
 	{
@@ -135,9 +138,22 @@ void set_equilibrium_initial_condition(int nx, int ny, int nz)
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
 			#ifdef ANISO_HYDRO
-				equation_of_state eos(e[s]);
-				q[s].pl = eos.equilibrium_pressure();
-				q[s].pt = eos.equilibrium_pressure();
+				equation_of_state_new eos(e[s], hydro.conformal_eos_prefactor);
+				precision p = eos.equilibrium_pressure();
+				q[s].pl = p;
+				q[s].pt = p;
+
+			#ifdef LATTICE_QCD
+			#ifndef CONFORMAL_EOS
+				q[s].b = eos.equilibrium_mean_field();
+				lambda[s] = eos.T;
+				aT[s] = 1.0;
+				aL[s] = 1.0;
+			#else
+				printf("set_anisotropic_initial_condition error: no eos switch\n");
+				exit(-1);
+			#endif
+			#endif
 			#endif
 
 			#ifdef PIMUNU
@@ -193,10 +209,10 @@ void set_anisotropic_initial_condition(int nx, int ny, int nz, hydro_parameters 
 
 				equation_of_state eos(e_s);
 				precision p = eos.equilibrium_pressure();
-				// precision pl = p;
-				// precision pt = p;
-				precision pl = e_s * plpt_ratio / (2. + plpt_ratio);
-				precision pt = e_s / (2. + plpt_ratio);
+				precision pl = p;
+				precision pt = p;
+				//precision pl = e_s * plpt_ratio / (2. + plpt_ratio);
+				//precision pt = e_s / (2. + plpt_ratio);
 
 				//printf("(i, j, e, pl, pt) = (%d, %d, %lf, %lf, %lf)\n", i, j, e_s, pl, pt);
 
@@ -206,37 +222,41 @@ void set_anisotropic_initial_condition(int nx, int ny, int nz, hydro_parameters 
 
 			#ifdef LATTICE_QCD						// initialize mean field and anisotropic variables
 			#ifndef CONFORMAL_EOS
-
 				precision T = eos.effective_temperature(hydro.conformal_eos_prefactor);
-
 				precision beq = eos.equilibrium_mean_field(T);
-				precision mass = T * eos.z_quasi(T);
-				precision mdmde = eos.mdmde_quasi();
-				precision taubulk = zeta_over_s(T, hydro) * (e_s + p) / (T * eos.beta_bulk(T));
+				// precision mass = T * eos.z_quasi(T);
+				// precision mdmde = eos.mdmde_quasi();
+				// precision taubulk = zeta_over_s(T, hydro) * (e_s + p) / (T * eos.beta_bulk(T));
 
 
 				// maybe try switching between the two approximations
 				//precision db = -3. * taubulk * mdmde * (e_s + pl) * (2.*pt/3. + pl/3. - p) / (t * mass * mass) / (1.  +  4. * taubulk * mdmde * (e_s + pl) / (t * mass * mass));
-				precision db = - 3. * taubulk * mdmde * (e_s + p) * (2.*pt/3. + pl/3. - p) / (t * mass * mass);
+				//precision db = - 3. * taubulk * mdmde * (e_s + p) * (2.*pt/3. + pl/3. - p) / (t * mass * mass);
 
 
 				//precision b = beq;
-				precision b = beq + db;
+				//precision b = beq + db;
 
-				precision lambda0 = T;				// initial guess for anisotropic variables
-				precision aT0 = 1.0;
-				precision aL0 = 1.0;
+				// precision lambda0 = T;				// initial guess for anisotropic variables
+				// precision aT0 = 1.0;
+				// precision aL0 = 1.0;
 
-				printf("(i, j, e, pl, pt, b, beq, db) = (%d, %d, %lf, %lf, %lf, %lf, %lf, %lf)\n", i, j, e_s, pl, pt, b, beq, db);
+				//printf("(i, j, e, pl, pt, b, beq, db) = (%d, %d, %lf, %lf, %lf, %lf, %lf, %lf)\n", i, j, e_s, pl, pt, b, beq, db);
 
-				aniso_variables X = find_anisotropic_variables(e_s, pl, pt, b, mass, lambda0, aT0, aL0);
+				//aniso_variables X = find_anisotropic_variables(e_s, pl, pt, b, mass, lambda0, aT0, aL0);
 
 				//printf("(i, j, T, L, aT, aL) = (%d, %d, %lf, %lf, %lf, %lf)\n", i, j, T, X.lambda, X.aT, X.aL);
 
-				q[s].b = b;
-				lambda[s] = X.lambda;
-				aT[s] = X.aT;
-				aL[s] = X.aL;
+				// q[s].b = b;
+				// lambda[s] = X.lambda;
+				// aT[s] = X.aT;
+				// aL[s] = X.aL;
+
+				q[s].b = beq;
+				lambda[s] = T;
+				aT[s] = 1.0;
+				aL[s] = 1.0;
+
 			#else
 				printf("set_anisotropic_initial_condition error: no eos switch\n");
 				exit(-1);
@@ -520,7 +540,7 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 			set_viscous_bjorken_initial_condition(nx, ny, nz, initial, hydro);
 		#endif
 
-			set_initial_T_taumu_variables(t, nx, ny, nz);
+			set_initial_T_taumu_variables(t, nx, ny, nz, hydro);
 
 			break;
 		}
@@ -555,7 +575,7 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 			set_ideal_gubser_initial_conditions(lattice, dt, initial, hydro);
 		#endif
 
-			set_initial_T_taumu_variables(t, nx, ny, nz);
+			set_initial_T_taumu_variables(t, nx, ny, nz, hydro);
 
 			break;
 		}
@@ -589,7 +609,7 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 			double T0_hat = run_semi_analytic_aniso_gubser(lattice, initial, hydro);
 
 			set_aniso_gubser_energy_density_and_flow_profile(T0_hat, nx, ny, nz, dt, dx, dy, dz, hydro, initial);
-			set_initial_T_taumu_variables(t, nx, ny, nz);
+			set_initial_T_taumu_variables(t, nx, ny, nz, hydro);
 
 			break;
 		}
@@ -599,7 +619,7 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 
 			set_Glauber_energy_density_and_flow_profile(nx, ny, nz, dx, dy, dz, initial, hydro);
 			set_anisotropic_initial_condition(nx, ny, nz, hydro);
-			set_initial_T_taumu_variables(t, nx, ny, nz);
+			set_initial_T_taumu_variables(t, nx, ny, nz, hydro);
 
 			break;
 		}
@@ -609,7 +629,7 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 			printf("MC Glauber (fluid velocity initialized to zero)\n\n");
 			set_Glauber_energy_density_and_flow_profile(nx, ny, nz, dx, dy, dz, initial, hydro);
 			set_anisotropic_initial_condition(nx, ny, nz, hydro);
-			set_initial_T_taumu_variables(t, nx, ny, nz);
+			set_initial_T_taumu_variables(t, nx, ny, nz, hydro);
 
 			break;
 		}
@@ -617,8 +637,9 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 		{
 			printf("Trento (fluid velocity initialized to zero)\n\n");
 			set_trento_energy_density_and_flow_profile(lattice, initial, hydro);
-			set_anisotropic_initial_condition(nx, ny, nz, hydro);
-			set_initial_T_taumu_variables(t, nx, ny, nz);
+			//set_anisotropic_initial_condition(nx, ny, nz, hydro);
+			set_equilibrium_initial_condition(nx, ny, nz, hydro);
+			set_initial_T_taumu_variables(t, nx, ny, nz, hydro);
 
 			break;
 		}

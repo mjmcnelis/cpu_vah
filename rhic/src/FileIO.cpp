@@ -39,7 +39,7 @@ int central_index(lattice_parameters lattice)
 }
 
 
-void output_inverse_reynolds_number(const hydro_variables * const __restrict__ q, const precision * const e, double t, lattice_parameters lattice)
+void output_inverse_reynolds_number(const hydro_variables * const __restrict__ q, const precision * const e, double t, lattice_parameters lattice, hydro_parameters hydro)
 {
 #ifndef ANISO_HYDRO
 #if (NUMBER_OF_VISCOUS_CURRENTS != 0)
@@ -82,7 +82,8 @@ void output_inverse_reynolds_number(const hydro_variables * const __restrict__ q
 
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
-				equation_of_state eos(e[s]);
+				//equation_of_state eos(e[s]);
+				equation_of_state_new eos(e[s], hydro.conformal_eos_prefactor);
 				precision p = eos.equilibrium_pressure();
 
 			#ifdef PIMUNU
@@ -130,7 +131,7 @@ void output_inverse_reynolds_number(const hydro_variables * const __restrict__ q
 }
 
 
-void output_residual_shear_validity(const hydro_variables * const __restrict__ q, const fluid_velocity * const __restrict__ u, const precision * const e, double t, lattice_parameters lattice)
+void output_residual_shear_validity(const hydro_variables * const __restrict__ q, const fluid_velocity * const __restrict__ u, const precision * const e, double t, lattice_parameters lattice, hydro_parameters hydro)
 {
 #ifdef PIMUNU
 	int nx = lattice.lattice_points_x;
@@ -190,7 +191,10 @@ void output_residual_shear_validity(const hydro_variables * const __restrict__ q
 			#ifdef ANISO_HYDRO						// get transverse pressure
 				precision pt = q[s].pt;
 			#else 									// get transverse pressure and double-transverse project viscous hydro shear stress
-				equation_of_state eos(e_s);
+				//equation_of_state eos(e_s);
+				//precision P = eos.equilibrium_pressure();
+
+				equation_of_state_new eos(e_s, hydro.conformal_eos_prefactor);
 				precision P = eos.equilibrium_pressure();
 
 			#ifdef PI
@@ -403,7 +407,7 @@ void output_gubser(const hydro_variables * const __restrict__ q, const fluid_vel
 }
 
 
-void output_glauber(const hydro_variables * const __restrict__ q, const fluid_velocity  * const __restrict__ u, const precision * const e, double t, lattice_parameters lattice)
+void output_hydro(const hydro_variables * const __restrict__ q, const fluid_velocity  * const __restrict__ u, const precision * const e, double t, lattice_parameters lattice, hydro_parameters hydro)
 {
 	int nx = lattice.lattice_points_x;
 	int ny = lattice.lattice_points_y;
@@ -465,7 +469,10 @@ void output_glauber(const hydro_variables * const __restrict__ q, const fluid_ve
 				precision pl = q[s].pl;
 				precision pt = q[s].pt;
 			#else
-				equation_of_state eos(e_s);
+				//equation_of_state eos(e_s);
+				//precision p = eos.equilibrium_pressure();
+
+				equation_of_state_new eos(e_s, hydro.conformal_eos_prefactor);
 				precision p = eos.equilibrium_pressure();
 
 				precision utperp = sqrt(1.  +  ux * ux  +  uy * uy);
@@ -519,7 +526,8 @@ void output_dynamical_variables(double t, double dt, lattice_parameters lattice,
 	if(initial_type == 1)
 	{
 		precision T0 = initial.initialCentralTemperatureGeV;
-		precision e0 = equilibrium_energy_density(T0 / hbarc, hydro.conformal_eos_prefactor);
+		//precision e0 = equilibrium_energy_density(T0 / hbarc, hydro.conformal_eos_prefactor);
+		precision e0 = equilibrium_energy_density_new(T0 / hbarc, hydro.conformal_eos_prefactor);
 
 	#ifdef ANISO_HYDRO
 		output_aniso_bjorken(q, e, e0, t, lattice, hydro);
@@ -530,13 +538,13 @@ void output_dynamical_variables(double t, double dt, lattice_parameters lattice,
 	else if(initial_type == 2 || initial_type == 3)
 	{
 		output_gubser(q, u, e, t, lattice);
-		output_residual_shear_validity(q, u, e, t, lattice);
+		output_residual_shear_validity(q, u, e, t, lattice, hydro);
 	}
-	else if(initial_type == 4 || initial_type == 5 || initial_type == 6)
+	else
 	{
-		output_glauber(q, u, e, t, lattice);
-		output_residual_shear_validity(q, u, e, t, lattice);
-		output_inverse_reynolds_number(q, e, t, lattice);
+		output_hydro(q, u, e, t, lattice, hydro);
+		output_residual_shear_validity(q, u, e, t, lattice, hydro);
+		output_inverse_reynolds_number(q, e, t, lattice, hydro);
 	}
 }
 

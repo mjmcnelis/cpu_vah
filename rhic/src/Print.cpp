@@ -8,6 +8,7 @@
 #include "../include/Precision.h"
 #include "../include/DynamicalVariables.h"
 #include "../include/Parameters.h"
+#include "../include/Print.h"
 using namespace std;
 
 inline int linear_column_index(int i, int j, int k, int nx, int ny)
@@ -45,19 +46,21 @@ void print_run_time(double duration, double steps, lattice_parameters lattice)
 	int ny = lattice.lattice_points_y;
 	int nz = lattice.lattice_points_eta;
 
-	printf("Total time               = %.4g s\n", duration);
-	printf("Number of time steps     = %d\n", (int)steps);
-	printf("Average time/step        = %.4g s\n", duration / steps);
-	printf("Average time/cell/step   = %.4g ms\n", 1000. * duration / (nx * ny * nz * steps));
+	printf("Total time             = %.4g s\n", duration);
+	printf("Number of time steps   = %d\n", (int)steps);
+	printf("Average time/step      = %.4g s\n", duration / steps);
+	printf("Average time/cell/step = %.4g ms\n", 1000. * duration / (nx * ny * nz * steps));
 }
 
-precision compute_max_ut(const fluid_velocity * const __restrict__ u, precision t, lattice_parameters lattice)
+hydro_max compute_hydro_max(const precision * const __restrict__ e, const fluid_velocity * const __restrict__ u, precision t, lattice_parameters lattice, hydro_parameters hydro)
 {
 	int nx = lattice.lattice_points_x;
 	int ny = lattice.lattice_points_y;
 	int nz = lattice.lattice_points_eta;
 
-	precision max = 0.0;
+	precision ut_max = 0.;
+	precision T_max = 0.;
+	precision e_max = 0.;
 
 	for(int k = 2; k < nz + 2; k++)
 	{
@@ -76,14 +79,38 @@ precision compute_max_ut(const fluid_velocity * const __restrict__ u, precision 
 			#endif
 				precision ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t * t * un * un);
 
-				if(ut > max)
+				if(ut > ut_max)
 				{
-					max = ut;
+					ut_max = ut;
+				}
+
+				precision e_s = e[s];
+
+				//equation_of_state eos(e_s);
+				//precision T = eos.effective_temperature(hydro.conformal_eos_prefactor);
+
+				equation_of_state_new eos(e_s, hydro.conformal_eos_prefactor);
+				precision T = eos.T;
+
+				if(e_s > e_max)
+				{
+					e_max = e_s;
+				}
+
+				if(T > T_max)
+				{
+					T_max = T;
 				}
 			}
 		}
 	}
-	return max;
+
+	hydro_max hydro_max_values;
+	hydro_max_values.ut_max = ut_max;
+	hydro_max_values.e_max = e_max;
+	hydro_max_values.T_max = T_max;
+
+	return hydro_max_values;
 }
 
 
@@ -94,19 +121,26 @@ void print_hydro_center(int n, double t, lattice_parameters lattice, hydro_param
 	if(n == 0)
 	{
 	#ifdef ANISO_HYDRO
-		printf("\tn\t|\tt\t|\tT\t|\te\t|\tp\t|\tpl\t|\tpt\t|\tut_max\t|\tT > Tsw\t|\n");
+		printf("\tn\t|\tt\t|\tT\t|\te\t|\tp\t|\tpl\t|\tpt\t|\te_max\t|\tT_max\t|\tut_max\t|\tT > Tsw\t|\n");
 	#else
-		printf("\tn\t|\tt\t|\tT\t|\te\t|\tp\t|\tut_max\t|\tT > Tsw\t|\n");
+		printf("\tn\t|\tt\t|\tT\t|\te\t|\tp\t|\te_max\t|\tT_max\t|\tut_max\t|\tT > Tsw\t|\n");
 	#endif
 		print_line();
 	}
 	precision e_s = e[s] * hbarc;
 
-	equation_of_state eos(e[s]);
-	precision p = eos.equilibrium_pressure() * hbarc;
-	precision T = eos.effective_temperature(hydro.conformal_eos_prefactor) * hbarc;
+	// equation_of_state eos(e[s]);
+	// precision p = eos.equilibrium_pressure() * hbarc;
+	// precision T = eos.effective_temperature(hydro.conformal_eos_prefactor) * hbarc;
 
-	precision gamma_max = compute_max_ut(u, t, lattice);
+	equation_of_state_new eos(e[s], hydro.conformal_eos_prefactor);
+	precision p = eos.equilibrium_pressure() * hbarc;
+	precision T = eos.T * hbarc;
+
+	hydro_max hydro_max_values = compute_hydro_max(e, u, t, lattice, hydro);
+	precision gamma_max = hydro_max_values.ut_max;
+	precision e_max = hbarc * hydro_max_values.e_max;
+	precision T_max = hbarc * hydro_max_values.T_max;
 
 	long nx = lattice.lattice_points_x;
 	long ny = lattice.lattice_points_y;
@@ -120,9 +154,9 @@ void print_hydro_center(int n, double t, lattice_parameters lattice, hydro_param
 	// T = GeV
 	// e, pl, pt = GeV/fm^3
 
-	printf("\t%d\t|\t%.4g\t|\t%.4g\t|\t%.5g\t|\t%.5g\t|\t%.5g\t|\t%.5g\t|\t%.5g\t|\t%.3f%%\t|\n", n, t, T, e_s, p, pl, pt, gamma_max, percent_above_Tsw);
+	printf("\t%d\t|\t%.4g\t|\t%.3g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.3g\t|\t%.3g\t|\t%.2f%%\t|\n", n, t, T, e_s, p, pl, pt, e_max, T_max, gamma_max, percent_above_Tsw);
 #else
-	printf("\t%d\t|\t%.4g\t|\t%.4g\t|\t%.5g\t|\t%.5g\t|\t%.5g\t|\t%.3f%%\t|\n", n, t, T, e_s, p, gamma_max, percent_above_Tsw);
+	printf("\t%d\t|\t%.4g\t|\t%.3g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.3g\t|\t%.3g\t|\t%.2f%%\t|\n", n, t, T, e_s, p, e_max, T_max, gamma_max, percent_above_Tsw);
 #endif
 }
 

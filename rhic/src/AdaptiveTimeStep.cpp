@@ -213,8 +213,6 @@ precision compute_hydro_norm2(hydro_variables q)		// I should probably add thing
 
 precision second_derivative_squared(precision q_prev, precision q, precision q_star)
 {
-	//precision second_derivative = q_prev  -  2. * q  +  q_star;
-
 	return (q_prev  -  2. * q  +  q_star) * (q_prev  -  2. * q  +  q_star);		// left out prefactor 2 / dt_prev^2
 }
 
