@@ -247,7 +247,10 @@ void output_viscous_bjorken(const hydro_variables * const __restrict__ q, const 
 
 	precision e_s = e[s];
 
-	equation_of_state eos(e_s);
+	//equation_of_state eos(e_s);
+	//precision p = eos.equilibrium_pressure();
+
+	equation_of_state_new eos(e_s, hydro.conformal_eos_prefactor);
 	precision p = eos.equilibrium_pressure();
 
 #ifdef PIMUNU
@@ -320,9 +323,7 @@ void output_gubser(const hydro_variables * const __restrict__ q, const fluid_vel
 	precision dz = lattice.lattice_spacing_eta;
 
 	FILE *energy, *plptratio, *uxplot, *urplot;
-	//FILE *ereg, *utreg;
 	char fname1[255], fname2[255], fname3[255], fname4[255];
-	//char fname5[255], fname6[255];
 
 	sprintf(fname1, "output/e_%.3f.dat", t);
 	sprintf(fname2, "output/plpt_%.3f.dat", t);
@@ -417,22 +418,25 @@ void output_hydro(const hydro_variables * const __restrict__ q, const fluid_velo
 	precision dy = lattice.lattice_spacing_y;
 	precision dz = lattice.lattice_spacing_eta;
 
-	FILE *energy, *plptratio, *uxplot, *utplot;
+	FILE *energy, *plptratio, *uxplot;
+	FILE *aniso_reg;
+	//FILE *utplot;
 	//FILE *ereg, *utreg;
-	char fname1[255], fname2[255], fname3[255], fname4[255];
+	char fname1[255], fname2[255], fname3[255];
+	char fname4[255];
 	//char fname5[255], fname6[255];
 
 	sprintf(fname1, "output/e_%.3f.dat", t);
 	sprintf(fname2, "output/plpt_%.3f.dat", t);
 	sprintf(fname3, "output/ux_%.3f.dat", t);
-	sprintf(fname4, "output/ut_%.3f.dat", t);
+	sprintf(fname4, "output/aniso_reg_%.3f.dat", t);
 	//sprintf(fname5, "output/ereg_%.3f.dat", t);
 	//sprintf(fname6, "output/utreg_%.3f.dat", t);
 
 	energy      = fopen(fname1, "w");
 	plptratio 	= fopen(fname2, "w");
 	uxplot    	= fopen(fname3, "w");
-	utplot    	= fopen(fname4, "w");
+	aniso_reg   = fopen(fname4, "w");
 	//ereg    	= fopen(fname5, "w");
 	//utreg		= fopen(fname6, "w");
 
@@ -488,7 +492,9 @@ void output_hydro(const hydro_variables * const __restrict__ q, const fluid_velo
 			#endif
 				precision pinn = q[s].pinn;
 			#else
-				precision pitt = 0, pitn = 0, pinn = 0;
+				precision pitt = 0;
+				precision pitn = 0;
+				precision pinn = 0;
 			#endif
 			#ifdef PI
 				precision Pi = q[s].Pi;
@@ -504,16 +510,16 @@ void output_hydro(const hydro_variables * const __restrict__ q, const fluid_velo
 				fprintf(energy, 	"%.3f\t%.3f\t%.3f\t%.8e\n", x, y, z, e_s * hbarc);
 				fprintf(plptratio,	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, pl / pt);
 				fprintf(uxplot, 	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, ux);
-				fprintf(utplot, 	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, ut);
+				//fprintf(utplot, 	"%.3f\t%.3f\t%.3f\t%.8f\n", x, y, z, ut);
 				//fprintf(ereg, 		"%.5f\t%.3f\t%.3f\t%d\n", x, y, z, e_regulation[s]);
-				//fprintf(utreg, 		"%.5f\t%.3f\t%.3f\t%d\n", x, y, z, ut_regulation[s]);
+				fprintf(aniso_reg, 	"%.5f\t%.3f\t%.3f\t%d\n", x, y, z, aniso_regulation[s]);
 			}
 		}
 	}
 	fclose(energy);
 	fclose(plptratio);
 	fclose(uxplot);
-	fclose(utplot);
+	fclose(aniso_reg);
 	//fclose(ereg);
 	//fclose(utreg);
 }

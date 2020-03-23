@@ -8,8 +8,6 @@
 #include "../include/DynamicalVariables.h"
 #include "../include/Precision.h"
 #include "../include/Parameters.h"
-#include "../include/OpticalGlauber.h"
-#include "../include/MCGlauber.h"
 #include "../include/Trento.h"
 #include "../include/ViscousBjorken.h"
 #include "../include/AnisoBjorken.h"
@@ -424,8 +422,8 @@ void set_anisotropic_initial_condition(int nx, int ny, int nz, hydro_parameters 
 // Longitudinal energy density profile function eL(eta)
 void longitudinal_Energy_Density_Profile(double * const __restrict__ eL, int nz, double dz, initial_condition_parameters initial)
 {
-	double etaFlat = initial.rapidityMean;
-	double etaVariance = initial.rapidityVariance;
+	double etaFlat = initial.rapidity_mean;
+	double etaVariance = initial.rapidity_variance;
 
 	// profile along eta direction is a smooth plateu that exponentially decays when |eta| > etaFlat
 	for(int k = 0; k < nz; k++)
@@ -437,7 +435,7 @@ void longitudinal_Energy_Density_Profile(double * const __restrict__ eL, int nz,
 	}
 }
 
-
+/*
 // Optical or MC glauber initial energy density profile
 void set_Glauber_energy_density_and_flow_profile(int nx, int ny, int nz, double dx, double dy, double dz, initial_condition_parameters initial, hydro_parameters hydro)
 {
@@ -492,18 +490,9 @@ void set_Glauber_energy_density_and_flow_profile(int nx, int ny, int nz, double 
 		}
 	}
 }
+*/
 
 
-
-
-// Initial conditions for the T^{\tau\mu}, energy density, equilibrium pressure, fluid velocity and viscous pressures
-//////////////////////////////////////
-//	1 - Bjorken
-//	2 - Ideal Gubser
-//	3 - Aniso Gubser
-//	4 - Optical Glauber
-//	5 - MC Glauber
-//////////////////////////////////////
 void set_initial_conditions(precision t, lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro)
 {
 	int nx = lattice.lattice_points_x;
@@ -613,27 +602,7 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 
 			break;
 		}
-		case 4:		// Optical Glauber
-		{
-			printf("Optical Glauber (fluid velocity initialized to zero)\n\n");
-
-			set_Glauber_energy_density_and_flow_profile(nx, ny, nz, dx, dy, dz, initial, hydro);
-			set_anisotropic_initial_condition(nx, ny, nz, hydro);
-			set_initial_T_taumu_variables(t, nx, ny, nz, hydro);
-
-			break;
-		}
-
-		case 5:		// MC Glauber
-		{
-			printf("MC Glauber (fluid velocity initialized to zero)\n\n");
-			set_Glauber_energy_density_and_flow_profile(nx, ny, nz, dx, dy, dz, initial, hydro);
-			set_anisotropic_initial_condition(nx, ny, nz, hydro);
-			set_initial_T_taumu_variables(t, nx, ny, nz, hydro);
-
-			break;
-		}
-		case 6:		// Trento
+		case 4:		// Trento
 		{
 			printf("Trento (fluid velocity initialized to zero)\n\n");
 			set_trento_energy_density_and_flow_profile(lattice, initial, hydro);

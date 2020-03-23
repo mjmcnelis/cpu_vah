@@ -135,8 +135,7 @@ extern hydro_variables *q, *Q, *qI;
 extern fluid_velocity *u, *up, *uI;
 extern precision *e, *lambda, *aT, *aL;
 
-extern int *e_regulation;
-extern int *ut_regulation;
+extern int *aniso_regulation;
 
 
 // swap variables

@@ -101,19 +101,31 @@ hydro_parameters load_hydro_parameters()
 		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
 		delimiterPos = line.find("=");
 		line = line.substr(delimiterPos + 1);
-		hydro.etas_min = atof(line.c_str());
-
-		getline(cFile, line);
-		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
-		delimiterPos = line.find("=");
-		line = line.substr(delimiterPos + 1);
-		hydro.etas_slope = atof(line.c_str());
-
-		getline(cFile, line);
-		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
-		delimiterPos = line.find("=");
-		line = line.substr(delimiterPos + 1);
 		hydro.constant_etas = atof(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		hydro.etas_aL = atof(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		hydro.etas_aH = atof(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		hydro.etas_Tk_GeV = atof(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		hydro.etas_etask = atof(line.c_str());
 
 		getline(cFile, line);
 		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
@@ -126,6 +138,18 @@ hydro_parameters load_hydro_parameters()
 		delimiterPos = line.find("=");
 		line = line.substr(delimiterPos + 1);
 		hydro.zetas_peak_temperature_GeV = atof(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		hydro.zetas_width_GeV = atof(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		hydro.zetas_skew = atof(line.c_str());
 
 		getline(cFile, line);
 		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
@@ -176,29 +200,29 @@ hydro_parameters load_hydro_parameters()
 
 	hydro.conformal_eos_prefactor = compute_conformal_prefactor(quark_flavors);
 
-	printf("\nHydro parameters:");
-	printf("\n-----------------\n");
-	printf("run_hydro                  = %d\n",		hydro.run_hydro);
-	printf("output                     = %d\n",		hydro.output);
-	printf("tau_initial                = %.3g\n",	hydro.tau_initial);
-	printf("plpt_ratio_initial         = %.2g\n", 	hydro.plpt_ratio_initial);
-	printf("kinetic_theory_model       = %d\n", 	hydro.kinetic_theory_model);
-	printf("quark_flavors              = %.1f\n", 	quark_flavors);
-	printf("conformal_eos_prefactor    = %.6g\n", 	hydro.conformal_eos_prefactor);
-	printf("temperature_etas           = %d\n", 	hydro.temperature_etas);
-	printf("etas_min                   = %.3g\n", 	hydro.etas_min);
-	printf("etas_slope                 = %.3g\n", 	hydro.etas_slope);
-	printf("constant_etas              = %.3g\n", 	hydro.constant_etas);
-	printf("zetas_normalization_factor = %.3g\n", 	hydro.zetas_normalization_factor);
-	printf("zetas_peak_temperature_GeV = %.3g\n", 	hydro.zetas_peak_temperature_GeV);
-	printf("freezeout_temperature_GeV  = %.3f\n", 	hydro.freezeout_temperature_GeV);
-	printf("flux_limiter               = %.3g\n", 	hydro.flux_limiter);
-	printf("include_vorticity          = %d\n", 	hydro.include_vorticity);
-	printf("energy_min                 = %.1e\n", 	hydro.energy_min);
-	printf("pressure_min               = %.1e\n", 	hydro.pressure_min);
-	printf("regulation_scheme          = %d\n", 	hydro.regulation_scheme);
-	printf("rho_max                    = %.2f\n", 	hydro.rho_max);
-	printf("\n");
+	// printf("\nHydro parameters:");
+	// printf("\n-----------------\n");
+	// printf("run_hydro                  = %d\n",		hydro.run_hydro);
+	// printf("output                     = %d\n",		hydro.output);
+	// printf("tau_initial                = %.3g\n",	hydro.tau_initial);
+	// printf("plpt_ratio_initial         = %.2g\n", 	hydro.plpt_ratio_initial);
+	// printf("kinetic_theory_model       = %d\n", 	hydro.kinetic_theory_model);
+	// printf("quark_flavors              = %.1f\n", 	quark_flavors);
+	// printf("conformal_eos_prefactor    = %.6g\n", 	hydro.conformal_eos_prefactor);
+	// printf("temperature_etas           = %d\n", 	hydro.temperature_etas);
+	// printf("etas_min                   = %.3g\n", 	hydro.etas_min);
+	// printf("etas_slope                 = %.3g\n", 	hydro.etas_slope);
+	// printf("constant_etas              = %.3g\n", 	hydro.constant_etas);
+	// printf("zetas_normalization_factor = %.3g\n", 	hydro.zetas_normalization_factor);
+	// printf("zetas_peak_temperature_GeV = %.3g\n", 	hydro.zetas_peak_temperature_GeV);
+	// printf("freezeout_temperature_GeV  = %.3f\n", 	hydro.freezeout_temperature_GeV);
+	// printf("flux_limiter               = %.3g\n", 	hydro.flux_limiter);
+	// printf("include_vorticity          = %d\n", 	hydro.include_vorticity);
+	// printf("energy_min                 = %.1e\n", 	hydro.energy_min);
+	// printf("pressure_min               = %.1e\n", 	hydro.pressure_min);
+	// printf("regulation_scheme          = %d\n", 	hydro.regulation_scheme);
+	// printf("rho_max                    = %.2f\n", 	hydro.rho_max);
+	// printf("\n");
 
 	#ifdef LATTICE_QCD
 	double hotqcd_e_min = 0.00175;			// min energy density in fm^-4 rounded up to 3 SFs (see notebook in eos/hotqcd_smash)
@@ -330,23 +354,25 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro)
 	}
 #endif
 
-	printf("Lattice parameters:");
-	printf("\n-------------------\n");
-	printf("lattice_points_x    = %d\n", 	lattice.lattice_points_x);
-	printf("lattice_points_y    = %d\n", 	lattice.lattice_points_y);
-	printf("lattice_points_eta  = %d\n", 	lattice.lattice_points_eta);
-	printf("lattice_spacing_x   = %.3g\n",	lattice.lattice_spacing_x);
-	printf("lattice_spacing_y   = %.3g\n", 	lattice.lattice_spacing_y);
-	printf("lattice_spacing_eta = %.3g\n", 	lattice.lattice_spacing_eta);
-	printf("max_time_steps      = %d\n", 	lattice.max_time_steps);
-	printf("output_interval     = %.2f\n", 	lattice.output_interval);
-	printf("fixed_time_step     = %.3g\n", 	lattice.fixed_time_step);
-	printf("adaptive_time_step  = %d\n", 	lattice.adaptive_time_step);
-	printf("min_time_step       = %.2e\n", 	lattice.min_time_step);
-	printf("delta_0             = %.3g\n", 	lattice.delta_0);
-	printf("alpha               = %.3g\n", 	lattice.alpha);
-	printf("tau_coarse_factor   = %d\n", 	lattice.tau_coarse_factor);
-	printf("\n");
+	// printf("Lattice parameters:");
+	// printf("\n-------------------\n");
+	// printf("lattice_points_x    = %d\n", 	lattice.lattice_points_x);
+	// printf("lattice_points_y    = %d\n", 	lattice.lattice_points_y);
+	// printf("lattice_points_eta  = %d\n", 	lattice.lattice_points_eta);
+	// printf("lattice_spacing_x   = %.3g\n",	lattice.lattice_spacing_x);
+	// printf("lattice_spacing_y   = %.3g\n", 	lattice.lattice_spacing_y);
+	// printf("lattice_spacing_eta = %.3g\n", 	lattice.lattice_spacing_eta);
+	// printf("max_time_steps      = %d\n", 	lattice.max_time_steps);
+	// printf("output_interval     = %.2f\n", 	lattice.output_interval);
+	// printf("fixed_time_step     = %.3g\n", 	lattice.fixed_time_step);
+	// printf("adaptive_time_step  = %d\n", 	lattice.adaptive_time_step);
+	// printf("min_time_step       = %.2e\n", 	lattice.min_time_step);
+	// printf("delta_0             = %.3g\n", 	lattice.delta_0);
+	// printf("alpha               = %.3g\n", 	lattice.alpha);
+	// printf("tau_coarse_factor   = %d\n", 	lattice.tau_coarse_factor);
+	// printf("\n");
+
+	//exit(-1);
 
 	double dt = lattice.fixed_time_step;						// dt = default starting time step
 
@@ -410,31 +436,19 @@ initial_condition_parameters load_initial_condition_parameters()
 		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
 		delimiterPos = line.find("=");
 		line = line.substr(delimiterPos + 1);
-		initial.scatteringCrossSectionNN = atof(line.c_str());
-
-		getline(cFile, line);
-		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
-		delimiterPos = line.find("=");
-		line = line.substr(delimiterPos + 1);
 		initial.impactParameter = atof(line.c_str());
 
 		getline(cFile, line);
 		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
 		delimiterPos = line.find("=");
 		line = line.substr(delimiterPos + 1);
-		initial.fractionOfBinaryCollisions = atof(line.c_str());
+		initial.rapidity_variance = atof(line.c_str());
 
 		getline(cFile, line);
 		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
 		delimiterPos = line.find("=");
 		line = line.substr(delimiterPos + 1);
-		initial.rapidityVariance = atof(line.c_str());
-
-		getline(cFile, line);
-		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
-		delimiterPos = line.find("=");
-		line = line.substr(delimiterPos + 1);
-		initial.rapidityMean = atof(line.c_str());
+		initial.rapidity_mean = atof(line.c_str());
 
 		getline(cFile, line);
 		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
@@ -501,11 +515,9 @@ initial_condition_parameters load_initial_condition_parameters()
 	printf("nucleus_A                       = %d\n", 	initial.nucleus_A);
 	printf("nucleus_B                       = %d\n", 	initial.nucleus_B);
 	printf("initial_central_temperature_GeV = %.3g\n",	initial.initialCentralTemperatureGeV);
-	printf("scatteringCrossSectionNN        = %.3g\n", 	initial.scatteringCrossSectionNN);
 	printf("impactParameter                 = %.2f\n", 	initial.impactParameter);
-	printf("fractionOfBinaryCollisions      = %.3g\n", 	initial.fractionOfBinaryCollisions);
-	printf("rapidityVariance                = %.3g\n", 	initial.rapidityVariance);
-	printf("rapidityMean                    = %.3g\n", 	initial.rapidityMean);
+	printf("rapidityVariance                = %.3g\n", 	initial.rapidity_variance);
+	printf("rapidityMean                    = %.3g\n", 	initial.rapidity_mean);
 	printf("q_gubser                        = %.2f\n", 	initial.q_gubser);
 	printf("trento_normalization_GeV        = %.2f\n", 	initial.trento_normalization_GeV);
 	printf("trento_nucleon_width            = %.2f\n", 	initial.trento_nucleon_width);
@@ -519,6 +531,13 @@ initial_condition_parameters load_initial_condition_parameters()
 
 	return initial;
 }
+
+
+
+
+
+
+
 
 
 

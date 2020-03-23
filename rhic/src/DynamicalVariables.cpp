@@ -9,9 +9,7 @@ hydro_variables *q, *Q, *qI;
 fluid_velocity *u, *up, *uI;
 precision *e, *lambda, *aT, *aL;
 
-int *e_regulation;		// for monitoring regions where I stamp out sudden jumps in energy density and fluid velocity
-int *ut_regulation;
-
+int *aniso_regulation;		// for monitoring regions where I stamp out sudden jumps in energy density and fluid velocity
 
 void allocate_memory(lattice_parameters lattice)
 {
@@ -47,8 +45,7 @@ void allocate_memory(lattice_parameters lattice)
 	Q  = (hydro_variables *)calloc(length, sizeof(hydro_variables));
 	qI = (hydro_variables *)calloc(length, sizeof(hydro_variables));
 
-	e_regulation = (int *)calloc(length, sizeof(int)); 		// regulation monitoring
-	ut_regulation = (int *)calloc(length, sizeof(int));
+	aniso_regulation = (int *)calloc(length, sizeof(int)); 		// regulation monitoring
 }
 
 

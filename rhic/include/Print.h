@@ -20,4 +20,6 @@ void print_hydro_center(int n, double t, lattice_parameters lattice, hydro_param
 
 void print_parameters(lattice_parameters lattice, hydro_parameters hydro);
 
+void print_parameters_check(lattice_parameters lattice, hydro_parameters hydro, initial_condition_parameters initial);
+
 #endif

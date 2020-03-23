@@ -16,12 +16,18 @@ typedef struct
 	double conformal_eos_prefactor;	 // e = conformal_eos_prefactor * T^4
 
 	int temperature_etas;
-	double etas_min;
-	double etas_slope;
+
 	double constant_etas;
+
+	double etas_aL;
+	double etas_aH;
+	double etas_etask;
+	double etas_Tk_GeV;
 
 	double zetas_normalization_factor;
 	double zetas_peak_temperature_GeV;
+	double zetas_width_GeV;
+	double zetas_skew;
 
 	double freezeout_temperature_GeV;
 	double flux_limiter;
@@ -69,13 +75,11 @@ typedef struct
 	int nucleus_B;
 
 	double initialCentralTemperatureGeV;	// initial central temperature for a central collision
-	double scatteringCrossSectionNN;
 	double impactParameter;
-	double fractionOfBinaryCollisions;
 
 	// longitudinal energy density profile parameters
-	double rapidityVariance; 	// \sigma^{2}_{\eta}
-	double rapidityMean; 		// flat region around \ets_s = 0
+	double rapidity_variance; 	// \sigma^{2}_{\eta}
+	double rapidity_mean; 		// flat region around \ets_s = 0
 
 	double q_gubser;
 

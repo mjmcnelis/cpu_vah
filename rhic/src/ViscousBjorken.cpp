@@ -22,7 +22,7 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 
 double de_dt_vh(double e, double pi, double bulk, double t, hydro_parameters hydro)
 {
-	equation_of_state eos(e);
+	equation_of_state_new eos(e, hydro.conformal_eos_prefactor);
 	double p = eos.equilibrium_pressure();
 
 	return - (e + p + bulk - pi) / t;
@@ -39,7 +39,7 @@ double dpi_dt(double e, double pi, double bulk, double t, hydro_parameters hydro
 	double T = eos.T;
 	double s = (e + p) / T;
 
-// BEST 	
+// BEST
 	// equation_of_state eos(e);
 	// double p = eos.equilibrium_pressure();
 	// double T = eos.effective_temperature(hydro.conformal_eos_prefactor);
@@ -52,7 +52,9 @@ double dpi_dt(double e, double pi, double bulk, double t, hydro_parameters hydro
 
 	viscous.compute_shear_transport_coefficients(etas);
 
-	double taupi_inverse = viscous.taupi_inverse;
+	//double taupi_inverse = viscous.taupi_inverse;
+	double taupi_inverse = eos.beta_shear() / eta;
+
 	double deltapipi = viscous.delta_pipi;
 	double taupipi = viscous.tau_pipi;
 #ifdef PI
@@ -95,7 +97,9 @@ double dbulk_dt(double e, double pi, double bulk, double t, hydro_parameters hyd
 
 	viscous.compute_bulk_transport_coefficients(zetas, 1./3. - cs2);
 
-	double taubulk_inverse = viscous.taubulk_inverse;
+	//double taubulk_inverse = viscous.taubulk_inverse;
+	double taubulk_inverse = eos.beta_bulk() / zeta;
+
 	double deltabulkbulk = viscous.delta_bulkPibulkPi;
 
 #ifdef PIMUNU
@@ -128,8 +132,8 @@ void run_semi_analytic_viscous_bjorken(lattice_parameters lattice, initial_condi
 	double conformal_eos_prefactor = hydro.conformal_eos_prefactor;
 
 	// using hotQCD
-	//double e0 = equilibrium_energy_density(T0/hbarc, conformal_eos_prefactor);	// initial energy density
-	double e0 = equilibrium_energy_density_new(T0/hbarc, conformal_eos_prefactor);	// initial energy density
+	//double e0 = equilibrium_energy_density(T0 / hbarc, conformal_eos_prefactor);	// initial energy density
+	double e0 = equilibrium_energy_density_new(T0 / hbarc, conformal_eos_prefactor);	// initial energy density
 
 	double plpt_ratio = hydro.plpt_ratio_initial;								// initial pl/pt ratio
 
@@ -143,9 +147,8 @@ void run_semi_analytic_viscous_bjorken(lattice_parameters lattice, initial_condi
 	equation_of_state_new eos(e, conformal_eos_prefactor);
 	double p = eos.equilibrium_pressure();
 
-
-	double pl = e * plpt_ratio / (2. + plpt_ratio);
-	double pt = (e - pl) / 2.;
+	double pl = 3. * p * plpt_ratio / (2. + plpt_ratio);
+	double pt = 3. * p / (2. + plpt_ratio);
 
 	double pi = 0;
 	double bulk = 0;
@@ -154,7 +157,7 @@ void run_semi_analytic_viscous_bjorken(lattice_parameters lattice, initial_condi
 	pi = - 2. * (pl - pt) / 3.;													// - t2.pinn
 #endif
 #ifdef PI
-	bulk = e/3. - p;
+	bulk = (pl + 2.*pt)/3.  -  p;
 #endif
 
 	double T_freeze = hydro.freezeout_temperature_GeV;
@@ -167,7 +170,7 @@ void run_semi_analytic_viscous_bjorken(lattice_parameters lattice, initial_condi
 	ofstream pl_pt_plot;
 	ofstream Rpi_inv_plot;
 	ofstream Rbulk_inv_plot;
-	ofstream T_plot; 
+	ofstream T_plot;
 	e_e0_plot.open("semi_analytic/e_e0_viscous_bjorken.dat", ios::out);
 	pl_pt_plot.open("semi_analytic/pl_pt_viscous_bjorken.dat", ios::out);
 	Rpi_inv_plot.open("semi_analytic/Rpi_inv_viscous_bjorken.dat", ios::out);
@@ -183,10 +186,10 @@ void run_semi_analytic_viscous_bjorken(lattice_parameters lattice, initial_condi
 		p = EoS.equilibrium_pressure();
 		double T = EoS.T;
 
-		// BEST 
+		// BEST
 		// equation_of_state EoS(e);
 		// p = EoS.equilibrium_pressure();
-		
+
 		// double T = EoS.effective_temperature(hydro.conformal_eos_prefactor);
 
 		pl = p  +  bulk  -  pi;
@@ -241,7 +244,8 @@ void set_viscous_bjorken_initial_condition(int nx, int ny, int nz, initial_condi
 	precision conformal_eos_prefactor = hydro.conformal_eos_prefactor;
 
 	precision T0 = initial.initialCentralTemperatureGeV;							// central temperature (GeV)
-	precision e0 = equilibrium_energy_density(T0 / hbarc, conformal_eos_prefactor);	// energy density
+	// precision e0 = equilibrium_energy_density(T0 / hbarc, conformal_eos_prefactor);	// energy density
+	precision e0 = equilibrium_energy_density_new(T0 / hbarc, conformal_eos_prefactor);	// energy density
 
 	for(int i = 2; i < nx + 2; i++)
 	{
@@ -255,10 +259,15 @@ void set_viscous_bjorken_initial_condition(int nx, int ny, int nz, initial_condi
 
 				e[s] = e_s;
 
-				equation_of_state eos(e_s);
+				// equation_of_state eos(e_s);
+				// precision p = eos.equilibrium_pressure();
+				// precision pl = e_s * plpt_ratio / (2. + plpt_ratio);		// conformal switch approximation
+				// precision pt = e_s / (2. + plpt_ratio);
+
+				equation_of_state_new eos(e_s, hydro.conformal_eos_prefactor);
 				precision p = eos.equilibrium_pressure();
-				precision pl = e_s * plpt_ratio / (2. + plpt_ratio);		// conformal switch approximation
-				precision pt = e_s / (2. + plpt_ratio);
+				precision pl = 3. * p * plpt_ratio / (2. + plpt_ratio);
+				precision pt = 3. * p / (2. + plpt_ratio);
 
 			#ifdef PIMUNU
 		  		q[s].pitt = 0;

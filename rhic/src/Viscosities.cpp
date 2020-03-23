@@ -33,10 +33,15 @@ precision eta_over_s(precision T, hydro_parameters hydro)
 
 		// return fmax(etas_min, etas_min  +  etas_slope * (T - Tc));
 
-		precision aL = -0.77 * hbarc;
-		precision aH = 0.21 * hbarc;
-		precision Tk = 0.22 / hbarc;
-		precision etask = 0.093;
+		// precision aL = -0.77 * hbarc;
+		// precision aH = 0.21 * hbarc;
+		// precision Tk = 0.22 / hbarc;
+		// precision etask = 0.093;
+
+		precision aL = hydro.etas_aL * hbarc;			// left slope [fm]
+		precision aH = hydro.etas_aH * hbarc;			// right slope [fm]
+		precision Tk = hydro.etas_Tk_GeV / hbarc;		// kink temperature fm^-1]
+		precision etask = hydro.etas_etask;				// kink etas value
 
 		return etask  +  (T - Tk) * (aL * Theta(Tk - T)  +  aH * Theta(T - Tk));
 	}
@@ -67,11 +72,15 @@ precision zeta_over_s(precision T, hydro_parameters hydro)
 	// return zetas * hydro.zetas_normalization_factor;
 
 
+	// precision norm = hydro.zetas_normalization_factor;				// normalization factor
+	// precision Tpeak = hydro.zetas_peak_temperature_GeV / hbarc;		// peak temperature [fm^-1]
+	// precision width = 0.089 / hbarc;								// width [fm^-1]
+	// precision skew = -0.15;											// skew
 
-	precision norm = hydro.zetas_normalization_factor;
-	precision Tpeak = hydro.zetas_peak_temperature_GeV / hbarc;		// peak temperature in fm^-1
-	precision width = 0.089 / hbarc;								// width in fm^-1
-	precision skew = -0.15;
+	precision norm = hydro.zetas_normalization_factor;				// normalization factor
+	precision Tpeak = hydro.zetas_peak_temperature_GeV / hbarc;		// peak temperature [fm^-1]
+	precision width = hydro.zetas_width_GeV / hbarc;				// width [fm^-1]
+	precision skew = hydro.zetas_skew;								// skew
 
 	precision Lambda = width * (1.  +  skew * sign(T - Tpeak));
 

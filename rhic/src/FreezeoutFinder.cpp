@@ -14,6 +14,11 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 
 freezeout_finder::freezeout_finder(lattice_parameters lattice, hydro_parameters hydro)
 {
+  if(hydro.run_hydro != 2)
+  {
+    return;
+  }
+
 	freezeout_surface_file.open("output/surface.dat");
   //freezeout_surface_file = fopen("output/surface.dat", "w");
 

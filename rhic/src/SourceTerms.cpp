@@ -995,6 +995,7 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	precision p = eos.equilibrium_pressure();
 	precision cs2 = eos.speed_of_sound_squared();
 	precision T = eos.T;
+	precision s = (e + p) / T;
 
 #if (NUMBER_OF_VISCOUS_CURRENTS != 0)
 	viscous_transport_coefficients viscous(T, e, p, hydro.kinetic_theory_model);
@@ -1044,8 +1045,12 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	precision etas = eta_over_s(T, hydro);
 	viscous.compute_shear_transport_coefficients(etas);
 
-	precision taupi_inverse = viscous.taupi_inverse;
-	precision betapi = viscous.betapi;
+	// precision betapi = viscous.betapi;
+	// precision taupi_inverse = viscous.taupi_inverse;
+	precision betapi = eos.beta_shear();
+	precision taupi_inverse = betapi / (etas * s);
+
+
 	precision delta_pipi = viscous.delta_pipi;
 	precision tau_pipi = viscous.tau_pipi;
 #ifdef PI
@@ -1073,8 +1078,11 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	precision zetas = zeta_over_s(T, hydro);
 	viscous.compute_bulk_transport_coefficients(zetas, 1./3. - cs2);
 
-	precision betabulk = viscous.betabulk;
-	precision taubulkInv = viscous.taubulk_inverse;
+	//precision betabulk = viscous.betabulk;
+	//precision taubulkInv = viscous.taubulk_inverse;
+	precision betabulk = eos.beta_bulk();
+	precision taubulkInv = betabulk / (zetas * s);
+
 	precision delta_bulkPibulkPi = viscous.delta_bulkPibulkPi;
 #ifdef PIMUNU
 	precision lambda_bulkPipi = viscous.lambda_bulkPipi;

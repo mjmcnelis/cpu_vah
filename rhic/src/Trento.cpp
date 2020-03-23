@@ -3,7 +3,7 @@
 #include <random>
 #include <chrono>
 #include <vector>
-#include "../include/MCGlauber.h"
+//#include "../include/MCGlauber.h"
 #include "../include/Parameters.h"
 #include "../include/DynamicalVariables.h"
 #include "../include/Macros.h"
@@ -51,13 +51,13 @@ double woods_saxon(double r, double A)
 }
 
 
-double Tp(double distance2, double w2)
+inline double Tp(double distance2, double w2)
 {
 	return exp(- distance2 / (2. * w2)) / (2. * M_PI * w2);			// nucleon thickness function (right normalization?)
 }
 
 
-double Tpp_overlap(double distance2, double w2)
+inline double Tpp_overlap(double distance2, double w2)
 {
 	return exp(- distance2 / (4. * w2)) / (4. * M_PI * w2);			// nucleon-nucleon overlap thickness function
 }
@@ -266,7 +266,6 @@ void trento_transverse_energy_density_profile(double * const __restrict__ energy
 	double b = initial.impactParameter;							// impact parameter [fm]
 	double N = initial.trento_normalization_GeV;				// normalization factor [GeV]
 	double w = initial.trento_nucleon_width;					// nucleon width [fm]
-
 	double sigma_gg = compute_sigma_gg(w);						// compute parton cross section in trento model [fm^2]
 
 	double d_min = initial.trento_min_nucleon_distance;			// minimum nucleon-nucleon separation in nucleus [fm]
@@ -299,9 +298,6 @@ void trento_transverse_energy_density_profile(double * const __restrict__ energy
 		int nA_wounded = xA_wounded->size();
 		int nB_wounded = xB_wounded->size();
 
-		//printf("%d wounded nucleons in A\n", nA_wounded);
-		//printf("%d wounded nucleons in B\n\n", nB_wounded);
-
 		double gamma_A[nA_wounded];									// gamma distribution samples
 		double gamma_B[nB_wounded];
 
@@ -328,12 +324,13 @@ void trento_transverse_energy_density_profile(double * const __restrict__ energy
 			}
 		}
 
-		for(int i = 0; i < nx; i++)									// compute the transverse energy density profile
+		for(int j = 0; j < ny; j++)									// compute the transverse energy density profile
 		{
-	   		for(int j = 0; j < ny; j++)
+			double y = (j - (ny - 1.)/2.) * dy;						// fluid cell position y
+
+	   		for(int i = 0; i < nx; i++)
 	   	 	{
-	   	 		double x = (i - (nx - 1.)/2.) * dx;					// fluid cell position
-	   	 		double y = (j - (ny - 1.)/2.) * dy;
+	   	 		double x = (i - (nx - 1.)/2.) * dx;					// fluid cell position x
 
 	   	 		double TA = 0;
 
@@ -371,8 +368,9 @@ void trento_transverse_energy_density_profile(double * const __restrict__ energy
 		        }
 
 		        energy_density_transverse[i + j * nx] += N * TR / (t0 * hbarc * (double)number_of_events);
-			} // j
-		} // i
+
+			} // i
+		} // j
 
 		xA_wounded->clear();
 		yA_wounded->clear();

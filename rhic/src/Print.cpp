@@ -154,9 +154,9 @@ void print_hydro_center(int n, double t, lattice_parameters lattice, hydro_param
 	// T = GeV
 	// e, pl, pt = GeV/fm^3
 
-	printf("\t%d\t|\t%.4g\t|\t%.3g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.3g\t|\t%.3g\t|\t%.2f%%\t|\n", n, t, T, e_s, p, pl, pt, e_max, T_max, gamma_max, percent_above_Tsw);
+	printf("\t%d\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.3g\t|\t%.3g\t|\t%.2f%%\t|\n", n, t, T, e_s, p, pl, pt, e_max, T_max, gamma_max, percent_above_Tsw);
 #else
-	printf("\t%d\t|\t%.4g\t|\t%.3g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.3g\t|\t%.3g\t|\t%.2f%%\t|\n", n, t, T, e_s, p, e_max, T_max, gamma_max, percent_above_Tsw);
+	printf("\t%d\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.3g\t|\t%.3g\t|\t%.2f%%\t|\n", n, t, T, e_s, p, e_max, T_max, gamma_max, percent_above_Tsw);
 #endif
 }
 
@@ -187,20 +187,28 @@ void print_parameters(lattice_parameters lattice, hydro_parameters hydro)
 	printf("Spatial dimensions  = %.3f fm  x  %.3f fm  x  %.3f\n\n", (nx - 1.) * dx, (ny - 1.) * dy, (nz - 1.) * dz);
 
 	// hydro parameters
-	printf("Initial time 	    = %.3g fm/c\n", hydro.tau_initial);
-	printf("Initial pl/pt ratio = %.3g\n\n", 	hydro.plpt_ratio_initial);
+	printf("Initial time  = %.3g fm/c\n", hydro.tau_initial);
+	printf("Initial pl/pt = %.3g\n\n", 	hydro.plpt_ratio_initial);
 
 	if(hydro.temperature_etas)
 	{
-		printf("Shear viscosity model:\teta/s = max(%.3f, %.3f  +  %.3f(T / GeV - 0.154))\n\n", hydro.etas_min, hydro.etas_min, hydro.etas_slope);
+		printf("etas(T)  = %.3f  +  (T - %.3f GeV) . (%.2f GeV^-1 . Theta(%.3f GeV - T)  +  %.2f GeV^-1 . Theta(T - %.3f GeV))\n\n", hydro.etas_etask, hydro.etas_Tk_GeV, hydro.etas_aL, hydro.etas_Tk_GeV, hydro.etas_aH, hydro.etas_Tk_GeV);
 	}
 	else
 	{
-		printf("Shear viscosity model:\teta/s = %.3f (fixed)\n\n", hydro.constant_etas);
+		printf("\teta/s(T)  = %.3f (fixed)\n\n", hydro.constant_etas);
 	}
 
-	printf("Bulk viscosity normalization    = %.3g\n", 			hydro.zetas_normalization_factor);
-	printf("Bulk viscosity peak temperature = %.3g MeV\n\n", 	hydro.zetas_peak_temperature_GeV * 1000.);
+#ifdef CONFORMAL_EOS
+	printf("zetas = 0\n\n");
+#else
+	char sign = '+';
+	if(hydro.zetas_skew < 0)
+	{
+		sign = '-';
+	}
+	printf("zetas(T) = %.3f Lambda^2 / (Lambda^2  +  (T - %.3f GeV)^2)\t\tLambda = %.3f GeV . (1 %c %.3f sign(T - %.3f GeV))\n\n", hydro.zetas_normalization_factor, hydro.zetas_peak_temperature_GeV, hydro.zetas_width_GeV, sign, fabs(hydro.zetas_skew), hydro.zetas_peak_temperature_GeV);
+#endif
 
 	if(hydro.kinetic_theory_model == 0)
 	{
@@ -213,8 +221,8 @@ void print_parameters(lattice_parameters lattice, hydro_parameters hydro)
 
 	printf("Freezeout temperature  = %.3g MeV\n",	hydro.freezeout_temperature_GeV * 1000.);
 	printf("Flux limiter           = %.2f\n",		hydro.flux_limiter);
-	printf("Minimum energy density = %.2e\n",		hydro.energy_min);
-	printf("Minimum pressure       = %.2e\n",		hydro.pressure_min);
+	printf("Minimum energy density = %.2e fm^-4\n",		hydro.energy_min);
+	printf("Minimum pressure       = %.2e fm^-4\n",		hydro.pressure_min);
 
 	// equation of state
 #ifdef CONFORMAL_EOS
@@ -252,6 +260,69 @@ void print_parameters(lattice_parameters lattice, hydro_parameters hydro)
 	printf("Bulk pressure = Off\n");
 #endif
 #endif
+
+	if(hydro.include_vorticity)
+	{
+		printf("Vorticity terms                 = On\n");
+	}
+	else
+	{
+		printf("Vorticity terms                 = Off\n");
+	}
 }
+
+
+
+void print_parameters_check(lattice_parameters lattice, hydro_parameters hydro, initial_condition_parameters initial)
+{
+	printf("\tLattice parameters\t|\tHydro parameters\t\t|\tInitial parameters\t\t|");
+	printf("\n------------------------------------------------------------");
+	printf("------------------------------------------------------------\n");
+	printf("lattice_points_x\t%d\t|\trun_hydro\t\t%d\t|\n", lattice.lattice_points_x, hydro.run_hydro);
+	printf("lattice_points_y\t%d\t|\toutput\t\t\t%d\t|\n", lattice.lattice_points_y, hydro.output);
+	printf("lattice_points_eta\t%d\t|\ttau_initial\t\t%.3g\t|\n", lattice.lattice_points_eta, hydro.tau_initial);
+	printf("lattice_spacing_x\t%.3g\t|\tplpt_ratio_initial\t%.2g\t|\n", lattice.lattice_spacing_x, hydro.plpt_ratio_initial);
+	printf("lattice_spacing_y\t%.3g\t|\tkinetic_theory_model\t%d\t|\n", lattice.lattice_spacing_y, hydro.kinetic_theory_model);
+	printf("lattice_spacing_eta\t%.3g\t|\tconformal_eos_prefactor\t%.4g\t|\n",lattice.lattice_spacing_eta, hydro.conformal_eos_prefactor);
+	printf("max_time_steps\t\t%d\t|\ttemperature_etas\t%d\t|\n", lattice.max_time_steps, hydro.temperature_etas);
+	printf("output_interval\t\t%.2f\t|\tconstant_etas\t\t%.3g\t|\n", lattice.output_interval, hydro.constant_etas);
+	printf("fixed_time_step\t\t%.3g\t|\tetas_aL\t\t\t%.2f\t|\n", lattice.fixed_time_step, hydro.etas_aL);
+	printf("adaptive_time_step\t%d\t|\tetas_aH\t\t\t%.2f\t|\n", lattice.adaptive_time_step, hydro.etas_aH);
+	printf("min_time_step\t\t%.4f\t|\tetas_etask\t\t%.3f\t|\n", lattice.min_time_step, hydro.etas_etask);
+	printf("delta_0\t\t\t%.3g\t|\tetas_Tk_GeV\t\t%.3f\t|\n", lattice.delta_0, hydro.etas_Tk_GeV);
+	printf("alpha\t\t\t%.3g\t|\tzetas_normalization\t%.3f\t|\n", lattice.alpha, hydro.zetas_normalization_factor);
+	printf("tau_coarse_factor\t%d\t|\tzetas_Tk_GeV\t\t%.3f\t|\n", lattice.tau_coarse_factor, hydro.zetas_peak_temperature_GeV);
+	printf("\t\t\t\t|\tzetas_width_GeV\t\t%.3f\t|\n", hydro.zetas_width_GeV);
+	printf("\t\t\t\t|\tzetas_skew\t\t%.3f\t|\n", hydro.zetas_skew);
+	printf("\t\t\t\t|\tfreezeout_temp_GeV\t%.3f\t|\n", hydro.freezeout_temperature_GeV);
+	printf("\t\t\t\t|\tflux_limiter\t\t%.2f\t|\n", hydro.flux_limiter);
+	printf("\t\t\t\t|\tinclude_vorticity\t%d\t|\n", hydro.include_vorticity);
+	printf("\t\t\t\t|\tenergy_min\t\t%.1e\t|\n", hydro.energy_min);
+	printf("\t\t\t\t|\tpressure_min\t\t%.1e\t|\n", hydro.pressure_min);
+	printf("\t\t\t\t|\tregulation_scheme\t%d\t|\n", hydro.regulation_scheme);
+	printf("\t\t\t\t|\trho_max\t\t\t%.2f\t|\n", hydro.rho_max);
+	printf("\n\n");
+
+
+
+
+
+	//exit(-1);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

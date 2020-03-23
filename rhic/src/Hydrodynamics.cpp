@@ -175,6 +175,8 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 	precision dt = dt_start;							// initialize time step
 	precision dt_prev = dt;								// previous time step
 
+	print_parameters_check(lattice, hydro, initial);
+
 	print_parameters(lattice, hydro);
 	allocate_memory(lattice);
 
@@ -336,7 +338,11 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 	print_run_time(duration, steps, lattice);
 
 	free_memory();
-	fo_surface.close_file_and_free_memory();
+
+	if(hydro.run_hydro == 2)
+	{
+		fo_surface.close_file_and_free_memory();
+	}
 
 	printf("\nFinished hydro\n");
 }

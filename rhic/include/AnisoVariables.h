@@ -6,9 +6,9 @@
 #include "DynamicalVariables.h"
 #include "Parameters.h"
 
-const int N_max = 1000;	      			// max number of iterations   (probably need to adjust)
-const precision tol_dX = 1.0e-4;    	// tolerance for dX
-const precision tol_F = 1.0e-6;    		// tolerance for F
+const int N_max = 100;	      			// max number of iterations   (probably need to adjust)
+const precision tol_dX = 1.e-4;    		// tolerance for dX
+const precision tol_F = 1.e-4;    		// tolerance for F
 
 typedef enum {newton, broyden} jacobian;
 
@@ -17,6 +17,8 @@ typedef struct
 	precision lambda;
 	precision aT;
 	precision aL;
+	int did_not_find_solution;
+	int number_of_iterations;
 
 } aniso_variables;
 

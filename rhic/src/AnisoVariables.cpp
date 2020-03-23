@@ -431,14 +431,12 @@ void line_backtracking(precision *l, precision Ea, precision PTa, precision PLa,
 {
 	// I got this algorithm from Numerical Recipes in C
 	//line_backtracking(&l, Ea, PTa, PLa, mass, Xcurrent, dX, fcurrent, F, gradf); (for reference)
-
 	// g0 = fcurrent
 
 	precision ls = 1.0;         				// starting value for l
 	precision alpha = 0.0001;   				// descent parameter (default was 0.0001)
 
-	//precision dX_abs = sqrt(dX[0] * dX[0]  +  dX[1]*dX[1]  +  dX[2] * dX[2]);
-	precision dX_abs = sqrt(ls) * sqrt(dX[0] * dX[0]  +  dX[1]*dX[1]  +  dX[2] * dX[2]);
+	precision dX_abs = sqrt(dX[0] * dX[0]  +  dX[1]*dX[1]  +  dX[2] * dX[2]);
 
 	precision X[3];
 
@@ -474,7 +472,7 @@ void line_backtracking(precision *l, precision Ea, precision PTa, precision PLa,
 
 	precision lroot, lprev, fprev, z;
 
-	for(int i = 0; i < 10; i++)						// line search iterations (max is 10)
+	for(int i = 0; i < 20; i++)						// line search iterations (max is 10)
 	{
 		if(f <= g0  +  ls * alpha * gprime0)		// check for sufficient decrease in f
 		{
@@ -525,14 +523,14 @@ void line_backtracking(precision *l, precision Ea, precision PTa, precision PLa,
 				}
 			}
 
-			lroot = fmin(lroot, ls / 2.);
+			lroot = fmin(lroot, 0.5 * ls);
 		}
 
 		lprev = ls;									// store current values for next iteration
 		fprev = f;
 
-		ls = fmax(lroot, 0.2 * ls);				// update l and f
-		//ls = fmax(lroot, 0.1 * ls);					// update l and f
+		ls = fmax(lroot, 0.5 * ls);					// update l and f
+		//ls = fmax(lroot, 0.1 * ls);				// update l and f
 
 
 		for(int j = 0; j < 3; j++)
@@ -572,6 +570,8 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 		variables.lambda = lambda_0;
 		variables.aT = aT_0;
 		variables.aL = aL_0;
+		variables.did_not_find_solution = 1;
+		variables.number_of_iterations = 0;
 		return variables;
 	}
 
@@ -584,9 +584,6 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 
 	// 	return variables;
 	// }
-
-
-	// let's keep the matrix solver for now
 
 	precision lambda = lambda_0;
 	precision aT = aT_0;
@@ -614,11 +611,11 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
  	int pvector[3];									  		 			// permutation vector for LUP solver
 
  	jacobian method = newton;                               			// jacobian method (start with newton)
- 	precision l = 1.0; 		  											// default partial step parameter
+ 	//precision l = 1.0; 		  											// default partial step parameter
 
  	// not sure
  	//precision tolmin = 1.0e-6;   										// tolerance for spurious convergence to local min of f = F.F/2 (what does this mean?)
-	precision stepmax = 100;   											// scaled maximum step length allowed in line searches (what does this mean?)
+	precision stepmax = 100.0;   											// scaled maximum step length allowed in line searches (what does this mean?)
 	stepmax *= fmax(sqrt(X[0]*X[0] + X[1]*X[1] + X[2]*X[2]), 3. * sqrt(3.));		// why??? (never used anyway..)
 
 
@@ -633,10 +630,12 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 
 	for(int i = 0; i < N_max; i++)										// Newton-Broyden iteration loop
 	{
+		precision l = 1.0;												// default partial step parameter
+
 		if(i > 0)														// compute at least one Newton iteration before checking for convergence
 		{
-			// printf("X = (%lf, %lf, %lf)\n", X[0], X[1], X[2]);
-			// printf("dX = (%lf, %lf, %lf)\n", dX[0], dX[1], dX[2]);
+			//printf("X = (%lf, %lf, %lf)\n", X[0], X[1], X[2]);
+			//printf("dX = (%lf, %lf, %lf)\n", dX[0], dX[1], dX[2]);
 			// printf("F = (%.6g, %.6g, %.6g)\n", F[0], F[1], F[2]);
 			// printf("(|dX|, |dF|) = (%.6g, %.6g)\n\n", dX_abs, F_abs);
 
@@ -649,6 +648,8 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 				variables.lambda = X[0];
 				variables.aT = X[1];
 				variables.aL = X[2];
+				variables.did_not_find_solution = 0;
+				variables.number_of_iterations = i + 1;
 
 				free_2D(J, 3);											// free allocated memory
 				free_2D(Jcurrent, 3);									// can I do something else?
@@ -749,7 +750,6 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 				line_backtracking(&l, Ea, PTa, PLa, mass, Xcurrent, dX, fcurrent, F, gradf);
 
 				// printf("default newton l = %lf\n", l);
-				// //exit(-1);
 
 				for(int j = 0; j < 3; j++)
 			    {
@@ -825,7 +825,7 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 					//
 					line_backtracking(&l, Ea, PTa, PLa, mass, Xcurrent, dX, fcurrent, F, gradf);
 
-					//printf("newton l = %lf\n", l);
+					// printf("newton l = %lf\n", l);
 
 				    for(int j = 0; j < 3; j++)							// redo update for X
 				    {
@@ -847,8 +847,13 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 			}
 		} // updated X
 
+		for(int i = 0; i < 3; i++)
+		{
+			dX[i] = X[i] - Xcurrent[i];
+		}
+
 	    F_abs = sqrt(F[0] * F[0]  +  F[1] * F[1]  +  F[2] * F[2]);		// update convergence values
-	    dX_abs = sqrt(dX[0] * dX[0]  +  dX[1] * dX[1]  +  dX[2] * dX[2]);
+	   	dX_abs = sqrt(dX[0] * dX[0]  +  dX[1] * dX[1]  +  dX[2] * dX[2]);
 
 		for(int j = 0; j < 3; j++)										// store current solution
 		{
@@ -859,12 +864,18 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 
 		if(X[0] < 0 || X[1] < 0 || X[2] < 0)
 		{
-			printf("find_anisotropic_variables error: iteration i = %d\t(lambda, aT, aL) = (%lf, %lf, %lf)\n", i, X[0], X[1], X[2]);
+			//printf("find_anisotropic_variables error: iteration i = %d\t(lambda, aT, aL) = (%lf, %lf, %lf)\n", i, X[0], X[1], X[2]);
 			//exit(-1);
 			aniso_variables variables;
 			variables.lambda = lambda_0;
 			variables.aT = aT_0;
 			variables.aL = aL_0;
+			variables.did_not_find_solution = 1;
+			variables.number_of_iterations = i + 1;
+
+			free_2D(J, 3);
+			free_2D(Jcurrent, 3);
+
 			return variables;
 		}
 
@@ -878,16 +889,22 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 		// 	return variables;
 		// }
 
+		//printf("|dX| = %lf\n", dX_abs);
+		//printf("|F| = %lf\n", F_abs);
+
 	}	// newton iteration (i)
 
 	//printf("(newton, broyden) steps = (%d, %d)", number_newton, number_broyden);
 
-	printf("find_anisotropic_variables error: number of iterations on (lambda_0, aT_0, aL_0) = (%lf, %lf, %lf) exceed maximum (%lf, %lf, %lf)\n", lambda_0, aT_0, aL_0, X[0], X[1], X[2]);
+	//printf("find_anisotropic_variables error: number of iterations on (lambda_0, aT_0, aL_0) = (%lf, %lf, %lf) exceed maximum (%lf, %lf, %lf)\n", lambda_0, aT_0, aL_0, X[0], X[1], X[2]);
 
-	aniso_variables variables;				// does algorithm ever get stuck searching (e.g. hit local min)?
-	variables.lambda = X[0];
-	variables.aT = X[1];
-	variables.aL = X[2];
+
+	aniso_variables variables;
+	variables.lambda = lambda_0;
+	variables.aT = aT_0;
+	variables.aL = aL_0;
+	variables.did_not_find_solution = 1;
+	variables.number_of_iterations = N_max;
 
 	// aniso_variables variables;			// does algorithm ever get stuck searching (e.g. hit local min)?
 	// variables.lambda = 1./0.;
@@ -910,36 +927,36 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 void set_anisotropic_variables(const hydro_variables * const __restrict__ q, const precision * const __restrict__ e, precision * const __restrict__ lambda, precision * const __restrict__ aT, precision * const __restrict__ aL, lattice_parameters lattice, hydro_parameters hydro)
 {
 #ifdef ANISO_HYDRO
+#ifdef LATTICE_QCD
 	int nx = lattice.lattice_points_x;
 	int ny = lattice.lattice_points_y;
 	int nz = lattice.lattice_points_eta;
 
+	double dx = lattice.lattice_spacing_x;
+	double dy = lattice.lattice_spacing_y;
+
+	int grid_size = nx * ny * nz;
+
 	precision conformal_prefactor = hydro.conformal_eos_prefactor;
+
+	int number_of_failed_solutions = 0;
 
 	for(int k = 2; k < nz + 2; k++)
 	{
 		for(int j = 2; j < ny + 2; j++)
 		{
+			double y = (j - 2. - (ny - 1.)/2.) * dy;
+
 			for(int i = 2; i < nx + 2; i++)
 			{
+				double x = (i - 2. - (nx - 1.)/2.) * dx;
+
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
 				precision e_s = e[s];
 				precision pl = q[s].pl;
 				precision pt = q[s].pt;
-
-			#ifdef LATTICE_QCD
-			#ifndef CONFORMAL_EOS
 				precision b = q[s].b;
-
-				// printf("e = %lf\n", e_s);
-				// printf("pl = %lf\n", pl);
-				// printf("pt = %lf\n", pt);
-				// printf("b = %lf\n", b);
-
-				// equation_of_state eos(e_s);
-				// precision T = eos.effective_temperature(conformal_prefactor);
-				// precision mass = T * eos.z_quasi(T);
 
 				equation_of_state_new eos(e_s, conformal_prefactor);
 				precision T = eos.T;
@@ -949,28 +966,29 @@ void set_anisotropic_variables(const hydro_variables * const __restrict__ q, con
 				precision aT_prev = aT[s];
 				precision aL_prev = aL[s];
 
-				// printf("lambda_prev = %lf\n", lambda_prev);
-				// printf("aT_prev = %lf\n", aT_prev);
-				// printf("aL_prev = %lf\n", aL_prev);
-
 				aniso_variables X_s = find_anisotropic_variables(e_s, pl, pt, b, mass, lambda_prev, aT_prev, aL_prev);
 
-				lambda[s] = X_s.lambda;				// update anisotropic variables
+				lambda[s] = X_s.lambda;			// update anisotropic variables
 				aT[s] = X_s.aT;
 				aL[s] = X_s.aL;
-			#else
-				printf("set_anisotropic_variables error: no eos transition\n");
-				exit(-1);
-			#endif
-			#endif
+				number_of_failed_solutions += X_s.did_not_find_solution;
 
-				// printf("lambda = %lf\n", X_s.lambda);
-				// printf("aT = %lf\n", X_s.aT);
-				// printf("aL = %lf\n", X_s.aL);
-				// exit(-1);
+				if(X_s.did_not_find_solution)
+				{
+
+					aniso_regulation[s] += 1;
+				}
+
 			}
 		}
 	}
+
+	// if(number_of_failed_solutions > 0)
+	// {
+	// 	printf("failed solutions = %d\n", number_of_failed_solutions);
+	// }
+
+#endif
 #endif
 }
 
