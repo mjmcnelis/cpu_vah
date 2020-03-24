@@ -55,7 +55,7 @@ void aniso_transport_coefficients_nonconformal::compute_hypergeometric_functions
 	}
 	else
 	{
-		printf("Error: z = %lf is out of bounds\n", z);
+		printf("compute_hypergeometric_functions_n_equals_0 error: z = %lf is out of bounds\n", z);
 		exit(-1);
 	}
 }
@@ -99,7 +99,7 @@ void aniso_transport_coefficients_nonconformal::compute_hypergeometric_functions
 	}
 	else
 	{
-		printf("Error: z = %lf is out of bounds\n", z);
+		printf("compute_hypergeometric_functions_n_equals_2 error: z = %lf is out of bounds\n", z);
 		exit(-1);
 	}
 }
@@ -123,7 +123,7 @@ void aniso_transport_coefficients_nonconformal::compute_hypergeometric_functions
 		t_422 = (15.  +  z +  (z * (z - 6.) - 15.)* t) / (4. * z3);
 		t_403 = ((z - 3.) * (5. + 3.*z)  +  3. * (1. + z) * (z * (z - 2.) + 5.) * t) / (4. * z3 * (1. + z));
 	}
-	else if(z < -delta && z > -1.)						
+	else if(z < -delta && z > -1.)
 	{
 		precision sqrtmz = sqrt(-z);
 		precision t = atanh(sqrtmz) / sqrtmz;
@@ -148,7 +148,7 @@ void aniso_transport_coefficients_nonconformal::compute_hypergeometric_functions
 	}
 	else
 	{
-		printf("Error: z = %lf is out of bounds\n", z);
+		printf("compute_hypergeometric_functions_n_equals_4 error: z = %lf is out of bounds\n", z);
 		exit(-1);
 	}
 }
@@ -191,7 +191,7 @@ void aniso_transport_coefficients_nonconformal::compute_transport_coefficients(p
 		//::::::::::::::::::::::::::::::::::::::::::::
 		pbar = pbar_root_a0[i];							// pbar roots / weights for a = n = 0
 		weight = pbar_weight_a0[i];
-	
+
 		exp_factor = exp(pbar - sqrt(pbar * pbar  +  mbar2));
 		total_weight = pbar * weight * exp_factor; 		// common weight for a = n = 0
 
@@ -252,7 +252,7 @@ void aniso_transport_coefficients_nonconformal::compute_transport_coefficients(p
 		I_422 += total_weight * t_422 / w3;
 		I_403 += total_weight * t_403 / w3;
 	#endif
-		
+
 	}
 
 	I_020 *= aL2 * prefactor_n_equals_0;
@@ -279,7 +279,7 @@ void aniso_transport_coefficients_nonconformal::compute_transport_coefficients(p
 
 	// pl transport coefficients
 	zeta_LL = I_240  -  3. * (pl + b)  +  mdmde * (e + pl) * (I_020 + trace_term);
-	zeta_TL = I_221  -  pl  -  b  +  mdmde * (e + pt) * (I_020 + trace_term);  
+	zeta_TL = I_221  -  pl  -  b  +  mdmde * (e + pt) * (I_020 + trace_term);
 
 #ifdef WTZMU
 	lambda_WuL = I_441 / I_421  +  mdmde * (I_020 + trace_term);
@@ -297,7 +297,7 @@ void aniso_transport_coefficients_nonconformal::compute_transport_coefficients(p
 
 	// pt transport coefficients
 	zeta_LT = I_221  -  pt  -  b  +  mdmde * (e + pl) * (I_001  +  trace_term);
-	zeta_TT = 2. * (I_202 - pt - b)  +  mdmde * (e + pt) * (I_001  +  trace_term);  
+	zeta_TT = 2. * (I_202 - pt - b)  +  mdmde * (e + pt) * (I_001  +  trace_term);
 
 #ifdef WTZMU
 	lambda_WTT = 2. * I_422 / I_421  +  mdmde * (I_001 + trace_term);
@@ -320,8 +320,8 @@ void aniso_transport_coefficients_nonconformal::compute_transport_coefficients(p
 	eta_TW = 0.5 * (pt + b - I_221);
 	tau_zW = pl - pt;
 	lambda_WTW = 2. * I_422 / I_421  -  1.;
-	lambda_WuW = 2.  -  (I_441  +  mdmde * (e + pl) * I_221) / I_421;			
-	delta_WW = lambda_WTW  -  0.5  +  mdmde * (e + pt) * I_221 / I_421;					
+	lambda_WuW = 2.  -  (I_441  +  mdmde * (e + pl) * I_221) / I_421;
+	delta_WW = lambda_WTW  -  0.5  +  mdmde * (e + pt) * I_221 / I_421;
 #ifdef PIMUNU
 	lambda_piuW = I_422 / I_402;
 	lambda_piTW = lambda_piuW - 1.;
@@ -336,7 +336,7 @@ void aniso_transport_coefficients_nonconformal::compute_transport_coefficients(p
 #ifdef PIMUNU
 	eta_T 		= pt + b - I_202;
 	tau_pipi 	= 2.  -  4. * I_403 / I_402;
-	delta_pipi	= (3. * tau_pipi  + 2.) / 4.  -  mdmde * (e + pt) * I_202 / I_402;		
+	delta_pipi	= (3. * tau_pipi  + 2.) / 4.  -  mdmde * (e + pt) * I_202 / I_402;
 	lambda_pipi = I_422 / I_402  -  1.  +  mdmde * (e + pl) * I_202 / I_402;
 #ifdef WTZMU
 	lambda_Wupi = lambda_WTW  -  1.;

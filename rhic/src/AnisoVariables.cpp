@@ -3,6 +3,7 @@
 #include <iostream>
 #include <math.h>
 #include <cmath>
+#include <gsl/gsl_linalg.h>
 #include "../include/TransportAnisoNonconformal.h"
 #include "../include/TransportAniso.h"
 #include "../include/AnisoVariables.h"
@@ -73,7 +74,7 @@ void compute_F(precision Ea, precision PTa, precision PLa, precision mass, preci
 		}
 		else
 		{
-			printf("Error: z = %lf is out of bounds\n", z);
+			printf("compute_F error: z = %lf is out of bounds\n", z);
 			exit(-1);
 		}
 
@@ -190,7 +191,7 @@ void compute_J(precision Ea, precision PTa, precision PLa, precision mass, preci
 				}
 				else
 				{
-					printf("Error: z = %lf is out of bounds\n", z);
+					printf("compute J error: z = %lf is out of bounds\n", z);
 					exit(-1);
 				}
 
@@ -628,11 +629,17 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 	int number_newton = 1;
 	int number_broyden = 0;
 
-	for(int i = 0; i < N_max; i++)										// Newton-Broyden iteration loop
+	int s;
+	gsl_matrix_view A;
+	gsl_vector_view b;
+	gsl_vector * x = gsl_vector_alloc(3);
+    gsl_permutation * p = gsl_permutation_alloc(3);
+
+	for(int n = 0; n < N_max; n++)										// Newton-Broyden iteration loop
 	{
 		precision l = 1.0;												// default partial step parameter
 
-		if(i > 0)														// compute at least one Newton iteration before checking for convergence
+		if(n > 0)														// compute at least one Newton iteration before checking for convergence
 		{
 			//printf("X = (%lf, %lf, %lf)\n", X[0], X[1], X[2]);
 			//printf("dX = (%lf, %lf, %lf)\n", dX[0], dX[1], dX[2]);
@@ -649,10 +656,12 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 				variables.aT = X[1];
 				variables.aL = X[2];
 				variables.did_not_find_solution = 0;
-				variables.number_of_iterations = i + 1;
+				variables.number_of_iterations = n + 1;
 
 				free_2D(J, 3);											// free allocated memory
 				free_2D(Jcurrent, 3);									// can I do something else?
+				gsl_permutation_free(p);
+       			gsl_vector_free(x);
 
 				return variables;
 			}
@@ -681,6 +690,7 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 		// printf("gradf_1 = %lf\n", gradf[1]);
 		// printf("gradf_2 = %lf\n", gradf[2]);
 
+
 		// solve matrix equation: J * dX = - F (stick with LUP routine for now...)
 		//:::::::::::::::::::::::::::::::::::::::::
 	    for(int j = 0; j < 3; j++) 										// change sign of F first
@@ -688,18 +698,39 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 	    	F[j] *= -1.;
 	    }
 
-	    LUP_decomposition(J, 3, pvector);          						// LUP of J now stored in J (pvector also updated)
-	    LUP_solve(J, 3, pvector, F);               						// F now stores dX
 
-	    for(int j = 0; j < 3; j++)
-	    {
-	    	dX[j] = F[j];   											// load full Newton/Broyden iteration dX
-	    }
+	    // LUP_decomposition(J, 3, pvector);          						// LUP of J now stored in J (pvector also updated)
+	    // LUP_solve(J, 3, pvector, F);               						// F now stores dX
+
+	    // for(int j = 0; j < 3; j++)
+	    // {
+	    // 	dX[j] = F[j];   											// load full Newton/Broyden iteration dX
+	    // }
+
 	    //:::::::::::::::::::::::::::::::::::::::::
 
-		// printf("dX_0 = %lf\n", dX[0]);
-		// printf("dX_1 = %lf\n", dX[1]);
-		// printf("dX_2 = %lf\n", dX[2]);
+
+
+	    // replace with gsl solver
+
+	    double J_method[] = {J[0][0], J[0][1], J[0][2],
+                  	  	  	 J[1][0], J[1][1], J[1][2],
+                	  		 J[2][0], J[2][1], J[2][2]};
+
+   		A = gsl_matrix_view_array(J_method, 3, 3);
+    	b = gsl_vector_view_array(F, 3);
+       	gsl_linalg_LU_decomp(&A.matrix, p, &s);
+       	gsl_linalg_LU_solve(&A.matrix, p, &b.vector, x);
+
+       	for(int j = 0; j < 3; j++)
+       	{
+       		dX[j] = gsl_vector_get(x, j);
+       	}
+
+
+       	// printf("%lf\n", dX[0]);
+       	// printf("%lf\n", dX[1]);
+       	// printf("%lf\n\n", dX[2]);
 
 	    // rescale dX if too large
 	    dX_abs = sqrt(dX[0] * dX[0]  +  dX[1] * dX[1]  +  dX[2] * dX[2]);
@@ -797,13 +828,38 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 				    	F[j] *= -1.;
 				    }
 
-				    LUP_decomposition(J, 3, pvector);
-				    LUP_solve(J, 3, pvector, F);
+				   // printf("newton redo\n");
 
-				    for(int j = 0; j < 3; j++)
-				    {
-				    	dX[j] = F[j];
-				    }
+
+				    double J_newton[] = {J[0][0], J[0][1], J[0][2],
+			                  	  	  	 J[1][0], J[1][1], J[1][2],
+			                	  		 J[2][0], J[2][1], J[2][2]};
+
+			   		A = gsl_matrix_view_array(J_newton, 3, 3);
+			    	b = gsl_vector_view_array(F, 3);
+			       	gsl_linalg_LU_decomp(&A.matrix, p, &s);
+			       	gsl_linalg_LU_solve(&A.matrix, p, &b.vector, x);
+
+			       	for(int j = 0; j < 3; j++)
+			       	{
+			       		dX[j] = gsl_vector_get(x, j);
+			       	}
+
+
+
+				    // LUP_decomposition(J, 3, pvector);
+				    // LUP_solve(J, 3, pvector, F);
+
+				    // for(int j = 0; j < 3; j++)
+				    // {
+				    // 	dX[j] = F[j];
+				    // }
+
+
+
+			       	// printf("%lf\n", dX[0]);
+			       	// printf("%lf\n", dX[1]);
+			       	// printf("%lf\n\n", dX[2]);
 				    //:::::::::::::::::::::::::::::::::::::::::
 
 				    dX_abs = sqrt(dX[0] * dX[0]  +  dX[1] * dX[1]  +  dX[2] * dX[2]);
@@ -847,9 +903,9 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 			}
 		} // updated X
 
-		for(int i = 0; i < 3; i++)
+		for(int j = 0; j < 3; j++)
 		{
-			dX[i] = X[i] - Xcurrent[i];
+			dX[j] = X[j] - Xcurrent[j];
 		}
 
 	    F_abs = sqrt(F[0] * F[0]  +  F[1] * F[1]  +  F[2] * F[2]);		// update convergence values
@@ -871,10 +927,12 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 			variables.aT = aT_0;
 			variables.aL = aL_0;
 			variables.did_not_find_solution = 1;
-			variables.number_of_iterations = i + 1;
+			variables.number_of_iterations = n + 1;
 
 			free_2D(J, 3);
 			free_2D(Jcurrent, 3);
+			gsl_permutation_free(p);
+       		gsl_vector_free(x);
 
 			return variables;
 		}
@@ -906,6 +964,7 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 	variables.did_not_find_solution = 1;
 	variables.number_of_iterations = N_max;
 
+
 	// aniso_variables variables;			// does algorithm ever get stuck searching (e.g. hit local min)?
 	// variables.lambda = 1./0.;
 	// variables.aT = X[1];
@@ -913,6 +972,8 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 
 	free_2D(J, 3);
 	free_2D(Jcurrent, 3);
+	gsl_permutation_free(p);
+  	gsl_vector_free(x);
 
 	return variables;
 }
