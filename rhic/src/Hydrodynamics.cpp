@@ -168,6 +168,37 @@ precision set_the_time_step(int n, precision t, precision dt_prev, precision t_n
 
 void run_hydro(lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro)
 {
+	FILE *events;
+	FILE *success;
+	events = fopen("output/events_total.dat", "r");
+	success = fopen("output/events_success.dat", "r");
+
+	int hydro_events = 0;
+	int success_events = 0;
+
+  	if(events == NULL)
+  	{
+  		events = fopen("output/events_total.dat", "w");
+  		fprintf(events, "%d", 0);
+  	}
+  	else
+  	{
+  		fscanf(events, "%d", &hydro_events);
+  	}
+  	if(success == NULL)
+  	{
+  		success = fopen("output/events_success.dat", "w");
+  		fprintf(success, "%d", 0);
+  	}
+  	else
+  	{
+  		fscanf(success, "%d", &success_events);
+  	}
+
+  	freopen("output/events_total.dat", "w", events);
+	fprintf(events, "%d", hydro_events + 1);
+	fclose(events);
+
 	precision dt_start = lattice.fixed_time_step;		// starting time step
 
 	if(lattice.adaptive_time_step) dt_start = lattice.min_time_step;
@@ -343,6 +374,10 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 	{
 		fo_surface.close_file_and_free_memory();
 	}
+
+	freopen("output/events_success.dat", "w", success);
+	fprintf(success, "%d", success_events + 1);
+	fclose(success);
 
 	printf("\nFinished hydro\n");
 }
