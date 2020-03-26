@@ -237,9 +237,7 @@ precision line_backtrack(precision Ea, precision PTa, precision PLa, precision m
 	precision l = 1.;         						// default value for partial step parameter
 	precision alpha = 0.0001;   					// descent rate
 
-	precision lroot;
-	precision lprev;
-	precision fprev;
+	precision lroot, lprev, fprev;
 
 	for(int n = 0; n < 20; n++)						// line search iterations (max is 20)
 	{
@@ -536,106 +534,6 @@ void set_anisotropic_variables(const hydro_variables * const __restrict__ q, con
 #endif
 #endif
 }
-
-
-
-
-
-
-
-
-
-
-/*
-
-for(;;)
-{
-	for(i=1;i<=n;i++)
-	{
-		x[i] = xold[i]  +  alam * p[i];
-	}
-
-	*f = (*func)(x);
-
-	if(alam < alamin)
-	{
-		for(i = 1; i <= n; i++)
-		{
-			x[i] = xold[i];
-		}
-
-		*check = 1;
-		return;
-	}
-	else if (*f <= fold  +  ALF * alam * slope)
-	{
-		return;
-	}
-	else
-	{
-		if(alam == 1.0)
-		{
-			tmplam = -slope / (2. * (*f - fold - slope));
-		}
-else { Subsequent backtracks.
-rhs1 = *f-fold-alam*slope;
-rhs2=f2-fold-alam2*slope;
-a=(rhs1/(alam*alam)-rhs2/(alam2*alam2))/(alam-alam2);
-b=(-alam2*rhs1/(alam*alam)+alam*rhs2/(alam2*alam2))/(alam-alam2);
-
-
-if (a == 0.0) tmplam = -slope/(2.0*b);
-else {
-disc=b*b-3.0*a*slope;
-if (disc < 0.0) tmplam=0.5*alam;
-else if (b <= 0.0) tmplam=(-b+sqrt(disc))/(3.0*a);
-else tmplam=-slope/(b+sqrt(disc));
-}
-if (tmplam > 0.5*alam)
-tmplam=0.5*alam; λ ≤ 0.5λ1.
-}
-}
-alam2=alam;
-f2 = *f;
-alam=FMAX(tmplam,0.1*alam); λ ≥ 0.1λ1.
-}
-}
-
-
-*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
