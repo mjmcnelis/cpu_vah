@@ -213,47 +213,29 @@ void compute_J(precision Ea, precision PTa, precision PLa, precision mass, preci
 
 
 
-precision line_backtrack(precision Ea, precision PTa, precision PLa, precision mass, precision * Xcurrent, precision * dX, precision g0, precision * F, precision * gradf)
+precision line_backtrack(precision Ea, precision PTa, precision PLa, precision mass, precision * Xcurrent, precision * dX, precision dX_abs, precision g0, precision * F)
 {
-	// I got this algorithm from Numerical Recipes in C
-	//line_backtracking(&l, Ea, PTa, PLa, mass, X, dX, f, F, gradf); (for reference)
-	// g0 = f
+	// This line backtracking algorithm is from the book Numerical Recipes in C
 
-	precision l = 1.0;         						// default value for l
-	precision alpha = 0.0001;   					// descent parameter (default was 0.0001)
-
-	precision dX_abs = sqrt(dX[0] * dX[0]  +  dX[1] * dX[1]  +  dX[2] * dX[2]);
+	// initial data for g(l) model:
+	// g0 = f(Xcurrent)								// f at Xcurrent
+	// f  = f(Xcurrent + dX)						// f at full newton step Xcurrent + dX
+	// gprime0 = - 2g0 								// descent derivative at Xcurrent
 
 	precision X[3];
 
 	for(int i = 0; i < 3; i++)
 	{
-		X[i] = Xcurrent[i] + l * dX[i];
+		X[i] = Xcurrent[i] + dX[i];					// default newton step
 	}
 
-	compute_F(Ea, PTa, PLa, mass, X, F);			// update F at least once
-
-	if(l < (tol_dX / dX_abs))						// what does this mean?
-	{
-		return l;
-	}
+	compute_F(Ea, PTa, PLa, mass, X, F);			// update F at least once, default = F(Xcurrent + dX)
 
 	precision f = (F[0] * F[0]  +  F[1] * F[1]  +  F[2] * F[2]) / 2.;
-	precision g1 = f;
+	precision gprime0 = - 2. * g0;
 
-	precision gprime0 = 0;
-
-	for(int j = 0; j < 3; j++)
-	{
-		gprime0 += gradf[j] * dX[j];				// can I just pass this?
-	}
-
-	if(gprime0 >= 0)
-	{
-		// roundoff issue with gradient descent
-		printf("line_backtracking error: descent derivative is not negative\n");
-		exit(-1);
-	}
+	precision l = 1.;         						// default value for partial step parameter
+	precision alpha = 0.0001;   					// descent rate
 
 	precision lroot;
 	precision lprev;
@@ -261,20 +243,25 @@ precision line_backtrack(precision Ea, precision PTa, precision PLa, precision m
 
 	for(int n = 0; n < 20; n++)						// line search iterations (max is 20)
 	{
-		if(f <= (g0  +  l * alpha * gprime0))		// check for sufficient decrease in f
+		if((l * dX_abs) <= tol_dX)					// check if l.|dX| within desired tolerance
 		{
 			return l;
 		}
-		else if(n == 0)								// start with quadratic formula
+		else if(f <= (g0  +  l * alpha * gprime0))	// check for sufficient decrease in f
 		{
-			lroot = - gprime0 / (2. * (g1 - g0 - gprime0));
+			return l;
 		}
-		else 										// cubic formula for the rest of iterations
+		else if(n == 0)								// compute l (start with quadratic model)
 		{
-			precision a = ((g1  -  gprime0 * l  -  g0) / (l * l)  -  (fprev  -  gprime0 * lprev  -  g0) / (lprev * lprev)) / (l - lprev);
-			precision b = (-lprev * (g1  -  gprime0 * l  -  g0) / (l * l)  +  l * (fprev  -  gprime0 * lprev  -  g0)  /  (lprev * lprev)) / (l - lprev);
+			lroot = - gprime0 / (2. * (f - g0 - gprime0));
+		}
+		else 										// cubic model for subsequent iterations
+		{
+			// fixed bug on 3/25/20
+			precision a = ((f  -  g0  -  l * gprime0) / (l * l)  -  (fprev  -  g0  -  lprev * gprime0) / (lprev * lprev)) / (l - lprev);
+			precision b = (-lprev * (f  -  g0  -  l * gprime0) / (l * l)  +  l * (fprev  -  g0  -  lprev * gprime0)  /  (lprev * lprev)) / (l - lprev);
 
-			if(a == 0) 								// solve dg/dl = 0 at a = 0
+			if(a == 0) 								// quadratic solution to dg/dl = 0
 			{
 				lroot = - gprime0 / (2. * b);
 			}
@@ -284,7 +271,7 @@ precision line_backtrack(precision Ea, precision PTa, precision PLa, precision m
 
 				if(z < 0)
 				{
-					lroot = l / 2.;
+					lroot = 0.5 * l;
 				}
 				else if(b <= 0)
 				{
@@ -292,17 +279,17 @@ precision line_backtrack(precision Ea, precision PTa, precision PLa, precision m
 				}
 				else
 				{
-					lroot = - gprime0 / (b + sqrt(z));
+					lroot = - gprime0 / (b + sqrt(z));		// what does this mean?
 				}
 			}
 
 			lroot = fmin(lroot, 0.5 * l);
 		}
 
-		lprev = l;									// store current values for next iteration
+		lprev = l;									// store current values for the next iteration
 		fprev = f;
 
-		l = fmax(lroot, 0.5 * l);					// update l and f
+		l = fmax(lroot, 0.1 * l);					// update l and f
 
 		for(int i = 0; i < 3; i++)
 		{
@@ -331,9 +318,9 @@ void free_2D(precision ** M, int n)
 
 aniso_variables find_anisotropic_variables(precision e, precision pl, precision pt, precision B, precision mass, precision lambda_0, precision aT_0, precision aL_0)
 {
-	const precision Ea = e - B;											// kinetic energy density
-	const precision PTa = pt + B;										// kinetic transverse pressure
-	const precision PLa = pl + B;										// kinetic longitudinal pressure
+	precision Ea = e - B;											// kinetic energy density
+	precision PTa = pt + B;											// kinetic transverse pressure
+	precision PLa = pl + B;											// kinetic longitudinal pressure
 
 	if(Ea < 0 || PTa < 0 || PLa < 0)
 	{
@@ -348,18 +335,9 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 		return variables;
 	}
 
-	precision lambda = lambda_0;
-	precision aT = aT_0;
-	precision aL = aL_0;
-
-	precision X[3] = {lambda, aT, aL};									// current solution
+	precision X[3] = {lambda_0, aT_0, aL_0};							// current solution
 	precision dX[3];							 				 		// dX iteration
   	precision F[3];  											 		// F(X)
-  	precision dX_abs;             										// magnitude of dX
-	precision F_abs;		      										// magnitude of F
-  	precision f;		                                  	     		// f = F(X).F(X) / 2
-  	precision gradf[3];										 			// gradient f
-
 	precision **J = (precision**)malloc(3 * sizeof(precision*));        // J(X)
 
 	for(int i = 0; i < 3; i++)
@@ -369,29 +347,19 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 
  	// precision tolmin = 1.0e-6;   									// tolerance for spurious convergence to local min of f = F.F/2 (what does this mean?)
 
-	precision stepmax = 100.0;   										// scaled maximum step length allowed in line searches (what does this mean?)
-	stepmax *= fmax(sqrt(X[0]*X[0] + X[1]*X[1] + X[2]*X[2]), 3. * sqrt(3.));		// why??? (never used anyway..)
+	precision stepmax = 100.;   										// scaled maximum step length allowed in line searches
+	stepmax *= fmax(sqrt(X[0]*X[0] + X[1]*X[1] + X[2]*X[2]), 3.);
 
 	compute_F(Ea, PTa, PLa, mass, X, F);								// compute F
 
 	gsl_vector * x = gsl_vector_alloc(3);								// holds dX
     gsl_permutation * p = gsl_permutation_alloc(3);
 
-	for(int n = 0; n < N_max; n++)										// Newton iteration loop
+	for(int n = 0; n < N_max; n++)										// newton iteration loop
 	{
 	    compute_J(Ea, PTa, PLa, mass, X, F, J);							// compute J and f at X
 
-	    f = (F[0] * F[0]  +  F[1] * F[1]  +  F[2] * F[2]) / 2.;
-
-	    for(int i = 0; i < 3; i++)
-    	{
-    		gradf[i] = 0; 								  				// compute gradf_j = F_k * J_kj
-
-    		for(int j = 0; j < 3; j++)
-    		{
-    			gradf[i] += F[j] * J[j][i];
-    		}
-    	}
+	    precision f = (F[0] * F[0] + F[1] * F[1] + F[2] * F[2]) / 2.;	// f = F(X).F(X) / 2
 
 	    double J_gsl[] = {J[0][0], J[0][1], J[0][2],
                   	  	  J[1][0], J[1][1], J[1][2],
@@ -413,7 +381,7 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
        		dX[i] = gsl_vector_get(x, i);
        	}
 
-	    dX_abs = sqrt(dX[0] * dX[0]  +  dX[1] * dX[1]  +  dX[2] * dX[2]);
+	    precision dX_abs = sqrt(dX[0] * dX[0]  +  dX[1] * dX[1]  +  dX[2] * dX[2]);
 
 		if(dX_abs > stepmax)											// rescale dX if too large
 		{
@@ -421,18 +389,24 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 			{
 				dX[i] *= stepmax / dX_abs;
 			}
+			dX_abs = stepmax;
 		}
 
-		precision l = line_backtrack(Ea, PTa, PLa, mass, X, dX, f, F, gradf);	// compute partial step l and F(X + l.dX)
+		precision l = line_backtrack(Ea, PTa, PLa, mass, X, dX, dX_abs, f, F);	// compute partial step l and F(X + l.dX)
 
-		for(int i = 0; i < 3; i++)										// update solution
+		for(int i = 0; i < 3; i++)										// update solution X and convergence values
 	    {
-	    	dX[i] *= l;
-	    	X[i] += dX[i];
+	    	X[i] += (l * dX[i]);
 	    }
 
-	    F_abs = sqrt(F[0] * F[0]  +  F[1] * F[1]  +  F[2] * F[2]);		// update convergence values
-	   	dX_abs = sqrt(dX[0] * dX[0]  +  dX[1] * dX[1]  +  dX[2] * dX[2]);
+	    // I'm not sure which one is better
+
+	    precision F_abs = sqrt(F[0] * F[0]  +  F[1] * F[1]  +  F[2] * F[2]);
+	    dX_abs *= l;
+	    //precision F_abs = fabs(F[0]) + fabs(F[1]) + fabs(F[2]);
+		//dX_abs = l * (fabs(dX[0]) + fabs(dX[1]) + fabs(dX[2]));
+
+	   	//printf("l = %lf\n", l);
 
 		if(X[0] < 0 || X[1] < 0 || X[2] < 0)							// check if any variable goes negative
 		{
@@ -452,8 +426,11 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 
 		if(dX_abs <= tol_dX && F_abs <= tol_F)							// check for convergence
 		{
-			printf("%d\n", n+1);
-			exit(-1);
+			// printf("\niterations = %d\n", n+1);
+			// printf("lambda = %lf\n", X[0]);
+			// printf("aT     = %lf\n", X[1]);
+			// printf("aL     = %lf\n", X[2]);
+			// exit(-1);
 			aniso_variables variables;
 			variables.lambda = X[0];
 			variables.aT = X[1];
@@ -559,6 +536,104 @@ void set_anisotropic_variables(const hydro_variables * const __restrict__ q, con
 #endif
 #endif
 }
+
+
+
+
+
+
+
+
+
+
+/*
+
+for(;;)
+{
+	for(i=1;i<=n;i++)
+	{
+		x[i] = xold[i]  +  alam * p[i];
+	}
+
+	*f = (*func)(x);
+
+	if(alam < alamin)
+	{
+		for(i = 1; i <= n; i++)
+		{
+			x[i] = xold[i];
+		}
+
+		*check = 1;
+		return;
+	}
+	else if (*f <= fold  +  ALF * alam * slope)
+	{
+		return;
+	}
+	else
+	{
+		if(alam == 1.0)
+		{
+			tmplam = -slope / (2. * (*f - fold - slope));
+		}
+else { Subsequent backtracks.
+rhs1 = *f-fold-alam*slope;
+rhs2=f2-fold-alam2*slope;
+a=(rhs1/(alam*alam)-rhs2/(alam2*alam2))/(alam-alam2);
+b=(-alam2*rhs1/(alam*alam)+alam*rhs2/(alam2*alam2))/(alam-alam2);
+
+
+if (a == 0.0) tmplam = -slope/(2.0*b);
+else {
+disc=b*b-3.0*a*slope;
+if (disc < 0.0) tmplam=0.5*alam;
+else if (b <= 0.0) tmplam=(-b+sqrt(disc))/(3.0*a);
+else tmplam=-slope/(b+sqrt(disc));
+}
+if (tmplam > 0.5*alam)
+tmplam=0.5*alam; λ ≤ 0.5λ1.
+}
+}
+alam2=alam;
+f2 = *f;
+alam=FMAX(tmplam,0.1*alam); λ ≥ 0.1λ1.
+}
+}
+
+
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
