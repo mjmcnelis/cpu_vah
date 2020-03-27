@@ -114,6 +114,30 @@ hydro_max compute_hydro_max(const precision * const __restrict__ e, const fluid_
 }
 
 
+int compute_aniso_regulations(const int * const __restrict__ aniso_regulation, lattice_parameters lattice)
+{
+	int nx = lattice.lattice_points_x;
+	int ny = lattice.lattice_points_y;
+	int nz = lattice.lattice_points_eta;
+
+	int regulations = 0;
+
+	for(int k = 2; k < nz + 2; k++)
+	{
+		for(int j = 2; j < ny + 2; j++)
+		{
+			for(int i = 2; i < nx + 2; i++)
+			{
+				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
+				regulations += aniso_regulation[s];
+			}
+		}
+	}
+
+	return regulations;
+}
+
+
 void print_hydro_center(int n, double t, lattice_parameters lattice, hydro_parameters hydro, long cells_above_Tswitch)
 {
 	int s = central_index(lattice);
@@ -121,17 +145,16 @@ void print_hydro_center(int n, double t, lattice_parameters lattice, hydro_param
 	if(n == 0)
 	{
 	#ifdef ANISO_HYDRO
-		printf("\tn\t|\tt\t|\tT\t|\te\t|\tp\t|\tpl\t|\tpt\t|\te_max\t|\tT_max\t|\tut_max\t|\tT > Tsw\t|\n");
+
+		// X_reg = percentage of anisotropic variable (X) regulations in the grid
+
+		printf("\tn\t|\tt\t|\tT\t|\te\t|\tp\t|\tpl\t|\tpt\t|\te_max\t|\tT_max\t|\tX_reg\t|\tT > Tsw\t|\n");
 	#else
 		printf("\tn\t|\tt\t|\tT\t|\te\t|\tp\t|\te_max\t|\tT_max\t|\tut_max\t|\tT > Tsw\t|\n");
 	#endif
 		print_line();
 	}
 	precision e_s = e[s] * hbarc;
-
-	// equation_of_state eos(e[s]);
-	// precision p = eos.equilibrium_pressure() * hbarc;
-	// precision T = eos.effective_temperature(hydro.conformal_eos_prefactor) * hbarc;
 
 	equation_of_state_new eos(e[s], hydro.conformal_eos_prefactor);
 	precision p = eos.equilibrium_pressure() * hbarc;
@@ -154,7 +177,12 @@ void print_hydro_center(int n, double t, lattice_parameters lattice, hydro_param
 	// T = GeV
 	// e, pl, pt = GeV/fm^3
 
-	printf("\t%d\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.3g\t|\t%.3g\t|\t%.2f%%\t|\n", n, t, T, e_s, p, pl, pt, e_max, T_max, gamma_max, percent_above_Tsw);
+	double percent_aniso_reg = 0;
+#ifdef LATTICE_QCD
+	percent_aniso_reg = 100. * (double)compute_aniso_regulations(aniso_regulation, lattice) / (double)(nx * ny * nz);
+#endif
+
+	printf("\t%d\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.3g\t|\t%.3f%%\t|\t%.2f%%\t|\n", n, t, T, e_s, p, pl, pt, e_max, T_max, percent_aniso_reg, percent_above_Tsw);
 #else
 	printf("\t%d\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.3g\t|\t%.3g\t|\t%.2f%%\t|\n", n, t, T, e_s, p, e_max, T_max, gamma_max, percent_above_Tsw);
 #endif

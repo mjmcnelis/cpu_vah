@@ -519,7 +519,11 @@ void set_anisotropic_variables(const hydro_variables * const __restrict__ q, con
 
 				if(X_s.did_not_find_solution)
 				{
-					aniso_regulation[s] += 1;
+					aniso_regulation[s] = 1;
+				}
+				else
+				{
+					aniso_regulation[s] = 0;
 				}
 
 			}

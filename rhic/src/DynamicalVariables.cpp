@@ -34,6 +34,8 @@ void allocate_memory(lattice_parameters lattice)
 	lambda = (precision *)calloc(length, bytes);
 	aT = (precision *)calloc(length, bytes);
 	aL = (precision *)calloc(length, bytes);
+
+	aniso_regulation = (int *)calloc(length, sizeof(int)); 	// anisotropic variable regulation monitoring
 #endif
 #endif
 
@@ -44,8 +46,6 @@ void allocate_memory(lattice_parameters lattice)
 	q  = (hydro_variables *)calloc(length, sizeof(hydro_variables));
 	Q  = (hydro_variables *)calloc(length, sizeof(hydro_variables));
 	qI = (hydro_variables *)calloc(length, sizeof(hydro_variables));
-
-	aniso_regulation = (int *)calloc(length, sizeof(int)); 		// regulation monitoring
 }
 
 
