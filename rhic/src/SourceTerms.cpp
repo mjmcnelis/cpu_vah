@@ -61,10 +61,6 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 //-------------------------------------------------
 	precision conformal_eos_prefactor = hydro.conformal_eos_prefactor;
 
-	// equation_of_state eos(e_s);
-	// precision p = eos.equilibrium_pressure();
-	// precision T = eos.effective_temperature(conformal_eos_prefactor);
-
 	equation_of_state_new eos(e_s, conformal_eos_prefactor);
 	precision p = eos.equilibrium_pressure();
 	precision T = eos.T;
@@ -72,9 +68,6 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	precision s = (e_s + p) / T;
 
 #ifdef B_FIELD
-	// precision beq = eos.equilibrium_mean_field(T);
-	// precision mass = T * eos.z_quasi(T);
-	// precision mdmde = eos.mdmde_quasi();
 	precision beq = eos.equilibrium_mean_field();
 	precision mass = T * eos.z_quasi();
 	precision mdmde = eos.mdmde_quasi();
@@ -82,6 +75,7 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 #else
 	precision mass = 0;
 	precision mdmde = 0;
+	precision mbar = 0;
 #endif
 
 	// shear and bulk viscosities
@@ -105,12 +99,7 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	precision pt  = q[a];	a++;
 
 #ifdef CONFORMAL_EOS
-#ifndef LATTICE_QCD
 	pt  = (e_s - pl) / 2.;						// I don't think I need this (because it's already regulated to conformal formula)
-#else
-	printf("source_terms_aniso_hydro error: no eos switch for pt conformal identity\n");
-	exit(-1);
-#endif
 #endif
 
 	precision pavg = (pl + 2.*pt) / 3.;			// average pressure
@@ -167,12 +156,16 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	precision WtTz = q[a];	a++;
 	precision WxTz = q[a];	a++;
 	precision WyTz = q[a];	a++;
-	precision WnTz = q[a];
+	precision WnTz = q[a];	a++;
 #else
 	precision WtTz = 0;
 	precision WxTz = 0;
 	precision WyTz = 0;
 	precision WnTz = 0;
+#endif
+
+#ifdef E_CHECK
+	precision e_check = q[a];
 #endif
 
 
@@ -196,7 +189,6 @@ precision zeta_LT, zeta_TT, lambda_WuT, lambda_WTT, lambda_piT;
 
 
 #ifdef CONFORMAL_EOS        								// conformal eos only
-#ifndef LATTICE_QCD
 	precision taupi_inverse = T / (5. * etabar);			// set relaxation times
 	precision taubulk_inverse = 0;
 
@@ -236,14 +228,9 @@ precision zeta_LT, zeta_TT, lambda_WuT, lambda_WTT, lambda_piT;
 #endif
 
 #endif
-#endif
 
 
 #ifdef LATTICE_QCD 											// lattice qcd only
-#ifndef CONFORMAL_EOS
-	//precision taupi_inverse = eos.beta_shear(T, conformal_eos_prefactor) / (s * etabar);		// set relaxation times
-	//precision taubulk_inverse = eos.beta_bulk(T) / (s * zetabar);
-
 	precision taupi_inverse = eos.beta_shear() / (s * etabar);		// set relaxation times
 	precision taubulk_inverse = eos.beta_bulk() / (s * zetabar);
 
@@ -283,74 +270,7 @@ precision zeta_LT, zeta_TT, lambda_WuT, lambda_WTT, lambda_piT;
 #endif
 
 #endif
-#endif
 
-#ifdef CONFORMAL_EOS 										// conformal or switched to lattice
-#ifdef LATTICE_QCD
-	printf("source_terms_aniso_hydro error: don't have eos switch mechanism yet (e.g. switch_eos = false)\n");
-	exit(-1);
-
-	precision taupi_inverse;
-	precision taubulk_inverse;
-/*
-	if(switch_eos)
-	{
-		taupi_inverse = eos.beta_shear(T, conformal_eos_prefactor) / (s * etabar);
-		taubulk_inverse = eos.beta_bulk(T) / (s * zetabar);
-
-		aniso_transport_coefficients_nonconformal aniso;
-		aniso.compute_transport_coefficients(e_s, pl, pt, b, lambda_s, aT_s, aL_s, mbar, mass, mdmde);
-
-		// these all need to be updated and include quasiparticle terms
-		zeta_LL = aniso.zeta_LL;								// set pl coefficients
-		zeta_TL = aniso.zeta_TL;
-
-		zeta_LT = aniso.zeta_LT;								// set pt coefficients
-		zeta_TT = aniso.zeta_TT;
-	}
-	else
-	{
-		taupi_inverse = T / (5. * etabar);
-		taubulk_inverse = 0;
-
-		aniso_transport_coefficients aniso;
-		aniso.compute_transport_coefficients(e_s, pl, pt, conformal_eos_prefactor);
-
-		zeta_LL = aniso.zeta_LL;								// set pl coefficients
-		zeta_TL = aniso.zeta_TL;
-		lambda_WuL = aniso.lambda_WuL;
-		lambda_WTL = aniso.lambda_WTL;
-		lambda_piL = aniso.lambda_piL;
-
-		zeta_LT = aniso.zeta_LT;								// set pt coefficients
-		zeta_TT = aniso.zeta_TT;
-		lambda_WuT = aniso.lambda_WuT;
-		lambda_WTT = aniso.lambda_WTT;
-		lambda_piT = aniso.lambda_piT;
-
-	#ifdef PIMUNU
-		eta_T = aniso.eta_T;									// set piT coefficients
-		delta_pipi = aniso.delta_pipi;
-		tau_pipi = aniso.tau_pipi;
-		lambda_pipi = aniso.lambda_pipi;
-		lambda_Wupi = aniso.lambda_Wupi;
-		lambda_WTpi = aniso.lambda_WTpi;
-	#endif
-
-	#ifdef WTZMU
-		eta_uW = aniso.eta_uW;									// set WTz coefficients
-		eta_TW = aniso.eta_TW;
-		tau_zW = aniso.tau_zW;
-		delta_WW = aniso.delta_WW;
-		lambda_WuW = aniso.lambda_WuW;
-		lambda_WTW = aniso.lambda_WTW;
-		lambda_piuW = aniso.lambda_piuW;
-		lambda_piTW = aniso.lambda_piTW;
-	#endif
-	}
-*/
-#endif
-#endif
 //-------------------------------------------------
 
 
@@ -381,18 +301,13 @@ precision zeta_LT, zeta_TT, lambda_WuT, lambda_WTT, lambda_piT;
 	precision dpt_dn = central_derivative(qk1, n, dn);		n += 2;
 
 #ifdef CONFORMAL_EOS
-#ifndef LATTICE_QCD
 	dpt_dx = (de_dx  -  dpl_dx) / 2.;
 	dpt_dy = (de_dy  -  dpl_dy) / 2.;
-	dpt_dn = (de_dn  -  dpl_dn) / 2.;				// temporary macro statement (replace with if(hydro.eos))
-#else
-	printf("source_terms_aniso_hydro error: no eos switch for pt spatial derivatives\n");
-	exit(-1);
-#endif
+	dpt_dn = (de_dn  -  dpl_dn) / 2.;
 #endif
 
 
-#ifdef B_FIELD										// I don't think I need b derivatives, so just skip it
+#ifdef B_FIELD										// don't need b derivatives so just skip it
 	n += 2;
 #endif
 
@@ -891,14 +806,12 @@ precision zeta_LT, zeta_TT, lambda_WuT, lambda_WTT, lambda_piT;
 	S[1] =	- ttx / t  -  dpt_dx  +  div_v * (Wtx  +  pitx)
 			+  vx * (dWtx_dx  +  dpitx_dx)  -  dpixx_dx
 			+  vy * (dWtx_dy  +  dpitx_dy)  -  dpixy_dy
-			+  vn * (dWtx_dn  +  dpitx_dn)  -  dpixn_dn  -  dWxn_dn
-			-  0.5 * (vx * dLtn_dn  -  Ltn * dvx_dn);	// go over this line again
+			+  vn * (dWtx_dn  +  dpitx_dn)  -  dpixn_dn  -  dWxn_dn;
 
 	S[2] =	- tty / t  -  dpt_dy  +  div_v * (Wty  +  pity)
 			+  vx * (dWty_dx  +  dpity_dx)  -  dpixy_dx
 			+  vy * (dWty_dy  +  dpity_dy)  -  dpiyy_dy
-			+  vn * (dWty_dn  +  dpity_dn)  -  dpiyn_dn  -  dWyn_dn
-			-  0.5 * (vy * dLtn_dn  -  Ltn * dvy_dn);  // go over this line again
+			+  vn * (dWty_dn  +  dpity_dn)  -  dpiyn_dn  -  dWyn_dn;
 
 	a = 3;		// reset counter
 
@@ -967,8 +880,18 @@ precision zeta_LT, zeta_TT, lambda_WuT, lambda_WTT, lambda_piT;
 	S[a] = dWtTz / ut  +  div_v * WtTz;		a++;
 	S[a] = dWxTz / ut  +  div_v * WxTz;		a++;
 	S[a] = dWyTz / ut  +  div_v * WyTz;		a++;
-	S[a] = dWnTz / ut  +  div_v * WnTz;
+	S[a] = dWnTz / ut  +  div_v * WnTz;		a++;
 #endif
+
+#ifdef E_CHECK
+	precision de = - (e_s + pl) * thetaL  -  (e_s + pt) * thetaT  +  0*pi_sT  -  0*WTz_Dz_u  +  0*WTz_z_NabT_u;
+	S[a] = de / ut  +  div_v * e_s;
+
+	//S[a] = - (e_s + pl) / t;
+
+	printf("%lf\t%lf\n", S[0], S[a]);
+#endif
+
 #endif
 }
 
@@ -986,16 +909,10 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	precision vy = uy / ut;
 	precision vn = un / ut;
 
-	// equation_of_state eos(e);
-	// precision p = eos.equilibrium_pressure();
-	// precision cs2 = eos.speed_of_sound_squared();
-	// precision T = eos.effective_temperature(hydro.conformal_eos_prefactor);
-
 	equation_of_state_new eos(e, hydro.conformal_eos_prefactor);
 	precision p = eos.equilibrium_pressure();
 	precision cs2 = eos.speed_of_sound_squared();
 	precision T = eos.T;
-	precision s = (e + p) / T;
 
 #if (NUMBER_OF_VISCOUS_CURRENTS != 0)
 	viscous_transport_coefficients viscous(T, e, p, hydro.kinetic_theory_model);
@@ -1045,11 +962,8 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	precision etas = eta_over_s(T, hydro);
 	viscous.compute_shear_transport_coefficients(etas);
 
-	// precision betapi = viscous.betapi;
-	// precision taupi_inverse = viscous.taupi_inverse;
-	precision betapi = eos.beta_shear();
-	precision taupi_inverse = betapi / (etas * s);
-
+	precision betapi = viscous.betapi;
+	precision taupi_inverse = viscous.taupi_inverse;
 
 	precision delta_pipi = viscous.delta_pipi;
 	precision tau_pipi = viscous.tau_pipi;
@@ -1069,19 +983,17 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	precision piyy = 0;
 	precision piyn = 0;
 	precision pinn = 0;
-	precision lambda_pibulkPi = 0;
+	//precision lambda_pibulkPi = 0;
 #endif
 
 #ifdef PI
-	precision Pi = q[a];
+	precision Pi = q[a];	a++;
 
 	precision zetas = zeta_over_s(T, hydro);
 	viscous.compute_bulk_transport_coefficients(zetas, 1./3. - cs2);
 
-	//precision betabulk = viscous.betabulk;
-	//precision taubulkInv = viscous.taubulk_inverse;
-	precision betabulk = eos.beta_bulk();
-	precision taubulkInv = betabulk / (zetas * s);
+	precision betabulk = viscous.betabulk;
+	precision taubulkInv = viscous.taubulk_inverse;
 
 	precision delta_bulkPibulkPi = viscous.delta_bulkPibulkPi;
 #ifdef PIMUNU
@@ -1091,6 +1003,11 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 #endif
 #else
 	precision Pi = 0;
+	//precision lambda_bulkPipi = 0;
+#endif
+
+#ifdef E_CHECK
+	precision e_check = q[a];
 #endif
 
 	precision de_dx = central_derivative(e1, 0, dx); 		// energy density derivatives
@@ -1398,7 +1315,13 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 #ifdef PI 	// bulk relaxation equation
 	precision dPi = - Pi * taubulkInv  -  (betabulk  +  delta_bulkPibulkPi * Pi) * theta  +  lambda_bulkPipi * pi_sigma;
 
-	S[a] = dPi / ut  +  div_v * Pi;
+	S[a] = dPi / ut  +  div_v * Pi; a++;
+#endif
+
+#ifdef E_CHECK
+	precision de = - (e_check + p + Pi) * theta   +  pi_sigma;			// use e_s or e_check?
+
+	S[a] = de / ut  +  div_v * e_check;
 #endif
 
 #endif

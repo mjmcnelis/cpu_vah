@@ -137,11 +137,15 @@ const precision * const __restrict__ e_current, const precision * const __restri
 				qs[a] = q_current[s].WtTz; a++;
 				qs[a] = q_current[s].WxTz; a++;
 				qs[a] = q_current[s].WyTz; a++;
-				qs[a] = q_current[s].WnTz;
+				qs[a] = q_current[s].WnTz; a++;
 			#endif
 
 			#ifdef PI
-				qs[a] = q_current[s].Pi;
+				qs[a] = q_current[s].Pi; a++;
+			#endif
+
+			#ifdef E_CHECK
+				qs[a] = q_current[s].e_check;
 			#endif
 
 				precision e_s = e_current[s];		// primary variable
@@ -257,10 +261,15 @@ const precision * const __restrict__ e_current, const precision * const __restri
 					q_update[s].WtTz = f[a]; a++;
 					q_update[s].WxTz = f[a]; a++;
 					q_update[s].WyTz = f[a]; a++;
-					q_update[s].WnTz = f[a];
+					q_update[s].WnTz = f[a]; a++;
 				#endif
+
 				#ifdef PI
-					q_update[s].Pi = f[a];
+					q_update[s].Pi = f[a]; a++;
+				#endif
+
+				#ifdef E_CHECK
+					q_update[s].e_check = f[a];
 				#endif
 				}
 				else if(!RK2)			// store intermediate euler step
@@ -315,11 +324,15 @@ const precision * const __restrict__ e_current, const precision * const __restri
 					q_update[s].WtTz = qs[a]; a++;
 					q_update[s].WxTz = qs[a]; a++;
 					q_update[s].WyTz = qs[a]; a++;
-					q_update[s].WnTz = qs[a];
+					q_update[s].WnTz = qs[a]; a++;
 				#endif
 
 				#ifdef PI
-					q_update[s].Pi = qs[a];
+					q_update[s].Pi = qs[a]; a++;
+				#endif
+
+				#ifdef E_CHECK
+					q_update[s].e_check = qs[a];
 				#endif
 				}
 				else 					// store RK2 formula
@@ -375,11 +388,15 @@ const precision * const __restrict__ e_current, const precision * const __restri
 					q_update[s].WtTz = (q[s].WtTz  +  qs[a]) / 2.; a++;
 					q_update[s].WxTz = (q[s].WxTz  +  qs[a]) / 2.; a++;
 					q_update[s].WyTz = (q[s].WyTz  +  qs[a]) / 2.; a++;
-					q_update[s].WnTz = (q[s].WnTz  +  qs[a]) / 2.;
+					q_update[s].WnTz = (q[s].WnTz  +  qs[a]) / 2.; a++;
 				#endif
 
 				#ifdef PI
-					q_update[s].Pi = (q[s].Pi  +  qs[a]) / 2.;
+					q_update[s].Pi = (q[s].Pi  +  qs[a]) / 2.; a++;
+				#endif
+
+				#ifdef E_CHECK
+					q_update[s].e_check = (q[s].e_check  +  qs[a]) / 2.;
 				#endif
 				}
 			}
@@ -450,6 +467,10 @@ void recompute_euler_step(const hydro_variables * const __restrict__ q_current, 
 
 			#ifdef PI
 				q_update[s].Pi = q_current[s].Pi  +  dt * q_update[s].Pi;
+			#endif
+
+			#ifdef E_CHECK
+				q_update[s].e_check = q_current[s].e_check  +  dt * q_update[s].e_check;
 			#endif
 			}
 		}

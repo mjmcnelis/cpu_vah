@@ -9,7 +9,17 @@ hydro_variables *q, *Q, *qI;
 fluid_velocity *u, *up, *uI;
 precision *e, *lambda, *aT, *aL;
 
-int *aniso_regulation;		// for monitoring regions where I stamp out sudden jumps in energy density and fluid velocity
+#ifdef ANISO_HYDRO
+#ifdef LATTICE_QCD
+	int *aniso_regulation;				// for monitoring regulation of lambda, aT, aL in aniso hydro
+#endif
+#else
+	int *viscous_regulation;			// for monitoring regulation of pimunu, Pi in 2nd order viscous hydro
+#endif
+
+#ifdef MONITOR_TTAUMU
+	float *Tmunu_violations;			// for monitoring violations in T^{\tau\mu}
+#endif
 
 void allocate_memory(lattice_parameters lattice)
 {
@@ -37,6 +47,12 @@ void allocate_memory(lattice_parameters lattice)
 
 	aniso_regulation = (int *)calloc(length, sizeof(int)); 	// anisotropic variable regulation monitoring
 #endif
+#else
+	viscous_regulation = (int *)calloc(length, sizeof(int));
+#endif
+
+#ifdef MONITOR_TTAUMU
+	Tmunu_violations = (float *)calloc(length, sizeof(float));
 #endif
 
 	u  = (fluid_velocity *)calloc(length, sizeof(fluid_velocity));

@@ -41,7 +41,6 @@ bool all_cells_below_freezeout_temperature(lattice_parameters lattice, hydro_par
 	int nz = lattice.lattice_points_eta;
 
 	precision T_switch = hydro.freezeout_temperature_GeV;
-	//precision e_switch = equilibrium_energy_density(T_switch / hbarc, hydro.conformal_eos_prefactor);
 	precision e_switch = equilibrium_energy_density_new(T_switch / hbarc, hydro.conformal_eos_prefactor);
 
 	for(int k = 2; k < nz + 2; k++)
@@ -109,17 +108,18 @@ precision set_the_time_step(int n, precision t, precision dt_prev, precision t_n
 		}
 		else
 		{
-			precision dt_CFL = dt_fix;							// strict CFL condition <= dx / 8 (lattice.fixed_time_step required to be <= dx / 8)
+			precision dt_CFL = compute_dt_CFL(t, lattice, hydro);	// less strict CFL condition dx / (8.ax)
 
-			if(lattice.adaptive_time_step == 1)
+			if(lattice.adaptive_time_step == 2)
 			{
-				dt_CFL = compute_dt_CFL(t, lattice, hydro);		// less strict CFL condition dx / (8.ax)
+				dt_CFL = dt_fix;									// strict CFL condition <= dx / 8 (lattice.fixed_time_step required to be <= dx / 8)
 			}
 
 			precision dt_source = 1./0.;
 
 			if(!hit_CFL_bound)		// assumes that dt_source remains > dt_CFL after hit bound
-			{
+			{						// (may not be always true, but it's convenient to skip this step eventually)
+
 				euler_step(t, q, qI, e, lambda, aT, aL, up, u, dt_prev, dt_prev, lattice, hydro, 0, 0);		// compute source function
 
 				dt_source = compute_dt_source(t, Q, q, qI, dt_prev, lattice);

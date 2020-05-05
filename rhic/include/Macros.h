@@ -11,12 +11,13 @@
 #define BEST					// use the best eos (might be temporary after settling on one, or use parameter)
 
 
-// I want to get rid of these two macros and use parameters instead (why did I say this?)
-
-// to keep eos fixed, define only one equation of state
-// or define both to transition from conformal -> lattice
+// define only one equation of state
 //#define CONFORMAL_EOS			// conformal equation of state
 #define LATTICE_QCD				// lattice qcd equation of state
+
+
+#define E_CHECK					// separately evolve energy density w/ KT algorithm as a cross check
+								// can be commented (doesn't affect rest of algorithm)
 
 
 #ifdef ANISO_HYDRO				// residual shear stress
@@ -41,8 +42,6 @@
 
 #endif
 
-
-//#define TEST_TTAUMU 			// test reproduction of T^{\tau\mu} in InferredVariables.cpp
-
+#define MONITOR_TTAUMU			// monitor violations of T^{\tau\mu} reproduction in InferredVariables.cpp
 
 #endif

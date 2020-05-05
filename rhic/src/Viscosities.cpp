@@ -8,9 +8,16 @@
 
 inline precision sign(precision x)
 {
-	if(x > 0.) return 1.;
-	else if(x < 0.) return -1.;
-	else return 0.;
+	if(x > 0.)
+	{
+		return 1.;
+	}
+	else if(x < 0.)
+	{
+		return -1.;
+	}
+
+	return 0.;
 }
 
 inline precision Theta(precision x)
@@ -23,21 +30,11 @@ inline precision Theta(precision x)
 	return 0.;
 }
 
+
 precision eta_over_s(precision T, hydro_parameters hydro)
 {
-	if(hydro.temperature_etas == 1)								// temperature dependent piecewise parameterization
+	if(hydro.temperature_etas == 1)						// temperature dependent piecewise parameterization
 	{
-		// precision etas_min = hydro.etas_min;				// etas value for T < Tc
-		// precision etas_slope = hydro.etas_slope * hbarc;	// etas slope (converted to fm)
-		// precision Tc = 0.154 / hbarc;						// psuedocritical temperature (fm^-1)
-
-		// return fmax(etas_min, etas_min  +  etas_slope * (T - Tc));
-
-		// precision aL = -0.77 * hbarc;
-		// precision aH = 0.21 * hbarc;
-		// precision Tk = 0.22 / hbarc;
-		// precision etask = 0.093;
-
 		precision aL = hydro.etas_aL * hbarc;			// left slope [fm]
 		precision aH = hydro.etas_aH * hbarc;			// right slope [fm]
 		precision Tk = hydro.etas_Tk_GeV / hbarc;		// kink temperature fm^-1]
@@ -52,31 +49,6 @@ precision eta_over_s(precision T, hydro_parameters hydro)
 
 precision zeta_over_s(precision T, hydro_parameters hydro)
 {
-	//precision Tpeak = hydro.zetas_peak_temperature_GeV / hbarc;
-	// precision x = T / Tpeak;
-
-	// precision zetas;
-
-	// if(x > 1.05)
-	// {
-	// 	zetas = 0.9 * exp(-(x - 1.) / 0.025)  +  0.25 * exp(-(x - 1.) / 0.13)  +  0.001;
-	// }
-	// else if(x < 0.995)
-	// {
-	// 	zetas = 0.9 * exp((x - 1.) / 0.0025)  +  0.22 * exp((x - 1.) / 0.022)  +  0.03;
-	// }
-	// else
-	// {
-	// 	zetas = - 13.77 * x * x  +  27.55 * x  -  13.45;
-	// }
-	// return zetas * hydro.zetas_normalization_factor;
-
-
-	// precision norm = hydro.zetas_normalization_factor;				// normalization factor
-	// precision Tpeak = hydro.zetas_peak_temperature_GeV / hbarc;		// peak temperature [fm^-1]
-	// precision width = 0.089 / hbarc;								// width [fm^-1]
-	// precision skew = -0.15;											// skew
-
 	precision norm = hydro.zetas_normalization_factor;				// normalization factor
 	precision Tpeak = hydro.zetas_peak_temperature_GeV / hbarc;		// peak temperature [fm^-1]
 	precision width = hydro.zetas_width_GeV / hbarc;				// width [fm^-1]
@@ -86,6 +58,73 @@ precision zeta_over_s(precision T, hydro_parameters hydro)
 
 	return norm * Lambda * Lambda / (Lambda * Lambda  +  (T - Tpeak) * (T - Tpeak));
 }
+
+
+// these viscosities were used in 2018 vahydro paper
+
+/*
+precision eta_over_s(precision T, hydro_parameters hydro)
+{
+	if(hydro.temperature_etas == 1)
+	{
+		precision etas_min = 0.08;
+		precision etas_slope = 0.167728;
+		precision Tc = 0.154 / hbarc;
+
+		if(T > Tc)
+		{
+			return etas_min + etas_slope * (T - Tc);
+		}
+
+		return etas_min;
+
+	}
+
+	return hydro.constant_etas;
+}
+
+precision zeta_over_s(precision T, hydro_parameters hydro)
+{
+	precision norm = 1.25;
+	precision Tc = 0.154 / hbarc;
+
+	precision a0 = -13.45;
+	precision a1 = 27.55;
+	precision a2 = -13.77;
+
+	precision lambda1 = 0.9;
+	precision lambda2 = 0.25;
+	precision lambda3 = 0.9;
+	precision lambda4 = 0.22;
+
+	precision sigma1 = 0.025;
+	precision sigma2 = 0.13;
+	precision sigma3 = 0.0025;
+	precision sigma4 = 0.022;
+
+	precision x = T / Tc;
+
+	if(x > 1.05)
+	{
+		return norm * (lambda1*exp(-(x-1.0)/sigma1) + lambda2*exp(-(x-1.0)/sigma2) + 0.001);
+	}
+	else if(x < 0.995)
+	{
+		return norm * (lambda3*exp((x-1.0)/sigma3)+ lambda4*exp((x-1.0)/sigma4) + 0.03);
+	}
+
+	return norm * (a0 + a1*x + a2*x*x);
+}
+
+*/
+
+
+
+
+
+
+
+
 
 
 

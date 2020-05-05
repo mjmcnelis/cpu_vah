@@ -47,7 +47,13 @@
 #ifdef B_FIELD
 	#define B_FIELD_COMPONENTS 1			// do I need to regulate mean field? or is mean field equation exact in pl-pt matching?
 #else
-	#define B_FIELD_COMPONENTS 0
+	#define B_FIELD_COMPONENTS 0			// or maybe regulate db
+#endif
+
+#ifdef E_CHECK
+	#define E_CHECK_COMPONENTS 1
+#else
+	#define E_CHECK_COMPONENTS 0
 #endif
 
 
@@ -56,9 +62,9 @@
 
 
 #ifdef ANISO_HYDRO
-	#define NUMBER_CONSERVED_VARIABLES (CONSERVATION_LAWS + 2 + B_FIELD_COMPONENTS + NUMBER_OF_RESIDUAL_CURRENTS)
+	#define NUMBER_CONSERVED_VARIABLES (CONSERVATION_LAWS + 2 + B_FIELD_COMPONENTS + NUMBER_OF_RESIDUAL_CURRENTS + E_CHECK_COMPONENTS)
 #else
-	#define NUMBER_CONSERVED_VARIABLES (CONSERVATION_LAWS + NUMBER_OF_VISCOUS_CURRENTS)
+	#define NUMBER_CONSERVED_VARIABLES (CONSERVATION_LAWS + NUMBER_OF_VISCOUS_CURRENTS + E_CHECK_COMPONENTS)
 #endif
 
 
@@ -97,7 +103,7 @@ typedef struct
 #else
 
 #ifndef ANISO_HYDRO
-	precision pinn;		// piperp^\eta\eta = 0 in 2+1d
+	precision pinn;		// piperp^\eta\eta = 0 in 2+1d aniso hydro
 #endif
 
 #endif
@@ -113,6 +119,10 @@ typedef struct
 
 #ifdef PI
 	precision Pi;
+#endif
+
+#ifdef E_CHECK
+	precision e_check;
 #endif
 
 } hydro_variables;
@@ -135,8 +145,17 @@ extern hydro_variables *q, *Q, *qI;
 extern fluid_velocity *u, *up, *uI;
 extern precision *e, *lambda, *aT, *aL;
 
-extern int *aniso_regulation;
+#ifdef ANISO_HYDRO
+#ifdef LATTICE_QCD
+	extern int *aniso_regulation;
+#endif
+#else
+	extern int *viscous_regulation;
+#endif
 
+#ifdef MONITOR_TTAUMU
+	extern float *Tmunu_violations;
+#endif
 
 // swap variables
 void swap_hydro_variables(hydro_variables ** hydro_1, hydro_variables ** hydro_2);

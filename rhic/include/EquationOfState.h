@@ -35,7 +35,7 @@ class equation_of_state_new
 		precision beta_shear();						// viscosity / relaxation time
 		precision beta_bulk();
 };
-
+/*
 
 class equation_of_state
 {
@@ -67,5 +67,6 @@ class equation_of_state
 		precision beta_shear(precision T, precision conformal_prefactor);
 		precision beta_bulk(precision T);
 };
+*/
 
 #endif

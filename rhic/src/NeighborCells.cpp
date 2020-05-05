@@ -195,7 +195,7 @@ void get_hydro_neighbor_cells(hydro_variables qm, hydro_variables qp, precision 
 	q[n]	 = qm.ttn;
 	q[n + 1] = qp.ttn;	n += 2;
 #endif
-	
+
 #ifdef ANISO_HYDRO
 	q[n]	 = qm.pl;
 	q[n + 1] = qp.pl;	n += 2;
@@ -257,12 +257,17 @@ void get_hydro_neighbor_cells(hydro_variables qm, hydro_variables qp, precision 
 	q[n + 1] = qp.WyTz;	n += 2;
 
 	q[n]	 = qm.WnTz;
-	q[n + 1] = qp.WnTz;
+	q[n + 1] = qp.WnTz;	n += 2;
 #endif
 
 #ifdef PI
 	q[n]	 = qm.Pi;
-	q[n + 1] = qp.Pi;
+	q[n + 1] = qp.Pi;	n += 2;
+#endif
+
+#ifdef E_CHECK
+	q[n]	 = qm.e_check;
+	q[n + 1] = qp.e_check;
 #endif
 }
 

@@ -41,6 +41,10 @@ void set_initial_T_taumu_variables(double t, int nx, int ny, int nz, hydro_param
 
 				precision e_s = e[s];
 
+			#ifdef E_CHECK
+				q[s].e_check = e_s;
+			#endif
+
 				precision ux = u[s].ux;
 				precision uy = u[s].uy;
 			#ifndef BOOST_INVARIANT
@@ -63,9 +67,6 @@ void set_initial_T_taumu_variables(double t, int nx, int ny, int nz, hydro_param
 				precision pl = q[s].pl;
 				precision pt = q[s].pt;
 			#else
-				// equation_of_state eos(e_s);
-				// precision p = eos.equilibrium_pressure();
-
 				equation_of_state_new eos(e_s, hydro.conformal_eos_prefactor);
 				precision p = eos.equilibrium_pressure();
 			#endif
@@ -152,7 +153,6 @@ void set_anisotropic_initial_condition(int nx, int ny, int nz, hydro_parameters 
 				q[s].pt = pt;
 
 			#ifdef LATTICE_QCD						// initialize mean field and anisotropic variables
-			#ifndef CONFORMAL_EOS
 				precision T = eos.T;
 				precision b = eos.equilibrium_mean_field();
 				precision mass = T * eos.z_quasi();
@@ -172,11 +172,6 @@ void set_anisotropic_initial_condition(int nx, int ny, int nz, hydro_parameters 
 				lambda[s] = X.lambda;
 				aT[s] = X.aT;
 				aL[s] = X.aL;
-
-			#else
-				printf("set_anisotropic_initial_condition error: no eos switch\n");
-				exit(-1);
-			#endif
 			#endif
 
 			#ifdef PIMUNU
@@ -316,6 +311,92 @@ void set_Glauber_energy_density_and_flow_profile(int nx, int ny, int nz, double 
 }
 */
 
+void read_block_energy_density_file(int nx, int ny, int nz, hydro_parameters hydro)
+{
+	// load block energy density file to energy density e[s]
+	// and set u, up components to 0 (assumes no flow profile)
+
+	// note: e_block.dat in block format (nested matrix is nz x (ny x nx))
+	// and contains a header with grid points (nx,ny,nz)
+
+	// e.g. 2d block format:
+	// nx
+	// ny
+	// nz
+	// e(1,1)	...	e(nx,1)
+	// ...		...	...
+	// e(1,ny)	... e(nx,ny)
+
+	// e.g. 3d block format:
+	// nx
+	// ny
+	// nz
+	// e(1,1,1)		...		e(nx,1,1)
+	// ...			...		...
+	// e(1,ny,1)	... 	e(nx,ny,1)
+	// e(1,1,2)		...		e(nx,1,2)
+	// ...			...		...
+	// e(1,ny,2)	... 	e(nx,ny,2)
+	// ...
+	// e(1,1,nz)	...		e(nx,1,nz)
+	// ...			...		...
+	// e(1,ny,nz)	... 	e(nx,ny,nz)
+
+
+	// see how block file is constructed in set_trento_energy_density_and_flow_profile() in Trento.cpp
+
+
+	FILE * e_block;
+  	e_block = fopen("tables/e_block.dat", "r");
+
+  	if(e_block == NULL)
+  	{
+  		printf("Error: couldn't open e_block.dat file\n");
+  	}
+
+  	int nx_block;
+  	int ny_block;
+  	int nz_block;
+
+  	fscanf(e_block, "%d\n%d\n%d", &nx_block, &ny_block, &nz_block);
+
+	if(nx != nx_block || ny != ny_block || nz != nz_block)
+	{
+		printf("read_block_energy_density_file error: hydro grid and block file dimensions are inconsistent\n");
+		exit(-1);
+	}
+
+	for(int k = 2; k < nz + 2; k++)
+	{
+		for(int j = 2; j < ny + 2; j++)
+		{
+			for(int i = 2; i < nx + 2; i++)
+			{
+				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
+
+				precision e_s;
+
+				fscanf(e_block, "%lf\t", &e_s);
+
+				e[s] = energy_density_cutoff(hydro.energy_min, e_s);
+
+				u[s].ux = 0.0;		// zero initial velocity
+				u[s].uy = 0.0;
+			#ifndef BOOST_INVARIANT
+				u[s].un = 0.0;
+			#endif
+
+				up[s].ux = 0.0;		// also set up = u
+				up[s].uy = 0.0;
+			#ifndef BOOST_INVARIANT
+				up[s].un = 0.0;
+			#endif
+			}
+		}
+	}
+	fclose(e_block);
+}
+
 
 void set_initial_conditions(precision t, lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro)
 {
@@ -430,6 +511,15 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 		{
 			printf("Trento (fluid velocity initialized to zero)\n\n");
 			set_trento_energy_density_and_flow_profile(lattice, initial, hydro);
+			set_anisotropic_initial_condition(nx, ny, nz, hydro);
+			set_initial_T_taumu_variables(t, nx, ny, nz, hydro);
+
+			break;
+		}
+		case 5:		// read custom energy density block file
+		{
+			printf("Reading custom energy density block file... (fluid velocity initialized to zero)\n\n");
+			read_block_energy_density_file(nx, ny, nz, hydro);
 			set_anisotropic_initial_condition(nx, ny, nz, hydro);
 			set_initial_T_taumu_variables(t, nx, ny, nz, hydro);
 

@@ -61,31 +61,16 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 				pl = pressure_cutoff(pressure_min, pl);
 				pt = pressure_cutoff(pressure_min, pt);
 
-				// if(pl < pressure_min)
-				// {
-				// 	pl = pressure_min;			// cutoff like energy density?
-				// }
-				// if(pt < pressure_min)
-				// {
-				// 	pt = pressure_min;
-				// }
-
-			#ifdef CONFORMAL_EOS  				// temporary marco (replace with if(hydro.eos) statement)
-			#ifndef LATTICE_QCD
+			#ifdef CONFORMAL_EOS
 				pt = (e_s - pl) / 2.;
 				//pt = pressure_cutoff(pressure_min, pt);
-			#else
-				printf("regulate_residual_currents error: no eos switch for pt conformal regulation\n");
-				exit(-1);
-			#endif
 			#endif
 
-				q[s].pl = pl;					// regulate longitudinal and transverse pressures
+				q[s].pl = pl;							// regulate longitudinal and transverse pressures
 				q[s].pt = pt;
 
 
 			#if (NUMBER_OF_RESIDUAL_CURRENTS != 0)		// regulate residual currents
-
 				precision ux = u[s].ux;
 				precision uy = u[s].uy;
 			#ifndef BOOST_INVARIANT
@@ -259,9 +244,6 @@ void regulate_viscous_currents(precision t, hydro_variables * const __restrict__
 			{
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
-				//equation_of_state eos(e[s]);
-				//precision p = eos.equilibrium_pressure();
-
 				equation_of_state_new eos(e[s], hydro.conformal_eos_prefactor);
 				precision p = eos.equilibrium_pressure();
 
@@ -335,6 +317,8 @@ void regulate_viscous_currents(precision t, hydro_variables * const __restrict__
 						factor_pi = tanh_function(pi_mag / (rho_max * Teq));
 						factor_bulk = tanh_function(fabs(sqrt_three * Pi / (rho_max * Teq)));
 
+						viscous_regulation[s] = 1;
+
 						break;
 					}
 					case 1:		// only do regulation if viscous Tmunu magnitude > equilibrium part
@@ -347,13 +331,23 @@ void regulate_viscous_currents(precision t, hydro_variables * const __restrict__
 						{
 							factor_pi = factor;
 							factor_bulk = factor;
+							viscous_regulation[s] = 1;
+						}
+						else
+						{
+							viscous_regulation[s] = 0;
 						}
 
 						break;
 					}
+					case 2:
+					{
+						viscous_regulation[s] = 0;
+						break;
+					}
 					default:
 					{
-						printf("regulate_viscous_currents error: set regulate_scheme = (0,1)\n");
+						printf("regulate_viscous_currents error: set regulate_scheme = (0,1,2)\n");
 						exit(-1);
 					}
 				}

@@ -86,9 +86,6 @@ hydro_max compute_hydro_max(const precision * const __restrict__ e, const fluid_
 
 				precision e_s = e[s];
 
-				//equation_of_state eos(e_s);
-				//precision T = eos.effective_temperature(hydro.conformal_eos_prefactor);
-
 				equation_of_state_new eos(e_s, hydro.conformal_eos_prefactor);
 				precision T = eos.T;
 
@@ -114,13 +111,13 @@ hydro_max compute_hydro_max(const precision * const __restrict__ e, const fluid_
 }
 
 
-int compute_aniso_regulations(const int * const __restrict__ aniso_regulation, lattice_parameters lattice)
+int compute_total_regulations(const int * const __restrict__ regulation, lattice_parameters lattice)
 {
 	int nx = lattice.lattice_points_x;
 	int ny = lattice.lattice_points_y;
 	int nz = lattice.lattice_points_eta;
 
-	int regulations = 0;
+	int total_regulations = 0;
 
 	for(int k = 2; k < nz + 2; k++)
 	{
@@ -129,13 +126,16 @@ int compute_aniso_regulations(const int * const __restrict__ aniso_regulation, l
 			for(int i = 2; i < nx + 2; i++)
 			{
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
-				regulations += aniso_regulation[s];
+
+				total_regulations += regulation[s];
 			}
 		}
 	}
 
-	return regulations;
+	return total_regulations;
 }
+
+
 
 
 void print_hydro_center(int n, double t, lattice_parameters lattice, hydro_parameters hydro, long cells_above_Tswitch)
@@ -150,7 +150,7 @@ void print_hydro_center(int n, double t, lattice_parameters lattice, hydro_param
 
 		printf("\tn\t|\tt\t|\tT\t|\te\t|\tp\t|\tpl\t|\tpt\t|\te_max\t|\tT_max\t|\tX_reg\t|\tT > Tsw\t|\n");
 	#else
-		printf("\tn\t|\tt\t|\tT\t|\te\t|\tp\t|\te_max\t|\tT_max\t|\tut_max\t|\tT > Tsw\t|\n");
+		printf("\tn\t|\tt\t|\tT\t|\te\t|\tp\t|\te_max\t|\tT_max\t|\tut_max\t|\tvisc_reg\t|\tT > Tsw\t|\n");
 	#endif
 		print_line();
 	}
@@ -165,11 +165,11 @@ void print_hydro_center(int n, double t, lattice_parameters lattice, hydro_param
 	precision e_max = hbarc * hydro_max_values.e_max;
 	precision T_max = hbarc * hydro_max_values.T_max;
 
-	long nx = lattice.lattice_points_x;
-	long ny = lattice.lattice_points_y;
-	long nz = lattice.lattice_points_eta;
+	int nx = lattice.lattice_points_x;
+	int ny = lattice.lattice_points_y;
+	int nz = lattice.lattice_points_eta;
 
-	precision percent_above_Tsw = 100. * (double)cells_above_Tswitch / (nx * ny * nz);
+	precision percent_above_Tsw = 100. * (double)cells_above_Tswitch / (double)(nx * ny * nz);
 #ifdef ANISO_HYDRO
 	precision pl = q[s].pl * hbarc;
 	precision pt = q[s].pt * hbarc;
@@ -179,12 +179,15 @@ void print_hydro_center(int n, double t, lattice_parameters lattice, hydro_param
 
 	double percent_aniso_reg = 0;
 #ifdef LATTICE_QCD
-	percent_aniso_reg = 100. * (double)compute_aniso_regulations(aniso_regulation, lattice) / (double)(nx * ny * nz);
+	percent_aniso_reg = 100. * (double)compute_total_regulations(aniso_regulation, lattice) / (double)(nx * ny * nz);
 #endif
 
 	printf("\t%d\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.3g\t|\t%.3f%%\t|\t%.2f%%\t|\n", n, t, T, e_s, p, pl, pt, e_max, T_max, percent_aniso_reg, percent_above_Tsw);
 #else
-	printf("\t%d\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.3g\t|\t%.3g\t|\t%.2f%%\t|\n", n, t, T, e_s, p, e_max, T_max, gamma_max, percent_above_Tsw);
+
+	double percent_viscous_reg = 100. * (double)compute_total_regulations(viscous_regulation, lattice) / (double)(nx * ny * nz);
+
+	printf("\t%d\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.3g\t|\t%.3g\t|\t%.2f%%\t|\t%.2f%%\t|\n", n, t, T, e_s, p, e_max, T_max, gamma_max, percent_viscous_reg, percent_above_Tsw);
 #endif
 }
 
@@ -247,10 +250,14 @@ void print_parameters(lattice_parameters lattice, hydro_parameters hydro)
 		printf("Kinetic theory model = Quasiparticle\n\n");
 	}
 
-	printf("Freezeout temperature  = %.3g MeV\n",	hydro.freezeout_temperature_GeV * 1000.);
-	printf("Flux limiter           = %.2f\n",		hydro.flux_limiter);
-	printf("Minimum energy density = %.2e fm^-4\n",		hydro.energy_min);
-	printf("Minimum pressure       = %.2e fm^-4\n",		hydro.pressure_min);
+	precision T_switch = hydro.freezeout_temperature_GeV;
+	precision e_switch = hbarc * equilibrium_energy_density_new(T_switch / hbarc, hydro.conformal_eos_prefactor);
+
+	printf("Freezeout temperature     = %.3g MeV\n", 		T_switch * 1000.);
+	printf("Freezeout energy density  = %.3g GeV/fm^3\n",	e_switch);
+	printf("Flux limiter              = %.2f\n",			hydro.flux_limiter);
+	printf("Minimum energy density    = %.2e fm^-4\n",		hydro.energy_min);
+	printf("Minimum pressure          = %.2e fm^-4\n",		hydro.pressure_min);
 
 	// equation of state
 #ifdef CONFORMAL_EOS
@@ -291,11 +298,11 @@ void print_parameters(lattice_parameters lattice, hydro_parameters hydro)
 
 	if(hydro.include_vorticity)
 	{
-		printf("Vorticity terms                 = On\n");
+		printf("\nVorticity terms = On\n");
 	}
 	else
 	{
-		printf("Vorticity terms                 = Off\n");
+		printf("\nVorticity terms = Off\n");
 	}
 }
 

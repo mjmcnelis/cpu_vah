@@ -58,7 +58,7 @@ void set_ideal_gubser_initial_conditions(lattice_parameters lattice, precision d
 
 			precision T = (T0_hat / t) * pow(4. * q02 * t2 / (1.  +  2. * q02 * (t2 + r2)  +  q04 * (t2 - r2) * (t2 - r2)), 1./3.);
 
-			precision e_s = equilibrium_energy_density(T, conformal_eos_prefactor);
+			precision e_s = equilibrium_energy_density_new(T, conformal_eos_prefactor);
 
 			double ux = sinh(kappa) * x / r;
 			double uy = sinh(kappa) * y / r;
@@ -97,7 +97,7 @@ void run_analytic_ideal_gubser(lattice_parameters lattice, initial_condition_par
 	double t0 = hydro.tau_initial;							// initial time
 	double dt_out = lattice.output_interval;				// output time intervals
 
-	double q0 = initial.q_gubser;							// inverse length size 
+	double q0 = initial.q_gubser;							// inverse length size
 	double q02 = q0 * q0;
 	double q04 = q02 * q02;
 
@@ -130,7 +130,7 @@ void run_analytic_ideal_gubser(lattice_parameters lattice, initial_condition_par
 
 			double T = T_central_hat / t * pow(4. * q02 * t2 / (1.  +  2. * q02 * (t2 + r2)  +  q04 * (t2 - r2) * (t2 - r2)), 1./3.);
 			double e = conformal_prefactor * T * T * T * T;
-		
+
 			fprintf(energy, "%.3f\t%.8f\n", x, e * hbarc);
 
 			if(T > T_freeze) below_freezeout_surface = false;

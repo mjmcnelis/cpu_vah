@@ -344,7 +344,9 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro)
 		std::cerr << "No configuration file  %s found for hydro parameters\n";
 	}
 
-	lattice.min_time_step = 5. * pow(10., round(log10(hydro.tau_initial)) - 2.);		// min time step ~ 20x smaller than t0
+	//lattice.min_time_step = 5. * pow(10., round(log10(hydro.tau_initial)) - 2.);		// min time step ~ 20x smaller than t0
+
+	lattice.min_time_step = hydro.tau_initial / 20.;
 
 #ifdef BOOST_INVARIANT
 	if(lattice.lattice_points_eta > 1)

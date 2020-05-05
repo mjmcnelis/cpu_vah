@@ -30,10 +30,7 @@ void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict
 	int nz = lattice.lattice_points_eta;
 
 	precision T_switch = hydro.freezeout_temperature_GeV;
-	//precision e_switch = equilibrium_energy_density(T_switch / hbarc, hydro.conformal_eos_prefactor);
 	precision e_switch = equilibrium_energy_density_new(T_switch / hbarc, hydro.conformal_eos_prefactor);
-
-	//printf("%lf\n", e_switch * hbarc);
 
 	precision e_min = hydro.energy_min;
 
@@ -117,22 +114,14 @@ void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict
 				precision My = ky  -  WyTz * zt;
 				precision Mn = kn  -  WtTz * zn  -  WnTz * zt;
 
-				// this needs a switching
-
-				precision eprev = e[s];
-
 				// solution for e
 			#ifdef LATTICE_QCD
-			#ifndef CONFORMAL_EOS
 				precision Ltt = (pl - pt) * zt * zt;
 				precision ut_numerator = Mt  +  pt  -  Ltt;
 
 				precision e_s = energy_density_cutoff(e_min, Mt  -  Ltt  -  (Mx * Mx  +  My * My) / ut_numerator  -  t2 * Mn * Mn * ut_numerator / (Mt + pl) / (Mt + pl));
-			#endif
-			#endif
-
-			#ifdef CONFORMAL_EOS
-			#ifndef LATTICE_QCD
+			#else
+			/*
 				precision zt2  = zt * zt;
 				precision ztzn = zt * zn;
 
@@ -146,14 +135,15 @@ void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict
 				pt = (e_s - pl) / 2.;
 
 				precision ut_numerator = Mt  +  pt  -  (pl - pt) * zt2;
-			#endif
-			#endif
+			*/
 
-			#ifdef CONFORMAL_EOS
-			#ifdef LATTICE_QCD
-				printf("\nget_inferred_variables_aniso_hydro error: not eos switch here yet\n");
-				exit(-1);
-			#endif
+				precision Ltt = (pl - pt) * zt * zt;
+				precision ut_numerator = Mt  +  pt  -  Ltt;
+
+				precision e_s = energy_density_cutoff(e_min, Mt  -  Ltt  -  (Mx * Mx  +  My * My) / ut_numerator  -  t2 * Mn * Mn * ut_numerator / (Mt + pl) / (Mt + pl));
+
+
+
 			#endif
 
 				// solution for u^mu
@@ -171,38 +161,6 @@ void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict
 					printf("\nget_inferred_variables_aniso_hydro error: u^mu = (%lf, %lf, %lf, %lf) is nan\n", ut_s, ux_s, uy_s, un_s);
 					exit(-1);
 				}
-/*
-				precision de_over_e = (e_s - eprev) / eprev;
-
-				if(de_over_e > 0.1)
-				{
-					if(eprev > e_switch)
-					{
-						printf("(eprev, e_s, |de/e|) = (%.6g, %.6g, %.6g) at (%d, %d, %lf) \n", eprev, e_s, de_over_e, i, j, t);
-					}
-
-					e_s = 1.0 * eprev;
-
-					e_regulation[s] += 1;
-				}
-
-				precision ut_max = 10.0;
-
-				ut_s = sqrt(1.  +  ux_s * ux_s  +  uy_s * uy_s  +  t2 * un_s * un_s);
-
-				if(ut_s > ut_max)
-				{
-					//printf("(ut, ut_max) = (%.5g, %.5g) at %d, %d \n", ut, ut_max, i, j);
-
-					precision norm = fmin(1., sqrt(fabs((ut_max * ut_max - 1.) / (ut_s * ut_s - 1.))));
-
-					ux_s *= norm;
-					uy_s *= norm;
-					un_s *= norm;
-
-					ut_regulation[s] += 1;
-				}
-*/
 
 			#ifdef TEST_TTAUMU
 				ut_s = sqrt(1.  +  ux_s * ux_s  +  uy_s * uy_s  +  t2 * un_s * un_s);
@@ -304,7 +262,7 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 				precision eprev = e[s];
 
 			#ifdef CONFORMAL_EOS
-				//precision e_s = energy_density_cutoff(e_min, - Mt  +  sqrt(fabs(4. * Mt * Mt  -  3. * M_squared)));
+
 				precision e_s = - Mt  +  sqrt(fabs(4. * Mt * Mt  -  3. * M_squared));
 			#else
 
@@ -314,17 +272,14 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 				int n;
 
 				const int max_iterations = 20;
-				const double energy_tolerance = 1.e-5;
+				const double energy_tolerance = 1.e-4;
 
 				for(n = 1; n <= max_iterations; n++)	// root solving algorithm (update e)
 				{
-					equation_of_state EoS(e_s);
-					//equation_of_state_new EoS(e_s, hydro.conformal_eos_prefactor);
+					equation_of_state_new EoS(e_s, hydro.conformal_eos_prefactor);
 					precision p = EoS.equilibrium_pressure();
 
-					equation_of_state eos(e_s);
-
-					if(p + Pi <= 0.) 					// solution when have to regulate bulk pressure
+					if(p + Pi <= 0.) 							// solution when have to regulate bulk pressure
 					{
 						e_s = Mt  -  M_squared / Mt;
 						break;
@@ -340,11 +295,11 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 
 					e_s += de;
 
-					if(e_s < e_min)						// stop iterating if e < e_min
+					if(e_s < e_min)								// stop iterating if e < e_min
 					{
 						break;
 					}
-					else if(fabs(de / e_s) <= energy_tolerance)
+					else if(fabs(de / e_s) <= energy_tolerance)	// found solution
 					{
 						break;
 					}
@@ -355,12 +310,10 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 				// 	printf("newton method (eprev, e_s, |de/e_s|) = (%.6g, %.6g, %.6g) failed to converge within desired percentage tolerance %lf at (i, j, k) = (%d, %d, %d)\n", eprev, e_s, fabs(de / e_s), energy_tolerance, i, j, k);
 				// }
 
-
 			#endif
 
 				e_s = energy_density_cutoff(e_min, e_s);
 
-				//equation_of_state eos(e_s);
 				equation_of_state_new eos(e_s, hydro.conformal_eos_prefactor);
 				precision p = eos.equilibrium_pressure();
 
@@ -381,42 +334,8 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 					exit(-1);
 				}
 
-/*
-				precision de_over_e = (e_s - eprev) / eprev;
 
-				if(de_over_e > 0.1)
-				{
-					if(eprev > e_switch)
-					{
-						printf("(eprev, e_s, |de/e|) = (%.6g, %.6g, %.6g) at (%d, %d, %lf) \n", eprev, e_s, de_over_e, i, j, t);
-					}
-
-					e_s = 1.0 * eprev;
-
-					e_regulation[s] += 1;
-				}
-
-
-				precision ut_max = 10.0;
-
-				ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t2 * un * un);
-
-				if(ut > ut_max)
-				{
-					//printf("(ut, ut_max) = (%.5g, %.5g) at %d, %d \n", ut, ut_max, i, j);
-
-					precision norm = fmin(1., sqrt(fabs((ut_max * ut_max - 1.) / (ut * ut - 1.))));
-
-					ux *= norm;
-					uy *= norm;
-					un *= norm;
-
-					ut_regulation[s] += 1;
-				}
-*/
-
-
-			#ifdef TEST_TTAUMU
+			#ifdef MONITOR_TTAUMU
 				ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t2 * un * un);
 
 				precision dttt = fabs((e_s + p + Pi) * ut * ut  -  p  -  Pi +  pitt  -  ttt);
@@ -424,14 +343,7 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 				precision dtty = fabs((e_s + p + Pi) * ut * uy  +  pity  -  tty);
 				precision dttn = fabs((e_s + p + Pi) * ut * un  +  pitn  -  ttn);
 
-				if(dttt > ttt_error || dttx > ttx_error || dtty > tty_error || dttn > ttn_error)
-				{
-					ttt_error = fmax(dttt, ttt_error);
-					ttx_error = fmax(dttx, ttx_error);
-					tty_error = fmax(dtty, tty_error);
-					ttn_error = fmax(dttn, ttn_error);
-					printf("get_inferred_variables_viscous_hydro: |dt^{tau/mu}| = (%.6g, %.6g, %.6g, %.6g) at %d, %d, %d \n", ttt_error, ttx_error, tty_error, ttn_error, i, j, k);
-				}
+				Tmunu_violations[s] = fmax(dttt, fmax(dttx, fmax(dtty, dttn)));
 			#endif
 
 				e[s]    = e_s;		// set solution for primary variables

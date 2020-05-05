@@ -3,7 +3,6 @@
 #include <random>
 #include <chrono>
 #include <vector>
-//#include "../include/MCGlauber.h"
 #include "../include/Parameters.h"
 #include "../include/DynamicalVariables.h"
 #include "../include/Macros.h"
@@ -68,7 +67,7 @@ double compute_sigma_gg(double w)
 	// interpolation of sgg(w) data (note: this calculation is limited to sigma_NN = 6.4 fm^2)
 
   	FILE * sgg_file;
-  	sgg_file = fopen("mathematica/sgg.dat", "r");
+  	sgg_file = fopen("tables/sgg.dat", "r");
   	if(sgg_file == NULL)
   	{
   		printf("Error: couldn't open sgg.dat file\n");
@@ -388,6 +387,7 @@ void trento_transverse_energy_density_profile(double * const __restrict__ energy
 void set_trento_energy_density_and_flow_profile(lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro)
 {
 	precision e_min = hydro.energy_min;
+	precision t0 = hydro.tau_initial;
 
 	int nx = lattice.lattice_points_x;
 	int ny = lattice.lattice_points_y;
@@ -405,6 +405,14 @@ void set_trento_energy_density_and_flow_profile(lattice_parameters lattice, init
 
 	trento_transverse_energy_density_profile(eT, lattice, initial, hydro);
 
+	FILE *energy;
+
+	if(initial.trento_average_over_events)
+	{
+		energy = fopen("output/e_block_trento_avg.dat", "w");	// block file of energy denisty [GeV/fm^-3]
+		fprintf(energy, "%d\n%d\n%d\n", nx, ny, nz);			// write grid points at header
+	}
+
 	// leave out longitudinal profile for now
 	//double eL[nz];			// normalized longitudinal profile
 	//longitudinal_Energy_Density_Profile(eL, nz, dz, initial);
@@ -418,6 +426,11 @@ void set_trento_energy_density_and_flow_profile(lattice_parameters lattice, init
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
 				precision e_s = eT[i - 2  +  (j - 2) * nx];
+
+				if(initial.trento_average_over_events)
+				{
+					fprintf(energy, "%.6g\t", e_s);
+				}
 
 				e[s] = energy_density_cutoff(e_min, e_s);
 
@@ -433,7 +446,28 @@ void set_trento_energy_density_and_flow_profile(lattice_parameters lattice, init
 				up[s].un = 0.0;
 			#endif
 			}
+
+			if(initial.trento_average_over_events)
+			{
+				if(j < ny + 1)
+				{
+					fprintf(energy, "\n");
+				}
+			}
 		}
+		if(initial.trento_average_over_events)
+		{
+			if(k < nz + 1)
+			{
+				fprintf(energy, "\n");
+			}
+		}
+
+	}
+
+	if(initial.trento_average_over_events)
+	{
+		fclose(energy);
 	}
 }
 
