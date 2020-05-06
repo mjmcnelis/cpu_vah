@@ -40,10 +40,9 @@ int central_index(lattice_parameters lattice)
 }
 
 
-void output_inverse_reynolds_number(const hydro_variables * const __restrict__ q, const precision * const e, double t, lattice_parameters lattice, hydro_parameters hydro)
+void output_mean_field(const hydro_variables * const __restrict__ q, const fluid_velocity * const __restrict__ u, const precision * const e, double t, lattice_parameters lattice, hydro_parameters hydro)
 {
-#ifndef ANISO_HYDRO
-#if (NUMBER_OF_VISCOUS_CURRENTS != 0)
+#ifdef LATTICE_QCD
 	int nx = lattice.lattice_points_x;
 	int ny = lattice.lattice_points_y;
 	int nz = lattice.lattice_points_eta;
@@ -52,22 +51,39 @@ void output_inverse_reynolds_number(const hydro_variables * const __restrict__ q
 	precision dy = lattice.lattice_spacing_y;
 	precision dn = lattice.lattice_spacing_eta;
 
-#ifdef PIMUNU
-	FILE *Rpi_inverse;
-	char fname1[255];
-	sprintf(fname1, "output/Rpi_inverse_%.3f.dat", t);
-	Rpi_inverse = fopen(fname1, "w");
-#endif
+	FILE *db_peq;			// from time evolution of relaxation equation
+	FILE *dbasy_peq;		// asymptotic approximation (ignore residual shear contribution)
+	FILE *db2_peq; 			// 2nd order approximation
 
-#ifdef PI
-	FILE *Rbulk_inverse;
+	char fname1[255];
 	char fname2[255];
-	sprintf(fname2, "output/Rbulk_inverse_%.3f.dat", t);
-	Rbulk_inverse = fopen(fname2, "w");
+	char fname3[255];
+
+	sprintf(fname1, "output/db_peq_%.3f.dat", t);
+	sprintf(fname2, "output/dbasy_peq_%.3f.dat", t);
+	sprintf(fname3, "output/db2_peq_%.3f.dat", t);
+
+#ifdef ANISO_HYDRO
+	db_peq 		= fopen(fname1, "w");
+	dbasy_peq 	= fopen(fname2, "w");
+#else
+	db2_peq 	= fopen(fname3, "w");
 #endif
 
 	precision t2 = t * t;
 	precision t4 = t2 * t2;
+
+	int stride_y = nx + 4;					// strides for neighbor cells along x, y, n (stride_x = 1)
+	int stride_z = (nx + 4) * (ny + 4);		// stride formulas based from linear_column_index()
+
+	precision ui1[6];		// fluid velocity of neighbor cells along x [i-1, i+1]
+	precision uj1[6];		// fluid velocity of neighbor cells along y [j-1, j+1]
+	precision uk1[6];		// fluid velocity of neighbor cells along n [k-1, k+1]
+
+	precision vxi[4];		// vx of neighbor cells along x [i-2, i-1, i+1, i+2]
+	precision vyj[4];		// vy of neighbor cells along y [j-2, j-1, j+1, j+2]
+	precision vnk[4];		// vn of neighbor cells along n [k-2, k-1, k+1, k+2]
+
 
 	for(int k = 2; k < nz + 2; k++)
 	{
@@ -83,48 +99,69 @@ void output_inverse_reynolds_number(const hydro_variables * const __restrict__ q
 
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
-				equation_of_state_new eos(e[s], hydro.conformal_eos_prefactor);
-				precision p = eos.equilibrium_pressure();
+				precision e_s = e[s];
 
-			#ifdef PIMUNU
-				precision pitt = q[s].pitt;			// get shear stress
-				precision pitx = q[s].pitx;
-				precision pity = q[s].pity;
-				precision pitn = 0;
-				precision pixx = q[s].pixx;
-				precision pixy = q[s].pixy;
-				precision pixn = 0;
-				precision piyy = q[s].piyy;
-				precision piyn = 0;
-				precision pinn = q[s].pinn;
+				equation_of_state_new eos(e_s, hydro.conformal_eos_prefactor);
+				precision p = eos.equilibrium_pressure();
+				precision cs2 = eos.speed_of_sound_squared();
+				precision beq = eos.equilibrium_mean_field();
+				precision T = eos.T;
+				precision mass = T * eos.z_quasi();
+				precision mdmde = eos.mdmde_quasi();
+
+			#ifdef ANISO_HYDRO
+				precision pl = q[s].pl;
+				precision pt = q[s].pt;
+				precision b = q[s].b;
+				precision Pi = (pl + 2.*pt) / 3. - p;
+			#else
+				precision Pi = q[s].Pi;
+			#endif
+
+				precision ux = u[s].ux;
+				precision uy = u[s].uy;
 
 			#ifndef BOOST_INVARIANT
-				pitn = q[s].pitn;
-				pixn = q[s].pixn;
-				piyn = q[s].piyn;
+				precision un = u[s].un;
+			#else
+				precision un = 0;
 			#endif
 
-				precision pi_mag = sqrt(fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
+				precision ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t2 * un * un);
+				precision utperp = sqrt(1.  +  ux * ux  +  uy * uy);
 
-				fprintf(Rpi_inverse, "%.2f\t%.2f\t%.2f\t%.6g\n", x, y, z, fabs(pi_mag / (sqrt(3.) * p)));
+				precision zt = t * un / utperp;
+				precision zn = ut / t / utperp;
 
-			#endif
+				int simm = s - 2;			// neighbor cell indices (x)
+				int sim  = s - 1;
+				int sip  = s + 1;
+				int sipp = s + 2;
 
-			#ifdef PI
-				precision Pi = q[s].Pi;
+				int sjmm = s - 2*stride_y;	// neighbor cell indices (y)
+				int sjm  = s - stride_y;
+				int sjp  = s + stride_y;
+				int sjpp = s + 2*stride_y;
 
-				fprintf(Rbulk_inverse, "%.2f\t%.2f\t%.2f\t%.6g\n", x, y, z, Pi / p);
+				int skmm = s - 2*stride_z;	// neighbor cell indices (n)
+				int skm  = s - stride_z;
+				int skp  = s + stride_z;
+				int skpp = s + 2*stride_z;
+
+				get_fluid_velocity_neighbor_cells(u[simm], u[sim], u[sip], u[sipp], u[sjmm], u[sjm], u[sjp], u[sjpp], u[skmm], u[skm], u[skp], u[skpp], ui1, uj1, uk1, vxi, vyj, vnk, t2);
+
+
+			#ifdef ANISO_HYDRO
+				fprintf(db_peq, "%.2f\t%.2f\t%.2f\t%.6f\n", x, y, z, (b - beq) / p);
+			#else
+
 			#endif
 			}
 		}
 	}
-#ifdef PIMUNU
-	fclose(Rpi_inverse);
-#endif
-
-#ifdef PI
-	fclose(Rbulk_inverse);
-#endif
+#ifdef ANISO_HYDRO
+	fclose(db_peq);
+#else
 
 #endif
 #endif
@@ -144,7 +181,7 @@ void output_residual_shear_validity(const hydro_variables * const __restrict__ q
 
 	FILE *RpiT_inverse;
 	char fname1[255];
-	sprintf(fname1, "output/RpiT_inv_%.3f.dat", t);
+	sprintf(fname1, "output/piperp_pt_%.3f.dat", t);
 	RpiT_inverse = fopen(fname1, "w");
 
 	precision t2 = t * t;
@@ -275,12 +312,21 @@ void output_viscous_bjorken(const hydro_variables * const __restrict__ q, const 
 	fprintf(bulk,		"%.8f\t%.8e\n", t, Pi / p);
 	fprintf(db,			"%.8f\t%.8e\n", t, -3. * taubulk * mdmde * (e_s + p) * Pi / (t * m * m * p));
 
-
 	fclose(energy);
 	fclose(plptratio);
 	fclose(shear);
 	fclose(bulk);
 	fclose(db);
+
+#ifdef E_CHECK
+	FILE *energy_check;
+	energy_check = fopen("output/e_check_e0.dat", "a");
+	precision e_check = q[s].e_check;
+
+	fprintf(energy_check, "%.8f\t%.8e\n", t, e_check / e0);
+	fclose(energy_check);
+#endif
+
 #endif
 }
 
@@ -326,12 +372,13 @@ void output_aniso_bjorken(const hydro_variables * const __restrict__ q, const pr
 	fclose(bfield);
 #endif
 
+
 #ifdef E_CHECK
 	FILE *energy_check;
 	energy_check = fopen("output/e_check_e0.dat", "a");
+	precision e_check = q[s].e_check;
 
-	fprintf(energy_check, "%.8f\t%.8e\n", t, q[s].e_check);
-
+	fprintf(energy_check, "%.8f\t%.8e\n", t, e_check / e0);
 	fclose(energy_check);
 #endif
 
@@ -450,8 +497,13 @@ void output_hydro(const hydro_variables * const __restrict__ q, const fluid_velo
 	FILE *uxplot;			// ux
 	FILE *shear;			// pressure anisotropy
 	FILE *bulk;				// bulk pressure
+
 #ifdef E_CHECK
 	FILE *energy_check;		// energy density evolved separately with KT algorithm [GeV/fm^3]
+#endif
+
+#ifdef B_FIELD
+	FILE *mean_field;
 #endif
 
 	char fname1[255];
@@ -460,6 +512,7 @@ void output_hydro(const hydro_variables * const __restrict__ q, const fluid_velo
 	char fname4[255];
 	char fname5[255];
 	char fname6[255];
+	char fname7[255];
 
 	sprintf(fname1, "output/e_%.3f.dat", t);
 	sprintf(fname2, "output/plpt_%.3f.dat", t);
@@ -467,6 +520,7 @@ void output_hydro(const hydro_variables * const __restrict__ q, const fluid_velo
 	sprintf(fname4, "output/shear_peq_%.3f.dat", t);
 	sprintf(fname5, "output/bulk_peq_%.3f.dat", t);
 	sprintf(fname6, "output/e_check_%.3f.dat", t);
+	sprintf(fname7, "output/db_peq_%.3f.dat", t);
 
 	energy 		= fopen(fname1, "w");
 	plptratio 	= fopen(fname2, "w");
@@ -475,6 +529,10 @@ void output_hydro(const hydro_variables * const __restrict__ q, const fluid_velo
 	bulk 		= fopen(fname5, "w");
 #ifdef E_CHECK
 	energy_check= fopen(fname6, "w");
+#endif
+
+#ifdef B_FIELD
+	mean_field 	= fopen(fname7, "w");
 #endif
 
 	precision t2 = t * t;
@@ -549,6 +607,11 @@ void output_hydro(const hydro_variables * const __restrict__ q, const fluid_velo
 			#ifdef E_CHECK
 				fprintf(energy_check, "%.2f\t%.2f\t%.2f\t%.6e\n", x, y, z, q[s].e_check * hbarc);
 			#endif
+
+			#ifdef B_FIELD
+				precision db = q[s].b - eos.equilibrium_mean_field();
+				fprintf(mean_field, "%.2f\t%.2f\t%.2f\t%.6e\n", x, y, z, db / p);
+			#endif
 			}
 		}
 	}
@@ -557,8 +620,13 @@ void output_hydro(const hydro_variables * const __restrict__ q, const fluid_velo
 	fclose(uxplot);
 	fclose(shear);
 	fclose(bulk);
+
 #ifdef E_CHECK
 	fclose(energy_check);
+#endif
+
+#ifdef B_FIELD
+	fclose(mean_field);
 #endif
 }
 
@@ -677,7 +745,6 @@ void output_dynamical_variables(double t, double dt, lattice_parameters lattice,
 	{
 		output_hydro(q, u, e, t, lattice, hydro);
 		output_residual_shear_validity(q, u, e, t, lattice, hydro);
-		//output_inverse_reynolds_number(q, e, t, lattice, hydro);
 
 	#ifdef MONITOR_TTAUMU
 		output_Tmunu_violations(Tmunu_violations, t, lattice);

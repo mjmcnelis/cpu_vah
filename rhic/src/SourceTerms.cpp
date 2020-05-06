@@ -884,12 +884,8 @@ precision zeta_LT, zeta_TT, lambda_WuT, lambda_WTT, lambda_piT;
 #endif
 
 #ifdef E_CHECK
-	precision de = - (e_s + pl) * thetaL  -  (e_s + pt) * thetaT  +  0*pi_sT  -  0*WTz_Dz_u  +  0*WTz_z_NabT_u;
-	S[a] = de / ut  +  div_v * e_s;
-
-	//S[a] = - (e_s + pl) / t;
-
-	printf("%lf\t%lf\n", S[0], S[a]);
+	precision de = - (e_check + pl) * thetaL  -  (e_check + pt) * thetaT  +  pi_sT  -  WTz_Dz_u  +  WTz_z_NabT_u;
+	S[a] = de / ut  +  div_v * e_check;
 #endif
 
 #endif

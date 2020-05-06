@@ -10,7 +10,7 @@
 
 #define ADAPTIVE_FILE
 
-const precision sqrt_variables = sqrt(NUMBER_CONSERVED_VARIABLES);
+const precision sqrt_variables = sqrt(NUMBER_CONSERVED_VARIABLES - B_FIELD_COMPONENTS - E_CHECK_COMPONENTS);
 
 inline int linear_column_index(int i, int j, int k, int nx, int ny)
 {
