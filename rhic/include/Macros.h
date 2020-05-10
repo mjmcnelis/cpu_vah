@@ -4,7 +4,7 @@
 
 // macro parameters to fix hydrodynamic variables at compile time
 
-//#define ANISO_HYDRO				// run anisotropic hydro (comment to run 2nd order viscous hydro)
+#define ANISO_HYDRO				// run anisotropic hydro (comment to run 2nd order viscous hydro)
 #define BOOST_INVARIANT 		// run 2+1d hydro (comment to run 3+1d hydro)
 
 

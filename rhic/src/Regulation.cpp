@@ -70,6 +70,25 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 				q[s].pt = pt;
 
 
+			#ifdef B_FIELD 								// regulate non-equilibrium mean field component
+				precision b = q[s].b;
+				equation_of_state_new eos(e_s, 1);
+				precision p = eos.equilibrium_pressure();
+				precision beq = eos.equilibrium_mean_field();
+
+				precision db = b - beq;
+
+				if(db < 0)
+				{
+					db *= fmin(1., fabs(beq / db));
+				}
+
+				//db *= fmin(1., fabs(2.*beq / db));
+
+				q[s].b = beq + db;
+			#endif
+
+
 			#if (NUMBER_OF_RESIDUAL_CURRENTS != 0)		// regulate residual currents
 				precision ux = u[s].ux;
 				precision uy = u[s].uy;

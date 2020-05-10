@@ -30,7 +30,7 @@ double de_dt_conformal(double e, double pl, double t, hydro_parameters hydro)
 	return - (e + pl) / t;
 }
 
-double de_dt(double e, double pl, double pt, double B, double lambda, double aT, double aL, double t, hydro_parameters hydro)
+double de_dt(double e, double pl, double pt, double b, double lambda, double aT, double aL, double t, hydro_parameters hydro)
 {
 	return - (e + pl) / t;
 }
@@ -55,7 +55,7 @@ double dpl_dt_conformal(double e, double pl, double t, hydro_parameters hydro)
 }
 
 
-double dpl_dt(double e, double pl, double pt, double B, double lambda, double aT, double aL, double t, hydro_parameters hydro)
+double dpl_dt(double e, double pl, double pt, double db, double lambda, double aT, double aL, double t, hydro_parameters hydro)
 {
 	double conformal = hydro.conformal_eos_prefactor;
 
@@ -63,6 +63,7 @@ double dpl_dt(double e, double pl, double pt, double B, double lambda, double aT
 	double p = eos.equilibrium_pressure();
 	double T = eos.T;
 	double s = (e + p) / T;
+	double beq = eos.equilibrium_mean_field();
 	double mass = T * eos.z_quasi();				     // m(T)
 	double mbar = mass / lambda;       					 // m(T) / lambda
 	double mdmde = eos.mdmde_quasi();
@@ -70,14 +71,16 @@ double dpl_dt(double e, double pl, double pt, double B, double lambda, double aT
 	double taupiInv = eos.beta_shear() / (s * eta_over_s(T, hydro));
 	double taubulkInv = eos.beta_bulk() / (s * zeta_over_s(T, hydro));
 
+	double b = beq + db;
+
 	aniso_transport_coefficients_nonconformal aniso;
-	aniso.compute_transport_coefficients(e, pl, pt, B, lambda, aT, aL, mbar, mass, mdmde);
+	aniso.compute_transport_coefficients(e, pl, pt, b, lambda, aT, aL, mbar, mass, mdmde);
 
 	return taubulkInv * (p - (2.*pt + pl) / 3.)  -  2./3. * taupiInv * (pl - pt)  +  aniso.zeta_LL / t;
 }
 
 
-double dpt_dt(double e, double pl, double pt, double B, double lambda, double aT, double aL, double t, hydro_parameters hydro)
+double dpt_dt(double e, double pl, double pt, double db, double lambda, double aT, double aL, double t, hydro_parameters hydro)
 {
 	double conformal = hydro.conformal_eos_prefactor;
 
@@ -85,6 +88,7 @@ double dpt_dt(double e, double pl, double pt, double B, double lambda, double aT
 	double p = eos.equilibrium_pressure();
 	double T = eos.T;
 	double s = (e + p) / T;
+	double beq = eos.equilibrium_mean_field();
 	double mass = T * eos.z_quasi();				     // m(T)
 	double mbar = mass / lambda;       					 // m(T) / lambda
 	double mdmde = eos.mdmde_quasi();
@@ -92,27 +96,29 @@ double dpt_dt(double e, double pl, double pt, double B, double lambda, double aT
 	double taupiInv = eos.beta_shear() / (s * eta_over_s(T, hydro));
 	double taubulkInv = eos.beta_bulk() / (s * zeta_over_s(T, hydro));
 
+	double b = beq + db;
+
 	aniso_transport_coefficients_nonconformal aniso;
-	aniso.compute_transport_coefficients(e, pl, pt, B, lambda, aT, aL, mbar, mass, mdmde);
+	aniso.compute_transport_coefficients(e, pl, pt, b, lambda, aT, aL, mbar, mass, mdmde);
 
 	return taubulkInv * (p - (2.*pt + pl) / 3.)  +  taupiInv * (pl - pt) / 3.  +  aniso.zeta_LT / t;
 }
 
 
-double dB_dt(double e, double pl, double pt, double B, double lambda, double aT, double aL, double t, hydro_parameters hydro)
+double ddb_dt(double e, double pl, double pt, double db, double lambda, double aT, double aL, double t, hydro_parameters hydro)
 {
-	double conformal = hydro.conformal_eos_prefactor;
-
-	equation_of_state_new eos(e, conformal);
+	equation_of_state_new eos(e, hydro.conformal_eos_prefactor);
 	double p = eos.equilibrium_pressure();
 	double T = eos.T;
 	double s = (e + p) / T;
 	double mass = T * eos.z_quasi();
-	double Beq = eos.equilibrium_mean_field();
+	double beq = eos.equilibrium_mean_field();
 	double mdmde = eos.mdmde_quasi();
 	double taubulkInv = eos.beta_bulk() / (s * zeta_over_s(T, hydro));
 
-	return - taubulkInv * (B - Beq)  -  (2.*pt + pl - e + 4.*B) * mdmde * (e + pl) / (t * mass * mass);
+	double Pi = (pl + 2.*pt)/3. - p;
+
+	return - taubulkInv * db  -  (3.*Pi + 4.*db) * (e + pl) * mdmde / (t * mass * mass);
 }
 
 
@@ -120,12 +126,6 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 {
 	// using a highly accurate 4th order numerical solution (fixed time step)
 	// kinetic theory model should be quasiparticle but it can run either lattice + quasiparticle or conformal (or switch_eos mode)
-
-	// if(hydro.kinetic_theory_model != 1)
-	// {
-	// 	printf("run_semi_analytic_aniso_bjorken error: set kinetic_theory_model = 1 to default value\n");
-	// 	exit(-1);
-	// }
 
 	double t  = hydro.tau_initial;												// initial time
 	double dt = t / 100.;														// use minimum time step 100x smaller than t0
@@ -144,7 +144,7 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 	double p0 = eos.equilibrium_pressure();										// initial thermal pressure
 	double s0 = (e0 + p0) / T;													// initial entropy density
 	double cs2 = eos.speed_of_sound_squared();
-	double B0 = eos.equilibrium_mean_field();									// initial thermal mean field
+	double b0 = eos.equilibrium_mean_field();									// initial thermal mean field
 	double mass = T * eos.z_quasi();											// quasiparticle mass
 	double mass2 = mass * mass;
 	double mdmde = eos.mdmde_quasi();
@@ -153,40 +153,23 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 	double betabulk = eos.beta_bulk();
 	double taubulk = (zetas * s0) / betabulk;
 
-
-	// printf("\n");
-	// printf("T = %lf fm^-1\n", T);
-	// printf("e = %lf fm^-4\n", e0);
-	// printf("p = %lf fm^-4\n", p0);
-	// printf("s = %lf fm^-4\n", s0);
-	// printf("Beq = %lf fm^-4\n", B0);
-	// printf("z = %lf\n", eos.z_quasi());
-	// printf("mass = %lf\n", mass);
-	// printf("mdmde = %lf\n", mdmde);
-
-	// printf("zetaS = %lf\n", zetas);
-	// printf("betabulk = %lf fm^-4\n", betabulk);
-	// printf("taubulk = %lf fm\n\n", taubulk);
-	// exit(-1);
-	//:::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-
 	// initialize hydrodynamic variables (e, pl, pt, B, lambda, aL, aT)
 	//:::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 	double e = e0;
 	double pl = 3. * p0 * plpt_ratio / (2. + plpt_ratio);
 	double pt = 3. * p0 / (2. + plpt_ratio);
+	double db = 0;
 
 #ifdef CONFORMAL_EOS
-	double B = 0;
+	double b = 0;
 #else
-	double B = B0;																// initial mean field
+	double b = b0;																// initial mean field
 	double lambda = T;															// initial guess for anisotropic variables
 	double aT = 1.0;
 	double aL = 1.0;
 
-	aniso_variables X0 = find_anisotropic_variables(e, pl, pt, B, mass, lambda, aT, aL);
+	aniso_variables X0 = find_anisotropic_variables(e, pl, pt, b, mass, lambda, aT, aL);
 
 	if(X0.did_not_find_solution)
 	{
@@ -198,18 +181,6 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 	aT = X0.aT;
 	aL = X0.aL;
 #endif
-
-	// printf("e      = %lf\n", e);
-	// printf("T      = %lf\n", T);
-	// printf("p      = %lf\n", p0);
-	// printf("pl     = %lf\n", pl);
-	// printf("pt     = %lf\n", pt);
-	// printf("b      = %lf\n", B);
-	// printf("lambda = %lf\n", lambda);
-	// printf("aT     = %lf\n", aT);
-	// printf("aL     = %lf\n\n", aL);
-	// exit(-1);
-
 	//:::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 
@@ -228,6 +199,7 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 	ofstream e_e0_plot;
 	ofstream pl_pt_plot;
 	ofstream db_peq_plot;
+	ofstream db2_peq_plot;
 	ofstream dbasy_peq_plot;
 	ofstream shear_peq_plot;
 	ofstream bulk_peq_plot;
@@ -237,6 +209,7 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 	e_e0_plot.open("semi_analytic/e_e0.dat", ios::out);
 	pl_pt_plot.open("semi_analytic/pl_pt.dat", ios::out);
 	db_peq_plot.open("semi_analytic/db_peq.dat", ios::out);
+	db2_peq_plot.open("semi_analytic/db2_peq.dat", ios::out);
 	dbasy_peq_plot.open("semi_analytic/dbasy_peq.dat", ios::out);
 	bulk_peq_plot.open("semi_analytic/bulk_peq.dat", ios::out);
 	shear_peq_plot.open("semi_analytic/shear_peq.dat", ios::out);
@@ -264,11 +237,14 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 		double pl_NS = p - zeta/t - 4.*eta/(3.*t);
 		double pt_NS = p - zeta/t + 2.*eta/(3.*t);
 
+		double db2nd = - taubulk_s * mdmde_s * (e + pl) * (2.*pt + pl - 3.*p) / (t * m * m);
+
 		double dbasy = - taubulk_s * mdmde_s * (e + pl) * (2.*pt + pl - 3.*p) / (t * m * m) / (1. + 4. * taubulk_s * mdmde_s * (e + pl) / (t * m * m));
 
 		e_e0_plot  		<< fixed << setprecision(decimal + 2) << t << "\t" << scientific << setprecision(12) << e / e0 << endl;
 		pl_pt_plot 		<< fixed << setprecision(decimal + 2) << t << "\t" << scientific << setprecision(12) << pl / pt << endl;
-		db_peq_plot		<< fixed << setprecision(decimal + 2) << t << "\t" << scientific << setprecision(12) << (B - beq) / p << endl;
+		db_peq_plot		<< fixed << setprecision(decimal + 2) << t << "\t" << scientific << setprecision(12) << db / p << endl;
+		db2_peq_plot	<< fixed << setprecision(decimal + 2) << t << "\t" << scientific << setprecision(12) << db2nd / p << endl;
 		dbasy_peq_plot	<< fixed << setprecision(decimal + 2) << t << "\t" << scientific << setprecision(12) << dbasy / p << endl;
 		// db_peq_plot		<< fixed << setprecision(decimal + 2) << t << "\t" << scientific << setprecision(12) << (B - beq) * hbarc << endl;
 		// dbasy_peq_plot	<< fixed << setprecision(decimal + 2) << t << "\t" << scientific << setprecision(12) << dbasy * hbarc << endl;
@@ -299,63 +275,74 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 		pl += (plk1  +  2. * plk2  +  2. * plk3  +  plk4) / 6.;
 		pt = (e - pl) / 2.;
 	#else
-		double de1  = dt *  de_dt(e, pl, pt, B, lambda, aT, aL, t, hydro);
-		double dpl1 = dt * dpl_dt(e, pl, pt, B, lambda, aT, aL, t, hydro);
-		double dpt1 = dt * dpt_dt(e, pl, pt, B, lambda, aT, aL, t, hydro);
-		double dB1  = dt *  dB_dt(e, pl, pt, B, lambda, aT, aL, t, hydro);
+
+		double de1  = dt *  de_dt(e, pl, pt, db, lambda, aT, aL, t, hydro);
+		double dpl1 = dt * dpl_dt(e, pl, pt, db, lambda, aT, aL, t, hydro);
+		double dpt1 = dt * dpt_dt(e, pl, pt, db, lambda, aT, aL, t, hydro);
+		double ddb1  = dt *  ddb_dt(e, pl, pt, db, lambda, aT, aL, t, hydro);
 
 		double e_mid = e + de1;
 		double pl_mid = pl + dpl1;
 		double pt_mid = pt + dpt1;
-		double B_mid = B + dB1;
+		double db_mid = db + ddb1;
+
+
+
+
 
 		equation_of_state_new eos_mid(e_mid, conformal_prefactor);
 		double T_mid = eos_mid.T;
 		double mass_mid = T_mid * eos_mid.z_quasi();
+		double beq_mid = eos_mid.equilibrium_mean_field();
 
-		aniso_variables X_mid = find_anisotropic_variables(e_mid, pl_mid, pt_mid, B_mid, mass_mid, lambda, aT, aL);
+
+
+		// regulating the mean field
+		//db_mid *= fmin(1., fabs(beq_mid / db_mid));
+
+		if((beq_mid >= 0 && db_mid > beq_mid) || (beq_mid < 0 && db_mid < beq_mid))
+		{
+			db_mid = beq_mid;
+		}
+
+
+		double b_mid = beq_mid + db_mid;
+
+		aniso_variables X_mid = find_anisotropic_variables(e_mid, pl_mid, pt_mid, b_mid, mass_mid, lambda, aT, aL);
 
 		lambda = X_mid.lambda;
 		aT = X_mid.aT;
 		aL = X_mid.aL;
 
-		// if(steps == 0)
-		// {
-		// 	printf("e_mid = %lf\n", e_mid);
-		// 	printf("pl_mid = %lf\n", pl_mid);
-		// 	printf("pt_mid = %lf\n", pt_mid);
-		// 	printf("B_mid = %lf\n\n", B_mid);
 
-		// 	printf("lambda = %lf\n", lambda);
-		// 	printf("aT     = %lf\n", aT);
-		// 	printf("aL     = %lf\n\n", aL);
-		// }
 
-		// exit(-1);
-
-		// compute anisotropic variables from intermediate values (e_mid, pl_mid, pt_mid)
-
-		double de2  = dt *  de_dt(e_mid, pl_mid, pt_mid, B_mid, lambda, aT, aL, t + dt, hydro);
-		double dpl2 = dt * dpl_dt(e_mid, pl_mid, pt_mid, B_mid, lambda, aT, aL, t + dt, hydro);
-		double dpt2 = dt * dpt_dt(e_mid, pl_mid, pt_mid, B_mid, lambda, aT, aL, t + dt, hydro);
-		double dB2  = dt *  dB_dt(e_mid, pl_mid, pt_mid, B_mid, lambda, aT, aL, t + dt, hydro);
+		double de2  = dt *  de_dt(e_mid, pl_mid, pt_mid, db_mid, lambda, aT, aL, t + dt, hydro);
+		double dpl2 = dt * dpl_dt(e_mid, pl_mid, pt_mid, db_mid, lambda, aT, aL, t + dt, hydro);
+		double dpt2 = dt * dpt_dt(e_mid, pl_mid, pt_mid, db_mid, lambda, aT, aL, t + dt, hydro);
+		double ddb2  = dt *  ddb_dt(e_mid, pl_mid, pt_mid, db_mid, lambda, aT, aL, t + dt, hydro);
 
 		e  += (de1  + de2)  / 2.;
 		pl += (dpl1 + dpl2) / 2.;
 		pt += (dpt1 + dpt2) / 2.;
-		B  += (dB1  + dB2)  / 2.;
+		db += (ddb1  + ddb2)  / 2.;
 
-		// printf("e_end = %lf\n", e);
-		// printf("pl_end = %lf\n", pl);
-		// printf("pt_end = %lf\n", pt);
-		// printf("B_end = %lf\n\n", B);
-		// exit(-1);
+
 
 		equation_of_state_new eos_end(e, conformal_prefactor);
 		double T_end = eos_end.T;
 		double mass_end = T_end * eos_end.z_quasi();
+		double beq_end = eos_end.equilibrium_mean_field();
 
-		aniso_variables X_end = find_anisotropic_variables(e, pl, pt, B, mass_end, lambda, aT, aL);
+		// regulating the mean field
+		//db *= fmin(1., fabs(beq_end / db));
+		if((beq_end >= 0 && db > beq_end) || (beq_end < 0 && db < beq_end))
+		{
+			db = beq_end;
+		}
+
+		b = beq_end + db;
+
+		aniso_variables X_end = find_anisotropic_variables(e, pl, pt, b, mass_end, lambda, aT, aL);
 
 		lambda = X_end.lambda;
 		aT = X_end.aT;
@@ -369,6 +356,7 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 	e_e0_plot.close();								// close files
 	pl_pt_plot.close();
 	db_peq_plot.close();
+	db2_peq_plot.close();
 	dbasy_peq_plot.close();
 	shear_peq_plot.close();
 	bulk_peq_plot.close();

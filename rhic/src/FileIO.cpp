@@ -39,8 +39,13 @@ int central_index(lattice_parameters lattice)
 	return linear_column_index(i, j, k, ncx, ncy);
 }
 
+inline precision central_derivative(const precision * const __restrict__ f, int n, precision dx)
+{
+	return (f[n + 1] - f[n]) / (2. * dx);		// f[n] = fm  |	 f[n+1] = fp
+}
 
-void output_mean_field(const hydro_variables * const __restrict__ q, const fluid_velocity * const __restrict__ u, const precision * const e, double t, lattice_parameters lattice, hydro_parameters hydro)
+
+void output_mean_field(const hydro_variables * const __restrict__ q, const fluid_velocity * const __restrict__ u, const fluid_velocity  * const __restrict__ up, const precision * const e, double t, double dt_prev, lattice_parameters lattice, hydro_parameters hydro)
 {
 #ifdef LATTICE_QCD
 	int nx = lattice.lattice_points_x;
@@ -66,9 +71,8 @@ void output_mean_field(const hydro_variables * const __restrict__ q, const fluid
 #ifdef ANISO_HYDRO
 	db_peq 		= fopen(fname1, "w");
 	dbasy_peq 	= fopen(fname2, "w");
-#else
-	db2_peq 	= fopen(fname3, "w");
 #endif
+	db2_peq 	= fopen(fname3, "w");
 
 	precision t2 = t * t;
 	precision t4 = t2 * t2;
@@ -83,7 +87,6 @@ void output_mean_field(const hydro_variables * const __restrict__ q, const fluid
 	precision vxi[4];		// vx of neighbor cells along x [i-2, i-1, i+1, i+2]
 	precision vyj[4];		// vy of neighbor cells along y [j-2, j-1, j+1, j+2]
 	precision vnk[4];		// vn of neighbor cells along n [k-2, k-1, k+1, k+2]
-
 
 	for(int k = 2; k < nz + 2; k++)
 	{
@@ -107,31 +110,38 @@ void output_mean_field(const hydro_variables * const __restrict__ q, const fluid
 				precision beq = eos.equilibrium_mean_field();
 				precision T = eos.T;
 				precision mass = T * eos.z_quasi();
-				precision mdmde = eos.mdmde_quasi();
-
-			#ifdef ANISO_HYDRO
-				precision pl = q[s].pl;
-				precision pt = q[s].pt;
-				precision b = q[s].b;
-				precision Pi = (pl + 2.*pt) / 3. - p;
-			#else
-				precision Pi = q[s].Pi;
-			#endif
+				precision mdmde = eos.mdmde_quasi();		// why use m dmde instead of dmde?
+				precision betabulk = eos.beta_bulk();
+				precision zetas = zeta_over_s(T, hydro);
+				precision zeta = zetas * (e_s + p) / T;
+				precision taubulk = zeta / betabulk;
 
 				precision ux = u[s].ux;
 				precision uy = u[s].uy;
+				precision un = 0;
+
+				precision ux_p = up[s].ux;
+				precision uy_p = up[s].uy;
+				precision un_p = 0;
 
 			#ifndef BOOST_INVARIANT
-				precision un = u[s].un;
-			#else
-				precision un = 0;
+				un = u[s].un;
+				un_p = up[s].un;
 			#endif
 
 				precision ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t2 * un * un);
 				precision utperp = sqrt(1.  +  ux * ux  +  uy * uy);
 
+				precision vx = ux / ut;
+				precision vy = uy / ut;
+				precision vn = un / ut;
+
 				precision zt = t * un / utperp;
 				precision zn = ut / t / utperp;
+
+				precision zt2 = zt * zt;
+				precision zn2 = zn * zn;
+				precision ztzn = zt * zn;
 
 				int simm = s - 2;			// neighbor cell indices (x)
 				int sim  = s - 1;
@@ -150,20 +160,60 @@ void output_mean_field(const hydro_variables * const __restrict__ q, const fluid
 
 				get_fluid_velocity_neighbor_cells(u[simm], u[sim], u[sip], u[sipp], u[sjmm], u[sjm], u[sjp], u[sjpp], u[skmm], u[skm], u[skp], u[skpp], ui1, uj1, uk1, vxi, vyj, vnk, t2);
 
+				precision dux_dt = (ux - ux_p) / dt_prev;
+				precision dux_dx = central_derivative(ui1, 0, dx);
+				precision dux_dy = central_derivative(uj1, 0, dy);
+				precision dux_dn = central_derivative(uk1, 0, dn);
+
+				precision duy_dt = (uy - uy_p) / dt_prev;
+				precision duy_dx = central_derivative(ui1, 2, dx);
+				precision duy_dy = central_derivative(uj1, 2, dy);
+				precision duy_dn = central_derivative(uk1, 2, dn);
+
+				precision dun_dt = (un - un_p) / dt_prev;
+				precision dun_dx = central_derivative(ui1, 4, dx);
+				precision dun_dy = central_derivative(uj1, 4, dy);
+				precision dun_dn = central_derivative(uk1, 4, dn);
+
+				precision dut_dt = vx * dux_dt  +  vy * duy_dt  +  t2 * vn * dun_dt  +  t * vn * un;
+				precision dut_dx = vx * dux_dx  +  vy * duy_dx  +  t2 * vn * dun_dx;
+				precision dut_dy = vx * dux_dy  +  vy * duy_dy  +  t2 * vn * dun_dy;
+				precision dut_dn = vx * dux_dn  +  vy * duy_dn  +  t2 * vn * dun_dn;
+
+				precision theta = dut_dt  +  dux_dx  +  duy_dy  +  dun_dn  +  ut / t;
+				precision thetaL = - zt2 * dut_dt  +  t2 * zn2 * dun_dn  +  ztzn * (t2 * dun_dt  -  dut_dn)  +  t * zn2 * ut;
+				precision thetaT = theta  -  thetaL;
 
 			#ifdef ANISO_HYDRO
-				fprintf(db_peq, "%.2f\t%.2f\t%.2f\t%.6f\n", x, y, z, (b - beq) / p);
-			#else
+				precision pl = q[s].pl;
+				precision pt = q[s].pt;
+				precision b = q[s].b;
+				precision Pi = (pl + 2.*pt) / 3. - p;
 
+				precision edot = -(e_s + pl) * thetaL  -  (e_s + pt) * thetaT;		// ignores residual shear
+
+				precision mdot = mdmde * edot / mass;
+
+				precision dbasy = 3. * taubulk * mdot * Pi / (mass - 4.*taubulk*mdot);
+
+				fprintf(db_peq, 	"%.2f\t%.2f\t%.2f\t%.6f\n", x, y, z, (b - beq) / p);
+				fprintf(dbasy_peq, 	"%.2f\t%.2f\t%.2f\t%.6f\n", x, y, z, dbasy / p);
+
+			#else
+				precision Pi = q[s].Pi;
 			#endif
+
+				precision db2 = -3.* taubulk * mdmde * (e_s + p) * Pi * theta / (mass * mass);
+
+				fprintf(db2_peq, "%.2f\t%.2f\t%.2f\t%.6f\n", x, y, z, db2 / p);
 			}
 		}
 	}
 #ifdef ANISO_HYDRO
 	fclose(db_peq);
-#else
-
+	fclose(dbasy_peq);
 #endif
+	fclose(db2_peq);
 #endif
 }
 
@@ -502,17 +552,12 @@ void output_hydro(const hydro_variables * const __restrict__ q, const fluid_velo
 	FILE *energy_check;		// energy density evolved separately with KT algorithm [GeV/fm^3]
 #endif
 
-#ifdef B_FIELD
-	FILE *mean_field;
-#endif
-
 	char fname1[255];
 	char fname2[255];
 	char fname3[255];
 	char fname4[255];
 	char fname5[255];
 	char fname6[255];
-	char fname7[255];
 
 	sprintf(fname1, "output/e_%.3f.dat", t);
 	sprintf(fname2, "output/plpt_%.3f.dat", t);
@@ -520,7 +565,6 @@ void output_hydro(const hydro_variables * const __restrict__ q, const fluid_velo
 	sprintf(fname4, "output/shear_peq_%.3f.dat", t);
 	sprintf(fname5, "output/bulk_peq_%.3f.dat", t);
 	sprintf(fname6, "output/e_check_%.3f.dat", t);
-	sprintf(fname7, "output/db_peq_%.3f.dat", t);
 
 	energy 		= fopen(fname1, "w");
 	plptratio 	= fopen(fname2, "w");
@@ -529,10 +573,6 @@ void output_hydro(const hydro_variables * const __restrict__ q, const fluid_velo
 	bulk 		= fopen(fname5, "w");
 #ifdef E_CHECK
 	energy_check= fopen(fname6, "w");
-#endif
-
-#ifdef B_FIELD
-	mean_field 	= fopen(fname7, "w");
 #endif
 
 	precision t2 = t * t;
@@ -607,11 +647,6 @@ void output_hydro(const hydro_variables * const __restrict__ q, const fluid_velo
 			#ifdef E_CHECK
 				fprintf(energy_check, "%.2f\t%.2f\t%.2f\t%.6e\n", x, y, z, q[s].e_check * hbarc);
 			#endif
-
-			#ifdef B_FIELD
-				precision db = q[s].b - eos.equilibrium_mean_field();
-				fprintf(mean_field, "%.2f\t%.2f\t%.2f\t%.6e\n", x, y, z, db / p);
-			#endif
 			}
 		}
 	}
@@ -623,10 +658,6 @@ void output_hydro(const hydro_variables * const __restrict__ q, const fluid_velo
 
 #ifdef E_CHECK
 	fclose(energy_check);
-#endif
-
-#ifdef B_FIELD
-	fclose(mean_field);
 #endif
 }
 
@@ -721,7 +752,7 @@ void output_regulations(const int * const __restrict__ regulation, double t, lat
 }
 
 
-void output_dynamical_variables(double t, double dt, lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro)
+void output_dynamical_variables(double t, double dt_prev, lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro)
 {
 	int initial_type = initial.initial_condition_type;
 
@@ -745,6 +776,10 @@ void output_dynamical_variables(double t, double dt, lattice_parameters lattice,
 	{
 		output_hydro(q, u, e, t, lattice, hydro);
 		output_residual_shear_validity(q, u, e, t, lattice, hydro);
+
+	#ifdef LATTICE_QCD
+		output_mean_field(q, u, up, e, t, dt_prev, lattice, hydro);
+	#endif
 
 	#ifdef MONITOR_TTAUMU
 		output_Tmunu_violations(Tmunu_violations, t, lattice);

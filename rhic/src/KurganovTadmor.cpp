@@ -502,16 +502,12 @@ void evolve_hydro_one_time_step(int n, precision t, precision dt, precision dt_p
 
 #ifdef ANISO_HYDRO
 	set_inferred_variables_aniso_hydro(qI, e, uI, t, lattice, hydro);		// compute (uI, e)
-	regulate_residual_currents(t, qI, e, uI, lattice, hydro);				// regulate qI
 
 #ifdef LATTICE_QCD
-#ifndef CONFORMAL_EOS
 	set_anisotropic_variables(qI, e, lambda, aT, aL, lattice, hydro);		// compute (lambda, aT, aL)
-#else
-	printf("evolve_hydro_one_time_step error: no eos switch for anisotropic variables\n");
-	exit(-1);
 #endif
-#endif
+
+	regulate_residual_currents(t, qI, e, uI, lattice, hydro);				// regulate qI
 
 #else
 	set_inferred_variables_viscous_hydro(qI, e, uI, t, lattice, hydro);
@@ -529,17 +525,12 @@ void evolve_hydro_one_time_step(int n, precision t, precision dt, precision dt_p
 
 #ifdef ANISO_HYDRO
 	set_inferred_variables_aniso_hydro(Q, e, up, t, lattice, hydro);		// compute (u, e)
-	regulate_residual_currents(t, Q, e, up, lattice, hydro);				// regulate Q
 
 #ifdef LATTICE_QCD
-#ifndef CONFORMAL_EOS
 	set_anisotropic_variables(Q, e, lambda, aT, aL, lattice, hydro);		// compute (lambda, aT, aL)
-#else
-	printf("evolve_hydro_one_time_step error: no eos switch for anisotropic variables\n");
-	exit(-1);
-#endif
 #endif
 
+	regulate_residual_currents(t, Q, e, up, lattice, hydro);				// regulate Q
 #else
 	set_inferred_variables_viscous_hydro(Q, e, up, t, lattice, hydro);
 	regulate_viscous_currents(t, Q, e, up, lattice, hydro);

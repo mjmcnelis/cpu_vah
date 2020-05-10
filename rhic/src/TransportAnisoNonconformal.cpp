@@ -273,16 +273,29 @@ void aniso_transport_coefficients_nonconformal::compute_transport_coefficients(p
 
 	// note: I don't remember how quasiparticle terms ~ mdmde enter in transport coefficients
 	//		 (this is based off my paper, maybe there are notes somewhere...)
-
 	precision trace_term = (2.*pt + pl - e + 4.*b) / (mass * mass);
+
+
+	// equation_of_state_new eos(e, 0);
+	// precision p = eos.equilibrium_pressure();
+	// precision beq = eos.equilibrium_mean_field();
+
+	//precision bulk = (pl + 2.*pt)/3. - p;
+
+	//precision trace_term = (3.*p - e + 4.*beq) / (mass * mass);
+
 
 
 	// pl transport coefficients
 	zeta_LL = I_240  -  3. * (pl + b)  +  mdmde * (e + pl) * (I_020 + trace_term);
 	zeta_TL = I_221  -  pl  -  b  +  mdmde * (e + pt) * (I_020 + trace_term);
 
+	//zeta_LL = I_240  -  3. * (pl + b)  +  mdmde * (e + pl) * trace_term;				// dropped I_020, I_001 5/7/20
+	//zeta_TL = I_221  -  pl  -  b  +  mdmde * (e + pt) * trace_term;						// don't think they should be there
+
 #ifdef WTZMU
 	lambda_WuL = I_441 / I_421  +  mdmde * (I_020 + trace_term);
+	//lambda_WuL = I_441 / I_421  +  mdmde * trace_term;
 	lambda_WTL = 1. - lambda_WuL;
 #else
 	lambda_WuL = 0;
@@ -290,6 +303,7 @@ void aniso_transport_coefficients_nonconformal::compute_transport_coefficients(p
 #endif
 #ifdef PIMUNU
 	lambda_piL = I_422 / I_402  +  mdmde * (I_020 - trace_term);
+	//lambda_piL = I_422 / I_402  -  mdmde * trace_term;
 #else
 	lambda_piL = 0;
 #endif
@@ -299,8 +313,12 @@ void aniso_transport_coefficients_nonconformal::compute_transport_coefficients(p
 	zeta_LT = I_221  -  pt  -  b  +  mdmde * (e + pl) * (I_001  +  trace_term);
 	zeta_TT = 2. * (I_202 - pt - b)  +  mdmde * (e + pt) * (I_001  +  trace_term);
 
+	//zeta_LT = I_221  -  pt  -  b  +  mdmde * (e + pl) * trace_term;
+	//zeta_TT = 2. * (I_202 - pt - b)  +  mdmde * (e + pt) * trace_term;
+
 #ifdef WTZMU
 	lambda_WTT = 2. * I_422 / I_421  +  mdmde * (I_001 + trace_term);
+	//lambda_WTT = 2. * I_422 / I_421  +  mdmde * trace_term;
 	lambda_WuT = lambda_WTT  -  1.;
 #else
 	lambda_WTT = 0;
@@ -309,6 +327,7 @@ void aniso_transport_coefficients_nonconformal::compute_transport_coefficients(p
 
 #ifdef PIMUNU
 	lambda_piT = 1.  -  3. * I_403 / I_402  -  mdmde * (I_001 + trace_term);
+	//lambda_piT = 1.  -  3. * I_403 / I_402  -  mdmde * trace_term;
 #else
 	lambda_piT = 0;
 #endif
