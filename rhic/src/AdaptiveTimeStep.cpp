@@ -8,7 +8,6 @@
 #include "../include/DynamicalVariables.h"
 #include "../include/NeighborCells.h"
 
-#define ADAPTIVE_FILE
 
 const precision sqrt_variables = sqrt(NUMBER_CONSERVED_VARIABLES - B_FIELD_COMPONENTS - E_CHECK_COMPONENTS);
 
@@ -20,13 +19,7 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 
 precision compute_adaptive_time_step(precision t, precision dt_CFL, precision dt_source, precision dt_min)
 {
-	precision dt = fmin(dt_CFL, dt_source);			// currently have this
-
-	//if(dt < dt_min) printf("compute_adaptive_time_step error: dt = %.3g < %.2g\n", dt, dt_min);
-
-	//printf("compute_adaptive_time_step: %.3g\t%.3g\n", dt_CFL, dt_source);
-
-	//dt = 0.01 * dt_min * floor(100. * dt / dt_min);
+	precision dt = fmin(dt_CFL, dt_source);
 
 	dt = 0.001 * dt_min * floor(1000. * dt / dt_min);	// round dt to numerical precision (dt_min / 100)
 

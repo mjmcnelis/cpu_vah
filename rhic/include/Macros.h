@@ -4,7 +4,7 @@
 
 // macro parameters to fix hydrodynamic variables at compile time
 
-#define ANISO_HYDRO				// run anisotropic hydro (comment to run 2nd order viscous hydro)
+//#define ANISO_HYDRO				// run anisotropic hydro (comment to run 2nd order viscous hydro)
 #define BOOST_INVARIANT 		// run 2+1d hydro (comment to run 3+1d hydro)
 
 
@@ -17,7 +17,7 @@
 
 
 //#define E_CHECK					// separately evolve energy density w/ KT algorithm as a cross check
-								// can be commented (doesn't affect rest of algorithm)
+								// can be commented (still have issue with piperp evolution when turned on)
 
 
 #ifdef ANISO_HYDRO				// residual shear stress
@@ -42,6 +42,19 @@
 
 #endif
 
-#define MONITOR_TTAUMU			// monitor violations of T^{\tau\mu} reproduction in InferredVariables.cpp
+//#define PRINT_HYDRO				// option to print current hydro info
+
+//#define ADAPTIVE_FILE			// output adaptive time steps
+
+//#define MONITOR_TTAUMU			// output violations of T^{\tau\mu} reproduction in InferredVariables.cpp
+
+#define BENCHMARKS				// output benchmark data (e.g. hydro run time)
+
 
 #endif
+
+
+
+
+
+

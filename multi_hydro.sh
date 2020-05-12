@@ -1,21 +1,7 @@
-make clean
-make hydro
-./cpu-vah
-./cpu-vah
-./cpu-vah
-./cpu-vah
-./cpu-vah
-./cpu-vah
-./cpu-vah
-./cpu-vah
-./cpu-vah
-./cpu-vah
-./cpu-vah
-./cpu-vah
-./cpu-vah
-./cpu-vah
-./cpu-vah
-./cpu-vah
-./cpu-vah
-./cpu-vah
-./cpu-vah
+rm benchmarks.dat
+
+for i in {1..50}
+do
+	echo "\n\n\nRunning event $i\n"
+	sh hydro.sh
+done

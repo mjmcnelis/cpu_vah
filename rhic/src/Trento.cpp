@@ -409,7 +409,7 @@ void set_trento_energy_density_and_flow_profile(lattice_parameters lattice, init
 
 	if(initial.trento_average_over_events)
 	{
-		energy = fopen("output/e_block_trento_avg.dat", "w");	// block file of energy denisty [GeV/fm^-3]
+		energy = fopen("tables/e_block_trento_avg.dat", "w");	// block file of energy denisty [GeV/fm^-3]
 		fprintf(energy, "%d\n%d\n%d\n", nx, ny, nz);			// write grid points at header
 	}
 

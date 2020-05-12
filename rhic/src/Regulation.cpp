@@ -89,6 +89,7 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 			#endif
 
 
+
 			#if (NUMBER_OF_RESIDUAL_CURRENTS != 0)		// regulate residual currents
 				precision ux = u[s].ux;
 				precision uy = u[s].uy;

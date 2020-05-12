@@ -24,15 +24,11 @@ precision dt_after_output;
 
 const precision dt_eps = 1.e-8;
 
-int n_freeze = 0;						// default time step where started to search for freezeout surface cells
-										// adjusted in set_the_time_step() if adaptive_time_step = 2
-
 
 inline int linear_column_index(int i, int j, int k, int nx, int ny)
 {
 	return i  +  nx * (j  +  ny * k);
 }
-
 
 bool all_cells_below_freezeout_temperature(lattice_parameters lattice, hydro_parameters hydro)
 {
@@ -61,7 +57,6 @@ bool all_cells_below_freezeout_temperature(lattice_parameters lattice, hydro_par
 	return true;
 }
 
-
 long number_of_cells_above_freezeout_temperature(lattice_parameters lattice, hydro_parameters hydro)
 {
 	int nx = lattice.lattice_points_x;
@@ -69,7 +64,6 @@ long number_of_cells_above_freezeout_temperature(lattice_parameters lattice, hyd
 	int nz = lattice.lattice_points_eta;
 
 	precision T_switch = hydro.freezeout_temperature_GeV;
-	//precision e_switch = equilibrium_energy_density(T_switch / hbarc, hydro.conformal_eos_prefactor);
 	precision e_switch = equilibrium_energy_density_new(T_switch / hbarc, hydro.conformal_eos_prefactor);
 
 	long cells = 0;
@@ -98,9 +92,9 @@ precision set_the_time_step(int n, precision t, precision dt_prev, precision t_n
 	precision dt_fix = lattice.fixed_time_step;
 	precision dt_min = lattice.min_time_step;
 
-	precision dt = dt_fix;										// default time step is fixed
+	precision dt = dt_fix;											// default time step is fixed
 
-	if(lattice.adaptive_time_step)								// adaptive time step
+	if(lattice.adaptive_time_step)									// adaptive time step
 	{
 		if(n == 0)
 		{
@@ -112,7 +106,7 @@ precision set_the_time_step(int n, precision t, precision dt_prev, precision t_n
 
 			if(lattice.adaptive_time_step == 2)
 			{
-				dt_CFL = dt_fix;									// strict CFL condition <= dx / 8 (lattice.fixed_time_step required to be <= dx / 8)
+				dt_CFL = dt_fix;									// strict CFL condition <= dx / 8 (lattice.fixed_time_step <= dx / 8)
 			}
 
 			precision dt_source = 1./0.;
@@ -127,22 +121,15 @@ precision set_the_time_step(int n, precision t, precision dt_prev, precision t_n
 				if(dt_source >= dt_CFL)
 				{
 					printf("\nHit CFL bound at t = %lf\n\n", t);
-					n_freeze = n;
 					hit_CFL_bound = true;
 				}
 			}
 
 			dt = compute_adaptive_time_step(t, dt_CFL, dt_source, dt_min);
-
-			// if(hit_CFL_bound)
-			// {
-			// 	printf("dt = %lf\n", dt);
-			// 	exit(-1);
-			// }
 		}
 	}
 
-	if(hydro.run_hydro == 1 && initial.initial_condition_type != 1)						// adjust dt further (for timed hydro outputs, except Bjorken)
+	if(hydro.run_hydro == 1 && initial.initial_condition_type != 1)	// adjust dt further (for timed hydro outputs, except Bjorken)
 	{
 		if(after_output)
 		{
@@ -168,37 +155,6 @@ precision set_the_time_step(int n, precision t, precision dt_prev, precision t_n
 
 void run_hydro(lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro)
 {
-	FILE *events;
-	FILE *success;
-	events = fopen("output/events_total.dat", "r");
-	success = fopen("output/events_success.dat", "r");
-
-	int hydro_events = 0;
-	int success_events = 0;
-
-  	if(events == NULL)
-  	{
-  		events = fopen("output/events_total.dat", "w");
-  		fprintf(events, "%d", 0);
-  	}
-  	else
-  	{
-  		fscanf(events, "%d", &hydro_events);
-  	}
-  	if(success == NULL)
-  	{
-  		success = fopen("output/events_success.dat", "w");
-  		fprintf(success, "%d", 0);
-  	}
-  	else
-  	{
-  		fscanf(success, "%d", &success_events);
-  	}
-
-  	freopen("output/events_total.dat", "w", events);
-	fprintf(events, "%d", hydro_events + 1);
-	fclose(events);
-
 	precision dt_start = lattice.fixed_time_step;		// starting time step
 
 	if(lattice.adaptive_time_step) dt_start = lattice.min_time_step;
@@ -233,11 +189,12 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 
 	freezeout_finder fo_surface(lattice, hydro);		// freezeout finder class
 	int freezeout_period = lattice.tau_coarse_factor;	// time steps between freezeout finder calls
-	int grid_below_Tswitch = 0;							// number of time steps where freezeout finder went below Tswitch
+	int grid_below_Tswitch = 0;							// number of times freezeout finder searches a grid below Tswitch
 	int freezeout_depth = 3;							// max number of time steps freezeout finder goes below Tswitch
 
 	double steps = 0;
 	clock_t start = clock();
+
 
 	// fluid dynamic evolution
 	//----------------------------------------------------------
@@ -260,7 +217,7 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 					output_dynamical_variables(t, dt_prev, lattice, initial, hydro);
 				}
 
-				if((double) cells_above_Tswitch / (double) grid_size <= 0.001)
+				if(!cells_above_Tswitch)
 				{
 					break;
 				}
@@ -276,7 +233,7 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 					output_dynamical_variables(t, dt_prev, lattice, initial, hydro);
 				}
 
-				if((double) cells_above_Tswitch / (double) grid_size <= 0.001)
+				if(!cells_above_Tswitch)
 				{
 					break;
 				}
@@ -286,69 +243,52 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 		}
 		else if(hydro.run_hydro == 2)							// construct freezeout surface
 		{
-			if(lattice.adaptive_time_step == 0)
+			if(n == 0)											// initialize hydro info in freezeout finder
 			{
-				if(n == 0)										// initialize hydro info in freezeout finder
-				{
-					fo_surface.set_hydro_evolution(q, e, u);
-				}
-				else if(n % freezeout_period == 0)				// find freezeout cells
-				{
-					long cells_above_Tswitch = number_of_cells_above_freezeout_temperature(lattice, hydro);
+				long cells_above_Tswitch = number_of_cells_above_freezeout_temperature(lattice, hydro);
 
-					print_hydro_center(n, t, lattice, hydro, cells_above_Tswitch);
+				print_hydro_center(n, t, lattice, hydro, cells_above_Tswitch);
 
-					fo_surface.swap_and_set_hydro_evolution(q, e, u);
-
-				#ifdef BOOST_INVARIANT
-					fo_surface.find_2d_freezeout_cells(t, hydro);
-				#else
-					fo_surface.find_3d_freezeout_cells(t, hydro);
-				#endif
-
-					if(all_cells_below_freezeout_temperature(lattice, hydro))
-					{
-						grid_below_Tswitch++;
-						printf("\nNumber of times grid went below freezeout temperature during freezeout finder call: %d\n\n", grid_below_Tswitch);
-					}
-				}
+				fo_surface.set_hydro_evolution(t, q, e, u);
 			}
-			else if(lattice.adaptive_time_step == 1)
+			else if(n % freezeout_period == 0)					// find freezeout cells
 			{
-				printf("run_hydro error: adaptive_time_step = 1 not compatible with freezeout finder, which assumes a fixed time step\n");
-				exit(-1);
-			}
-			else if(lattice.adaptive_time_step == 2 && hit_CFL_bound)
-			{
-				if(n - n_freeze == 0)												// initialize hydro info in freezeout finder
+				long cells_above_Tswitch = number_of_cells_above_freezeout_temperature(lattice, hydro);
+
+				print_hydro_center(n, t, lattice, hydro, cells_above_Tswitch);
+
+				fo_surface.swap_and_set_hydro_evolution(q, e, u);
+
+			#ifdef BOOST_INVARIANT
+				fo_surface.find_2d_freezeout_cells(t, hydro);
+			#else
+				fo_surface.find_3d_freezeout_cells(t, hydro);
+			#endif
+
+				if(!cells_above_Tswitch)
 				{
-					fo_surface.set_hydro_evolution(q, e, u);
-				}
-				else if((n - n_freeze) % freezeout_period == 0)						// find freezeout cells
-				{
-					long cells_above_Tswitch = number_of_cells_above_freezeout_temperature(lattice, hydro);
-
-					print_hydro_center(n, t, lattice, hydro, cells_above_Tswitch);
-
-					fo_surface.swap_and_set_hydro_evolution(q, e, u);
-
-				#ifdef BOOST_INVARIANT
-					fo_surface.find_2d_freezeout_cells(t, hydro);
-				#else
-					fo_surface.find_3d_freezeout_cells(t, hydro);
-				#endif
-
-					if(all_cells_below_freezeout_temperature(lattice, hydro))
-					{
-						grid_below_Tswitch++;
-						printf("\nNumber of times grid went below freezeout temperature during freezeout finder call: %d\n\n", grid_below_Tswitch);
-					}
+					grid_below_Tswitch++;
+					printf("\nNumber of times grid went below freezeout temperature during freezeout finder call: %d\n\n", grid_below_Tswitch);
 				}
 			}
 
 			if(grid_below_Tswitch >= freezeout_depth)
 			{
 				break;
+			}
+		}
+		else if(hydro.run_hydro == 3)												// only print center every five steps
+		{
+			if(n % 10 == 0)
+			{
+				long cells_above_Tswitch = number_of_cells_above_freezeout_temperature(lattice, hydro);
+
+				print_hydro_center(n, t, lattice, hydro, cells_above_Tswitch);
+
+				if(!cells_above_Tswitch)
+				{
+					break;
+				}
 			}
 		}
 
@@ -366,7 +306,7 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 
 
 	double duration = (clock() - start) / (double)CLOCKS_PER_SEC;
-	print_run_time(duration, steps, lattice);
+	print_run_time(t, duration, steps, lattice);
 
 	free_memory();
 
@@ -374,10 +314,6 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 	{
 		fo_surface.close_file_and_free_memory();
 	}
-
-	freopen("output/events_success.dat", "w", success);
-	fprintf(success, "%d", success_events + 1);
-	fclose(success);
 
 	printf("\nFinished hydro\n");
 }

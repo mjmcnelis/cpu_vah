@@ -24,24 +24,21 @@ freezeout_finder::freezeout_finder(lattice_parameters lattice, hydro_parameters 
 
 	independent_hydro_variables = 10;
 
-  //precision e_switch = equilibrium_energy_density(hydro.freezeout_temperature_GeV / hbarc, hydro.conformal_eos_prefactor);
   e_switch = (double)equilibrium_energy_density_new(hydro.freezeout_temperature_GeV / hbarc, hydro.conformal_eos_prefactor);
 
 	nx = lattice.lattice_points_x;
 	ny = lattice.lattice_points_y;
 	nz = lattice.lattice_points_eta;
 
-	dt = (double)lattice.fixed_time_step;
 	dx = (double)lattice.lattice_spacing_x;
 	dy = (double)lattice.lattice_spacing_y;
 	dz = (double)lattice.lattice_spacing_eta;
 	tau_coarse_factor = lattice.tau_coarse_factor;
 
-	// initialize cornelius variables for freezeout surface finding (see example_4d() in example_cornelius)
+	// initialize cornelius variables for freezeout surface finder (see example_4d() in example_cornelius)
 #ifdef BOOST_INVARIANT
 	dimension = 3;
-	lattice_spacing = new double[dimension];
-	lattice_spacing[0] = dt * (double)tau_coarse_factor;
+	lattice_spacing = new double[dimension];     // lattice_spacing[0] is continuously updated in find_2d_freezeout_cells()
   lattice_spacing[1] = dx;
   lattice_spacing[2] = dy;
 
@@ -50,11 +47,10 @@ freezeout_finder::freezeout_finder(lattice_parameters lattice, hydro_parameters 
 		printf("freezeout_finder::freezeout_finder error: 2d spatial grid needs to have finite size\n");
 		exit(-1);
  	}
- 	//printf("%lf\t%lf\t%lf\n", lattice_spacing[0], lattice_spacing[1], lattice_spacing[2]);
+ 	//printf("%lf\t%lf\n", lattice_spacing[1], lattice_spacing[2]);
 #else
 	dimension = 4;
-	lattice_spacing = new double[dimension];
-	lattice_spacing[0] = dt * tau_coarse_factor;
+	lattice_spacing = new double[dimension];     // lattice_spacing[0] is continuously updated in find_3d_freezeout_cells()
   lattice_spacing[1] = dx;
   lattice_spacing[2] = dy;
   lattice_spacing[3] = dz;
@@ -78,8 +74,10 @@ freezeout_finder::~freezeout_finder()
 }
 
 
-void freezeout_finder::set_hydro_evolution(hydro_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u)
+void freezeout_finder::set_hydro_evolution(double t_set, hydro_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u)
 {
+  t_prev = t_set;
+
   for(int i = 2; i < nx + 2; i++)
   {
     for(int j = 2; j < ny + 2; j++)
@@ -241,6 +239,8 @@ void freezeout_finder::find_2d_freezeout_cells(double t_current, hydro_parameter
 {
   // write freezeout cell's centroid / normal vector and hydro variable to file
 
+  lattice_spacing[0] = t_current - t_prev;                                      // update temporal lattice spacing
+
   Cornelius cornelius;                                                          // initialize cornelius (can move to class later)
   cornelius.init(dimension, e_switch, lattice_spacing);
 
@@ -250,7 +250,7 @@ void freezeout_finder::find_2d_freezeout_cells(double t_current, hydro_parameter
   {
     for(int j = 0; j < ny - 1; j++)
     {
-      double cell_t = t_current - lattice_spacing[0];                           // lower left corner of freezeout grid
+      double cell_t = t_prev;                                                   // lower left corner of freezeout grid
       double cell_x = dx * ((double)i  -  (double)(nx - 1) / 2.);
       double cell_y = dy * ((double)j  -  (double)(ny - 1) / 2.);
       double cell_z = 0;
@@ -274,11 +274,11 @@ void freezeout_finder::find_2d_freezeout_cells(double t_current, hydro_parameter
         double y = cornelius.get_centroid_elem(n, 2) + cell_y;
         double eta = 0;
 
-        // if(!(t_frac >= 0 && t_frac <= 1) || !(x_frac >= 0 && x_frac <= 1) || !(y_frac >= 0 && y_frac <= 1))
-        // {
-        //   printf("freezeout_finder::find_2d_freezeout_cells error: freezeout cell outside cube\n");
-        //   exit(-1);
-        // }
+        if(!(t_frac >= 0 && t_frac <= 1) || !(x_frac >= 0 && x_frac <= 1) || !(y_frac >= 0 && y_frac <= 1))
+        {
+          printf("freezeout_finder::find_2d_freezeout_cells error: freezeout cell outside cube\n");
+          exit(-1);
+        }
 
         double ds0 = t_current * cornelius.get_normal_elem(n, 0);               // covariant surface normal vector
         double ds1 = t_current * cornelius.get_normal_elem(n, 1);
@@ -374,12 +374,12 @@ void freezeout_finder::find_2d_freezeout_cells(double t_current, hydro_parameter
                                 << Pi   << endl;
       #endif
 
-      }
+      } // n
 
-    }
+    } // j
+  } // i
 
-
-  }
+  t_prev = t_current;         // set previous time for the next freezeout finder call
 }
 
 
@@ -435,6 +435,8 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
 {
   // write freezeout cell's centroid / normal vector and hydro variable to file
 
+  lattice_spacing[0] = t_current - t_prev;                                      // update temporal lattice spacing
+
   Cornelius cornelius;                                                          // initialize cornelius (can move to class later)
   cornelius.init(dimension, e_switch, lattice_spacing);
 
@@ -446,13 +448,13 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
     {
       for(int k = 0; k < nz - 1; k++)
       {
-        double cell_t = t_current - lattice_spacing[0];                           // lower left corner of freezeout grid
+        double cell_t = t_prev;                                                 // lower left corner of freezeout grid
         double cell_x = dx * ((double)i  -  (double)(nx - 1) / 2.);
         double cell_y = dy * ((double)j  -  (double)(ny - 1) / 2.);
         double cell_z = dz * ((double)k  -  (double)(nz - 1) / 2.);
 
-        construct_energy_density_hypercube(hydro_evolution[3], i, j, k);          // energy density hyper cube
-        cornelius.find_surface_4d(hypercube);                                     // find centroid and normal vector of each hypercube
+        construct_energy_density_hypercube(hydro_evolution[3], i, j, k);        // energy density hyper cube
+        cornelius.find_surface_4d(hypercube);                                   // find centroid and normal vector of each hypercube
 
         int freezeout_cells = cornelius.get_Nelements();
 
@@ -471,16 +473,16 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
           double y   = cornelius.get_centroid_elem(n, 2) + cell_y;
           double eta = cornelius.get_centroid_elem(n, 3) + cell_z;
 
-          // if(!(t_frac >= 0 && t_frac <= 1) || !(x_frac >= 0 && x_frac <= 1) || !(y_frac >= 0 && y_frac <= 1) || !(z_frac >= 0 && z_frac <= 1))
-          // {
-          //   printf("freezeout_finder::find_2d_freezeout_cells error: freezeout cell outside cube\n");
-          //   exit(-1);
-          // }
+          if(!(t_frac >= 0 && t_frac <= 1) || !(x_frac >= 0 && x_frac <= 1) || !(y_frac >= 0 && y_frac <= 1) || !(z_frac >= 0 && z_frac <= 1))
+          {
+            printf("freezeout_finder::find_2d_freezeout_cells error: freezeout cell outside cube\n");
+            exit(-1);
+          }
 
           // I thought needed to scale by t_current for 2+1d case only?
-          double ds0 = t_current * cornelius.get_normal_elem(n, 0);               // covariant surface normal vector
+          double ds0 = t_current * cornelius.get_normal_elem(n, 0);             // covariant surface normal vector
           double ds1 = t_current * cornelius.get_normal_elem(n, 1);
-          double ds2 = t_current * cornelius.get_normal_elem(n, 2);               // don't I want to use tau instead of t_current
+          double ds2 = t_current * cornelius.get_normal_elem(n, 2);             // don't I want to use tau instead of t_current
           double ds3 = t_current * cornelius.get_normal_elem(n, 3);
 
           // interpolate contravariant flow velocity
@@ -572,10 +574,12 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
                                   << Pi   << endl;
         #endif
 
-        }
-      }
-    }
-  }
+        } // n
+      } // k
+    } // j
+  } // i
+
+  t_prev = t_current;         // set previous time for the next freezeout finder call
 }
 
 

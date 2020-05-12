@@ -40,16 +40,26 @@ void print_hydro_mode(hydro_parameters hydro)
 }
 
 
-void print_run_time(double duration, double steps, lattice_parameters lattice)
+void print_run_time(double t, double duration, double steps, lattice_parameters lattice)
 {
 	int nx = lattice.lattice_points_x;
 	int ny = lattice.lattice_points_y;
 	int nz = lattice.lattice_points_eta;
 
-	printf("Total time             = %.4g s\n", duration);
+	printf("Lifetime               = %.5g fm/c\n", t);
+	printf("Run time               = %.4g s\n", duration);
 	printf("Number of time steps   = %d\n", (int)steps);
 	printf("Average time/step      = %.4g s\n", duration / steps);
 	printf("Average time/cell/step = %.4g ms\n", 1000. * duration / (nx * ny * nz * steps));
+
+#ifdef BENCHMARKS
+	FILE * benchmarks;
+	benchmarks = fopen("benchmarks.dat", "a");
+
+	// same data that was printed
+	fprintf(benchmarks, "%.5g\t%.5g\t%d\t%.5g\t%.5g\n", t, duration, (int)steps, duration / steps, 1000. * duration / (nx * ny * nz * steps));
+	fclose(benchmarks);
+#endif
 }
 
 hydro_max compute_hydro_max(const precision * const __restrict__ e, const fluid_velocity * const __restrict__ u, precision t, lattice_parameters lattice, hydro_parameters hydro)
@@ -140,6 +150,7 @@ int compute_total_regulations(const int * const __restrict__ regulation, lattice
 
 void print_hydro_center(int n, double t, lattice_parameters lattice, hydro_parameters hydro, long cells_above_Tswitch)
 {
+#ifdef PRINT_HYDRO
 	int s = central_index(lattice);
 
 	if(n == 0)
@@ -187,7 +198,8 @@ void print_hydro_center(int n, double t, lattice_parameters lattice, hydro_param
 
 	double percent_viscous_reg = 100. * (double)compute_total_regulations(viscous_regulation, lattice) / (double)(nx * ny * nz);
 
-	printf("\t%d\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.3g\t|\t%.3g\t|\t%.2f%%\t|\t%.2f%%\t|\n", n, t, T, e_s, p, e_max, T_max, gamma_max, percent_viscous_reg, percent_above_Tsw);
+	printf("\t%d\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.3g\t|\t%.3g\t|\t%.1f%%\t|\t%.1f%%\t|\n", n, t, T, e_s, p, e_max, T_max, gamma_max, percent_viscous_reg, percent_above_Tsw);
+#endif
 #endif
 }
 

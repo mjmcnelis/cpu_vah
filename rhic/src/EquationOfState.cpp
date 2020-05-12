@@ -5,6 +5,7 @@
 #include "../include/Macros.h"
 #include "../include/Precision.h"
 #include "../include/EquationOfState.h"
+#include "../include/LatticeData.h"
 
 precision energy_density_cutoff(precision e_min, precision e)
 {
@@ -115,9 +116,29 @@ precision equation_of_state_new::equilibrium_pressure()
 
 	if(p < 0)
 	{
-		printf("equation_of_state_new::equilibrium_pressure error: (p, e, T) = (%lf, %lf, %lf) is negative. Enforcing positive equilibrium_pressure (pass pressure_min later)\n", p, e1, T1);
+		//printf("equation_of_state_new::equilibrium_pressure flag: (p, e, T) = (%lf, %lf, %lf) is negative\n", p, e1, T1);
+
+		int iT = (int)floor((T1 - lattice_temperature[0]) / dT);
+
+		if(iT >= 0 && iT < lattice_points - 1)
+		{
+			precision TL = lattice_temperature[iT];
+			precision TR = lattice_temperature[iT + 1];
+
+			precision pL = lattice_pressure[iT];
+			precision pR = lattice_pressure[iT + 1];
+
+			p = (pL * (TR - T)  +  pR * (T - TL)) / (TR - TL);
+
+			//printf("Using linear interpolation: (TL, T, TR) = (%lf, %lf, %lf) \t (pL, p, pR) = (%lf, %lf, %lf)\n", TL, T1, TR, pL, p, pR);
+		}
+		else
+		{
+			printf("equation_of_state_new::equilibrium_pressure error: temperature outside linear interpolation table (iT = %d)\n", iT);
+			exit(-1);
+		}
 		//p = fmax(p, 0.);
-		p = pressure_cutoff(5.e-4, p);
+		//p = pressure_cutoff(5.e-4, p);
 	}
 	return p;
 }
