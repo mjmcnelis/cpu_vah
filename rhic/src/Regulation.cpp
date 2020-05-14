@@ -58,6 +58,19 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 				precision pl  = q[s].pl;
 				precision pt  = q[s].pt;
 
+			#ifdef MONITOR_PLPT
+				plpt_regulation[s] = 0;					// default
+
+				if(pl < pressure_min)
+				{
+					plpt_regulation[s] += 1;			// 1 = pl regulated
+				}
+				if(pt < pressure_min)
+				{
+					plpt_regulation[s] += 2;			// 2 = pt regulated (3 = both regulated)
+				}
+			#endif
+
 				pl = pressure_cutoff(pressure_min, pl);
 				pt = pressure_cutoff(pressure_min, pt);
 
@@ -73,14 +86,21 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 			#ifdef B_FIELD 								// regulate non-equilibrium mean field component
 				precision b = q[s].b;
 				equation_of_state_new eos(e_s, 1);
-				precision p = eos.equilibrium_pressure();
 				precision beq = eos.equilibrium_mean_field();
 
 				precision db = b - beq;
 
+			#ifdef MONITOR_B
+				b_regulation[s] = 0;
+			#endif
+
 				if(db < 0)
 				{
 					db *= fmin(1., fabs(beq / db));
+
+				#ifdef MONITOR_B
+					b_regulation[s] = 1;
+				#endif
 				}
 
 				//db *= fmin(1., fabs(2.*beq / db));

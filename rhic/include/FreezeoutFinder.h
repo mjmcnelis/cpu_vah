@@ -22,7 +22,6 @@ class freezeout_finder
 		double dx;
 		double dy;
 		double dz;
-		double tau_coarse_factor;							// coarse graining factor in tau
 
 		int dimension;										// dimension of freezeout surface
 		double *lattice_spacing;							// spacetime lattice spacing is uniform
@@ -33,10 +32,9 @@ class freezeout_finder
 		double ***cube;										// 2+1d hypercube
 		double ****hypercube;								// 3+1d hypercube
 
-		double *****hydro_evolution;						// for storing hydro information on 2.nx.ny.nz hypergrid
+		float *****hydro_evolution;							// for storing hydro information on 2.nx.ny.nz hypergrid
 
 		std::ofstream freezeout_surface_file;
-		// FILE * freezeout_surface_file;						// freezeout surface file
 
 	public:
 
@@ -48,8 +46,8 @@ class freezeout_finder
 		void set_hydro_evolution(double t_set, hydro_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u);
 		void swap_and_set_hydro_evolution(hydro_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u);
 
-		void construct_energy_density_cube(double ****energy_density, int ix, int iy);
-		void construct_energy_density_hypercube(double ****energy_density, int ix, int iy, int iz);
+		void construct_energy_density_cube(float ****energy_density, int ix, int iy);
+		void construct_energy_density_hypercube(float ****energy_density, int ix, int iy, int iz);
 
 		void find_2d_freezeout_cells(double t_current, hydro_parameters hydro);
 		void find_3d_freezeout_cells(double t_current, hydro_parameters hydro);

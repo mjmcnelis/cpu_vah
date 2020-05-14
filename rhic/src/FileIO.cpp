@@ -701,6 +701,86 @@ void output_Tmunu_violations(const float * const __restrict__ Tmunu_violations, 
 }
 
 
+void output_plpt_regulations(const int * const __restrict__ plpt_regulation, double t, lattice_parameters lattice)
+{
+#ifdef MONITOR_PLPT
+	int nx = lattice.lattice_points_x;
+	int ny = lattice.lattice_points_y;
+	int nz = lattice.lattice_points_eta;
+
+	precision dx = lattice.lattice_spacing_x;
+	precision dy = lattice.lattice_spacing_y;
+	precision dz = lattice.lattice_spacing_eta;
+
+	FILE *regulation;
+	char fname[255];
+	sprintf(fname, "output/plpt_regulation_%.3f.dat", t);
+
+	regulation = fopen(fname, "w");
+
+	for(int k = 2; k < nz + 2; k++)
+	{
+		double z = (k - 2. - (nz - 1.)/2.) * dz;
+
+		for(int j = 2; j < ny + 2; j++)
+		{
+			double y = (j - 2. - (ny - 1.)/2.) * dy;
+
+			for(int i = 2; i < nx + 2; i++)
+			{
+				double x = (i - 2. - (nx - 1.)/2.) * dx;
+
+				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
+
+				fprintf(regulation, "%.3f\t%.3f\t%.3f\t%d\n", x, y, z, plpt_regulation[s]);
+			}
+		}
+	}
+	fclose(regulation);
+#endif
+}
+
+
+void output_b_regulations(const int * const __restrict__ b_regulation, double t, lattice_parameters lattice)
+{
+#ifdef MONITOR_B
+	int nx = lattice.lattice_points_x;
+	int ny = lattice.lattice_points_y;
+	int nz = lattice.lattice_points_eta;
+
+	precision dx = lattice.lattice_spacing_x;
+	precision dy = lattice.lattice_spacing_y;
+	precision dz = lattice.lattice_spacing_eta;
+
+	FILE *regulation;
+	char fname[255];
+	sprintf(fname, "output/b_regulation_%.3f.dat", t);
+
+	regulation = fopen(fname, "w");
+
+	for(int k = 2; k < nz + 2; k++)
+	{
+		double z = (k - 2. - (nz - 1.)/2.) * dz;
+
+		for(int j = 2; j < ny + 2; j++)
+		{
+			double y = (j - 2. - (ny - 1.)/2.) * dy;
+
+			for(int i = 2; i < nx + 2; i++)
+			{
+				double x = (i - 2. - (nx - 1.)/2.) * dx;
+
+				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
+
+				fprintf(regulation, "%.3f\t%.3f\t%.3f\t%d\n", x, y, z, b_regulation[s]);
+			}
+		}
+	}
+	fclose(regulation);
+#endif
+}
+
+
 void output_regulations(const int * const __restrict__ regulation, double t, lattice_parameters lattice)
 {
 	int nx = lattice.lattice_points_x;
@@ -779,6 +859,14 @@ void output_dynamical_variables(double t, double dt_prev, lattice_parameters lat
 
 	#ifdef LATTICE_QCD
 		output_mean_field(q, u, up, e, t, dt_prev, lattice, hydro);
+	#endif
+
+	#ifdef MONITOR_PLPT
+		output_plpt_regulations(plpt_regulation, t, lattice);
+	#endif
+
+	#ifdef MONITOR_B
+		output_b_regulations(b_regulation, t, lattice);
 	#endif
 
 	#ifdef MONITOR_TTAUMU

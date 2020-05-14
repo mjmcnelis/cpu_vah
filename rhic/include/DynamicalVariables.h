@@ -153,6 +153,14 @@ extern precision *e, *lambda, *aT, *aL;
 	extern int *viscous_regulation;
 #endif
 
+#ifdef MONITOR_PLPT
+	extern int *plpt_regulation;
+#endif
+
+#ifdef MONITOR_B
+	extern int *b_regulation;
+#endif
+
 #ifdef MONITOR_TTAUMU
 	extern float *Tmunu_violations;
 #endif

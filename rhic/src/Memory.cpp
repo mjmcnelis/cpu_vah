@@ -1,5 +1,5 @@
 
-#include <stdlib.h> 
+#include <stdlib.h>
 
 
 double *** calloc_3d_array(double ***array, int dim1, int dim2, int dim3)
@@ -42,25 +42,25 @@ double **** calloc_4d_array(double ****array, int dim1, int dim2, int dim3, int 
 }
 
 
-double ***** calloc_5d_array(double *****array, int dim1, int dim2, int dim3, int dim4, int dim5)
+float ***** calloc_5d_array(float *****array, int dim1, int dim2, int dim3, int dim4, int dim5)
 {
-  array = (double *****)calloc(dim1, sizeof(double ****));
+  array = (float *****)calloc(dim1, sizeof(float ****));
 
   for(int i = 0; i < dim1; i++)
   {
-    array[i] = (double ****)calloc(dim2, sizeof(double ***));
+    array[i] = (float ****)calloc(dim2, sizeof(float ***));
 
     for (int j = 0; j < dim2; j++)
     {
-      array[i][j] = (double ***)calloc(dim3, sizeof(double **));
+      array[i][j] = (float ***)calloc(dim3, sizeof(float **));
 
       for(int k = 0; k < dim3; k++)
       {
-        array[i][j][k] = (double **)calloc(dim4, sizeof(double *));
+        array[i][j][k] = (float **)calloc(dim4, sizeof(float *));
 
         for (int l = 0; l < dim4; l++)
         {
-          array[i][j][k][l] = (double *)calloc(dim5, sizeof(double));
+          array[i][j][k][l] = (float *)calloc(dim5, sizeof(float));
         }
       }
     }
@@ -109,7 +109,7 @@ void free_4d_array(double ****array, int dim1, int dim2, int dim3)
 
 
 
-void free_5d_array(double *****array, int dim1, int dim2, int dim3, int dim4)
+void free_5d_array(float *****array, int dim1, int dim2, int dim3, int dim4)
 {
   for(int i = 0; i < dim1; i++)
   {

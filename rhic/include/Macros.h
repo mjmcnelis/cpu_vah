@@ -4,9 +4,10 @@
 
 // macro parameters to fix hydrodynamic variables at compile time
 
-//#define ANISO_HYDRO				// run anisotropic hydro (comment to run 2nd order viscous hydro)
+#define ANISO_HYDRO				// run anisotropic hydro (comment to run 2nd order viscous hydro)
 #define BOOST_INVARIANT 		// run 2+1d hydro (comment to run 3+1d hydro)
 
+//#define FREEZEOUT_VH			// option to convert vah to vh variables on freezeout surface
 
 #define BEST					// use the best eos (might be temporary after settling on one, or use parameter)
 
@@ -42,9 +43,19 @@
 
 #endif
 
-//#define PRINT_HYDRO				// option to print current hydro info
 
-//#define ADAPTIVE_FILE			// output adaptive time steps
+
+#define PRINT_HYDRO				// option to print current hydro info
+
+#define ADAPTIVE_FILE			// output adaptive time steps
+
+#ifdef ANISO_HYDRO
+	//#define MONITOR_PLPT		// output pl,pt regulation
+
+#ifdef LATTICE_QCD
+	#define MONITOR_B			// output b regulation
+#endif
+#endif
 
 //#define MONITOR_TTAUMU			// output violations of T^{\tau\mu} reproduction in InferredVariables.cpp
 

@@ -17,6 +17,14 @@ precision *e, *lambda, *aT, *aL;
 	int *viscous_regulation;			// for monitoring regulation of pimunu, Pi in 2nd order viscous hydro
 #endif
 
+#ifdef MONITOR_PLPT
+	int *plpt_regulation;				// for monitoring regulation of pl, pt in aniso hydro
+#endif
+
+#ifdef MONITOR_B
+	int *b_regulation;					// for monitoring regulation of b in aniso hydro
+#endif
+
 #ifdef MONITOR_TTAUMU
 	float *Tmunu_violations;			// for monitoring violations in T^{\tau\mu}
 #endif
@@ -49,6 +57,14 @@ void allocate_memory(lattice_parameters lattice)
 #endif
 #else
 	viscous_regulation = (int *)calloc(length, sizeof(int));
+#endif
+
+#ifdef MONITOR_PLPT
+	plpt_regulation = (int *)calloc(length, sizeof(int));
+#endif
+
+#ifdef MONITOR_B
+	b_regulation = (int *)calloc(length, sizeof(int));
 #endif
 
 #ifdef MONITOR_TTAUMU

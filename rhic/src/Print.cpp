@@ -159,7 +159,7 @@ void print_hydro_center(int n, double t, lattice_parameters lattice, hydro_param
 
 		// X_reg = percentage of anisotropic variable (X) regulations in the grid
 
-		printf("\tn\t|\tt\t|\tT\t|\te\t|\tp\t|\tpl\t|\tpt\t|\te_max\t|\tT_max\t|\tX_reg\t|\tT > Tsw\t|\n");
+		printf("\tn\t|\tt\t|\tT\t|\te\t|\tp\t|\tpl\t|\tpt\t|\temax\t|\tXreg\t|\te > esw\t|\n");
 	#else
 		printf("\tn\t|\tt\t|\tT\t|\te\t|\tp\t|\te_max\t|\tT_max\t|\tut_max\t|\tvisc_reg\t|\tT > Tsw\t|\n");
 	#endif
@@ -193,7 +193,7 @@ void print_hydro_center(int n, double t, lattice_parameters lattice, hydro_param
 	percent_aniso_reg = 100. * (double)compute_total_regulations(aniso_regulation, lattice) / (double)(nx * ny * nz);
 #endif
 
-	printf("\t%d\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.3g\t|\t%.3f%%\t|\t%.2f%%\t|\n", n, t, T, e_s, p, pl, pt, e_max, T_max, percent_aniso_reg, percent_above_Tsw);
+	printf("\t%d\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.1f%%\t|\t%.1f%%\t|\n", n, t, T, e_s, p, pl, pt, e_max, percent_aniso_reg, percent_above_Tsw);
 #else
 
 	double percent_viscous_reg = 100. * (double)compute_total_regulations(viscous_regulation, lattice) / (double)(nx * ny * nz);
