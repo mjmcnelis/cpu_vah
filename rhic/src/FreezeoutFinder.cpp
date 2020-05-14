@@ -12,14 +12,69 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 }
 
 
+freezeout_element::freezeout_element(double tau_in, double x_in, double y_in, double eta_in, double dat_in, double dax_in, double day_in, double dan_in, double ux_in, double uy_in, double un_in, double E_in, double T_in, double P_in, double pixx_in, double pixy_in, double pixn_in, double piyy_in, double piyn_in, double Pi_in)
+{
+  tau = (float)tau_in;
+  x   = (float)x_in;
+  y   = (float)y_in;
+  eta = (float)eta_in;
+
+  dat = (float)dat_in;
+  dax = (float)dax_in;
+  day = (float)day_in;
+  dan = (float)dan_in;
+
+  ux  = (float)ux_in;
+  uy  = (float)uy_in;
+  un  = (float)un_in;
+
+  E   = (float)E_in;
+  T   = (float)T_in;
+  P   = (float)P_in;
+
+  pixx = (float)pixx_in;
+  pixy = (float)pixy_in;
+  pixn = (float)pixn_in;
+  piyy = (float)piyy_in;
+  piyn = (float)piyn_in;
+
+  Pi  = (float)Pi_in;
+}
+
+
+freezeout_element::~freezeout_element()
+{
+
+}
+
+
+
+
+
 freezeout_finder::freezeout_finder(lattice_parameters lattice, hydro_parameters hydro)
 {
+
   if(hydro.run_hydro != 2)
   {
+  #ifdef JETSCAPE
+    printf("freezeout_finder::freezeout_finder flag: set run_hydro = 2 for JETSCAPE mode (otherwise freezeout surface vector will be empty)\n");
+  #endif
+
     return;
   }
 
+#ifdef JETSCAPE
+
+#ifdef ANISO_HYDRO
+#ifndef FREEZEOUT_VH
+    printf("freezeout_finder::freezeout_finder error: need to define FREEZEOUT_VH to run anisotropic hydro in JETSCAPE mode\n");
+    exit(-1);
+#endif
+#endif
+
+#else
 	freezeout_surface_file.open("output/surface.dat");
+#endif
 
 	independent_hydro_variables = 10;
 
@@ -335,14 +390,22 @@ void freezeout_finder::find_2d_freezeout_cells(double t_current, hydro_parameter
 
         double Pi = (pl + 2.*pt)/3. - p;
 
+      #ifdef JETSCAPE                                     // append freezeout surface vector
+        freezeout_element element(t, x, y, eta, ds0, ds1, ds2, ds3, ux, uy, un, e, T, p, pixx, pixy, pixn, piyy, piyn, Pi);
+        freezeout_surface.push_back(element);
 
+      #else
         freezeout_surface_file  << t    << " " << x    << " " << y    << " " << eta  << " "
                                 << ds0  << " " << ds1  << " " << ds2  << " " << ds3  << " "
                                 << ux   << " " << uy   << " " << un   << " "
                                 << e    << " " << T    << " " << p    << " "
                                 << pixx << " " << pixy << " " << pixn << " " << piyy << " " << piyn << " "
                                 << Pi   << endl;
+      #endif
+
       #else
+
+      #ifndef JETSCAPE
         freezeout_surface_file  << t    << " " << x    << " " << y    << " " << eta  << " "
                                 << ds0  << " " << ds1  << " " << ds2  << " " << ds3  << " "
                                 << ux   << " " << uy   << " " << un   << " "
@@ -352,7 +415,7 @@ void freezeout_finder::find_2d_freezeout_cells(double t_current, hydro_parameter
                                 << WTzx << " " << WTzy << endl;
       #endif
 
-
+      #endif
 
       #else                                                                   // write vh freezeout surface (a)
 
@@ -385,12 +448,19 @@ void freezeout_finder::find_2d_freezeout_cells(double t_current, hydro_parameter
         double Pi = 0;
       #endif
 
+      #ifdef JETSCAPE                                     // append freezeout surface vector
+        freezeout_element element(t, x, y, eta, ds0, ds1, ds2, ds3, ux, uy, un, e, T, p, pixx, pixy, pixn, piyy, piyn, Pi);
+        freezeout_surface.push_back(element);
+
+      #else
         freezeout_surface_file  << t    << " " << x    << " " << y    << " " << eta  << " "
                                 << ds0  << " " << ds1  << " " << ds2  << " " << ds3  << " "
                                 << ux   << " " << uy   << " " << un   << " "
                                 << e    << " " << T    << " " << p    << " "
                                 << pixx << " " << pixy << " " << pixn << " " << piyy << " " << piyn << " "
                                 << Pi   << endl;
+      #endif
+
       #endif
 
       } // n
@@ -569,15 +639,22 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
 
           double Pi = (pl + 2.*pt)/3. - p;
 
+        #ifdef JETSCAPE                                     // append freezeout surface vector
+          freezeout_element element(t, x, y, eta, ds0, ds1, ds2, ds3, ux, uy, un, e, T, p, pixx, pixy, pixn, piyy, piyn, Pi);
+          freezeout_surface.push_back(element);
+
+        #else
           freezeout_surface_file  << t    << " " << x    << " " << y    << " " << eta  << " "
                                   << ds0  << " " << ds1  << " " << ds2  << " " << ds3  << " "
                                   << ux   << " " << uy   << " " << un   << " "
                                   << e    << " " << T    << " " << p    << " "
                                   << pixx << " " << pixy << " " << pixn << " " << piyy << " " << piyn << " "
                                   << Pi   << endl;
+        #endif
 
         #else                                                                 // freezeout surface vah format
 
+        #ifndef JETSCAPE
           freezeout_surface_file  << t    << " " << x    << " " << y    << " " << eta  << " "
                                   << ds0  << " " << ds1  << " " << ds2  << " " << ds3  << " "
                                   << ux   << " " << uy   << " " << un   << " "
@@ -585,6 +662,8 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
                                   << pl   << " " << pt   << " "
                                   << pixx << " " << pixy << " "
                                   << WTzx << " " << WTzy << endl;
+        #endif
+
         #endif
 
 
@@ -610,12 +689,21 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
           double Pi = 0;
         #endif
 
+
+        #ifdef JETSCAPE                                     // append freezeout surface vector
+          freezeout_element element(t, x, y, eta, ds0, ds1, ds2, ds3, ux, uy, un, e, T, p, pixx, pixy, pixn, piyy, piyn, Pi);
+          freezeout_surface.push_back(element);
+
+        #else
           freezeout_surface_file  << t    << " " << x    << " " << y    << " " << eta  << " "
                                   << ds0  << " " << ds1  << " " << ds2  << " " << ds3  << " "
                                   << ux   << " " << uy   << " " << un   << " "
                                   << e    << " " << T    << " " << p    << " "
                                   << pixx << " " << pixy << " " << pixn << " " << piyy << " " << piyn << " "
                                   << Pi   << endl;
+        #endif
+
+
         #endif
 
         } // n
@@ -631,7 +719,11 @@ void freezeout_finder::close_file_and_free_memory()
 {
 	printf("\nFreeing freezeout_finder memory...\n");
 
+#ifdef JETSCAPE
+  freezeout_surface.clear();
+#else
   freezeout_surface_file.close();
+#endif
 
 	delete [] lattice_spacing;
 	free_5d_array(hydro_evolution, independent_hydro_variables, 2, nx, ny);

@@ -5,10 +5,53 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <fstream>
-//#include <vector>
+#include <vector>
 #include "Precision.h"
+#include "Macros.h"
 #include "Parameters.h"
 #include "DynamicalVariables.h"
+
+//#define freezeout_precision float
+
+
+class freezeout_element
+{
+ private:		// standard vh format
+
+ public:
+   float tau;	// freezeout cell position
+   float x;
+   float y;
+   float eta;
+
+   float dat;	// covariant surface element vector
+   float dax;
+   float day;
+   float dan;
+
+   float ux;	// contravariant fluid velocity
+   float uy;
+   float un;
+
+   float E;		// energy density [fm^-4]
+   float T;		// temperature [fm^-1]
+   float P;		// equilibrium pressure [fm^-4]
+
+   				// contravariant shear stress
+   float pixx;	// [fm^-4]
+   float pixy;	// [fm^-4]
+   float pixn;	// [fm^-5]
+   float piyy;	// [fm^-4]
+   float piyn;	// [fm^-5]
+
+   float Pi;	// bulk pressure [fm^-4]
+
+   freezeout_element(double tau_in, double x_in, double y_in, double eta_in, double dat_in, double dax_in, double day_in, double dan_in, double ux_in, double uy_in, double un_in, double E_in, double T_in, double P_in, double pixx_in, double pixy_in, double pixn_in, double piyy_in, double piyn_in, double Pi_in);
+   ~freezeout_element();
+};
+
+
+
 
 class freezeout_finder
 {
@@ -34,15 +77,20 @@ class freezeout_finder
 
 		float *****hydro_evolution;							// for storing hydro information on 2.nx.ny.nz hypergrid
 
-		std::ofstream freezeout_surface_file;
+	#ifndef JETSCAPE
+		std::ofstream freezeout_surface_file;				// file for output/surface.dat
+	#endif
 
 	public:
 
 		freezeout_finder(lattice_parameters lattice, hydro_parameters hydro);
 		~freezeout_finder();
 
-		// not sure what this is for yet
-		//std::vector<FO_Element> fo_surf;					// for holding freezeout cell info (for JETSCAPE?)
+	#ifdef JETSCAPE
+		std::vector<freezeout_element> freezeout_surface;	// freezeout surface elements stored in vector for JETSCAPE
+	#endif
+
+
 		void set_hydro_evolution(double t_set, hydro_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u);
 		void swap_and_set_hydro_evolution(hydro_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u);
 

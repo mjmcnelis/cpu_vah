@@ -7,9 +7,13 @@
 #define ANISO_HYDRO				// run anisotropic hydro (comment to run 2nd order viscous hydro)
 #define BOOST_INVARIANT 		// run 2+1d hydro (comment to run 3+1d hydro)
 
-//#define FREEZEOUT_VH			// option to convert vah to vh variables on freezeout surface
 
-#define BEST					// use the best eos (might be temporary after settling on one, or use parameter)
+//#define JETSCAPE 				// store freezeout surface in vector array for JETSCAPE (no surface.dat)
+								// also need to define FREEZEOUT_VH to run JETSCAPE mode
+
+#define FREEZEOUT_VH			// option to convert vah to vh variables on freezeout surface
+
+#define BEST					// use the best eos (is this still used?)
 
 
 // define only one equation of state
@@ -53,7 +57,7 @@
 	//#define MONITOR_PLPT		// output pl,pt regulation
 
 #ifdef LATTICE_QCD
-	#define MONITOR_B			// output b regulation
+	//#define MONITOR_B			// output b regulation
 #endif
 #endif
 
