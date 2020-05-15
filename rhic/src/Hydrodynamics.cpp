@@ -279,7 +279,7 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 		}
 		else if(hydro.run_hydro == 3)												// only print center every five steps
 		{
-			if(n % 10 == 0)
+			if(n % PRINT_PERIOD == 0)
 			{
 				long cells_above_Tswitch = number_of_cells_above_freezeout_temperature(lattice, hydro);
 
