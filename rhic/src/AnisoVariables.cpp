@@ -476,14 +476,14 @@ void set_anisotropic_variables(const hydro_variables * const __restrict__ q, con
 	int ny = lattice.lattice_points_y;
 	int nz = lattice.lattice_points_eta;
 
+	long grid_size = nx * ny * nz;
+
 	double dx = lattice.lattice_spacing_x;
 	double dy = lattice.lattice_spacing_y;
 
-	int grid_size = nx * ny * nz;
-
 	precision conformal_prefactor = hydro.conformal_eos_prefactor;
 
-	int number_of_failed_solutions = 0;
+	long number_of_failed_solutions = 0;
 
 	for(int k = 2; k < nz + 2; k++)
 	{
@@ -515,11 +515,11 @@ void set_anisotropic_variables(const hydro_variables * const __restrict__ q, con
 				lambda[s] = X_s.lambda;			// update anisotropic variables
 				aT[s] = X_s.aT;
 				aL[s] = X_s.aL;
-				number_of_failed_solutions += X_s.did_not_find_solution;
 
 				if(X_s.did_not_find_solution)
 				{
 					aniso_regulation[s] = 1;
+					number_of_failed_solutions++;
 				}
 				else
 				{
@@ -530,10 +530,10 @@ void set_anisotropic_variables(const hydro_variables * const __restrict__ q, con
 		}
 	}
 
-	// if(number_of_failed_solutions > 0)
-	// {
-	// 	printf("failed solutions = %d\n", number_of_failed_solutions);
-	// }
+	if(number_of_failed_solutions > 0)
+	{
+		//printf("set_anisotropic_variables flag: X_reg = %.3f%%\n", 100. * (double)number_of_failed_solutions / (double) grid_size);
+	}
 
 #endif
 #endif

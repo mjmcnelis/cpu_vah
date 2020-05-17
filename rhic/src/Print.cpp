@@ -322,33 +322,33 @@ void print_parameters(lattice_parameters lattice, hydro_parameters hydro)
 
 void print_parameters_check(lattice_parameters lattice, hydro_parameters hydro, initial_condition_parameters initial)
 {
-	printf("\tLattice parameters\t|\tHydro parameters\t\t|\tInitial parameters\t\t|");
-	printf("\n------------------------------------------------------------");
-	printf("------------------------------------------------------------\n");
-	printf("lattice_points_x\t%d\t|\trun_hydro\t\t%d\t|\n", lattice.lattice_points_x, hydro.run_hydro);
-	printf("lattice_points_y\t%d\t|\toutput\t\t\t%d\t|\n", lattice.lattice_points_y, hydro.output);
-	printf("lattice_points_eta\t%d\t|\ttau_initial\t\t%.3g\t|\n", lattice.lattice_points_eta, hydro.tau_initial);
-	printf("lattice_spacing_x\t%.3g\t|\tplpt_ratio_initial\t%.2g\t|\n", lattice.lattice_spacing_x, hydro.plpt_ratio_initial);
-	printf("lattice_spacing_y\t%.3g\t|\tkinetic_theory_model\t%d\t|\n", lattice.lattice_spacing_y, hydro.kinetic_theory_model);
-	printf("lattice_spacing_eta\t%.3g\t|\tconformal_eos_prefactor\t%.4g\t|\n",lattice.lattice_spacing_eta, hydro.conformal_eos_prefactor);
-	printf("max_time_steps\t\t%d\t|\ttemperature_etas\t%d\t|\n", lattice.max_time_steps, hydro.temperature_etas);
-	printf("output_interval\t\t%.2f\t|\tconstant_etas\t\t%.3g\t|\n", lattice.output_interval, hydro.constant_etas);
-	printf("fixed_time_step\t\t%.3g\t|\tetas_aL\t\t\t%.2f\t|\n", lattice.fixed_time_step, hydro.etas_aL);
-	printf("adaptive_time_step\t%d\t|\tetas_aH\t\t\t%.2f\t|\n", lattice.adaptive_time_step, hydro.etas_aH);
-	printf("min_time_step\t\t%.4f\t|\tetas_etask\t\t%.3f\t|\n", lattice.min_time_step, hydro.etas_etask);
-	printf("delta_0\t\t\t%.3g\t|\tetas_Tk_GeV\t\t%.3f\t|\n", lattice.delta_0, hydro.etas_Tk_GeV);
-	printf("alpha\t\t\t%.3g\t|\tzetas_normalization\t%.3f\t|\n", lattice.alpha, hydro.zetas_normalization_factor);
-	printf("tau_coarse_factor\t%d\t|\tzetas_Tk_GeV\t\t%.3f\t|\n", lattice.tau_coarse_factor, hydro.zetas_peak_temperature_GeV);
-	printf("\t\t\t\t|\tzetas_width_GeV\t\t%.3f\t|\n", hydro.zetas_width_GeV);
-	printf("\t\t\t\t|\tzetas_skew\t\t%.3f\t|\n", hydro.zetas_skew);
-	printf("\t\t\t\t|\tfreezeout_temp_GeV\t%.3f\t|\n", hydro.freezeout_temperature_GeV);
-	printf("\t\t\t\t|\tflux_limiter\t\t%.2f\t|\n", hydro.flux_limiter);
-	printf("\t\t\t\t|\tinclude_vorticity\t%d\t|\n", hydro.include_vorticity);
-	printf("\t\t\t\t|\tenergy_min\t\t%.1e\t|\n", hydro.energy_min);
-	printf("\t\t\t\t|\tpressure_min\t\t%.1e\t|\n", hydro.pressure_min);
-	printf("\t\t\t\t|\tregulation_scheme\t%d\t|\n", hydro.regulation_scheme);
-	printf("\t\t\t\t|\trho_max\t\t\t%.2f\t|\n", hydro.rho_max);
-	printf("\n\n");
+	// printf("\tLattice parameters\t|\tHydro parameters\t\t|\tInitial parameters\t\t|");
+	// printf("\n------------------------------------------------------------");
+	// printf("------------------------------------------------------------\n");
+	// printf("lattice_points_x\t%d\t|\trun_hydro\t\t%d\t|\n", lattice.lattice_points_x, hydro.run_hydro);
+	// printf("lattice_points_y\t%d\t|\toutput\t\t\t%d\t|\n", lattice.lattice_points_y, hydro.output);
+	// printf("lattice_points_eta\t%d\t|\ttau_initial\t\t%.3g\t|\n", lattice.lattice_points_eta, hydro.tau_initial);
+	// printf("lattice_spacing_x\t%.3g\t|\tplpt_ratio_initial\t%.2g\t|\n", lattice.lattice_spacing_x, hydro.plpt_ratio_initial);
+	// printf("lattice_spacing_y\t%.3g\t|\tkinetic_theory_model\t%d\t|\n", lattice.lattice_spacing_y, hydro.kinetic_theory_model);
+	// printf("lattice_spacing_eta\t%.3g\t|\tconformal_eos_prefactor\t%.4g\t|\n",lattice.lattice_spacing_eta, hydro.conformal_eos_prefactor);
+	// printf("max_time_steps\t\t%d\t|\ttemperature_etas\t%d\t|\n", lattice.max_time_steps, hydro.temperature_etas);
+	// printf("output_interval\t\t%.2f\t|\tconstant_etas\t\t%.3g\t|\n", lattice.output_interval, hydro.constant_etas);
+	// printf("fixed_time_step\t\t%.3g\t|\tetas_aL\t\t\t%.2f\t|\n", lattice.fixed_time_step, hydro.etas_aL);
+	// printf("adaptive_time_step\t%d\t|\tetas_aH\t\t\t%.2f\t|\n", lattice.adaptive_time_step, hydro.etas_aH);
+	// printf("min_time_step\t\t%.4f\t|\tetas_etask\t\t%.3f\t|\n", lattice.min_time_step, hydro.etas_etask);
+	// printf("delta_0\t\t\t%.3g\t|\tetas_Tk_GeV\t\t%.3f\t|\n", lattice.delta_0, hydro.etas_Tk_GeV);
+	// printf("alpha\t\t\t%.3g\t|\tzetas_normalization\t%.3f\t|\n", lattice.alpha, hydro.zetas_normalization_factor);
+	// printf("tau_coarse_factor\t%d\t|\tzetas_Tk_GeV\t\t%.3f\t|\n", lattice.tau_coarse_factor, hydro.zetas_peak_temperature_GeV);
+	// printf("\t\t\t\t|\tzetas_width_GeV\t\t%.3f\t|\n", hydro.zetas_width_GeV);
+	// printf("\t\t\t\t|\tzetas_skew\t\t%.3f\t|\n", hydro.zetas_skew);
+	// printf("\t\t\t\t|\tfreezeout_temp_GeV\t%.3f\t|\n", hydro.freezeout_temperature_GeV);
+	// printf("\t\t\t\t|\tflux_limiter\t\t%.2f\t|\n", hydro.flux_limiter);
+	// printf("\t\t\t\t|\tinclude_vorticity\t%d\t|\n", hydro.include_vorticity);
+	// printf("\t\t\t\t|\tenergy_min\t\t%.1e\t|\n", hydro.energy_min);
+	// printf("\t\t\t\t|\tpressure_min\t\t%.1e\t|\n", hydro.pressure_min);
+	// printf("\t\t\t\t|\tregulation_scheme\t%d\t|\n", hydro.regulation_scheme);
+	// printf("\t\t\t\t|\trho_max\t\t\t%.2f\t|\n", hydro.rho_max);
+	// printf("\n\n");
 
 
 

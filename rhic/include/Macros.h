@@ -49,10 +49,10 @@
 
 
 
-#define PRINT_HYDRO				// option to print current hydro info
+//#define PRINT_HYDRO				// option to print current hydro info
 #define PRINT_PERIOD 10			// number of steps per print (leave this defined!)
 
-#define ADAPTIVE_FILE			// output adaptive time steps
+//#define ADAPTIVE_FILE			// output adaptive time steps
 
 #ifdef ANISO_HYDRO
 	//#define MONITOR_PLPT		// output pl,pt regulation

@@ -511,25 +511,25 @@ initial_condition_parameters load_initial_condition_parameters()
 		std::cerr << "No configuration file  %s found for hydro parameters\n";
 	}
 
-	printf("Initial condition parameters:");
-	printf("\n-----------------------------\n");
-	printf("initial_condition_type          = %d\n", 	initial.initial_condition_type);
-	printf("nucleus_A                       = %d\n", 	initial.nucleus_A);
-	printf("nucleus_B                       = %d\n", 	initial.nucleus_B);
-	printf("initial_central_temperature_GeV = %.3g\n",	initial.initialCentralTemperatureGeV);
-	printf("impactParameter                 = %.2f\n", 	initial.impactParameter);
-	printf("rapidityVariance                = %.3g\n", 	initial.rapidity_variance);
-	printf("rapidityMean                    = %.3g\n", 	initial.rapidity_mean);
-	printf("q_gubser                        = %.2f\n", 	initial.q_gubser);
-	printf("trento_normalization_GeV        = %.2f\n", 	initial.trento_normalization_GeV);
-	printf("trento_nucleon_width            = %.2f\n", 	initial.trento_nucleon_width);
-	printf("trento_min_nucleon_distance     = %.2f\n", 	initial.trento_min_nucleon_distance);
-	printf("trento_geometric_parameter      = %.2f\n", 	initial.trento_geometric_parameter);
-	printf("trento_gamma_standard_deviation = %.2f\n", 	initial.trento_gamma_standard_deviation);
-	printf("trento_average_over_events      = %d\n", 	initial.trento_average_over_events);
-	printf("trento_number_of_average_events = %d\n", 	initial.trento_number_of_average_events);
-	printf("trento_fixed_seed               = %d\n", 	initial.trento_fixed_seed);
-	printf("\n");
+	// printf("Initial condition parameters:");
+	// printf("\n-----------------------------\n");
+	// printf("initial_condition_type          = %d\n", 	initial.initial_condition_type);
+	// printf("nucleus_A                       = %d\n", 	initial.nucleus_A);
+	// printf("nucleus_B                       = %d\n", 	initial.nucleus_B);
+	// printf("initial_central_temperature_GeV = %.3g\n",	initial.initialCentralTemperatureGeV);
+	// printf("impactParameter                 = %.2f\n", 	initial.impactParameter);
+	// printf("rapidityVariance                = %.3g\n", 	initial.rapidity_variance);
+	// printf("rapidityMean                    = %.3g\n", 	initial.rapidity_mean);
+	// printf("q_gubser                        = %.2f\n", 	initial.q_gubser);
+	// printf("trento_normalization_GeV        = %.2f\n", 	initial.trento_normalization_GeV);
+	// printf("trento_nucleon_width            = %.2f\n", 	initial.trento_nucleon_width);
+	// printf("trento_min_nucleon_distance     = %.2f\n", 	initial.trento_min_nucleon_distance);
+	// printf("trento_geometric_parameter      = %.2f\n", 	initial.trento_geometric_parameter);
+	// printf("trento_gamma_standard_deviation = %.2f\n", 	initial.trento_gamma_standard_deviation);
+	// printf("trento_average_over_events      = %d\n", 	initial.trento_average_over_events);
+	// printf("trento_number_of_average_events = %d\n", 	initial.trento_number_of_average_events);
+	// printf("trento_fixed_seed               = %d\n", 	initial.trento_fixed_seed);
+	// printf("\n");
 
 	return initial;
 }
