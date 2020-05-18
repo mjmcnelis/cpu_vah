@@ -76,6 +76,12 @@ freezeout_finder::freezeout_finder(lattice_parameters lattice, hydro_parameters 
 	freezeout_surface_file.open("output/surface.dat");
 #endif
 
+  max_radius = 0;                             // default values
+  tau_coord = 0;
+  x_coord = 0;
+  y_coord = 0;
+  eta_coord = 0;
+
 	independent_hydro_variables = 10;
 
   e_switch = (double)equilibrium_energy_density_new(hydro.freezeout_temperature_GeV / hbarc, hydro.conformal_eos_prefactor);
@@ -299,6 +305,10 @@ void freezeout_finder::find_2d_freezeout_cells(double t_current, hydro_parameter
 
   double conformal_prefactor = hydro.conformal_eos_prefactor;
 
+#ifdef FREEZEOUT_SIZE
+  double r_max_call = 0;
+#endif
+
   for(int i = 0; i < nx - 1; i++)
   {
     for(int j = 0; j < ny - 1; j++)
@@ -326,6 +336,23 @@ void freezeout_finder::find_2d_freezeout_cells(double t_current, hydro_parameter
         double x = cornelius.get_centroid_elem(n, 1) + cell_x;
         double y = cornelius.get_centroid_elem(n, 2) + cell_y;
         double eta = 0;
+
+      #ifdef FREEZEOUT_SIZE
+        double r = sqrt(x * x  +  y * y);
+
+        if(r > r_max_call)
+        {
+          r_max_call = r;
+        }
+        if(r > max_radius)
+        {
+          tau_coord = t;
+          x_coord = x;
+          y_coord = y;
+          eta_coord = 0;
+          max_radius = r;
+        }
+      #endif
 
         if(!(t_frac >= 0 && t_frac <= 1) || !(x_frac >= 0 && x_frac <= 1) || !(y_frac >= 0 && y_frac <= 1))
         {
@@ -469,6 +496,10 @@ void freezeout_finder::find_2d_freezeout_cells(double t_current, hydro_parameter
   } // i
 
   t_prev = t_current;         // set previous time for the next freezeout finder call
+
+#ifdef FREEZEOUT_SIZE
+  //printf("max radius in call = %lf fm\n", r_max_call);
+#endif
 }
 
 
@@ -561,6 +592,19 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
           double x   = cornelius.get_centroid_elem(n, 1) + cell_x;
           double y   = cornelius.get_centroid_elem(n, 2) + cell_y;
           double eta = cornelius.get_centroid_elem(n, 3) + cell_z;
+
+        #ifdef FREEZEOUT_SIZE
+          double r = sqrt(x * x  +  y * y  +  eta * eta);                       // radius in grid (not cartesian radius)
+
+          if(r > max_radius)
+          {
+            tau_coord = t;
+            x_coord = x;
+            y_coord = y;
+            eta_coord = eta;
+            max_radius = r;
+          }
+      #endif
 
           if(!(t_frac >= 0 && t_frac <= 1) || !(x_frac >= 0 && x_frac <= 1) || !(y_frac >= 0 && y_frac <= 1) || !(z_frac >= 0 && z_frac <= 1))
           {
@@ -729,6 +773,15 @@ void freezeout_finder::close_file_and_free_memory()
 	free_5d_array(hydro_evolution, independent_hydro_variables, 2, nx, ny);
 	free_4d_array(hypercube, 2, 2, 2);
 	free_3d_array(cube, 2, 2);
+
+#ifdef FREEZEOUT_SIZE
+  printf("Output max radius of freezeout surface r_max = %.6g\n", max_radius);
+
+  FILE *radius;
+  radius = fopen("freezeout_max_radius.dat", "a");
+  fprintf(radius, "%.6g\t%.6g\t%.6g\t%.6g\t%.6g\n", tau_coord, x_coord, y_coord, eta_coord, max_radius);
+  fclose(radius);
+#endif
 }
 
 

@@ -56,6 +56,13 @@ class freezeout_element
 class freezeout_finder
 {
 	private:
+		double max_radius;									// maximum radius of freezeout surface
+
+		double tau_coord;									// spacetime coordinates of the max radius
+		double x_coord;
+		double y_coord;
+		double eta_coord;
+
 		double t_prev;										// lower time bracket
 
 		int nx;												// spatial grid parameters

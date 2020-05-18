@@ -51,8 +51,10 @@
 
 
 
-#define PRINT_HYDRO				// option to print current hydro info
+//#define PRINT_HYDRO				// option to print current hydro info
 #define PRINT_PERIOD 10			// number of steps per print (leave this defined!)
+
+#define FREEZEOUT_SIZE			// output maximum radius of freezeout surface
 
 //#define ADAPTIVE_FILE			// output adaptive time steps
 
