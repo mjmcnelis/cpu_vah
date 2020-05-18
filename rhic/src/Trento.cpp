@@ -253,6 +253,7 @@ void trento_transverse_energy_density_profile(double * const __restrict__ energy
 	}
 
 	//seed = 1589665206440943;
+	//seed = 1589737304227183113;
 
 	printf("Trento seed = %lu\n", seed);
 

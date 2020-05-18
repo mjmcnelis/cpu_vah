@@ -4,17 +4,19 @@
 
 // macro parameters to fix hydrodynamic variables at compile time
 
-#define ANISO_HYDRO				// run anisotropic hydro (comment to run 2nd order viscous hydro)
+//#define ANISO_HYDRO				// run anisotropic hydro (comment to run 2nd order viscous hydro)
+
 #define BOOST_INVARIANT 		// run 2+1d hydro (comment to run 3+1d hydro)
 
-
-//#define JETSCAPE 				// store freezeout surface in vector array for JETSCAPE (no surface.dat)
+#define JETSCAPE 				// store freezeout surface in vector array for JETSCAPE (no surface.dat)
 								// also need to define FREEZEOUT_VH to run JETSCAPE mode
 
 #define FREEZEOUT_VH			// option to convert vah to vh variables on freezeout surface
 
 #define BEST					// use the best eos (is this still used?)
 
+#define REGRESSION 				// randomize bayesian model parameters to train regression model to predict
+								// grid size (comment to use values set in the parameters/ directory)
 
 // define only one equation of state
 //#define CONFORMAL_EOS			// conformal equation of state
@@ -49,7 +51,7 @@
 
 
 
-//#define PRINT_HYDRO				// option to print current hydro info
+#define PRINT_HYDRO				// option to print current hydro info
 #define PRINT_PERIOD 10			// number of steps per print (leave this defined!)
 
 //#define ADAPTIVE_FILE			// output adaptive time steps

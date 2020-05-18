@@ -196,6 +196,7 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 	clock_t start = clock();
 
 
+
 	// fluid dynamic evolution
 	//----------------------------------------------------------
 	for(int n = 0; n <= lattice.max_time_steps; n++)
@@ -317,7 +318,6 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 
 	printf("\nFinished hydro\n");
 }
-
 
 
 
