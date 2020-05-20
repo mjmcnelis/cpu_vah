@@ -778,7 +778,7 @@ void freezeout_finder::close_file_and_free_memory()
   printf("Output max radius of freezeout surface r_max = %.6g\n", max_radius);
 
   FILE *radius;
-  radius = fopen("freezeout_max_radius.dat", "a");
+  radius = fopen("output/freezeout_max_radius.dat", "a");
   fprintf(radius, "%.6g\t%.6g\t%.6g\t%.6g\t%.6g\n", tau_coord, x_coord, y_coord, eta_coord, max_radius);
   fclose(radius);
 #endif

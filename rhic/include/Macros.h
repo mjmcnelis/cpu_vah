@@ -8,6 +8,10 @@
 
 #define BOOST_INVARIANT 		// run 2+1d hydro (comment to run 3+1d hydro)
 
+#define RANDOM_MODEL_PARAMETERS // option to use python/random_model_parameters/model_parameters_x.dat (x = 1st command line argument)
+								// comment to use the fixed values in parameters/
+								// note: model parameters is a subset of all parameters
+
 #define JETSCAPE 				// store freezeout surface in vector array for JETSCAPE (no surface.dat)
 								// also need to define FREEZEOUT_VH to run JETSCAPE mode
 
@@ -51,8 +55,10 @@
 
 
 
-//#define PRINT_HYDRO				// option to print current hydro info
+#define PRINT_HYDRO				// option to print current hydro info
 #define PRINT_PERIOD 10			// number of steps per print (leave this defined!)
+
+#define PRINT_PARAMETERS		// option to print parameters
 
 #define FREEZEOUT_SIZE			// output maximum radius of freezeout surface
 

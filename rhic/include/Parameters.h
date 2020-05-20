@@ -2,6 +2,30 @@
 #ifndef PARAMETERS_H_
 #define PARAMETERS_H_
 
+#include <string>
+using namespace std;
+
+typedef struct
+{
+	double impact_parameter;				// initial condition parameters
+	double trento_normalization_GeV;
+	double trento_geometric_parameter;
+	double trento_nucleon_width;
+	double trento_min_nucleon_distance;
+	double trento_gamma_standard_deviation;
+
+	double freezeout_temperature_GeV;		// hydro parameters
+	double etas_Tk_GeV;
+	double etas_etask;
+	double etas_aL;
+	double etas_aH;
+	double zetas_normalization_factor;
+	double zetas_peak_temperature_GeV;
+	double zetas_width_GeV;
+	double zetas_skew;
+
+} random_model_parameters;
+
 
 typedef struct
 {
@@ -95,9 +119,10 @@ typedef struct
 } initial_condition_parameters;
 
 
-hydro_parameters load_hydro_parameters();
+random_model_parameters load_random_model_parameters(string sample);
+hydro_parameters load_hydro_parameters(bool sample_parameters, random_model_parameters random);
 lattice_parameters load_lattice_parameters(hydro_parameters hydro);
-initial_condition_parameters load_initial_condition_parameters();
+initial_condition_parameters load_initial_condition_parameters(bool sample_parameters, random_model_parameters random);
 
 #endif
 

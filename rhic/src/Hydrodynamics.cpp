@@ -162,8 +162,6 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 	precision dt = dt_start;							// initialize time step
 	precision dt_prev = dt;								// previous time step
 
-	print_parameters_check(lattice, hydro, initial);
-
 	print_parameters(lattice, hydro);
 	allocate_memory(lattice);
 
@@ -192,18 +190,16 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 	int grid_below_Tswitch = 0;							// number of times freezeout finder searches a grid below Tswitch
 	int freezeout_depth = 3;							// max number of time steps freezeout finder goes below Tswitch
 
-	double steps = 0;
+	int steps = 0;
 	clock_t start = clock();
 
 
 
 	// fluid dynamic evolution
 	//----------------------------------------------------------
-	for(int n = 0; n <= lattice.max_time_steps; n++)
+	for(int n = 0; n < lattice.max_time_steps; n++)
 	{
 		dt = set_the_time_step(n, t, dt_prev, t_out + dt_out, lattice, initial, hydro);
-
-		//printf("%d\t%lf\n", n, t);
 
 		if(hydro.run_hydro == 1)								// outputs hydro data at regular time intervals (if hydro.output = 1)
 		{
@@ -305,9 +301,14 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 	}
 	//----------------------------------------------------------
 
+	if(steps >= lattice.max_time_steps)
+	{
+		printf("run_hydro error: exceeded max number of time steps = %d (hydro simulation failed)\n", steps);
+		exit(-1);
+	}
 
 	double duration = (clock() - start) / (double)CLOCKS_PER_SEC;
-	print_run_time(t, duration, steps, lattice);
+	print_run_time(t, duration, (double)steps, lattice);
 
 	free_memory();
 

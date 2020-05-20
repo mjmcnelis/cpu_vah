@@ -20,7 +20,7 @@ INCLUDES = -I /usr/local/include -I rhic/include
 CPP := $(shell find $(DIR_SRC) -name '*.cpp')
 OBJ = $(CPP:$(DIR_SRC)%.cpp=$(DIR_OBJ)%.o)
 
-EXE = cpu-vah
+EXE = cpu_vah
 
 $(EXE): $(OBJ)
 	echo "Linking: $@ ($(COMPILER))"
@@ -31,13 +31,13 @@ $(DIR_OBJ)%.o: $(DIR_SRC)%.cpp
 	@echo "Compiling: $< ($(COMPILER))"
 	$(COMPILER) $(CFLAGS) $(INCLUDES) -c -o $@ $<
 
-hydro: $(EXE)
-	echo "Running hydro: $(EXE)"
-	rm -rf output
-	mkdir output
-	rm -rf semi_analytic
-	mkdir semi_analytic
-	$(DIR_MAIN)$(EXE)
+#hydro: $(EXE)
+#	echo "Running hydro: $(EXE)"
+#	rm -rf output
+#	mkdir output
+#	rm -rf semi_analytic
+#	mkdir semi_analytic
+#	$(DIR_MAIN)$(EXE)
 
 clean:
 	@echo "Object files and executable deleted"
