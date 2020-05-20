@@ -2,9 +2,6 @@
 #ifndef PARAMETERS_H_
 #define PARAMETERS_H_
 
-#include <string>
-using namespace std;
-
 typedef struct
 {
 	double impact_parameter;				// initial condition parameters
@@ -120,7 +117,7 @@ typedef struct
 } initial_condition_parameters;
 
 
-random_model_parameters load_random_model_parameters(string sample);
+random_model_parameters load_random_model_parameters(int sample);
 hydro_parameters load_hydro_parameters(bool sample_parameters, random_model_parameters random);
 lattice_parameters load_lattice_parameters(hydro_parameters hydro);
 initial_condition_parameters load_initial_condition_parameters(bool sample_parameters, random_model_parameters random);

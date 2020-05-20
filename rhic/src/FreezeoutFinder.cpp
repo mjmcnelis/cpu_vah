@@ -4,7 +4,6 @@
 #include "../include/Hydrodynamics.h"
 #include "../include/EquationOfState.h"
 #include "../../cornelius-c++-1.3/cornelius.cpp"
-#include <string>
 using namespace std;
 
 inline int linear_column_index(int i, int j, int k, int nx, int ny)
@@ -757,7 +756,7 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
 }
 
 
-void freezeout_finder::files_and_free_memory(string sample)
+void freezeout_finder::files_and_free_memory(int sample)
 {
 	printf("\nFreeing freezeout_finder memory...\n");
 
@@ -779,14 +778,14 @@ void freezeout_finder::files_and_free_memory(string sample)
 
   if(max_radius > 0)
   {
-    if(sample.empty())
+    if(sample == 0)
     {
       fireball_radius = fopen("output/fireball_radius.dat", "a");
     }
     else
     {
       char fname[255];
-      sprintf(fname, "output/fireball_radius_%s.dat", sample.c_str());
+      sprintf(fname, "output/fireball_radius_%d.dat", sample);
       fireball_radius = fopen(fname, "a");
     }
 

@@ -6,11 +6,8 @@
 #include <fstream>
 #include <algorithm>
 #include <sstream>
-#include <string>
 #include "../include/Macros.h"
 #include "../include/Parameters.h"
-using namespace std;
-
 
 bool time_step_within_CFL_bound(double dt, lattice_parameters lattice)
 {
@@ -40,18 +37,18 @@ double compute_conformal_prefactor(double flavors)
 }
 
 
-random_model_parameters load_random_model_parameters(string sample)
+random_model_parameters load_random_model_parameters(int sample)
 {
-	printf("\nLoading model parameters from python/random_model_parameters/model_parameters_%s.dat\n\n", sample.c_str());
+	printf("\nLoading model parameters from python/random_model_parameters/model_parameters_%d.dat\n\n", sample);
 
 	FILE * parameter_file;
 	char fname[255];
-	sprintf(fname, "python/random_model_parameters/model_parameters_%s.dat", sample.c_str());
+	sprintf(fname, "python/random_model_parameters/model_parameters_%d.dat", sample);
   	parameter_file = fopen(fname, "r");
 
   	if(parameter_file == NULL)
   	{
-  		printf("load_model_parameters error: could not open model_parameters_%s.dat\n", sample.c_str());
+  		printf("load_model_parameters error: could not open model_parameters_%d.dat\n", sample);
   		exit(-1);
   	}
 

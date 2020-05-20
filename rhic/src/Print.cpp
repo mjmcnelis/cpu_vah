@@ -40,7 +40,7 @@ void print_hydro_mode(hydro_parameters hydro)
 }
 
 
-void print_run_time(double t, double duration, double steps, lattice_parameters lattice, string sample)
+void print_run_time(double t, double duration, double steps, lattice_parameters lattice, int sample)
 {
 	int nx = lattice.lattice_points_x;
 	int ny = lattice.lattice_points_y;
@@ -55,14 +55,14 @@ void print_run_time(double t, double duration, double steps, lattice_parameters 
 #ifdef BENCHMARKS
 	FILE * benchmarks;
 
-	if(sample.empty())
+	if(sample == 0)
 	{
 		benchmarks = fopen("output/benchmarks.dat", "a");
 	}
 	else
 	{
 		char fname[255];
-		sprintf(fname, "output/benchmarks_%s.dat", sample.c_str());
+		sprintf(fname, "output/benchmarks_%d.dat", sample);
 		benchmarks = fopen(fname, "a");
 	}
 

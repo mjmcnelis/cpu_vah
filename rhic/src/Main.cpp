@@ -14,6 +14,7 @@
  */
 
 #include <iostream>
+#include <sstream>
 #include <string>
 #include "../include/Parameters.h"
 #include "../include/Print.h"
@@ -25,14 +26,32 @@ using namespace std;
 int main(int argc, char *argv[])
 {
 	bool sample_parameters = false;						// default
-	string sample;
+	int sample = 0;
 	random_model_parameters random;
 
 #ifdef RANDOM_MODEL_PARAMETERS
 	if(argc == 2)										// load sample model parameters
 	{
 		sample_parameters = true;
-		sample = argv[1];
+
+		istringstream iss(argv[1]);
+
+        if(!(iss >> sample))
+        {
+  			printf("main error: parameter sample index %s invalid\n", argv[1]);
+  			exit(-1);
+  		}
+		else if(!iss.eof())
+		{
+			printf("main error: trailing characeters after sample index %s.\n", argv[1]);
+			exit(-1);
+		}
+		if(sample <= 0)
+		{
+			printf("main error: parameter sample index %d must be greater than zero\n", sample);
+			exit(-1);
+		}
+
 		random = load_random_model_parameters(sample);
 	}
 #endif
