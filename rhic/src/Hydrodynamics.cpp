@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <ctime>
+#include <string>
 #include <math.h>
 #include "../include/Hydrodynamics.h"
 #include "../include/Print.h"
@@ -153,7 +154,7 @@ precision set_the_time_step(int n, precision t, precision dt_prev, precision t_n
 }
 
 
-void run_hydro(lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro)
+void run_hydro(lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro, string sample)
 {
 	precision dt_start = lattice.fixed_time_step;		// starting time step
 
@@ -308,13 +309,13 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 	}
 
 	double duration = (clock() - start) / (double)CLOCKS_PER_SEC;
-	print_run_time(t, duration, (double)steps, lattice);
+	print_run_time(t, duration, (double)steps, lattice, sample);
 
 	free_memory();
 
 	if(hydro.run_hydro == 2)
 	{
-		fo_surface.close_file_and_free_memory();
+		fo_surface.files_and_free_memory(sample);
 	}
 
 	printf("\nFinished hydro\n");

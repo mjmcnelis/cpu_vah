@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <fstream>
+#include <string>
 #include <vector>
 #include "Precision.h"
 #include "Macros.h"
@@ -107,7 +108,7 @@ class freezeout_finder
 		void find_2d_freezeout_cells(double t_current, hydro_parameters hydro);
 		void find_3d_freezeout_cells(double t_current, hydro_parameters hydro);
 
-		void close_file_and_free_memory();
+		void files_and_free_memory(string sample);
 };
 
 

@@ -4,6 +4,7 @@
 #include "../include/Hydrodynamics.h"
 #include "../include/EquationOfState.h"
 #include "../../cornelius-c++-1.3/cornelius.cpp"
+#include <string>
 using namespace std;
 
 inline int linear_column_index(int i, int j, int k, int nx, int ny)
@@ -580,9 +581,6 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
 
         for(int n = 0; n < freezeout_cells; n++)
         {
-          // is this used at all?
-          //FO_Element fo_cell;                                                 // declare a new fo cell to hold info, later push back to vector
-
           double t_frac = cornelius.get_centroid_elem(n, 0) / lattice_spacing[0];
           double x_frac = cornelius.get_centroid_elem(n, 1) / lattice_spacing[1];
           double y_frac = cornelius.get_centroid_elem(n, 2) / lattice_spacing[2];
@@ -759,7 +757,7 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
 }
 
 
-void freezeout_finder::close_file_and_free_memory()
+void freezeout_finder::files_and_free_memory(string sample)
 {
 	printf("\nFreeing freezeout_finder memory...\n");
 
@@ -775,12 +773,26 @@ void freezeout_finder::close_file_and_free_memory()
 	free_3d_array(cube, 2, 2);
 
 #ifdef FREEZEOUT_SIZE
-  printf("Output max radius of freezeout surface r_max = %.6g\n", max_radius);
+  printf("Max radius of freezeout surface = %.3f fm\n", max_radius);
 
-  FILE *radius;
-  radius = fopen("output/freezeout_max_radius.dat", "a");
-  fprintf(radius, "%.6g\t%.6g\t%.6g\t%.6g\t%.6g\n", tau_coord, x_coord, y_coord, eta_coord, max_radius);
-  fclose(radius);
+  FILE *fireball_radius;
+
+  if(max_radius > 0)
+  {
+    if(sample.empty())
+    {
+      fireball_radius = fopen("output/fireball_radius.dat", "a");
+    }
+    else
+    {
+      char fname[255];
+      sprintf(fname, "output/fireball_radius_%s.dat", sample.c_str());
+      fireball_radius = fopen(fname, "a");
+    }
+
+    fprintf(fireball_radius, "%.6g\t%.6g\t%.6g\t%.6g\t%.6g\n", tau_coord, x_coord, y_coord, eta_coord, max_radius);
+    fclose(fireball_radius);
+  }
 #endif
 }
 

@@ -3,6 +3,7 @@
 
 #include "Parameters.h"
 #include "Precision.h"
+#include <string>
 
 typedef struct
 {
@@ -14,7 +15,7 @@ typedef struct
 
 void print_hydro_mode(hydro_parameters hydro);
 
-void print_run_time(double t, double duration, double steps, lattice_parameters lattice);
+void print_run_time(double t, double duration, double steps, lattice_parameters lattice, string sample);
 
 void print_hydro_center(int n, double t, lattice_parameters lattice, hydro_parameters hydro, long cells_above_Tswitch);
 

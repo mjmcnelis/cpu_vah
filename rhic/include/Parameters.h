@@ -42,6 +42,7 @@ typedef struct
 	int temperature_etas;
 
 	double constant_etas;
+	double etas_min;
 
 	double etas_aL;
 	double etas_aH;

@@ -24,14 +24,16 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-	bool sample_parameters = false;					// default
+	bool sample_parameters = false;						// default
+	string sample;
 	random_model_parameters random;
 
 #ifdef RANDOM_MODEL_PARAMETERS
-	if(argc == 2)									// load sample model parameters
+	if(argc == 2)										// load sample model parameters
 	{
 		sample_parameters = true;
-		random = load_random_model_parameters(argv[1]);
+		sample = argv[1];
+		random = load_random_model_parameters(sample);
 	}
 #endif
 
@@ -42,7 +44,7 @@ int main(int argc, char *argv[])
 	if(hydro.run_hydro)
 	{
 		print_hydro_mode(hydro);
-		run_hydro(lattice, initial, hydro);		// main function
+		run_hydro(lattice, initial, hydro, sample);		// main function
 	}
 	else
 	{

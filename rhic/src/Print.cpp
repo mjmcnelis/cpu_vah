@@ -40,7 +40,7 @@ void print_hydro_mode(hydro_parameters hydro)
 }
 
 
-void print_run_time(double t, double duration, double steps, lattice_parameters lattice)
+void print_run_time(double t, double duration, double steps, lattice_parameters lattice, string sample)
 {
 	int nx = lattice.lattice_points_x;
 	int ny = lattice.lattice_points_y;
@@ -54,7 +54,18 @@ void print_run_time(double t, double duration, double steps, lattice_parameters 
 
 #ifdef BENCHMARKS
 	FILE * benchmarks;
-	benchmarks = fopen("output/benchmarks.dat", "a");
+
+	if(sample.empty())
+	{
+		benchmarks = fopen("output/benchmarks.dat", "a");
+	}
+	else
+	{
+		char fname[255];
+		sprintf(fname, "output/benchmarks_%s.dat", sample.c_str());
+		benchmarks = fopen(fname, "a");
+	}
+
 
 	// same data that was printed
 	fprintf(benchmarks, "%.5g\t%.5g\t%d\t%.5g\t%.5g\n", t, duration, (int)steps, duration / steps, 1000. * duration / (nx * ny * nz * steps));
@@ -239,7 +250,7 @@ void print_parameters(lattice_parameters lattice, hydro_parameters hydro)
 	}
 	else
 	{
-		printf("\teta/s(T)  = %.3f (fixed)\n\n", hydro.constant_etas);
+		printf("eta/s(T)  = %.3f (fixed)\n\n", hydro.constant_etas);
 	}
 
 #ifdef CONFORMAL_EOS

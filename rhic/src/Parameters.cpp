@@ -42,7 +42,7 @@ double compute_conformal_prefactor(double flavors)
 
 random_model_parameters load_random_model_parameters(string sample)
 {
-	printf("Loading model parameters from python/random_model_parameters/model_parameters_%s.dat\n\n", sample.c_str());
+	printf("\nLoading model parameters from python/random_model_parameters/model_parameters_%s.dat\n\n", sample.c_str());
 
 	FILE * parameter_file;
 	char fname[255];
@@ -168,6 +168,12 @@ hydro_parameters load_hydro_parameters(bool sample_parameters, random_model_para
 		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
 		delimiterPos = line.find("=");
 		line = line.substr(delimiterPos + 1);
+		hydro.etas_min = atof(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
 		hydro.etas_aL = atof(line.c_str());
 
 		getline(cFile, line);
@@ -288,6 +294,7 @@ hydro_parameters load_hydro_parameters(bool sample_parameters, random_model_para
 	printf("conformal_eos_prefactor    = %.6g\n", 	hydro.conformal_eos_prefactor);
 	printf("temperature_etas           = %d\n", 	hydro.temperature_etas);
 	printf("constant_etas              = %.3g\n", 	hydro.constant_etas);
+	printf("etas_min                   = %.3g\n", 	hydro.etas_min);
 	printf("etas_aL                    = %.3g\n", 	hydro.etas_aL);
 	printf("etas_aH                    = %.3g\n", 	hydro.etas_aH);
 	printf("etas_Tk_GeV                = %.3g\n", 	hydro.etas_Tk_GeV);

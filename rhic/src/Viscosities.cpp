@@ -33,6 +33,8 @@ inline precision Theta(precision x)
 
 precision eta_over_s(precision T, hydro_parameters hydro)
 {
+	precision etas_min = hydro.etas_min;
+
 	if(hydro.temperature_etas == 1)						// temperature dependent piecewise parameterization
 	{
 		precision aL = hydro.etas_aL * hbarc;			// left slope [fm]
@@ -40,10 +42,10 @@ precision eta_over_s(precision T, hydro_parameters hydro)
 		precision Tk = hydro.etas_Tk_GeV / hbarc;		// kink temperature fm^-1]
 		precision etask = hydro.etas_etask;				// kink etas value
 
-		return etask  +  (T - Tk) * (aL * Theta(Tk - T)  +  aH * Theta(T - Tk));
+		return fmax(etas_min, etask  +  (T - Tk) * (aL * Theta(Tk - T)  +  aH * Theta(T - Tk)));
 	}
 
-	return hydro.constant_etas;
+	return fmax(etas_min, hydro.constant_etas);
 }
 
 

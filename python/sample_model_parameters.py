@@ -7,7 +7,7 @@ from datetime import datetime
 
 # Uniform parameter sampling
 
-r.seed(time.time())
+#r.seed(time.time())
 #r.seed(datetime.now())
 
 
