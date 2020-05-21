@@ -12,6 +12,10 @@
 								// comment to use the fixed values in parameters/
 								// note: model parameters is a subset of all parameters
 
+#ifdef RANDOM_MODEL_PARAMETERS
+	#define GRID_REGRESSION 	// use multivariate regression model to predict grid size for a given model parameter sample
+#endif
+
 #define JETSCAPE 				// store freezeout surface in vector array for JETSCAPE (no surface.dat)
 								// also need to define FREEZEOUT_VH to run JETSCAPE mode
 
@@ -19,15 +23,14 @@
 
 #define BEST					// use the best eos (is this still used?)
 
-#define REGRESSION 				// randomize bayesian model parameters to train regression model to predict
-								// grid size (comment to use values set in the parameters/ directory)
-
-// define only one equation of state
 //#define CONFORMAL_EOS			// conformal equation of state
-#define LATTICE_QCD				// lattice qcd equation of state
+
+#ifndef CONFORMAL_EOS
+	#define LATTICE_QCD			// lattice qcd equation of state
+#endif
 
 
-//#define E_CHECK					// separately evolve energy density w/ KT algorithm as a cross check
+//#define E_CHECK				// separately evolve energy density w/ KT algorithm as a cross check
 								// can be commented (still have issue with piperp evolution when turned on)
 
 

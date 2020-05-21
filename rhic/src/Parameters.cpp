@@ -336,7 +336,7 @@ hydro_parameters load_hydro_parameters(bool sample_parameters, random_model_para
 }
 
 
-lattice_parameters load_lattice_parameters(hydro_parameters hydro)
+lattice_parameters load_lattice_parameters(hydro_parameters hydro, bool sample_parameters, int sample)
 {
 	char fname[255] = "parameters/lattice.properties";
 
@@ -382,6 +382,18 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro)
 		delimiterPos = line.find("=");
 		line = line.substr(delimiterPos + 1);
 		lattice.lattice_spacing_eta = atof(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		lattice.sigma_factor = atof(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		lattice.buffer = atof(line.c_str());
 
 		getline(cFile, line);
 		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
@@ -434,10 +446,52 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro)
 
 	lattice.min_time_step = hydro.tau_initial / 20.;
 
+
+#ifdef GRID_REGRESSION
+	if(sample_parameters)
+	{
+		printf("\nLoading predicted fireball size from python/random_model_parameters/fireball_size_%d.dat\n\n", sample);
+
+		FILE * fireball_size;
+		char fname[255];
+		sprintf(fname, "python/random_model_parameters/fireball_size_%d.dat", sample);
+	  	fireball_size = fopen(fname, "r");
+
+	  	if(fireball_size == NULL)
+	  	{
+	  		printf("load_lattice_parameters error: could not open fireball_size_%d.dat. Need to run regression model\n", sample);
+	  		exit(-1);
+	  	}
+
+	  	double fireball_radius_mean = 12.18;		// temporary values
+		double fireball_radius_std = 0.4;
+
+  		fscanf(fireball_size, "%lf\t%lf", &fireball_radius_mean, &fireball_radius_std);
+		fclose(fireball_size);
+
+		double sigma_factor = lattice.sigma_factor;
+		double buffer 		= lattice.buffer;
+
+		double grid_size = 2. * (fireball_radius_mean  +  sigma_factor * fireball_radius_std)  +  buffer;
+
+		double dx = lattice.lattice_spacing_x;
+		double dy = lattice.lattice_spacing_y;
+		double dz = lattice.lattice_spacing_eta;
+
+		// ensure odd number of points
+		lattice.lattice_points_x 	= (int)ceil(grid_size / dx)  +  (1 + (int)ceil(grid_size / dx)) % 2;
+		lattice.lattice_points_y 	= (int)ceil(grid_size / dy)  +  (1 + (int)ceil(grid_size / dy)) % 2;
+		lattice.lattice_points_eta 	= (int)ceil(grid_size / dz)  +  (1 + (int)ceil(grid_size / dz)) % 2;
+
+		printf("Max fireball radius = %.2f fm\n", fireball_radius_mean  +  sigma_factor * fireball_radius_std);
+		printf("Reconfiguring grid size length to L ~ %.2f fm\n\n", (lattice.lattice_points_x - 1) * dx);
+	}
+#endif
+
 #ifdef BOOST_INVARIANT
 	if(lattice.lattice_points_eta > 1)
 	{
-		printf("load_lattice_parameters: BOOST_INVARIANT is defined but you set lattice_spacing_eta = %d. Setting lattice_spacing_eta = 1\n", lattice.lattice_points_eta);
+		printf("load_lattice_parameters: BOOST_INVARIANT is defined but you set lattice_spacing_eta = %d. Setting lattice_spacing_eta = 1\n\n", lattice.lattice_points_eta);
 		lattice.lattice_points_eta = 1;		// automatic default
 	}
 #endif
@@ -451,6 +505,8 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro)
 	printf("lattice_spacing_x   = %.3g\n",	lattice.lattice_spacing_x);
 	printf("lattice_spacing_y   = %.3g\n", 	lattice.lattice_spacing_y);
 	printf("lattice_spacing_eta = %.3g\n", 	lattice.lattice_spacing_eta);
+	printf("sigma_factor        = %.3g\n", 	lattice.sigma_factor);
+	printf("buffer              = %.3g\n", 	lattice.buffer);
 	printf("max_time_steps      = %d\n", 	lattice.max_time_steps);
 	printf("output_interval     = %.2f\n", 	lattice.output_interval);
 	printf("fixed_time_step     = %.3g\n", 	lattice.fixed_time_step);

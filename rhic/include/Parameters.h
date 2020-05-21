@@ -70,9 +70,13 @@ typedef struct
 	int lattice_points_x;
 	int lattice_points_y;
 	int lattice_points_eta;
+
 	double lattice_spacing_x;
 	double lattice_spacing_y;
 	double lattice_spacing_eta;
+
+	double sigma_factor;
+	double buffer;
 
 	int max_time_steps;
 	double output_interval;
@@ -119,7 +123,7 @@ typedef struct
 
 random_model_parameters load_random_model_parameters(int sample);
 hydro_parameters load_hydro_parameters(bool sample_parameters, random_model_parameters random);
-lattice_parameters load_lattice_parameters(hydro_parameters hydro);
+lattice_parameters load_lattice_parameters(hydro_parameters hydro, bool sample_parameters, int sample);
 initial_condition_parameters load_initial_condition_parameters(bool sample_parameters, random_model_parameters random);
 
 #endif
