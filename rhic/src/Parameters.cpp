@@ -454,7 +454,7 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro, bool sample_p
 
 		FILE * fireball_size;
 		char fname[255];
-		sprintf(fname, "python/random_model_parameters/fireball_size_%d.dat", sample);
+		sprintf(fname, "python/fireball_size_predictions/fireball_size_%d.dat", sample);
 	  	fireball_size = fopen(fname, "r");
 
 	  	if(fireball_size == NULL)
@@ -463,28 +463,35 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro, bool sample_p
 	  		exit(-1);
 	  	}
 
-	  	double fireball_radius_mean = 12.18;		// temporary values
-		double fireball_radius_std = 0.4;
+	  	double fireball_radius_mean;
+		double fireball_radius_std;
 
   		fscanf(fireball_size, "%lf\t%lf", &fireball_radius_mean, &fireball_radius_std);
 		fclose(fireball_size);
 
+		printf("Predicted mean radius   = %.2f fm\n", fireball_radius_mean);
+		printf("Predicted std radius    = %.2f fm\n", fireball_radius_std);
+
 		double sigma_factor = lattice.sigma_factor;
 		double buffer 		= lattice.buffer;
 
-		double grid_size = 2. * (fireball_radius_mean  +  sigma_factor * fireball_radius_std)  +  buffer;
+		double grid_size = 2. * (fireball_radius_mean  +  sigma_factor * fireball_radius_std  +  buffer);
+
+		printf("Auto grid size length L = %.3f fm\n\n", grid_size);
 
 		double dx = lattice.lattice_spacing_x;
 		double dy = lattice.lattice_spacing_y;
 		double dz = lattice.lattice_spacing_eta;
 
 		// ensure odd number of points
-		lattice.lattice_points_x 	= (int)ceil(grid_size / dx)  +  (1 + (int)ceil(grid_size / dx)) % 2;
-		lattice.lattice_points_y 	= (int)ceil(grid_size / dy)  +  (1 + (int)ceil(grid_size / dy)) % 2;
-		lattice.lattice_points_eta 	= (int)ceil(grid_size / dz)  +  (1 + (int)ceil(grid_size / dz)) % 2;
+		lattice.lattice_points_x 	= 2  +  (int)ceil(grid_size / dx)  +  (1 + (int)ceil(grid_size / dx)) % 2;
+		lattice.lattice_points_y 	= 2  +  (int)ceil(grid_size / dy)  +  (1 + (int)ceil(grid_size / dy)) % 2;
+	#ifndef BOOST_INVARIANT
+		lattice.lattice_points_eta 	= 2  +  (int)ceil(grid_size / dz)  +  (1 + (int)ceil(grid_size / dz)) % 2;
+	#endif
 
-		printf("Max fireball radius = %.2f fm\n", fireball_radius_mean  +  sigma_factor * fireball_radius_std);
-		printf("Reconfiguring grid size length to L ~ %.2f fm\n\n", (lattice.lattice_points_x - 1) * dx);
+
+		printf("Reconfiguring grid size length to L ~ %.3f fm\n\n", (lattice.lattice_points_x - 1) * dx);
 	}
 #endif
 

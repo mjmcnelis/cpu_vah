@@ -5,25 +5,25 @@ import numpy as np
 import time
 from datetime import datetime
 
-# Uniform parameter sampling
+# Uniform model parameter sampling
+# Linear impact parameter sampling
 
-#r.seed(time.time())
-#r.seed(datetime.now())
+def sample_impact_parameter(R):
+    while True:
+        b = r.uniform(0, 2*R)
+        w = b / (2*R)
 
+        if(r.random() < w):
+            return b
 
-# I should check if the distributions of each variable are uniform
-
-samples = 10       # default number of parameter samples
-R = 7.0            # radius of Pb nucleus [fm]
+samples = 10                       # default number of parameter samples
+R       = 7.0                      # radius of Pb nucleus [fm]
 
 if len(sys.argv) > 1:
-    samples = int(sys.argv[1])          # overwrite with command argument
-
-# alternative distribution to sample impact parameter?
-# how to regulate eta/s(T) if it goes negative (minimum value?)
+    samples = int(sys.argv[1])     # overwrite with command argument
 
 for i in range(0, samples):
-    b = r.uniform(0, 2*R)          # impact parameter [fm]
+    b = sample_impact_parameter(R) # impact parameter [fm]
     N = r.uniform(10, 20)          # normalization Pb+Pb [GeV]
     p = r.uniform(-0.7, 0.7)       # generalized mean
     w = r.uniform(0.5, 1.5)        # nucleon width [fm]
