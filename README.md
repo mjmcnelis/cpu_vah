@@ -1,7 +1,7 @@
 # cpu_vah
 A 3+1d viscous anisotropic hydrodynamic simulation for heavy ion collisions
 
-To compile and run:  sh hydro.sh
+To compile and run a single event with default parameters:  sh hydro.sh 1
 
 C++ source and header files are located in rhic/
 

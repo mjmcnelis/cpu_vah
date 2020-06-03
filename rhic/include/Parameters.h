@@ -75,6 +75,12 @@ typedef struct
 	double lattice_spacing_y;
 	double lattice_spacing_eta;
 
+	int resolve_nucleons;
+
+	int training_grid;
+	double train_coarse_factor;
+	int auto_grid;
+
 	double sigma_factor;
 	double buffer;
 
@@ -123,7 +129,7 @@ typedef struct
 
 random_model_parameters load_random_model_parameters(int sample);
 hydro_parameters load_hydro_parameters(bool sample_parameters, random_model_parameters random);
-lattice_parameters load_lattice_parameters(hydro_parameters hydro, bool sample_parameters, int sample);
+lattice_parameters load_lattice_parameters(hydro_parameters hydro, initial_condition_parameters initial, bool sample_parameters, int sample);
 initial_condition_parameters load_initial_condition_parameters(bool sample_parameters, random_model_parameters random);
 
 #endif

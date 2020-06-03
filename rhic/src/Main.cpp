@@ -57,8 +57,8 @@ int main(int argc, char *argv[])
 #endif
 
 	hydro_parameters hydro = load_hydro_parameters(sample_parameters, random);
-	lattice_parameters lattice = load_lattice_parameters(hydro, sample_parameters, sample);
 	initial_condition_parameters initial = load_initial_condition_parameters(sample_parameters, random);
+	lattice_parameters lattice = load_lattice_parameters(hydro, initial, sample_parameters, sample);
 
 	if(hydro.run_hydro)
 	{

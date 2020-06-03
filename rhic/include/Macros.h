@@ -12,10 +12,6 @@
 								// comment to use the fixed values in parameters/
 								// note: model parameters is a subset of all parameters
 
-#ifdef RANDOM_MODEL_PARAMETERS
-	#define GRID_REGRESSION 	// use regression model to configure grid size for a given model parameter sample
-#endif
-
 #define JETSCAPE 				// store freezeout surface in vector array for JETSCAPE (no surface.dat)
 								// also need to define FREEZEOUT_VH to run JETSCAPE mode
 
@@ -58,16 +54,16 @@
 
 
 
-//#define PRINT_HYDRO				// option to print current hydro info
+#define PRINT_HYDRO				// option to print current hydro info
 #define PRINT_PERIOD 10			// number of steps per print (leave this defined!)
 
-//#define PRINT_PARAMETERS		// option to print parameters
+#define PRINT_PARAMETERS		// option to print parameters
 
 #define FREEZEOUT_SIZE			// output maximum radius of freezeout surface
 
 #define BENCHMARKS				// output benchmark data (e.g. hydro run time)
 
-//#define ADAPTIVE_FILE			// output adaptive time steps
+#define ADAPTIVE_FILE			// output adaptive time steps
 
 //#define MONITOR_TTAUMU			// output violations of T^{\tau\mu} reproduction in InferredVariables.cpp
 

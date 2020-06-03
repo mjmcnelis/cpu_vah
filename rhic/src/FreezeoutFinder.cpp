@@ -780,12 +780,12 @@ void freezeout_finder::files_and_free_memory(int sample)
   {
     if(sample == 0)
     {
-      fireball_radius = fopen("output/fireball_radius.dat", "a");
+      fireball_radius = fopen("output/fireball_radius/fireball_radius.dat", "a");
     }
     else
     {
       char fname[255];
-      sprintf(fname, "output/fireball_radius_%d.dat", sample);
+      sprintf(fname, "output/fireball_radius/fireball_radius_%d.dat", sample);
       fireball_radius = fopen(fname, "a");
     }
 

@@ -9,6 +9,12 @@
 #include "../include/Macros.h"
 #include "../include/Parameters.h"
 
+
+double round_two_decimals(double number)
+{
+	return ceil((number * 100.) - 0.4999999) / 100.;
+}
+
 bool time_step_within_CFL_bound(double dt, lattice_parameters lattice)
 {
 	double dx = lattice.lattice_spacing_x;
@@ -39,16 +45,16 @@ double compute_conformal_prefactor(double flavors)
 
 random_model_parameters load_random_model_parameters(int sample)
 {
-	printf("\nLoading model parameters from python/random_model_parameters/model_parameters_%d.dat\n\n", sample);
+	printf("\nLoading model parameters from python/model_parameters/model_parameters_%d.dat\n\n", sample);
 
 	FILE * parameter_file;
 	char fname[255];
-	sprintf(fname, "python/random_model_parameters/model_parameters_%d.dat", sample);
+	sprintf(fname, "python/model_parameters/model_parameters_%d.dat", sample);
   	parameter_file = fopen(fname, "r");
 
   	if(parameter_file == NULL)
   	{
-  		printf("load_model_parameters error: could not open model_parameters_%d.dat\n", sample);
+  		printf("load_random_model_parameters error: could not open model_parameters_%d.dat\n", sample);
   		exit(-1);
   	}
 
@@ -336,7 +342,7 @@ hydro_parameters load_hydro_parameters(bool sample_parameters, random_model_para
 }
 
 
-lattice_parameters load_lattice_parameters(hydro_parameters hydro, bool sample_parameters, int sample)
+lattice_parameters load_lattice_parameters(hydro_parameters hydro, initial_condition_parameters initial, bool sample_parameters, int sample)
 {
 	char fname[255] = "parameters/lattice.properties";
 
@@ -382,6 +388,30 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro, bool sample_p
 		delimiterPos = line.find("=");
 		line = line.substr(delimiterPos + 1);
 		lattice.lattice_spacing_eta = atof(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		lattice.resolve_nucleons = atoi(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		lattice.training_grid = atoi(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		lattice.train_coarse_factor = atof(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		lattice.auto_grid = atoi(line.c_str());
 
 		getline(cFile, line);
 		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
@@ -447,10 +477,48 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro, bool sample_p
 	lattice.min_time_step = hydro.tau_initial / 20.;
 
 
-#ifdef GRID_REGRESSION
-	if(sample_parameters)
+	if(lattice.resolve_nucleons)
 	{
-		printf("\nLoading predicted fireball size from python/random_model_parameters/fireball_size_%d.dat\n\n", sample);
+		double Lx = lattice.lattice_spacing_x * (lattice.lattice_points_x - 1);
+		double Ly = lattice.lattice_spacing_y * (lattice.lattice_points_y - 1);
+		double Lz = lattice.lattice_spacing_eta * (lattice.lattice_points_eta - 1);
+
+		double w = initial.trento_nucleon_width;
+
+		double dx = round_two_decimals(w / 5.);
+		double dy = round_two_decimals(w / 5.);
+		double dz = round_two_decimals(w / 5.);		// think this works
+
+		lattice.lattice_spacing_x = dx;
+		lattice.lattice_spacing_y = dy;
+		lattice.lattice_spacing_eta = dz;
+
+		int nx = (int)ceil(Lx / dx)  +  (1 + (int)ceil(Lx / dx)) % 2;
+		int ny = (int)ceil(Ly / dy)  +  (1 + (int)ceil(Ly / dy)) % 2;
+		int nz = (int)ceil(Lz / dz)  +  (1 + (int)ceil(Lz / dz)) % 2;
+
+		if(((nx - 1) * dx < Lx) || ((ny - 1) * dy < Ly) || ((nz - 1) * dz < Lz))
+		{
+			nx += 2;
+			ny += 2;
+			nz += 2;
+		}
+
+		lattice.lattice_points_x   = nx;
+		lattice.lattice_points_y   = ny;
+	#ifndef BOOST_INVARIANT
+		lattice.lattice_points_eta = nz;
+	#endif
+	}
+
+
+if(sample_parameters)
+{
+	if(auto_grid)
+	{
+		printf("Run hydro simulation on the auto grid\n\n");
+
+		printf("\nLoading predicted fireball size from python/random_model_parameters/fireball_size_%d.dat\n", sample);
 
 		FILE * fireball_size;
 		char fname[255];
@@ -475,30 +543,40 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro, bool sample_p
 		double sigma_factor = lattice.sigma_factor;
 		double buffer 		= lattice.buffer;
 
-		double grid_size = 2. * (fireball_radius_mean  +  sigma_factor * fireball_radius_std  +  buffer);
+		double auto_grid = 2. * (fireball_radius_mean  +  sigma_factor * fireball_radius_std  +  buffer);
 
-		printf("Auto grid size length L = %.3f fm\n\n", grid_size);
+		printf("Auto grid size length L = %.3f fm\n\n", auto_grid);
 
 		double dx = lattice.lattice_spacing_x;
 		double dy = lattice.lattice_spacing_y;
 		double dz = lattice.lattice_spacing_eta;
 
 		// ensure odd number of points
-		lattice.lattice_points_x 	= 2  +  (int)ceil(grid_size / dx)  +  (1 + (int)ceil(grid_size / dx)) % 2;
-		lattice.lattice_points_y 	= 2  +  (int)ceil(grid_size / dy)  +  (1 + (int)ceil(grid_size / dy)) % 2;
+		int nx = (int)ceil(auto_grid / dx)  +  (1 + (int)ceil(auto_grid / dx)) % 2;
+		int ny = (int)ceil(auto_grid / dy)  +  (1 + (int)ceil(auto_grid / dy)) % 2;
+		int nz = (int)ceil(auto_grid / dz)  +  (1 + (int)ceil(auto_grid / dz)) % 2;
+
+		if(((nx - 1) * dx < auto_grid) || ((ny - 1) * dy < auto_grid) || ((nz - 1) * dz < auto_grid))
+		{
+			nx += 2;
+			ny += 2;
+			nz += 2;
+		}
+
+		lattice.lattice_points_x   = nx;
+		lattice.lattice_points_y   = ny;
 	#ifndef BOOST_INVARIANT
-		lattice.lattice_points_eta 	= 2  +  (int)ceil(grid_size / dz)  +  (1 + (int)ceil(grid_size / dz)) % 2;
+		lattice.lattice_points_eta = nz;
 	#endif
 
-
-		printf("Reconfiguring grid size length to L ~ %.3f fm\n\n", (lattice.lattice_points_x - 1) * dx);
+		printf("Reconfiguring grid size length to L ~ %.3f fm\n\n", (nx - 1) * dx);
 	}
-#endif
+}
 
 #ifdef BOOST_INVARIANT
 	if(lattice.lattice_points_eta > 1)
 	{
-		printf("load_lattice_parameters: BOOST_INVARIANT is defined but you set lattice_spacing_eta = %d. Setting lattice_spacing_eta = 1\n\n", lattice.lattice_points_eta);
+		printf("load_lattice_parameters: BOOST_INVARIANT is defined but you set lattice_points_eta = %d. Setting lattice_points_eta = 1\n\n", lattice.lattice_points_eta);
 		lattice.lattice_points_eta = 1;		// automatic default
 	}
 #endif
@@ -512,6 +590,10 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro, bool sample_p
 	printf("lattice_spacing_x   = %.3g\n",	lattice.lattice_spacing_x);
 	printf("lattice_spacing_y   = %.3g\n", 	lattice.lattice_spacing_y);
 	printf("lattice_spacing_eta = %.3g\n", 	lattice.lattice_spacing_eta);
+	printf("resolve_nucleons    = %d\n", 	lattice.resolve_nucleons);
+	printf("training_grid       = %d\n", 	lattice.training_grid);
+	printf("train_coarse_factor = %.2g\n", 	lattice.train_coarse_factor);
+	printf("auto_grid           = %d\n", 	lattice.auto_grid);
 	printf("sigma_factor        = %.3g\n", 	lattice.sigma_factor);
 	printf("buffer              = %.3g\n", 	lattice.buffer);
 	printf("max_time_steps      = %d\n", 	lattice.max_time_steps);

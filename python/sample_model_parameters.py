@@ -41,5 +41,5 @@ for i in range(0, samples):
 
     parameters = np.array([[b, N, p, w, dmin, sigmak, Tsw, Tk, etask, aL, aH, zetasN, Tp, wz, lambdaz]])
 
-    np.savetxt('random_model_parameters/model_parameters_' + str(i + 1) + '.dat', parameters)
+    np.savetxt('model_parameters/model_parameters_' + str(i + 1) + '.dat', parameters)
 

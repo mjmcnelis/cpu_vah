@@ -57,12 +57,12 @@ void print_run_time(double t, double duration, double steps, lattice_parameters 
 
 	if(sample == 0)
 	{
-		benchmarks = fopen("output/benchmarks.dat", "a");
+		benchmarks = fopen("output/benchmarks/benchmarks.dat", "a");
 	}
 	else
 	{
 		char fname[255];
-		sprintf(fname, "output/benchmarks_%d.dat", sample);
+		sprintf(fname, "output/benchmarks/benchmarks_%d.dat", sample);
 		benchmarks = fopen(fname, "a");
 	}
 
