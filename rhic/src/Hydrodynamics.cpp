@@ -179,6 +179,7 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 	precision t_out = t;								// output times
 	precision dt_out = lattice.output_interval;
 
+
 #ifdef BOOST_INVARIANT
 	printf("Running 2+1d hydro simulation...\n\n");
 #else
@@ -192,7 +193,6 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 
 	int steps = 0;
 	clock_t start = clock();
-
 
 
 	// fluid dynamic evolution

@@ -6,4 +6,10 @@ mathematica
 *.DS_Store
 Makefile
 notes
-python/random_model_parameters
+other
+python/model_parameters
+python/train/model_parameters
+python/train/fireball_radius
+python/fireball_size_predictions
+python/launch_fixed_grid
+python/.ipynb_checkpoints

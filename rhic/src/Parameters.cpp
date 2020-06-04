@@ -512,66 +512,105 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro, initial_condi
 	}
 
 
-if(sample_parameters)
-{
-	if(auto_grid)
+	if(sample_parameters)
 	{
-		printf("Run hydro simulation on the auto grid\n\n");
-
-		printf("\nLoading predicted fireball size from python/random_model_parameters/fireball_size_%d.dat\n", sample);
-
-		FILE * fireball_size;
-		char fname[255];
-		sprintf(fname, "python/fireball_size_predictions/fireball_size_%d.dat", sample);
-	  	fireball_size = fopen(fname, "r");
-
-	  	if(fireball_size == NULL)
-	  	{
-	  		printf("load_lattice_parameters error: could not open fireball_size_%d.dat. Need to run regression model\n", sample);
-	  		exit(-1);
-	  	}
-
-	  	double fireball_radius_mean;
-		double fireball_radius_std;
-
-  		fscanf(fireball_size, "%lf\t%lf", &fireball_radius_mean, &fireball_radius_std);
-		fclose(fireball_size);
-
-		printf("Predicted mean radius   = %.2f fm\n", fireball_radius_mean);
-		printf("Predicted std radius    = %.2f fm\n", fireball_radius_std);
-
-		double sigma_factor = lattice.sigma_factor;
-		double buffer 		= lattice.buffer;
-
-		double auto_grid = 2. * (fireball_radius_mean  +  sigma_factor * fireball_radius_std  +  buffer);
-
-		printf("Auto grid size length L = %.3f fm\n\n", auto_grid);
-
-		double dx = lattice.lattice_spacing_x;
-		double dy = lattice.lattice_spacing_y;
-		double dz = lattice.lattice_spacing_eta;
-
-		// ensure odd number of points
-		int nx = (int)ceil(auto_grid / dx)  +  (1 + (int)ceil(auto_grid / dx)) % 2;
-		int ny = (int)ceil(auto_grid / dy)  +  (1 + (int)ceil(auto_grid / dy)) % 2;
-		int nz = (int)ceil(auto_grid / dz)  +  (1 + (int)ceil(auto_grid / dz)) % 2;
-
-		if(((nx - 1) * dx < auto_grid) || ((ny - 1) * dy < auto_grid) || ((nz - 1) * dz < auto_grid))
+		if(lattice.training_grid)
 		{
-			nx += 2;
-			ny += 2;
-			nz += 2;
+			printf("\nRun hydro simulation on the training grid\n\n");
+
+			double L = 30;
+
+			if(lattice.train_coarse_factor < 1)
+			{
+				printf("load_lattice_parameters error: set train_coarse_factor >= 1\n");
+				exit(-1);
+			}
+
+			double dx = lattice.lattice_spacing_x * lattice.train_coarse_factor;
+			double dy = lattice.lattice_spacing_y * lattice.train_coarse_factor;
+			double dz = lattice.lattice_spacing_eta * lattice.train_coarse_factor;
+
+			lattice.lattice_spacing_x = dx;
+			lattice.lattice_spacing_y = dy;
+			lattice.lattice_spacing_eta = dz;
+
+			int nx = (int)ceil(L / dx)  +  (1 + (int)ceil(L / dx)) % 2;
+			int ny = (int)ceil(L / dy)  +  (1 + (int)ceil(L / dy)) % 2;
+			int nz = (int)ceil(L / dz)  +  (1 + (int)ceil(L / dz)) % 2;
+
+			if(((nx - 1) * dx < L) || ((ny - 1) * dy < L) || ((nz - 1) * dz < L))
+			{
+				nx += 2;
+				ny += 2;
+				nz += 2;
+			}
+
+			lattice.lattice_points_x   = nx;
+			lattice.lattice_points_y   = ny;
+		#ifndef BOOST_INVARIANT
+			lattice.lattice_points_eta = nz;
+		#endif
+
 		}
+		else if(lattice.auto_grid)
+		{
+			printf("\nRun hydro simulation on the auto grid\n");
 
-		lattice.lattice_points_x   = nx;
-		lattice.lattice_points_y   = ny;
-	#ifndef BOOST_INVARIANT
-		lattice.lattice_points_eta = nz;
-	#endif
+			printf("\nLoading predicted fireball size from python/random_model_parameters/fireball_size_%d.dat\n\n", sample);
 
-		printf("Reconfiguring grid size length to L ~ %.3f fm\n\n", (nx - 1) * dx);
+			FILE * fireball_size;
+			char fname[255];
+			sprintf(fname, "python/fireball_size_predictions/fireball_size_%d.dat", sample);
+		  	fireball_size = fopen(fname, "r");
+
+		  	if(fireball_size == NULL)
+		  	{
+		  		printf("load_lattice_parameters error: could not open fireball_size_%d.dat. Need to run regression model\n", sample);
+		  		exit(-1);
+		  	}
+
+		  	double fireball_radius_mean;
+			double fireball_radius_std;
+
+	  		fscanf(fireball_size, "%lf\t%lf", &fireball_radius_mean, &fireball_radius_std);
+			fclose(fireball_size);
+
+			printf("Predicted mean radius = %.2f fm\n", fireball_radius_mean);
+			printf("Predicted std radius  = %.2f fm\n", fireball_radius_std);
+
+			double sigma_factor = lattice.sigma_factor;
+			double buffer 		= lattice.buffer;
+
+			double L = 2. * (fireball_radius_mean  +  sigma_factor * fireball_radius_std  +  buffer);
+
+			printf("\nAuto grid size length L = %.3f fm\n\n", L);
+
+			double dx = lattice.lattice_spacing_x;
+			double dy = lattice.lattice_spacing_y;
+			double dz = lattice.lattice_spacing_eta;
+
+			// ensure odd number of points
+			int nx = (int)ceil(L / dx)  +  (1 + (int)ceil(L / dx)) % 2;
+			int ny = (int)ceil(L / dy)  +  (1 + (int)ceil(L / dy)) % 2;
+			int nz = (int)ceil(L / dz)  +  (1 + (int)ceil(L / dz)) % 2;
+
+			if(((nx - 1) * dx < L) || ((ny - 1) * dy < L) || ((nz - 1) * dz < L))
+			{
+				nx += 2;
+				ny += 2;
+				nz += 2;
+			}
+
+			lattice.lattice_points_x   = nx;
+			lattice.lattice_points_y   = ny;
+		#ifndef BOOST_INVARIANT
+			lattice.lattice_points_eta = nz;
+		#endif
+
+			printf("Reconfiguring grid size length to L ~ %.3f fm\n\n", (nx - 1) * dx);
+		}
 	}
-}
+
 
 #ifdef BOOST_INVARIANT
 	if(lattice.lattice_points_eta > 1)
@@ -580,6 +619,34 @@ if(sample_parameters)
 		lattice.lattice_points_eta = 1;		// automatic default
 	}
 #endif
+
+	double dt = lattice.fixed_time_step;						// dt = default starting time step
+
+	if(!time_step_within_CFL_bound(dt, lattice))
+	{
+		printf("load_lattice_parameters flag: fixed time step dt = %.2g greater than strict CFL bound. Adjusting fixed time step...\n", dt);
+		double dx = lattice.lattice_spacing_x;
+		double dy = lattice.lattice_spacing_y;
+		double dz = lattice.lattice_spacing_eta;
+
+		lattice.fixed_time_step = 0.125 * fmin(dx, fmin(dy, dz));
+	}
+
+	if(lattice.adaptive_time_step)
+	{
+		dt = lattice.min_time_step;								// if adaptive, starting time step is min
+	}
+
+	if(!time_step_within_CFL_bound(dt, lattice))
+	{
+		printf("load_lattice_parameters flag: starting time step dt = %.2g greater than strict CFL bound. Adjusting min time step...\n", dt);
+		double dx = lattice.lattice_spacing_x;
+		double dy = lattice.lattice_spacing_y;
+		double dz = lattice.lattice_spacing_eta;
+
+		lattice.min_time_step = 0.125 * fmin(dx, fmin(dy, dz));
+	}
+
 
 #ifdef PRINT_PARAMETERS
 	printf("Lattice parameters:");
@@ -606,25 +673,6 @@ if(sample_parameters)
 	printf("tau_coarse_factor   = %d\n", 	lattice.tau_coarse_factor);
 	printf("\n");
 #endif
-
-	double dt = lattice.fixed_time_step;						// dt = default starting time step
-
-	if(!time_step_within_CFL_bound(dt, lattice))
-	{
-		printf("load_lattice_parameters error: fixed time step dt = %.2g greater than strict CFL bound\n", dt);
-		exit(-1);
-	}
-
-	if(lattice.adaptive_time_step)
-	{
-		dt = lattice.min_time_step;								// if adaptive, starting time step is min
-	}
-
-	if(!time_step_within_CFL_bound(dt, lattice))
-	{
-		printf("load_lattice_parameters error: starting time step dt = %.2g greater than strict CFL bound\n", dt);
-		exit(-1);
-	}
 
 	return lattice;
 }
