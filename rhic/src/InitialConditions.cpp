@@ -398,6 +398,41 @@ void read_block_energy_density_file(int nx, int ny, int nz, hydro_parameters hyd
 }
 
 
+
+// void read_energy_density_vector(int nx, int ny, int nz, hydro_parameters hydro, initial_energy_vector e_vector)
+// {
+//   	for(int k = 2; k < nz + 2; k++)
+// 	{
+// 		for(int j = 2; j < ny + 2; j++)
+// 		{
+// 			for(int i = 2; i < nx + 2; i++)
+// 			{
+// 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
+// 		        int smm = linear_column_index(i - 2, j - 2, k - 2, nx + 4, ny + 4);		// C++ vector does not include ghost cells
+
+// 		        // init_tmunu.e_in units [GeV/fm^3]?
+
+// 		        // I don't know where init_tmunu comes from
+
+// 		        e[s] = energy_density_cutoff(hydro.energy_min, e_vector.e_initial[smm] / hbarc);
+
+// 		        u[s].ux = 0;		// zero initial velocity
+// 				u[s].uy = 0;
+// 			#ifndef BOOST_INVARIANT
+// 				u[s].un = 0;
+// 			#endif
+
+// 				up[s].ux = 0;		// also set up = u
+// 				up[s].uy = 0;
+// 			#ifndef BOOST_INVARIANT
+// 				up[s].un = 0;
+// 			#endif
+// 			}
+// 		}
+// 	}
+// }
+
+
 void set_initial_conditions(precision t, lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro)
 {
 	int nx = lattice.lattice_points_x;
@@ -523,6 +558,16 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 			set_anisotropic_initial_condition(nx, ny, nz, hydro);
 			set_initial_T_taumu_variables(t, nx, ny, nz, hydro);
 
+			break;
+		}
+		case 6:		// read energy density profile from JETSCAPE C++ vector
+		{
+			printf("Reading energy density from JETSCAPE C++ vector... (fluid velocity initialized to zero)\n\n");
+			printf("Not finished!\n");
+			exit(-1);
+			//read_energy_density_vector(nx, ny, nz, hydro);
+			set_anisotropic_initial_condition(nx, ny, nz, hydro);
+			set_initial_T_taumu_variables(t, nx, ny, nz, hydro);
 			break;
 		}
 		default:
