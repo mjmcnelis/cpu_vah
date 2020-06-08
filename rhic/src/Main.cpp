@@ -1,75 +1,34 @@
 /*
 -------------------------------------------------------
-| Code        	| CPU VAH
+| Code          | CPU VAH
 -------------------------------------------------------
-| Authors      	| Dennis Bazow, Mike McNelis
+| Authors       | Dennis Bazow, Mike McNelis
 -------------------------------------------------------
-| Date created	| 10/12/2015 by Dennis Bazow
+| Date created  | 10/12/2015 by Dennis Bazow
 -------------------------------------------------------
-| Last edited	| 5/19/2020 by Mike McNelis
+| Last edited   | 6/5/2020 by Mike McNelis
 -------------------------------------------------------
-| Description 	| A viscous anisotropic hydrodynamic
-|				| simulation of a heavy-ion collision
+| Description   | A viscous anisotropic hydrodynamic
+|               | simulation of a heavy-ion collision
 -------------------------------------------------------
  */
 
-#include <iostream>
-#include <sstream>
-#include <string>
-#include "../include/Parameters.h"
-#include "../include/Print.h"
-#include "../include/Macros.h"
-#include "../include/Hydrodynamics.h"
-#include "../include/FileIO.h"
-using namespace std;
+#include "HydroWrapper.h"
 
-int main(int argc, char *argv[])
+int main(int argc, char **argv)
 {
-	bool sample_parameters = false;						// default
-	int sample = 0;
-	random_model_parameters random;
+  // default: cpu_vah can run as a stand-alone program
+  // wrapper: HYDRO class can be instantiated in a larger program (JETSCAPE)
 
-#ifdef RANDOM_MODEL_PARAMETERS
-	if(argc == 2)										// load sample model parameters
-	{
-		sample_parameters = true;
+  HYDRO vah;
 
-		istringstream iss(argv[1]);
+  //vah.initialize_ed_from_vector(init_e);      // pass the initial energy density vector (Derek: how would this work?)
 
-        if(!(iss >> sample))
-        {
-  			printf("main error: parameter sample index %s invalid\n", argv[1]);
-  			exit(-1);
-  		}
-		else if(!iss.eof())
-		{
-			printf("main error: trailing characeters after sample index %s.\n", argv[1]);
-			exit(-1);
-		}
-		if(sample <= 0)
-		{
-			printf("main error: parameter sample index %d must be greater than zero\n", sample);
-			exit(-1);
-		}
+                                                // replaced int run_hydro -> void start_hydro
+  vah.start_hydro(argc, argv);                  // runs hydro code (Derek: do I need a version with no command line arguments?)
 
-		random = load_random_model_parameters(sample);
-	}
-#endif
+  // Derek: anything else after? (freezeout info)
+  // Derek: does HYDRO class need a surface vector to pass to iS3D? (my freezeout_finder class stores a surface vector)
 
-	hydro_parameters hydro = load_hydro_parameters(sample_parameters, random);
-	initial_condition_parameters initial = load_initial_condition_parameters(sample_parameters, random);
-	lattice_parameters lattice = load_lattice_parameters(hydro, initial, sample_parameters, sample);
-
-	if(hydro.run_hydro)
-	{
-		print_hydro_mode(hydro);
-		run_hydro(lattice, initial, hydro, sample);		// main function
-	}
-	else
-	{
-		output_semi_analytic_solution_if_any(lattice, initial, hydro);
-	}
-
-	return 0;
+  return 0;
 }
-
