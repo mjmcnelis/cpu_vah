@@ -6,7 +6,7 @@
 -------------------------------------------------------
 | Date created  | 10/12/2015 by Dennis Bazow
 -------------------------------------------------------
-| Last edited   | 6/5/2020 by Mike McNelis
+| Last edited   | 6/9/2020 by Mike McNelis
 -------------------------------------------------------
 | Description   | A viscous anisotropic hydrodynamic
 |               | simulation of a heavy-ion collision
@@ -22,8 +22,7 @@ int main(int argc, char **argv)
 
   HYDRO vah;
 
-  vah.start_hydro(argc, argv);						// run hydro and store freezeout surface (Derek: need version w/ no command line arguments?)
-
+  vah.start_hydro(argc, argv);						// run hydro and store freezeout surface
   vah.free_freezeout_surface();						// free freezeout surface
 
   return 0;
@@ -33,11 +32,11 @@ int main(int argc, char **argv)
 // example code in JETSCAPE:
 /*
 
-HYDRO vah;											// make HYDRO class
-vah.read_initial_energy_density(init_e);     		// pass energy density vector from trento
-vah.start_hydro();									// run hydro (no cli version??)
+HYDRO vah;                                          // make HYDRO class
+vah.read_initial_energy_density(init_e);            // pass energy density vector from trento
+vah.start_hydro();                                  // run hydro (Derek: do I need version with no command line arguments?)
 
-IS3D particlization;								// make IS3D class and pass freezeout surface from HYDRO (pinn is extraneous)
+IS3D particlization;                                // make IS3D class and pass freezeout surface from vah (pinn is extraneous)
 particlization.read_fo_surf_from_memory(vah.tau, vah.x, vah.y, vah.eta,
 										vah.dsigma_tau, vah.dsigma_x, vah.dsigma_y, vah.dsigma_eta,
 										vah.ux, vah.uy, vah.un,
@@ -45,9 +44,9 @@ particlization.read_fo_surf_from_memory(vah.tau, vah.x, vah.y, vah.eta,
 										vah.pixx, vah.pixy, vah.pixn, vah.piyy, vah.piyn, vah.pinn,
 										vah.Pi);
 
-vah.free_freezeout_surface();						// free surface memory in HYDRO
+vah.free_freezeout_surface();                       // free surface memory in vah
 
-particlization.run_particlization(0);				// run particle sampler (argument = 0 uses surface from memory)
+particlization.run_particlization(0);               // run particle sampler (argument = 0 uses surface from memory)
 
 */
 
