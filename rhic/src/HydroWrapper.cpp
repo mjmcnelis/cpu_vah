@@ -83,6 +83,39 @@ void HYDRO::store_freezeout_surface(freezeout_surface surface)
 }
 
 
+void HYDRO::free_freezeout_surface()
+{
+	printf("\nFreeing freezeout surface in hydro module...\n\n");
+
+	tau.clear();
+	x.clear();
+	y.clear();
+	eta.clear();
+
+	dsigma_tau.clear();
+	dsigma_x.clear();
+	dsigma_y.clear();
+	dsigma_eta.clear();
+
+	ux.clear();
+	uy.clear();
+	un.clear();
+
+	E.clear();
+	T.clear();
+	P.clear();
+
+	pixx.clear();
+	pixy.clear();
+	pixn.clear();
+	piyy.clear();
+	piyn.clear();
+
+	Pi.clear();
+}
+
+
+
 void HYDRO::start_hydro(int argc, char **argv)
 {
 	//HydroInitialTmunu init_tmunu;						// Derek: renamed this class initial_energy_vector

@@ -315,13 +315,13 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 	if(hydro.run_hydro == 2)
 	{
 		fo_finder.free_finder_memory(sample);
-		printf("\nFinished hydro\n");
+		printf("\nFinished hydro evolution\n");
 		return fo_finder.surface;					// return freezeout surface
 	}
 
-	printf("\nFinished hydro\n");
+	printf("\nFinished hydro evolution\n");
 
-	freezeout_surface surface;						// default: return an empty surface
+	freezeout_surface surface;						// return an empty surface (default)
 
 	return surface;
 }

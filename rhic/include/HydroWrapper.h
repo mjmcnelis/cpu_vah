@@ -61,6 +61,7 @@ class HYDRO
         void load_initial_energy_density_vector(std::vector<double> energy_vector);
 
         void store_freezeout_surface(freezeout_surface surface);
+        void free_freezeout_surface();
 
         void start_hydro(int argc, char **argv);                // run hydro simulation and save freezeout info
 

@@ -22,13 +22,35 @@ int main(int argc, char **argv)
 
   HYDRO vah;
 
-  //vah.initialize_ed_from_vector(init_e);      // pass the initial energy density vector (Derek: how would this work?)
+  vah.start_hydro(argc, argv);						// run hydro and store freezeout surface (Derek: need version w/ no command line arguments?)
 
-                                                // replaced int run_hydro -> void start_hydro
-  vah.start_hydro(argc, argv);                  // runs hydro code (Derek: do I need a version with no command line arguments?)
-
-  // Derek: anything else after? (freezeout info)
-  // Derek: does HYDRO class need a surface vector to pass to iS3D? (my freezeout_finder class stores a surface vector)
+  vah.free_freezeout_surface();						// free freezeout surface
 
   return 0;
 }
+
+
+// example code in JETSCAPE:
+/*
+
+HYDRO vah;											// make HYDRO class
+vah.read_initial_energy_density(init_e);     		// pass energy density vector from trento
+vah.start_hydro();									// run hydro (no cli version??)
+
+IS3D particlization;								// make IS3D class and pass freezeout surface from HYDRO (pinn is extraneous)
+particlization.read_fo_surf_from_memory(vah.tau, vah.x, vah.y, vah.eta,
+										vah.dsigma_tau, vah.dsigma_x, vah.dsigma_y, vah.dsigma_eta,
+										vah.ux, vah.uy, vah.un,
+										vah.E, vah.T, vah.P,
+										vah.pixx, vah.pixy, vah.pixn, vah.piyy, vah.piyn, vah.pinn,
+										vah.Pi);
+
+vah.free_freezeout_surface();						// free surface memory in HYDRO
+
+particlization.run_particlization(0);				// run particle sampler (argument = 0 uses surface from memory)
+
+*/
+
+
+
+
