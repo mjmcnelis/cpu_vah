@@ -10,47 +10,43 @@
 #include "Macros.h"
 #include "Parameters.h"
 #include "DynamicalVariables.h"
+using namespace std;
 
-//#define freezeout_precision float
-
-
-class freezeout_element
+class freezeout_surface
 {
- private:		// standard vh format
+ private:													// standard vh format for iS3D (convert to double at end of simulation)
 
  public:
-   float tau;	// freezeout cell position
-   float x;
-   float y;
-   float eta;
+    std::vector<float> tau;                                	// contravariant freezeout cell position
+    std::vector<float> x;
+    std::vector<float> y;
+    std::vector<float> eta;
 
-   float dat;	// covariant surface element vector
-   float dax;
-   float day;
-   float dan;
+    std::vector<float> dsigma_tau;                         	// covariant surface normal vector
+    std::vector<float> dsigma_x;
+    std::vector<float> dsigma_y;
+    std::vector<float> dsigma_eta;
 
-   float ux;	// contravariant fluid velocity
-   float uy;
-   float un;
+    std::vector<float> E;                                  	// energy density [GeV/fm^3]
+    std::vector<float> T;                                  	// temperature [GeV]
+    std::vector<float> P;                                  	// equilibrium pressure [GeV/fm^3]
 
-   float E;		// energy density [fm^-4]
-   float T;		// temperature [fm^-1]
-   float P;		// equilibrium pressure [fm^-4]
+    std::vector<float> ux;                                 	// contravariant fluid velocity
+    std::vector<float> uy;
+    std::vector<float> un;
+    														// contravariant shear stress pi^{\mu\nu}
+    std::vector<float> pixx;                               	// [GeV/fm^3]
+    std::vector<float> pixy;                               	// [GeV/fm^3]
+    std::vector<float> pixn;                               	// [GeV/fm^4]
+    std::vector<float> piyy;                               	// [GeV/fm^3]
+    std::vector<float> piyn;                               	// [GeV/fm^4]
+    std::vector<float> pinn;                               	// [GeV/fm^5]    (extraneous so leave it empty I guess)
 
-   				// contravariant shear stress
-   float pixx;	// [fm^-4]
-   float pixy;	// [fm^-4]
-   float pixn;	// [fm^-5]
-   float piyy;	// [fm^-4]
-   float piyn;	// [fm^-5]
+    std::vector<float> Pi;                                 	// bulk pressure [GeV/fm^3]
 
-   float Pi;	// bulk pressure [fm^-4]
-
-   freezeout_element(double tau_in, double x_in, double y_in, double eta_in, double dat_in, double dax_in, double day_in, double dan_in, double ux_in, double uy_in, double un_in, double E_in, double T_in, double P_in, double pixx_in, double pixy_in, double pixn_in, double piyy_in, double piyn_in, double Pi_in);
-   ~freezeout_element();
+   freezeout_surface();
+   ~freezeout_surface();
 };
-
-
 
 
 class freezeout_finder
@@ -94,7 +90,7 @@ class freezeout_finder
 		~freezeout_finder();
 
 	#ifdef JETSCAPE
-		std::vector<freezeout_element> freezeout_surface;	// freezeout surface elements stored in vector for JETSCAPE
+		freezeout_surface surface;
 	#endif
 
 
@@ -107,7 +103,7 @@ class freezeout_finder
 		void find_2d_freezeout_cells(double t_current, hydro_parameters hydro);
 		void find_3d_freezeout_cells(double t_current, hydro_parameters hydro);
 
-		void files_and_free_memory(int sample);
+		void free_finder_memory(int sample);
 };
 
 

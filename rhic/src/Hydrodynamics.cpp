@@ -153,7 +153,7 @@ precision set_the_time_step(int n, precision t, precision dt_prev, precision t_n
 }
 
 
-void run_hydro(lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro, int sample)
+freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro, int sample)
 {
 	precision dt_start = lattice.fixed_time_step;		// starting time step
 
@@ -186,7 +186,7 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 	printf("Running 3+1d hydro simulation...\n\n");
 #endif
 
-	freezeout_finder fo_surface(lattice, hydro);		// freezeout finder class
+	freezeout_finder fo_finder(lattice, hydro);		// freezeout finder class
 	int freezeout_period = lattice.tau_coarse_factor;	// time steps between freezeout finder calls
 	int grid_below_Tswitch = 0;							// number of times freezeout finder searches a grid below Tswitch
 	int freezeout_depth = 3;							// max number of time steps freezeout finder goes below Tswitch
@@ -246,7 +246,7 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 
 				print_hydro_center(n, t, lattice, hydro, cells_above_Tswitch);
 
-				fo_surface.set_hydro_evolution(t, q, e, u);
+				fo_finder.set_hydro_evolution(t, q, e, u);
 			}
 			else if(n % freezeout_period == 0)					// find freezeout cells
 			{
@@ -254,12 +254,12 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 
 				print_hydro_center(n, t, lattice, hydro, cells_above_Tswitch);
 
-				fo_surface.swap_and_set_hydro_evolution(q, e, u);
+				fo_finder.swap_and_set_hydro_evolution(q, e, u);
 
 			#ifdef BOOST_INVARIANT
-				fo_surface.find_2d_freezeout_cells(t, hydro);
+				fo_finder.find_2d_freezeout_cells(t, hydro);
 			#else
-				fo_surface.find_3d_freezeout_cells(t, hydro);
+				fo_finder.find_3d_freezeout_cells(t, hydro);
 			#endif
 
 				if(!cells_above_Tswitch)
@@ -314,10 +314,16 @@ void run_hydro(lattice_parameters lattice, initial_condition_parameters initial,
 
 	if(hydro.run_hydro == 2)
 	{
-		fo_surface.files_and_free_memory(sample);
+		fo_finder.free_finder_memory(sample);
+		printf("\nFinished hydro\n");
+		return fo_finder.surface;					// return freezeout surface
 	}
 
 	printf("\nFinished hydro\n");
+
+	freezeout_surface surface;						// default: return an empty surface
+
+	return surface;
 }
 
 

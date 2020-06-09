@@ -12,43 +12,16 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 }
 
 
-freezeout_element::freezeout_element(double tau_in, double x_in, double y_in, double eta_in, double dat_in, double dax_in, double day_in, double dan_in, double ux_in, double uy_in, double un_in, double E_in, double T_in, double P_in, double pixx_in, double pixy_in, double pixn_in, double piyy_in, double piyn_in, double Pi_in)
-{
-  tau = (float)tau_in;
-  x   = (float)x_in;
-  y   = (float)y_in;
-  eta = (float)eta_in;
-
-  dat = (float)dat_in;
-  dax = (float)dax_in;
-  day = (float)day_in;
-  dan = (float)dan_in;
-
-  ux  = (float)ux_in;
-  uy  = (float)uy_in;
-  un  = (float)un_in;
-
-  E   = (float)E_in;
-  T   = (float)T_in;
-  P   = (float)P_in;
-
-  pixx = (float)pixx_in;
-  pixy = (float)pixy_in;
-  pixn = (float)pixn_in;
-  piyy = (float)piyy_in;
-  piyn = (float)piyn_in;
-
-  Pi  = (float)Pi_in;
-}
-
-
-freezeout_element::~freezeout_element()
+freezeout_surface::freezeout_surface()
 {
 
 }
 
 
+freezeout_surface::~freezeout_surface()
+{
 
+}
 
 
 freezeout_finder::freezeout_finder(lattice_parameters lattice, hydro_parameters hydro)
@@ -417,9 +390,32 @@ void freezeout_finder::find_2d_freezeout_cells(double t_current, hydro_parameter
 
         double Pi = (pl + 2.*pt)/3. - p;
 
-      #ifdef JETSCAPE                                     // append freezeout surface vector
-        freezeout_element element(t, x, y, eta, ds0, ds1, ds2, ds3, ux, uy, un, e, T, p, pixx, pixy, pixn, piyy, piyn, Pi);
-        freezeout_surface.push_back(element);
+      #ifdef JETSCAPE
+        surface.tau.push_back((float)t);                  // append freezeout surface
+        surface.x.push_back(  (float)x);
+        surface.y.push_back(  (float)y);
+        surface.eta.push_back((float)eta);
+
+        surface.dsigma_tau.push_back((float)ds0);
+        surface.dsigma_x.push_back(  (float)ds1);
+        surface.dsigma_y.push_back(  (float)ds2);
+        surface.dsigma_eta.push_back((float)ds3);
+
+        surface.ux.push_back((float)ux);
+        surface.uy.push_back((float)uy);
+        surface.un.push_back((float)un);
+
+        surface.E.push_back((float)(e * hbarc));          // undo hbarc = 1 units
+        surface.T.push_back((float)(T * hbarc));
+        surface.P.push_back((float)(p * hbarc));
+
+        surface.pixx.push_back((float)(pixx * hbarc));
+        surface.pixy.push_back((float)(pixy * hbarc));
+        surface.pixn.push_back((float)(pixn * hbarc));
+        surface.piyy.push_back((float)(piyy * hbarc));
+        surface.piyn.push_back((float)(piyn * hbarc));
+
+        surface.Pi.push_back((float)(Pi * hbarc));
 
       #else
         freezeout_surface_file  << t    << " " << x    << " " << y    << " " << eta  << " "
@@ -475,9 +471,32 @@ void freezeout_finder::find_2d_freezeout_cells(double t_current, hydro_parameter
         double Pi = 0;
       #endif
 
-      #ifdef JETSCAPE                                     // append freezeout surface vector
-        freezeout_element element(t, x, y, eta, ds0, ds1, ds2, ds3, ux, uy, un, e, T, p, pixx, pixy, pixn, piyy, piyn, Pi);
-        freezeout_surface.push_back(element);
+      #ifdef JETSCAPE
+        surface.tau.push_back((float)t);                  // append freezeout surface
+        surface.x.push_back(  (float)x);
+        surface.y.push_back(  (float)y);
+        surface.eta.push_back((float)eta);
+
+        surface.dsigma_tau.push_back((float)ds0);
+        surface.dsigma_x.push_back(  (float)ds1);
+        surface.dsigma_y.push_back(  (float)ds2);
+        surface.dsigma_eta.push_back((float)ds3);
+
+        surface.ux.push_back((float)ux);
+        surface.uy.push_back((float)uy);
+        surface.un.push_back((float)un);
+
+        surface.E.push_back((float)(e * hbarc));          // undo hbarc = 1 units
+        surface.T.push_back((float)(T * hbarc));
+        surface.P.push_back((float)(p * hbarc));
+
+        surface.pixx.push_back((float)(pixx * hbarc));
+        surface.pixy.push_back((float)(pixy * hbarc));
+        surface.pixn.push_back((float)(pixn * hbarc));
+        surface.piyy.push_back((float)(piyy * hbarc));
+        surface.piyn.push_back((float)(piyn * hbarc));
+
+        surface.Pi.push_back((float)(Pi * hbarc));
 
       #else
         freezeout_surface_file  << t    << " " << x    << " " << y    << " " << eta  << " "
@@ -680,9 +699,32 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
 
           double Pi = (pl + 2.*pt)/3. - p;
 
-        #ifdef JETSCAPE                                     // append freezeout surface vector
-          freezeout_element element(t, x, y, eta, ds0, ds1, ds2, ds3, ux, uy, un, e, T, p, pixx, pixy, pixn, piyy, piyn, Pi);
-          freezeout_surface.push_back(element);
+        #ifdef JETSCAPE
+          surface.tau.push_back((float)t);                  // append freezeout surface
+          surface.x.push_back(  (float)x);
+          surface.y.push_back(  (float)y);
+          surface.eta.push_back((float)eta);
+
+          surface.dsigma_tau.push_back((float)ds0);
+          surface.dsigma_x.push_back(  (float)ds1);
+          surface.dsigma_y.push_back(  (float)ds2);
+          surface.dsigma_eta.push_back((float)ds3);
+
+          surface.ux.push_back((float)ux);
+          surface.uy.push_back((float)uy);
+          surface.un.push_back((float)un);
+
+          surface.E.push_back((float)(e * hbarc));          // undo hbarc = 1 units
+          surface.T.push_back((float)(T * hbarc));
+          surface.P.push_back((float)(p * hbarc));
+
+          surface.pixx.push_back((float)(pixx * hbarc));
+          surface.pixy.push_back((float)(pixy * hbarc));
+          surface.pixn.push_back((float)(pixn * hbarc));
+          surface.piyy.push_back((float)(piyy * hbarc));
+          surface.piyn.push_back((float)(piyn * hbarc));
+
+          surface.Pi.push_back((float)(Pi * hbarc));
 
         #else
           freezeout_surface_file  << t    << " " << x    << " " << y    << " " << eta  << " "
@@ -731,9 +773,32 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
         #endif
 
 
-        #ifdef JETSCAPE                                     // append freezeout surface vector
-          freezeout_element element(t, x, y, eta, ds0, ds1, ds2, ds3, ux, uy, un, e, T, p, pixx, pixy, pixn, piyy, piyn, Pi);
-          freezeout_surface.push_back(element);
+        #ifdef JETSCAPE
+          surface.tau.push_back((float)t);                  // append freezeout surface
+          surface.x.push_back(  (float)x);
+          surface.y.push_back(  (float)y);
+          surface.eta.push_back((float)eta);
+
+          surface.dsigma_tau.push_back((float)ds0);
+          surface.dsigma_x.push_back(  (float)ds1);
+          surface.dsigma_y.push_back(  (float)ds2);
+          surface.dsigma_eta.push_back((float)ds3);
+
+          surface.ux.push_back((float)ux);
+          surface.uy.push_back((float)uy);
+          surface.un.push_back((float)un);
+
+          surface.E.push_back((float)(e * hbarc));          // undo hbarc = 1 units
+          surface.T.push_back((float)(T * hbarc));
+          surface.P.push_back((float)(p * hbarc));
+
+          surface.pixx.push_back((float)(pixx * hbarc));
+          surface.pixy.push_back((float)(pixy * hbarc));
+          surface.pixn.push_back((float)(pixn * hbarc));
+          surface.piyy.push_back((float)(piyy * hbarc));
+          surface.piyn.push_back((float)(piyn * hbarc));
+
+          surface.Pi.push_back((float)(Pi * hbarc));
 
         #else
           freezeout_surface_file  << t    << " " << x    << " " << y    << " " << eta  << " "
@@ -756,13 +821,11 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
 }
 
 
-void freezeout_finder::files_and_free_memory(int sample)
+void freezeout_finder::free_finder_memory(int sample)
 {
-	printf("\nFreeing freezeout_finder memory...\n");
+	printf("\nFreeing freezeout_finder memory... (except freezeout surface)\n");
 
-#ifdef JETSCAPE
-  freezeout_surface.clear();
-#else
+#ifndef JETSCAPE
   freezeout_surface_file.close();
 #endif
 
