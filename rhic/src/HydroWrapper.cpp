@@ -21,19 +21,22 @@ HYDRO::HYDRO()
 }
 
 
+
 HYDRO::~HYDRO()
 {
 
 }
 
 
-void HYDRO::load_initial_energy_density_vector(std::vector<double> energy_vector)
-{
-	// set initial_energy_density from a vector (useful for JETSCAPE)
-    // note: argument should be [GeV/fm^3], later we convert it to [fm^-4]
 
-	initial_energy_density_vector = energy_vector;
+void HYDRO::read_trento_energy_density_profile(std::vector<double> trento_energy)
+{
+	// read initial energy density profile from TRENTo (for JETSCAPE, initial_condition_type = 6)
+    // note: units should be [GeV/fm^3], later converted to [fm^-4]
+
+	trento_energy_density_profile = trento_energy;
 }
+
 
 
 void HYDRO::store_freezeout_surface(freezeout_surface surface)
@@ -83,6 +86,7 @@ void HYDRO::store_freezeout_surface(freezeout_surface surface)
 }
 
 
+
 void HYDRO::free_freezeout_surface()
 {
 	printf("\nFreeing freezeout surface in hydro module...\n\n");
@@ -118,21 +122,12 @@ void HYDRO::free_freezeout_surface()
 
 void HYDRO::start_hydro(int argc, char **argv)
 {
-	//HydroInitialTmunu init_tmunu;						// Derek: renamed this class initial_energy_vector
-  														// does not appear to be initialized in cpu-vh
-
-	initial_energy_vector initial_energy_profile;
-
-
-
-	// the rest of my code:
-
 	bool sample_parameters = false;						// default: use model parameters in parameters/
 	int sample = 0;
 	random_model_parameters random;
 
 #ifdef RANDOM_MODEL_PARAMETERS
-	if(argc == 2)										// load sample model parameters
+	if(argc == 2)										// read sample model parameters
 	{
 		sample_parameters = true;
 
@@ -140,23 +135,54 @@ void HYDRO::start_hydro(int argc, char **argv)
 
         if(!(iss >> sample))
         {
-  			printf("main error: parameter sample index %s invalid\n", argv[1]);
+  			printf("HYDRO::start_hydro error: parameter sample index %s invalid\n", argv[1]);
   			exit(-1);
   		}
 		else if(!iss.eof())
 		{
-			printf("main error: trailing characeters after sample index %s.\n", argv[1]);
+			printf("HYDRO::start_hydro error: trailing characeters after sample index %s.\n", argv[1]);
 			exit(-1);
 		}
 		if(sample <= 0)
 		{
-			printf("main error: parameter sample index %d must be greater than zero\n", sample);
+			printf("HYDRO::start_hydro error: parameter sample index %d must be greater than zero\n", sample);
 			exit(-1);
 		}
 
 		random = load_random_model_parameters(sample);
 	}
+	else if(argc > 2)
+	{
+		printf("HYDRO::start_hydro error: too many command line arguments (max is 1)\n");
+		exit(-1);
+	}
 #endif
+
+	hydro_parameters hydro = load_hydro_parameters(sample_parameters, random);
+	initial_condition_parameters initial = load_initial_condition_parameters(sample_parameters, random);
+	lattice_parameters lattice = load_lattice_parameters(hydro, initial, sample_parameters, sample);
+
+
+	if(hydro.run_hydro)									// main hydro simulation (freezeout surface empty by default)
+	{
+		print_hydro_mode(hydro);
+		store_freezeout_surface(run_hydro(lattice, initial, hydro, sample));
+	}
+	else
+	{
+		output_semi_analytic_solution_if_any(lattice, initial, hydro);
+	}
+
+	printf("\nEnd of hydro simulation\n");
+}
+
+
+
+void HYDRO::start_hydro_no_arguments()
+{
+	bool sample_parameters = false;						// will read default parameters in parameters/
+	int sample = 0;                                     // can't use auto_grid (need different way to read in sample model parameters)
+	random_model_parameters random;
 
 	hydro_parameters hydro = load_hydro_parameters(sample_parameters, random);
 	initial_condition_parameters initial = load_initial_condition_parameters(sample_parameters, random);

@@ -21,7 +21,7 @@ class HYDRO
 
         // input initial energy density profile from TRENTo:
 
-        std::vector<double> initial_energy_density_vector;      // initial energy profile [GeV/fm^3] (note: no ghost cells included)
+        std::vector<double> trento_energy_density_profile;      // [GeV/fm^3] (note: no ghost cells included)
 
 
         // output freezeout surface info to pass to iS3D:
@@ -54,14 +54,14 @@ class HYDRO
         std::vector<double> Pi;                                 // bulk pressure [GeV/fm^3]
 
 
-        void load_initial_energy_density_vector(std::vector<double> energy_vector);
+        void read_trento_energy_density_profile(std::vector<double> energy_vector);
 
         void store_freezeout_surface(freezeout_surface surface);
         void free_freezeout_surface();
 
         void start_hydro(int argc, char **argv);                // run hydro simulation and save freezeout info
 
-        // int run_hydro_no_cli();                              // Derek: do I need this version?
+        void start_hydro_no_arguments();                        // no command line arguments (can't use auto_grid currently)
 };
 
 #endif
