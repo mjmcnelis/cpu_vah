@@ -6,7 +6,7 @@
 #include <math.h>
 #include "../include/Hydrodynamics.h"
 #include "../include/Print.h"
-#include "../include/FileIO.h"
+#include "../include/Output.h"
 #include "../include/Parameters.h"
 #include "../include/Precision.h"
 #include "../include/Macros.h"

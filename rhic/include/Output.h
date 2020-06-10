@@ -1,6 +1,6 @@
 
-#ifndef FILEIO_H_
-#define FILEIO_H_
+#ifndef OUTPUT_H_
+#define OUTPUT_H_
 
 #include "Parameters.h"
 

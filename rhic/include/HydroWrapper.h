@@ -2,15 +2,11 @@
 #ifndef HYDROWRAPPER_H
 #define HYDROWRAPPER_H
 
-#include <stdlib.h>
-#include "FreezeoutFinder.h"
-#include <vector>
+#include "FreezeoutSurface.h"
 
 // #ifdef _OPENMP       // Derek: my code does not have openmp acceleration, is it required?
 // #include <omp.h>
 // #endif
-
-using namespace std;
 
 class HYDRO
 {

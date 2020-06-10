@@ -3,7 +3,7 @@
 #define HYDRODYNAMICS_H_
 
 #include "Parameters.h"
-#include "FreezeoutFinder.h"
+#include "FreezeoutSurface.h"
 
 const double hbarc = 0.197326938;
 

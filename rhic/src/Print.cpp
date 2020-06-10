@@ -4,7 +4,7 @@
 #include <math.h>
 #include "../include/Macros.h"
 #include "../include/Hydrodynamics.h"
-#include "../include/FileIO.h"
+#include "../include/Output.h"
 #include "../include/Precision.h"
 #include "../include/DynamicalVariables.h"
 #include "../include/Parameters.h"
