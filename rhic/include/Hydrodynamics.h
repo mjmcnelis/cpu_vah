@@ -7,6 +7,6 @@
 
 const double hbarc = 0.197326938;
 
-freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro, int sample);
+freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro, int sample, std::vector<double> trento_energy_density_profile);
 
 #endif

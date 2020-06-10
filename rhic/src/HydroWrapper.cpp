@@ -166,7 +166,7 @@ void HYDRO::start_hydro(int argc, char **argv)
 	if(hydro.run_hydro)									// main hydro simulation (freezeout surface empty by default)
 	{
 		print_hydro_mode(hydro);
-		store_freezeout_surface(run_hydro(lattice, initial, hydro, sample));
+		store_freezeout_surface(run_hydro(lattice, initial, hydro, sample, trento_energy_density_profile));
 	}
 	else
 	{
@@ -192,7 +192,7 @@ void HYDRO::start_hydro_no_arguments()
 	if(hydro.run_hydro)									// main hydro simulation (freezeout surface empty by default)
 	{
 		print_hydro_mode(hydro);
-		store_freezeout_surface(run_hydro(lattice, initial, hydro, sample));
+		store_freezeout_surface(run_hydro(lattice, initial, hydro, sample, trento_energy_density_profile));
 	}
 	else
 	{

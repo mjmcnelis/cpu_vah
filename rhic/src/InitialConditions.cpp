@@ -399,41 +399,49 @@ void read_block_energy_density_file(int nx, int ny, int nz, hydro_parameters hyd
 
 
 
-// void read_energy_density_vector(int nx, int ny, int nz, hydro_parameters hydro, initial_energy_vector e_vector)
-// {
-//   	for(int k = 2; k < nz + 2; k++)
-// 	{
-// 		for(int j = 2; j < ny + 2; j++)
-// 		{
-// 			for(int i = 2; i < nx + 2; i++)
-// 			{
-// 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
-// 		        int smm = linear_column_index(i - 2, j - 2, k - 2, nx + 4, ny + 4);		// C++ vector does not include ghost cells
+void set_trento_energy_density_profile(int nx, int ny, int nz, hydro_parameters hydro, std::vector<double> trento)
+{
+	if(trento.size() == 0)
+	{
+		printf("set_trento_energy_density_profile error: trento energy density profile is empty (initial condition type only compatible with JETSCAPE)\n");
+		exit(-1);
+	}
 
-// 		        // init_tmunu.e_in units [GeV/fm^3]?
+	if((nx * ny * nz) != trento.size())
+	{
+		printf("set_trento_energy_density_profile error: physical grid points and trento energy density vector size are inconsistent\n");
+		exit(-1);
+	}
 
-// 		        // I don't know where init_tmunu comes from
+  	for(int k = 2; k < nz + 2; k++)
+	{
+		for(int j = 2; j < ny + 2; j++)
+		{
+			for(int i = 2; i < nx + 2; i++)
+			{
+				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
+		        int st = linear_column_index(i - 2, j - 2, k - 2, nx + 4, ny + 4);   // TRENTo vector has no ghost cells
 
-// 		        e[s] = energy_density_cutoff(hydro.energy_min, e_vector.e_initial[smm] / hbarc);
+		        e[s] = energy_density_cutoff(hydro.energy_min, trento[st] / hbarc);  // convert units to [fm^-4]
 
-// 		        u[s].ux = 0;		// zero initial velocity
-// 				u[s].uy = 0;
-// 			#ifndef BOOST_INVARIANT
-// 				u[s].un = 0;
-// 			#endif
+		        u[s].ux = 0;		// zero initial velocity
+				u[s].uy = 0;
+			#ifndef BOOST_INVARIANT
+				u[s].un = 0;
+			#endif
 
-// 				up[s].ux = 0;		// also set up = u
-// 				up[s].uy = 0;
-// 			#ifndef BOOST_INVARIANT
-// 				up[s].un = 0;
-// 			#endif
-// 			}
-// 		}
-// 	}
-// }
+				up[s].ux = 0;		// also set up = u
+				up[s].uy = 0;
+			#ifndef BOOST_INVARIANT
+				up[s].un = 0;
+			#endif
+			}
+		}
+	}
+}
 
 
-void set_initial_conditions(precision t, lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro)
+void set_initial_conditions(precision t, lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro, std::vector<double> trento)
 {
 	int nx = lattice.lattice_points_x;
 	int ny = lattice.lattice_points_x;
@@ -450,7 +458,7 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 	printf("\nInitial conditions = ");
 	switch(initial.initial_condition_type)
 	{
-		case 1:		// Viscous hydro or Anisotropic hydro Bjorken
+		case 1:		// viscous hydro or anisotropic hydro bjorken
 		{
 			printf("Bjorken\n\n");
 
@@ -473,7 +481,7 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 
 			break;
 		}
-		case 2:		// Viscous hydro Gubser
+		case 2:		// viscous hydro gubser
 		{
 		#ifdef PIMUNU
 			printf("Viscous Gubser\n\n");
@@ -508,7 +516,7 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 
 			break;
 		}
-		case 3:		// Anisotropic hydro Gubser
+		case 3:		// anisotropic hydro gubser
 		{
 			printf("Anisotropic Gubser (residual shear stress initialized to zero)\n\n");
 
@@ -542,7 +550,7 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 
 			break;
 		}
-		case 4:		// Trento
+		case 4:		// trento
 		{
 			printf("Trento (fluid velocity initialized to zero)\n\n");
 			set_trento_energy_density_and_flow_profile(lattice, initial, hydro);
@@ -560,19 +568,17 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 
 			break;
 		}
-		case 6:		// read energy density profile from JETSCAPE C++ vector
+		case 6:		// read trento energy density profile from JETSCAPE C++ vector
 		{
-			printf("Reading energy density from JETSCAPE C++ vector... (fluid velocity initialized to zero)\n\n");
-			printf("Not finished!\n");
-			exit(-1);
-			//read_energy_density_vector(nx, ny, nz, hydro);
+			printf("Reading trento energy density profile from JETSCAPE C++ vector... (fluid velocity initialized to zero)\n\n");
+			set_trento_energy_density_profile(nx, ny, nz, hydro, trento);
 			set_anisotropic_initial_condition(nx, ny, nz, hydro);
 			set_initial_T_taumu_variables(t, nx, ny, nz, hydro);
 			break;
 		}
 		default:
 		{
-			printf("\nsetInitialConditions error: initial condition type not defined, exiting...\n");
+			printf("\n\nset_initial_conditions error: initial condition type %d is not an option (see parameters/initial.properties)\n", initial.initial_condition_type);
 			exit(-1);
 		}
 	}

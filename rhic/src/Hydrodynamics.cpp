@@ -153,14 +153,17 @@ precision set_the_time_step(int n, precision t, precision dt_prev, precision t_n
 }
 
 
-freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro, int sample)
+freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro, int sample, std::vector<double> trento)
 {
-	precision dt_start = lattice.fixed_time_step;		// starting time step
+	precision dt_start = lattice.fixed_time_step;       // starting time step
 
-	if(lattice.adaptive_time_step) dt_start = lattice.min_time_step;
+	if(lattice.adaptive_time_step)
+	{
+		dt_start = lattice.min_time_step;
+	}
 
-	precision dt = dt_start;							// initialize time step
-	precision dt_prev = dt;								// previous time step
+	precision dt = dt_start;                            // initialize time step
+	precision dt_prev = dt;                             // previous time step
 
 	print_parameters(lattice, hydro);
 	allocate_memory(lattice);
@@ -170,13 +173,13 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 	long nz = lattice.lattice_points_eta;
 	long grid_size = nx * ny * nz;
 
-	precision t = hydro.tau_initial;					// initial longitudinal proper time
+	precision t = hydro.tau_initial;                             // initial longitudinal proper time
 
-	set_initial_conditions(t, lattice, initial, hydro);	// initial conditions for (q, e, u)
+	set_initial_conditions(t, lattice, initial, hydro, trento);  // initial conditions for (q, e, u)
 
-	set_ghost_cells(q, e, u, lattice);					// initialize ghost cells in (q, e, u)
+	set_ghost_cells(q, e, u, lattice);                           // initialize ghost cells in (q, e, u)
 
-	precision t_out = t;								// output times
+	precision t_out = t;                                         // output times
 	precision dt_out = lattice.output_interval;
 
 
@@ -186,10 +189,10 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 	printf("Running 3+1d hydro simulation...\n\n");
 #endif
 
-	freezeout_finder fo_finder(lattice, hydro);		// freezeout finder class
-	int freezeout_period = lattice.tau_coarse_factor;	// time steps between freezeout finder calls
-	int grid_below_Tswitch = 0;							// number of times freezeout finder searches a grid below Tswitch
-	int freezeout_depth = 3;							// max number of time steps freezeout finder goes below Tswitch
+	freezeout_finder fo_finder(lattice, hydro);         // freezeout finder class
+	int freezeout_period = lattice.tau_coarse_factor;   // time steps between freezeout finder calls
+	int grid_below_Tswitch = 0;                         // number of times freezeout finder searches a grid below Tswitch
+	int freezeout_depth = 3;                            // max number of time steps freezeout finder goes below Tswitch
 
 	int steps = 0;
 	clock_t start = clock();
