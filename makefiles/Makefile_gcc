@@ -9,9 +9,9 @@ COMPILER       = gcc
 DEBUG          =
 OPTIMIZATION   = -O3
 FLOWTRACE      =
-OPTIONS        =
+OPTIONS        = -std=c++11
 LINK_OPTIONS   =
-CFLAGS         = -std=c++11 $(DEBUG) $(OPTIMIZATION) $(FLOWTRACE) $(OPTIONS)
+CFLAGS         = $(DEBUG) $(OPTIMIZATION) $(FLOWTRACE) $(OPTIONS)
 
 LIBS     = -L /usr/local/lib -lm -lgsl -lgslcblas -lc++
 INCLUDES = -I /usr/local/include -I rhic/include
