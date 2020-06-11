@@ -8,7 +8,7 @@
 #include "../include/Macros.h"
 #include "../include/Hydrodynamics.h"
 #include "../include/Output.h"
-//#include "../include/RuntimeParameters.h"		// Derek: what are the runtime parameters for?
+#include "../include/OpenMP.h"
 using namespace std;
 
 // this is a C++ wrapper for OSU hydro codes (cpu-vh, gpu-vh, cpu_vah, etc)
@@ -122,6 +122,10 @@ void HYDRO::free_freezeout_surface()
 
 void HYDRO::start_hydro(int argc, char **argv)
 {
+#ifdef OPENMP
+	printf("Running CPU-VAH with OpenMP acceleration: number of threads = \n\n", omp_get_max_threads());
+#endif
+
 	bool sample_parameters = false;						// default: use model parameters in parameters/
 	int sample = 0;
 	random_model_parameters random;
@@ -180,6 +184,9 @@ void HYDRO::start_hydro(int argc, char **argv)
 
 void HYDRO::start_hydro_no_arguments()
 {
+#ifdef OPENMP
+	printf("Running CPU-VAH with OpenMP acceleration: number of threads = \n\n", omp_get_max_threads());
+#endif
 	bool sample_parameters = false;						// will read default parameters in parameters/
 	int sample = 0;                                     // can't use auto_grid (need different way to read in sample model parameters)
 	random_model_parameters random;

@@ -46,11 +46,11 @@ vah.start_hydro_no_arguments();                         // run hydro (Derek: do 
 
 IS3D particlization;                                    // make IS3D class and pass freezeout surface from vah (pinn is extraneous)
 particlization.read_fo_surf_from_memory(vah.tau, vah.x, vah.y, vah.eta,
-										vah.dsigma_tau, vah.dsigma_x, vah.dsigma_y, vah.dsigma_eta,
-										vah.ux, vah.uy, vah.un,
-										vah.E, vah.T, vah.P,
-										vah.pixx, vah.pixy, vah.pixn, vah.piyy, vah.piyn, vah.pinn,
-										vah.Pi);
+                    vah.dsigma_tau, vah.dsigma_x, vah.dsigma_y, vah.dsigma_eta,
+                    vah.ux, vah.uy, vah.un,
+                    vah.E, vah.T, vah.P,
+                    vah.pixx, vah.pixy, vah.pixn, vah.piyy, vah.piyn, vah.pinn,
+                    vah.Pi);
 
 vah.free_freezeout_surface();                           // free surface memory in vah
 
