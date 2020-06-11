@@ -5,7 +5,7 @@
 //#define OPENMP 				// uncomment to use openmp acceleration
 
 #ifdef OPENMP
-#include <omp.h>				// only works if you have openmp support
+#include <omp.h>				// need to have openmp support
 #endif
 
 #endif

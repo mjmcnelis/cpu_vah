@@ -1,6 +1,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <cpuid.h>
 #include "../include/HydroWrapper.h"
 #include "../include/EnergyVector.h"
 #include "../include/Parameters.h"
@@ -13,6 +14,32 @@ using namespace std;
 
 // this is a C++ wrapper for OSU hydro codes (cpu-vh, gpu-vh, cpu_vah, etc)
 // originally written by Derek Everett 2018
+
+void print_cpu()
+{
+    char CPUBrandString[0x40];
+    unsigned int CPUInfo[4] = {0,0,0,0};
+
+    __cpuid(0x80000000, CPUInfo[0], CPUInfo[1], CPUInfo[2], CPUInfo[3]);
+    unsigned int nExIds = CPUInfo[0];
+
+    memset(CPUBrandString, 0, sizeof(CPUBrandString));
+
+    for (unsigned int i = 0x80000000; i <= nExIds; ++i)
+    {
+        __cpuid(i, CPUInfo[0], CPUInfo[1], CPUInfo[2], CPUInfo[3]);
+
+        if (i == 0x80000002)
+            memcpy(CPUBrandString, CPUInfo, sizeof(CPUInfo));
+        else if (i == 0x80000003)
+            memcpy(CPUBrandString + 16, CPUInfo, sizeof(CPUInfo));
+        else if (i == 0x80000004)
+            memcpy(CPUBrandString + 32, CPUInfo, sizeof(CPUInfo));
+    }
+
+    std::cout << "\nCPU Type: " << CPUBrandString << "\n" << std::endl;
+}
+
 
 
 HYDRO::HYDRO()
@@ -122,8 +149,10 @@ void HYDRO::free_freezeout_surface()
 
 void HYDRO::start_hydro(int argc, char **argv)
 {
+	print_cpu();
+
 #ifdef OPENMP
-	printf("Running CPU-VAH with OpenMP acceleration: number of threads = \n\n", omp_get_max_threads());
+	printf("\n\nRunning CPU-VAH with OpenMP acceleration: number of threads = %d\n\n", omp_get_max_threads());
 #endif
 
 	bool sample_parameters = false;						// default: use model parameters in parameters/
@@ -184,8 +213,10 @@ void HYDRO::start_hydro(int argc, char **argv)
 
 void HYDRO::start_hydro_no_arguments()
 {
+	print_cpu();
+
 #ifdef OPENMP
-	printf("Running CPU-VAH with OpenMP acceleration: number of threads = \n\n", omp_get_max_threads());
+	printf("\n\nRunning CPU-VAH with OpenMP acceleration: number of threads = %d\n\n", omp_get_max_threads());
 #endif
 	bool sample_parameters = false;						// will read default parameters in parameters/
 	int sample = 0;                                     // can't use auto_grid (need different way to read in sample model parameters)
