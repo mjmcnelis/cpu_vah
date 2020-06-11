@@ -11,6 +11,7 @@
 #include "../include/InferredVariables.h"
 #include "../include/NeighborCells.h"
 #include "../include/Regulation.h"
+#include "../include/OpenMP.h"
 
 inline int linear_column_index(int i, int j, int k, int nx, int ny)
 {
@@ -31,48 +32,49 @@ const precision * const __restrict__ e_current, const precision * const __restri
 
 	precision Theta = hydro.flux_limiter;
 
-	precision t2 = t * t;							// current time
+	precision t2 = t * t;							// current time squared
 
 	int stride_y = nx + 4;							// strides for neighbor cells along x, y, n (stride_x = 1)
 	int stride_z = (nx + 4) * (ny + 4);				// stride formulas based from linear_column_index()
 
-	precision qs[NUMBER_CONSERVED_VARIABLES];		// current variables at cell s
-	precision f[NUMBER_CONSERVED_VARIABLES];		// source function at cell s
-	precision  S[NUMBER_CONSERVED_VARIABLES];		// external source terms in hydrodynamic equations
-
-	precision e1[6];								// primary variables of neighbors [i-1, i+1, j-1, j+1, k-1, k+1]
-
-	precision qi1[2 * NUMBER_CONSERVED_VARIABLES];	// conserved variables of neighbor cells along x [i-1, i+1]
-	precision qj1[2 * NUMBER_CONSERVED_VARIABLES];	// conserved variables of neighbor cells along y [j-1, j+1]
-	precision qk1[2 * NUMBER_CONSERVED_VARIABLES];	// conserved variables of neighbor cells along n [k-1, k+1]
-
-	precision qi2[2 * NUMBER_CONSERVED_VARIABLES];	// conserved variables of neighbor cells along x [i-2, i+2]
-	precision qj2[2 * NUMBER_CONSERVED_VARIABLES];	// conserved variables of neighbor cells along y [j-2, j+2]
-	precision qk2[2 * NUMBER_CONSERVED_VARIABLES];	// conserved variables of neighbor cells along n [k-2, k+2]
-
-	precision ui1[6];								// fluid velocity of neighbor cells along x [i-1, i+1]
-	precision uj1[6];								// fluid velocity of neighbor cells along y [j-1, j+1]
-	precision uk1[6];								// fluid velocity of neighbor cells along n [k-1, k+1]
-
-	precision vxi[4];								// vx of neighbor cells along x [i-2, i-1, i+1, i+2]
-	precision vyj[4];								// vy of neighbor cells along y [j-2, j-1, j+1, j+2]
-	precision vnk[4];								// vn of neighbor cells along n [k-2, k-1, k+1, k+2]
-
-	precision  Hx_plus[NUMBER_CONSERVED_VARIABLES];	// Hx_{i + 1/2}
-	precision Hx_minus[NUMBER_CONSERVED_VARIABLES];	// Hx_{i - 1/2}
-
-	precision  Hy_plus[NUMBER_CONSERVED_VARIABLES];	// Hy_{j + 1/2}
-	precision Hy_minus[NUMBER_CONSERVED_VARIABLES];	// Hy_{j - 1/2}
-
-	precision  Hn_plus[NUMBER_CONSERVED_VARIABLES];	// Hn_{k + 1/2}
-	precision Hn_minus[NUMBER_CONSERVED_VARIABLES];	// Hn_{k - 1/2}
-
+	#pragma omp parallel for collapse(3)
 	for(int k = 2; k < nz + 2; k++)
 	{
 		for(int j = 2; j < ny + 2; j++)
 		{
 			for(int i = 2; i < nx + 2; i++)
 			{
+				precision qs[NUMBER_CONSERVED_VARIABLES];		// current variables at cell s
+				precision f[NUMBER_CONSERVED_VARIABLES];		// source function at cell s
+				precision  S[NUMBER_CONSERVED_VARIABLES];		// external source terms in hydrodynamic equations
+
+				precision e1[6];								// primary variables of neighbors [i-1, i+1, j-1, j+1, k-1, k+1]
+
+				precision qi1[2 * NUMBER_CONSERVED_VARIABLES];	// conserved variables of neighbor cells along x [i-1, i+1]
+				precision qj1[2 * NUMBER_CONSERVED_VARIABLES];	// conserved variables of neighbor cells along y [j-1, j+1]
+				precision qk1[2 * NUMBER_CONSERVED_VARIABLES];	// conserved variables of neighbor cells along n [k-1, k+1]
+
+				precision qi2[2 * NUMBER_CONSERVED_VARIABLES];	// conserved variables of neighbor cells along x [i-2, i+2]
+				precision qj2[2 * NUMBER_CONSERVED_VARIABLES];	// conserved variables of neighbor cells along y [j-2, j+2]
+				precision qk2[2 * NUMBER_CONSERVED_VARIABLES];	// conserved variables of neighbor cells along n [k-2, k+2]
+
+				precision ui1[6];								// fluid velocity of neighbor cells along x [i-1, i+1]
+				precision uj1[6];								// fluid velocity of neighbor cells along y [j-1, j+1]
+				precision uk1[6];								// fluid velocity of neighbor cells along n [k-1, k+1]
+
+				precision vxi[4];								// vx of neighbor cells along x [i-2, i-1, i+1, i+2]
+				precision vyj[4];								// vy of neighbor cells along y [j-2, j-1, j+1, j+2]
+				precision vnk[4];								// vn of neighbor cells along n [k-2, k-1, k+1, k+2]
+
+				precision  Hx_plus[NUMBER_CONSERVED_VARIABLES];	// Hx_{i + 1/2}
+				precision Hx_minus[NUMBER_CONSERVED_VARIABLES];	// Hx_{i - 1/2}
+
+				precision  Hy_plus[NUMBER_CONSERVED_VARIABLES];	// Hy_{j + 1/2}
+				precision Hy_minus[NUMBER_CONSERVED_VARIABLES];	// Hy_{j - 1/2}
+
+				precision  Hn_plus[NUMBER_CONSERVED_VARIABLES];	// Hn_{k + 1/2}
+				precision Hn_minus[NUMBER_CONSERVED_VARIABLES];	// Hn_{k - 1/2}
+
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
 				int simm = s - 2;			// neighbor cell indices (x)
@@ -411,6 +413,7 @@ void recompute_euler_step(const hydro_variables * const __restrict__ q_current, 
 	int ny = lattice.lattice_points_y;
 	int nz = lattice.lattice_points_eta;
 
+	#pragma omp parallel for collapse(3)
 	for(int k = 2; k < nz + 2; k++)
 	{
 		for(int j = 2; j < ny + 2; j++)

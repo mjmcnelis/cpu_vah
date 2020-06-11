@@ -279,7 +279,10 @@ void set_viscous_gubser_initial_condition(double T0_hat, int nx, int ny, int nz,
 
 	double rho_array[rho_pts];
 
-	for(int j = 0; j < rho_pts; j++) rho_array[j] = rho0  +  j * drho;
+	for(int j = 0; j < rho_pts; j++)
+	{
+		rho_array[j] = rho0  +  j * drho;
+	}
 
 	double  e_hat[rho_pts];
 	double pi_hat[rho_pts];
@@ -305,6 +308,7 @@ void set_viscous_gubser_initial_condition(double T0_hat, int nx, int ny, int nz,
 
 	double eps = 1.e-5;
 
+	// don't use openmp for now
 	for(int i = 2; i < nx + 2; i++)
 	{
 		double x = (i - 2. - (nx - 1.)/2.) * dx;

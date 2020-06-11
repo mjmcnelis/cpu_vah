@@ -9,6 +9,7 @@
 #include "../include/AnisoVariables.h"
 #include "../include/Precision.h"
 #include "../include/Macros.h"
+#include "../include/OpenMP.h"
 using namespace std;
 
 
@@ -476,25 +477,15 @@ void set_anisotropic_variables(const hydro_variables * const __restrict__ q, con
 	int ny = lattice.lattice_points_y;
 	int nz = lattice.lattice_points_eta;
 
-	long grid_size = nx * ny * nz;
-
-	double dx = lattice.lattice_spacing_x;
-	double dy = lattice.lattice_spacing_y;
-
 	precision conformal_prefactor = hydro.conformal_eos_prefactor;
 
-	long number_of_failed_solutions = 0;
-
+	#pragma omp parallel for collapse(3)
 	for(int k = 2; k < nz + 2; k++)
 	{
 		for(int j = 2; j < ny + 2; j++)
 		{
-			double y = (j - 2. - (ny - 1.)/2.) * dy;
-
 			for(int i = 2; i < nx + 2; i++)
 			{
-				double x = (i - 2. - (nx - 1.)/2.) * dx;
-
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
 				precision e_s = e[s];
@@ -512,14 +503,13 @@ void set_anisotropic_variables(const hydro_variables * const __restrict__ q, con
 
 				aniso_variables X_s = find_anisotropic_variables(e_s, pl, pt, b, mass, lambda_prev, aT_prev, aL_prev);
 
-				lambda[s] = X_s.lambda;			// update anisotropic variables
+				lambda[s] = X_s.lambda;         // update anisotropic variables
 				aT[s] = X_s.aT;
 				aL[s] = X_s.aL;
 
 				if(X_s.did_not_find_solution)
 				{
-					aniso_regulation[s] = 1;
-					number_of_failed_solutions++;
+					aniso_regulation[s] = 1;    // track where anisotropic variables were regulated (i.e. used previous solution)
 				}
 				else
 				{
@@ -529,12 +519,6 @@ void set_anisotropic_variables(const hydro_variables * const __restrict__ q, con
 			}
 		}
 	}
-
-	if(number_of_failed_solutions > 0)
-	{
-		//printf("set_anisotropic_variables flag: X_reg = %.3f%%\n", 100. * (double)number_of_failed_solutions / (double) grid_size);
-	}
-
 #endif
 #endif
 }

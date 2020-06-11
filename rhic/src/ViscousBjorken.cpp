@@ -239,7 +239,8 @@ void set_viscous_bjorken_initial_condition(int nx, int ny, int nz, initial_condi
 	precision T0 = initial.initialCentralTemperatureGeV;								// central temperature (GeV)
 	precision e0 = equilibrium_energy_density_new(T0 / hbarc, conformal_eos_prefactor);	// energy density
 
-
+	// leave out openmp for now
+	//#pragma omp parallel for collapse(3)
 	for(int k = 2; k < nz + 2; k++)
 	{
 		for(int j = 2; j < ny + 2; j++)

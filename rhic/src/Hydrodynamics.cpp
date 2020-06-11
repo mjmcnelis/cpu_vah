@@ -15,10 +15,10 @@
 #include "../include/KurganovTadmor.h"
 #include "../include/AdaptiveTimeStep.h"
 #include "../include/FreezeoutFinder.h"
+#include "../include/OpenMP.h"
 using namespace std;
 
 bool hit_CFL_bound = false;
-
 bool after_output = false;
 precision dt_after_output;
 
@@ -30,6 +30,7 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 	return i  +  nx * (j  +  ny * k);
 }
 
+
 bool all_cells_below_freezeout_temperature(lattice_parameters lattice, hydro_parameters hydro)
 {
 	int nx = lattice.lattice_points_x;
@@ -39,6 +40,7 @@ bool all_cells_below_freezeout_temperature(lattice_parameters lattice, hydro_par
 	precision T_switch = hydro.freezeout_temperature_GeV;
 	precision e_switch = equilibrium_energy_density_new(T_switch / hbarc, hydro.conformal_eos_prefactor);
 
+	// use openmp?
 	for(int k = 2; k < nz + 2; k++)
 	{
 		for(int j = 2; j < ny + 2; j++)
@@ -68,6 +70,7 @@ long number_of_cells_above_freezeout_temperature(lattice_parameters lattice, hyd
 
 	long cells = 0;
 
+	// here you want the addition version
 	for(int k = 2; k < nz + 2; k++)
 	{
 		for(int j = 2; j < ny + 2; j++)
@@ -195,8 +198,12 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 	int freezeout_depth = 3;                            // max number of time steps freezeout finder goes below Tswitch
 
 	int steps = 0;
-	clock_t start = clock();
 
+#ifdef OPENMP
+  	double t1 = omp_get_wtime();                        // is this the right omp time I want?
+#else
+  	clock_t start = clock();
+#endif
 
 	// fluid dynamic evolution
 	//----------------------------------------------------------
@@ -310,7 +317,13 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 		exit(-1);
 	}
 
-	double duration = (clock() - start) / (double)CLOCKS_PER_SEC;
+#ifdef OPENMP
+  	double t2 = omp_get_wtime();                                   // is this the right omp time I want?
+  	double duration = t2 - t1;
+#else
+  	double duration = (clock() - start) / (double)CLOCKS_PER_SEC;  // hydro evolution runtime in seconds (ignores initalization runtime)
+#endif
+
 	print_run_time(t, duration, (double)steps, lattice, sample);
 
 	free_memory();

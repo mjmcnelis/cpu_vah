@@ -7,9 +7,14 @@
 #include "../include/FluxTerms.h"
 #include "../include/DynamicalVariables.h"
 #include "../include/NeighborCells.h"
+//#include "../include/OpenMP.h"
+
+
+// not entirely sure how to use openmp on loops involving fmin()
 
 
 const precision sqrt_variables = sqrt(NUMBER_CONSERVED_VARIABLES - B_FIELD_COMPONENTS - E_CHECK_COMPONENTS);
+
 
 inline int linear_column_index(int i, int j, int k, int nx, int ny)
 {

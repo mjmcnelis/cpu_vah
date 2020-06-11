@@ -18,9 +18,10 @@
 #include "../include/Projections.h"
 #include "../include/AnisoVariables.h"
 #include "../include/Viscosities.h"
+#include "../include/OpenMP.h"
 using namespace std;
 
-#define THETA_FUNCTION(X) ((double)X < (double)0 ? (double)0 : (double)1)
+//#define THETA_FUNCTION(X) ((double)X < (double)0 ? (double)0 : (double)1)
 
 
 inline int linear_column_index(int i, int j, int k, int nx, int ny)
@@ -31,6 +32,7 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 
 void set_initial_T_taumu_variables(double t, int nx, int ny, int nz, hydro_parameters hydro)
 {
+	#pragma omp parallel for collapse(3)
 	for(int k = 2; k < nz + 2; k++)
 	{
 		for(int j = 2; j < ny + 2; j++)
@@ -132,6 +134,8 @@ void set_anisotropic_initial_condition(int nx, int ny, int nz, hydro_parameters 
 	precision conformal_prefactor = hydro.conformal_eos_prefactor;
 	precision t = hydro.tau_initial;
 
+	#pragma omp parallel for collapse(3)
+	//#pragma omp parallel for 					// what's the difference again?
 	for(int k = 2; k < nz + 2; k++)
 	{
 		for(int j = 2; j < ny + 2; j++)
@@ -165,7 +169,11 @@ void set_anisotropic_initial_condition(int nx, int ny, int nz, hydro_parameters 
 
 				if(X.did_not_find_solution)
 				{
-					aniso_regulation[s] += 1;
+					aniso_regulation[s] = 1;
+				}
+				else
+				{
+					aniso_regulation[s] = 0;
 				}
 
 				q[s].b = b;
@@ -366,6 +374,7 @@ void read_block_energy_density_file(int nx, int ny, int nz, hydro_parameters hyd
 		exit(-1);
 	}
 
+	// don't use openmp here (don't think it works when reading a file)
 	for(int k = 2; k < nz + 2; k++)
 	{
 		for(int j = 2; j < ny + 2; j++)
@@ -413,6 +422,7 @@ void set_trento_energy_density_profile(int nx, int ny, int nz, hydro_parameters 
 		exit(-1);
 	}
 
+	#pragma omp parallel for collapse(3)
   	for(int k = 2; k < nz + 2; k++)
 	{
 		for(int j = 2; j < ny + 2; j++)

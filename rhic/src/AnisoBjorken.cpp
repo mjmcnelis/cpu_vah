@@ -430,13 +430,12 @@ void set_aniso_bjorken_initial_condition(int nx, int ny, int nz, initial_conditi
 	// printf("aT      = %lf\n", aT0);
 	// printf("aL      = %lf\n", aL0);
 
-	for(int i = 2; i < nx + 2; i++)
+	// leave out openmp for now
+	for(int k = 2; k < nz + 2; k++)
 	{
-		//printf("i = %d\n", i);
-
 		for(int j = 2; j < ny + 2; j++)
 		{
-			for(int k = 2; k < nz + 2; k++)
+			for(int i = 2; i < nx + 2; i++)
 			{
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 

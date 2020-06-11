@@ -9,6 +9,7 @@
 #include "../include/DynamicalVariables.h"
 #include "../include/Parameters.h"
 #include "../include/EquationOfState.h"
+#include "../include/OpenMP.h"
 using namespace std;
 
 double ttt_error = 1.e-13;
@@ -37,6 +38,7 @@ void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict
 	precision t2 = t * t;
 	precision t4 = t2 * t2;
 
+	#pragma omp parallel for collapse(3)
 	for(int k = 2; k < nz + 2; k++)
 	{
 		for(int j = 2; j < ny + 2; j++)
@@ -162,6 +164,8 @@ void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict
 					exit(-1);
 				}
 
+			// this is old stuff
+			/*
 			#ifdef TEST_TTAUMU
 				ut_s = sqrt(1.  +  ux_s * ux_s  +  uy_s * uy_s  +  t2 * un_s * un_s);
 
@@ -188,8 +192,11 @@ void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict
 					printf("get_inferred_variables_aniso_hydro: |dt^{tau/mu}| = (%.6g, %.6g, %.6g, %.6g)\n", ttt_error, ttx_error, tty_error, ttn_error);
 				}
 			#endif
+			*/
+				// todo: write MONITOR_TTAUMU block for vah
 
-				e[s]    = e_s;		// cutoff the solution further so that e > E_MIN
+
+				e[s]    = e_s;
 				u[s].ux = ux_s;
 				u[s].uy = uy_s;
 			#ifndef BOOST_INVARIANT
@@ -213,6 +220,7 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 
 	precision t2 = t * t;
 
+	#pragma omp parallel for collapse(3)
 	for(int k = 2; k < nz + 2; k++)
 	{
 		for(int j = 2; j < ny + 2; j++)

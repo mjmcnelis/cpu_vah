@@ -6,6 +6,7 @@
 #include "../include/DynamicalVariables.h"
 #include "../include/InferredVariables.h"
 #include "../include/Projections.h"
+#include "../include/OpenMP.h"
 
 const precision sqrt_two   = sqrt(2.);
 const precision sqrt_three = sqrt(3.);
@@ -46,6 +47,7 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 	precision t2 = t * t;
 	precision t4 = t2 * t2;
 
+	#pragma omp parallel for collapse(3)
 	for(int k = 2; k < nz + 2; k++)
 	{
 		for(int j = 2; j < ny + 2; j++)
@@ -276,6 +278,7 @@ void regulate_viscous_currents(precision t, hydro_variables * const __restrict__
 	precision t2 = t * t;
 	precision t4 = t2 * t2;
 
+	#pragma omp parallel for collapse(3)
 	for(int k = 2; k < nz + 2; k++)
 	{
 		for(int j = 2; j < ny + 2; j++)

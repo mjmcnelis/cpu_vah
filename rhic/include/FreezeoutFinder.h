@@ -63,6 +63,9 @@ class freezeout_finder
 		void construct_energy_density_cube(float ****energy_density, int ix, int iy);
 		void construct_energy_density_hypercube(float ****energy_density, int ix, int iy, int iz);
 
+		void construct_energy_density_cube_test(double ***cube_test, float ****energy_density, int ix, int iy);
+		void construct_energy_density_hypercube_test(double ****hypercube_test, float ****energy_density, int ix, int iy, int iz);
+
 		void find_2d_freezeout_cells(double t_current, hydro_parameters hydro);
 		void find_3d_freezeout_cells(double t_current, hydro_parameters hydro);
 

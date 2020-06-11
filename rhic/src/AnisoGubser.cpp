@@ -309,6 +309,7 @@ void set_aniso_gubser_energy_density_and_flow_profile(double T0_hat, int nx, int
 
 	double eps = 1.e-5;
 
+	// don't use openmp here
 	for(int i = 2; i < nx + 2; i++)
 	{
 		double x = (i - 2. - (nx - 1.)/2.) * dx;
