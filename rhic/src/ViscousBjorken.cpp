@@ -239,17 +239,21 @@ void set_viscous_bjorken_initial_condition(int nx, int ny, int nz, initial_condi
 	precision T0 = initial.initialCentralTemperatureGeV;								// central temperature (GeV)
 	precision e0 = equilibrium_energy_density_new(T0 / hbarc, conformal_eos_prefactor);	// energy density
 
-	for(int i = 2; i < nx + 2; i++)
+
+	for(int k = 2; k < nz + 2; k++)
 	{
 		for(int j = 2; j < ny + 2; j++)
 		{
-			for(int k = 2; k < nz + 2; k++)
+			for(int i = 2; i < nx + 2; i++)
 			{
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
 				precision e_s = energy_density_cutoff(e_min, e0);
 
 				e[s] = e_s;
+
+				// i  +  (nx+4) * (j  +  (ny+4) * k);
+				//printf("(i,j,k,s) = (%d,%d,%d,%d)\n",i,j,k,s);
 
 				equation_of_state_new eos(e_s, hydro.conformal_eos_prefactor);
 				precision p = eos.equilibrium_pressure();

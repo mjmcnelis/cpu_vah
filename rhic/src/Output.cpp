@@ -200,7 +200,11 @@ void output_mean_field(const hydro_variables * const __restrict__ q, const fluid
 				fprintf(dbasy_peq, 	"%.2f\t%.2f\t%.2f\t%.6f\n", x, y, z, dbasy / p);
 
 			#else
+			#ifdef PI
 				precision Pi = q[s].Pi;
+			#else
+				precision Pi = 0;
+			#endif
 			#endif
 
 				precision db2 = -3.* taubulk * mdmde * (e_s + p) * Pi * theta / (mass * mass);
@@ -552,12 +556,17 @@ void output_hydro(const hydro_variables * const __restrict__ q, const fluid_velo
 	FILE *energy_check;		// energy density evolved separately with KT algorithm [GeV/fm^3]
 #endif
 
+#ifndef BOOST_INVARIANT
+	FILE *unplot;			// un
+#endif
+
 	char fname1[255];
 	char fname2[255];
 	char fname3[255];
 	char fname4[255];
 	char fname5[255];
 	char fname6[255];
+	char fname7[255];
 
 	sprintf(fname1, "output/e_%.3f.dat", t);
 	sprintf(fname2, "output/plpt_%.3f.dat", t);
@@ -565,14 +574,18 @@ void output_hydro(const hydro_variables * const __restrict__ q, const fluid_velo
 	sprintf(fname4, "output/shear_peq_%.3f.dat", t);
 	sprintf(fname5, "output/bulk_peq_%.3f.dat", t);
 	sprintf(fname6, "output/e_check_%.3f.dat", t);
+	sprintf(fname7, "output/un_%.3f.dat", t);
 
-	energy 		= fopen(fname1, "w");
-	plptratio 	= fopen(fname2, "w");
-	uxplot    	= fopen(fname3, "w");
-	shear 	  	= fopen(fname4, "w");
-	bulk 		= fopen(fname5, "w");
+	energy       = fopen(fname1, "w");
+	plptratio    = fopen(fname2, "w");
+	uxplot       = fopen(fname3, "w");
+	shear        = fopen(fname4, "w");
+	bulk         = fopen(fname5, "w");
 #ifdef E_CHECK
-	energy_check= fopen(fname6, "w");
+	energy_check = fopen(fname6, "w");
+#endif
+#ifndef BOOST_INVARIANT
+	unplot       = fopen(fname7, "w");
 #endif
 
 	precision t2 = t * t;
@@ -647,6 +660,9 @@ void output_hydro(const hydro_variables * const __restrict__ q, const fluid_velo
 			#ifdef E_CHECK
 				fprintf(energy_check, "%.2f\t%.2f\t%.2f\t%.6e\n", x, y, z, q[s].e_check * hbarc);
 			#endif
+			#ifndef BOOST_INVARIANT
+				fprintf(unplot, 	"%.2f\t%.2f\t%.2f\t%.6f\n", x, y, z, un);
+			#endif
 			}
 		}
 	}
@@ -655,9 +671,11 @@ void output_hydro(const hydro_variables * const __restrict__ q, const fluid_velo
 	fclose(uxplot);
 	fclose(shear);
 	fclose(bulk);
-
 #ifdef E_CHECK
 	fclose(energy_check);
+#endif
+#ifndef BOOST_INVARIANT
+	fclose(unplot);
 #endif
 }
 
@@ -692,7 +710,7 @@ void output_Tmunu_violations(const float * const __restrict__ Tmunu_violations, 
 
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
-				fprintf(violations, "%.3f\t%.3f\t%.3f\t%f\n", x, y, z, Tmunu_violations[s]);
+				fprintf(violations, "%.3f\t%.3f\t%.3f\t%f\n", x, y, z, hbarc * Tmunu_violations[s]);
 			}
 		}
 	}
@@ -873,12 +891,14 @@ void output_dynamical_variables(double t, double dt_prev, lattice_parameters lat
 		output_Tmunu_violations(Tmunu_violations, t, lattice);
 	#endif
 
+	#ifdef MONITOR_REGULATIONS
 	#ifdef ANISO_HYDRO
 	#ifdef LATTICE_QCD
 		output_regulations(aniso_regulation, t, lattice);
 	#endif
 	#else
 		output_regulations(viscous_regulation, t, lattice);
+	#endif
 	#endif
 	}
 }

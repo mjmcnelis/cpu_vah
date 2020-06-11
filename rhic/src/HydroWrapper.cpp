@@ -89,7 +89,7 @@ void HYDRO::store_freezeout_surface(freezeout_surface surface)
 
 void HYDRO::free_freezeout_surface()
 {
-	printf("\nFreeing freezeout surface in hydro module...\n\n");
+	printf("\nFreeing freezeout surface in hydro module...\n");
 
 	tau.clear();
 	x.clear();

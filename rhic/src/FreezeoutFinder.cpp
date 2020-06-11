@@ -30,14 +30,13 @@ freezeout_finder::freezeout_finder(lattice_parameters lattice, hydro_parameters 
   if(hydro.run_hydro != 2)
   {
   #ifdef JETSCAPE
-    printf("freezeout_finder::freezeout_finder flag: set run_hydro = 2 for JETSCAPE mode (otherwise freezeout surface vector will be empty)\n");
+    printf("freezeout_finder::freezeout_finder flag: set run_hydro = 2 in JETSCAPE mode (otherwise freezeout surface will be empty)\n\n");
   #endif
 
     return;
   }
 
 #ifdef JETSCAPE
-
 #ifdef ANISO_HYDRO
 #ifndef FREEZEOUT_VH
     printf("freezeout_finder::freezeout_finder error: need to define FREEZEOUT_VH to run anisotropic hydro in JETSCAPE mode\n");

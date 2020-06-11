@@ -12,6 +12,8 @@
 #include <gsl/gsl_interp.h>
 using namespace std;
 
+#define THETA_FUNCTION(X) ((double)X < (double)0 ? (double)0 : (double)1)
+
 
 inline int linear_column_index(int i, int j, int k, int nx, int ny)
 {
@@ -19,17 +21,26 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 }
 
 
-inline precision Theta(precision x)
+// inline double Theta(double x)
+// {
+// 	if(x > 0)
+// 	{
+// 		return 1.;
+// 	}
+// 	else if(x < 0)
+// 	{
+// 		return 0;
+// 	}
+// 	return 0.5;
+// }
+
+inline double Theta(double x)
 {
 	if(x > 0)
 	{
 		return 1.;
 	}
-	else if(x < 0)
-	{
-		return 0;
-	}
-	return 0.5;
+	return 0;
 }
 
 
@@ -267,7 +278,7 @@ void trento_transverse_energy_density_profile(double * const __restrict__ energy
 	int A = initial.nucleus_A;									// number of nucleons in nuclei A, B
 	int B = initial.nucleus_B;
 
-	double b = initial.impactParameter;							// impact parameter [fm]
+	double b = initial.impact_parameter;						// impact parameter [fm]
 	double N = initial.trento_normalization_GeV;				// normalization factor [GeV]
 	double w = initial.trento_nucleon_width;					// nucleon width [fm]
 	double sigma_gg = compute_sigma_gg(w);						// compute parton cross section in trento model [fm^2]
@@ -389,6 +400,25 @@ void trento_transverse_energy_density_profile(double * const __restrict__ energy
 }
 
 
+void longitudinal_energy_density_extension(double * const __restrict__ eL, lattice_parameters lattice, initial_condition_parameters initial)
+{
+	int nz    = lattice.lattice_points_eta;
+	double dz = lattice.lattice_spacing_eta;
+
+	double eta_flat     = initial.rapidity_flat;
+	double eta_variance = initial.rapidity_variance;
+
+	// energy density profile along eta direction is a smooth plateu that exponentially decays when |eta| > eta_flat/2
+	for(int k = 0; k < nz; k++)
+	{
+		double eta = (k - (nz - 1.)/2.) * dz;                   // fluid cell position eta
+		double eta_scale = fabs(eta)  -  eta_flat / 2.;
+
+		eL[k] = exp(- 0.5 * eta_scale * eta_scale / eta_variance * Theta(eta_scale));
+	}
+}
+
+
 void set_trento_energy_density_and_flow_profile(lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro)
 {
 	precision e_min = hydro.energy_min;
@@ -399,6 +429,7 @@ void set_trento_energy_density_and_flow_profile(lattice_parameters lattice, init
 	int nz = lattice.lattice_points_eta;
 
 	double eT[nx * ny];											// transverse energy density profile [fm^-4]
+	double eL[nz];												// longitudinal extension [unitless]
 
 	for(int i = 0; i < nx; i++)									// zero energy density profile
 	{
@@ -408,7 +439,13 @@ void set_trento_energy_density_and_flow_profile(lattice_parameters lattice, init
 		}
 	}
 
+	for(int k = 0; k < nz; k++)
+	{
+		eL[k] = 0;
+	}
+
 	trento_transverse_energy_density_profile(eT, lattice, initial, hydro);
+	longitudinal_energy_density_extension(eL, lattice, initial);
 
 	FILE *energy;
 
@@ -418,10 +455,6 @@ void set_trento_energy_density_and_flow_profile(lattice_parameters lattice, init
 		fprintf(energy, "%d\n%d\n%d\n", nx, ny, nz);			// write grid points at header
 	}
 
-	// leave out longitudinal profile for now
-	//double eL[nz];			// normalized longitudinal profile
-	//longitudinal_Energy_Density_Profile(eL, nz, dz, initial);
-
 	for(int k = 2; k < nz + 2; k++)
 	{
 		for(int j = 2; j < ny + 2; j++)
@@ -430,7 +463,7 @@ void set_trento_energy_density_and_flow_profile(lattice_parameters lattice, init
 			{
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
-				precision e_s = eT[i - 2  +  (j - 2) * nx];
+				precision e_s = eT[i - 2  +  (j - 2) * nx] * eL[k - 2];
 
 				if(initial.trento_average_over_events)
 				{

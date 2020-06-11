@@ -239,20 +239,20 @@ void set_anisotropic_initial_condition(int nx, int ny, int nz, hydro_parameters 
 }
 
 
-void longitudinal_energy_density_profile(double * const __restrict__ eL, int nz, double dz, initial_condition_parameters initial)
-{
-	double etaFlat = initial.rapidity_mean;
-	double etaVariance = initial.rapidity_variance;
+// void longitudinal_energy_density_profile(double * const __restrict__ eL, int nz, double dz, initial_condition_parameters initial)
+// {
+// 	double etaFlat = initial.rapidity_mean;
+// 	double etaVariance = initial.rapidity_variance;
 
-	// profile along eta direction is a smooth plateu that exponentially decays when |eta| > etaFlat
-	for(int k = 0; k < nz; k++)
-	{
-		double eta = (k - (nz - 1.)/2.) * dz;				// physical eta points
-		double etaScaled = fabs(eta)  -  0.5 * etaFlat;
+// 	// profile along eta direction is a smooth plateu that exponentially decays when |eta| > etaFlat
+// 	for(int k = 0; k < nz; k++)
+// 	{
+// 		double eta = (k - (nz - 1.)/2.) * dz;				// physical eta points
+// 		double etaScaled = fabs(eta)  -  0.5 * etaFlat;
 
-		eL[k] = exp(- 0.5 * etaScaled * etaScaled / etaVariance * THETA_FUNCTION(etaScaled));
-	}
-}
+// 		eL[k] = exp(- 0.5 * etaScaled * etaScaled / etaVariance * THETA_FUNCTION(etaScaled));
+// 	}
+// }
 
 /*
 // Optical or MC glauber initial energy density profile
@@ -420,7 +420,7 @@ void set_trento_energy_density_profile(int nx, int ny, int nz, hydro_parameters 
 			for(int i = 2; i < nx + 2; i++)
 			{
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
-		        int st = linear_column_index(i - 2, j - 2, k - 2, nx + 4, ny + 4);   // TRENTo vector has no ghost cells
+		        int st = linear_column_index(i - 2, j - 2, k - 2, nx, ny);           // TRENTo vector has no ghost cells
 
 		        e[s] = energy_density_cutoff(hydro.energy_min, trento[st] / hbarc);  // convert units to [fm^-4]
 
@@ -444,7 +444,7 @@ void set_trento_energy_density_profile(int nx, int ny, int nz, hydro_parameters 
 void set_initial_conditions(precision t, lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro, std::vector<double> trento)
 {
 	int nx = lattice.lattice_points_x;
-	int ny = lattice.lattice_points_x;
+	int ny = lattice.lattice_points_y;			// fixed on 6/10/20
 	int nz = lattice.lattice_points_eta;
 
 	double dx = lattice.lattice_spacing_x;
@@ -453,7 +453,10 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 
 	precision dt = lattice.fixed_time_step;
 
-	if(lattice.adaptive_time_step) dt = lattice.min_time_step;
+	if(lattice.adaptive_time_step)
+	{
+		dt = lattice.min_time_step;
+	}
 
 	printf("\nInitial conditions = ");
 	switch(initial.initial_condition_type)
@@ -461,11 +464,6 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 		case 1:		// viscous hydro or anisotropic hydro bjorken
 		{
 			printf("Bjorken\n\n");
-
-		#ifndef BOOST_INVARIANT
-			printf("Bjorken initial condition error: define BOOST_INVARIANT in /rhic/include/Macros.h\n");
-			exit(-1);
-		#endif
 
 		#ifdef ANISO_HYDRO
 			printf("\nRunning semi-analytic anisotropic Bjorken solution...\n");

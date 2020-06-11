@@ -84,41 +84,46 @@ precision eta_over_s(precision T, hydro_parameters hydro)
 
 	return hydro.constant_etas;
 }
-
-precision zeta_over_s(precision T, hydro_parameters hydro)
-{
-	precision norm = 1.25;
-	precision Tc = 0.154 / hbarc;
-
-	precision a0 = -13.45;
-	precision a1 = 27.55;
-	precision a2 = -13.77;
-
-	precision lambda1 = 0.9;
-	precision lambda2 = 0.25;
-	precision lambda3 = 0.9;
-	precision lambda4 = 0.22;
-
-	precision sigma1 = 0.025;
-	precision sigma2 = 0.13;
-	precision sigma3 = 0.0025;
-	precision sigma4 = 0.022;
-
-	precision x = T / Tc;
-
-	if(x > 1.05)
-	{
-		return norm * (lambda1*exp(-(x-1.0)/sigma1) + lambda2*exp(-(x-1.0)/sigma2) + 0.001);
-	}
-	else if(x < 0.995)
-	{
-		return norm * (lambda3*exp((x-1.0)/sigma3)+ lambda4*exp((x-1.0)/sigma4) + 0.03);
-	}
-
-	return norm * (a0 + a1*x + a2*x*x);
-}
-
 */
+
+// precision zeta_over_s(precision T, hydro_parameters hydro)
+// {
+// 	// bjorken_vahydro
+// 	//precision norm = 1.25;
+// 	//precision Tc = 0.154 / hbarc;
+
+// 	// cpu-vah (old version)
+// 	precision norm = 1.00;
+// 	precision Tc = 0.200 / hbarc;
+
+// 	precision a0 = -13.45;
+// 	precision a1 = 27.55;
+// 	precision a2 = -13.77;
+
+// 	precision lambda1 = 0.9;
+// 	precision lambda2 = 0.25;
+// 	precision lambda3 = 0.9;
+// 	precision lambda4 = 0.22;
+
+// 	precision sigma1 = 0.025;
+// 	precision sigma2 = 0.13;
+// 	precision sigma3 = 0.0025;
+// 	precision sigma4 = 0.022;
+
+// 	precision x = T / Tc;
+
+// 	if(x > 1.05)
+// 	{
+// 		return norm * (lambda1*exp(-(x-1.0)/sigma1) + lambda2*exp(-(x-1.0)/sigma2) + 0.001);
+// 	}
+// 	else if(x < 0.995)
+// 	{
+// 		return norm * (lambda3*exp((x-1.0)/sigma3)+ lambda4*exp((x-1.0)/sigma4) + 0.03);
+// 	}
+
+// 	return norm * (a0 + a1*x + a2*x*x);
+// }
+
 
 
 

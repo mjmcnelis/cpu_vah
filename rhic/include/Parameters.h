@@ -107,11 +107,11 @@ typedef struct
 	int nucleus_B;
 
 	double initialCentralTemperatureGeV;	// initial central temperature for a central collision
-	double impactParameter;
+	double impact_parameter;
 
 	// longitudinal energy density profile parameters
 	double rapidity_variance; 	// \sigma^{2}_{\eta}
-	double rapidity_mean; 		// flat region around \ets_s = 0
+	double rapidity_flat; 		// flat region around \ets_s = 0
 
 	double q_gubser;
 
@@ -119,9 +119,10 @@ typedef struct
 	double trento_nucleon_width;
 	double trento_min_nucleon_distance;
 	double trento_geometric_parameter;
+	double trento_gamma_standard_deviation;
+
 	int trento_average_over_events;
 	int trento_number_of_average_events;
-	double trento_gamma_standard_deviation;
 	int trento_fixed_seed;
 
 } initial_condition_parameters;

@@ -717,7 +717,7 @@ initial_condition_parameters load_initial_condition_parameters(bool sample_param
 		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
 		delimiterPos = line.find("=");
 		line = line.substr(delimiterPos + 1);
-		initial.impactParameter = atof(line.c_str());
+		initial.impact_parameter = atof(line.c_str());
 
 		getline(cFile, line);
 		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
@@ -729,7 +729,7 @@ initial_condition_parameters load_initial_condition_parameters(bool sample_param
 		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
 		delimiterPos = line.find("=");
 		line = line.substr(delimiterPos + 1);
-		initial.rapidity_mean = atof(line.c_str());
+		initial.rapidity_flat = atof(line.c_str());
 
 		getline(cFile, line);
 		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
@@ -793,7 +793,7 @@ initial_condition_parameters load_initial_condition_parameters(bool sample_param
 #ifdef RANDOM_MODEL_PARAMETERS    				// overwrite hydro model parameters
 	if(sample_parameters)
 	{
-		initial.impactParameter					= random.impact_parameter;
+		initial.impact_parameter				= random.impact_parameter;
 		initial.trento_normalization_GeV 		= random.trento_normalization_GeV;
 		initial.trento_nucleon_width 			= random.trento_nucleon_width;
 		initial.trento_min_nucleon_distance 	= random.trento_min_nucleon_distance;
@@ -809,9 +809,9 @@ initial_condition_parameters load_initial_condition_parameters(bool sample_param
 	printf("nucleus_A                       = %d\n", 	initial.nucleus_A);
 	printf("nucleus_B                       = %d\n", 	initial.nucleus_B);
 	printf("initial_central_temperature_GeV = %.3g\n",	initial.initialCentralTemperatureGeV);
-	printf("impactParameter                 = %.2f\n", 	initial.impactParameter);
+	printf("impact_parameter                = %.2f\n", 	initial.impact_parameter);
 	printf("rapidityVariance                = %.3g\n", 	initial.rapidity_variance);
-	printf("rapidityMean                    = %.3g\n", 	initial.rapidity_mean);
+	printf("rapidityMean                    = %.3g\n", 	initial.rapidity_flat);
 	printf("q_gubser                        = %.2f\n", 	initial.q_gubser);
 	printf("trento_normalization_GeV        = %.2f\n", 	initial.trento_normalization_GeV);
 	printf("trento_nucleon_width            = %.2f\n", 	initial.trento_nucleon_width);
