@@ -19,7 +19,7 @@
 
 #define BEST					// use the best eos (is this still used?)
 
-//#define CONFORMAL_EOS			// conformal equation of state
+#define CONFORMAL_EOS			// conformal equation of state
 
 #ifndef CONFORMAL_EOS
 	#define LATTICE_QCD			// lattice qcd equation of state
@@ -44,10 +44,10 @@
 
 #else							// viscous stress tensor
 
-	//#define PIMUNU				// shear stress
+	#define PIMUNU				// shear stress
 
 	#ifndef CONFORMAL_EOS
-		//#define PI 				// bulk pressure
+		#define PI 				// bulk pressure
 	#endif
 
 #endif
@@ -57,7 +57,7 @@
 #define PRINT_HYDRO				// option to print current hydro info
 #define PRINT_PERIOD 10			// number of steps per print (leave this defined!)
 
-#define PRINT_PARAMETERS		// option to print parameters
+//#define PRINT_PARAMETERS		// option to print parameters
 
 #define FREEZEOUT_SIZE			// output maximum radius of freezeout surface
 
@@ -65,7 +65,7 @@
 
 #define ADAPTIVE_FILE			// output adaptive time steps
 
-#define MONITOR_TTAUMU			// output violations of T^{\tau\mu} reproduction in InferredVariables.cpp
+//#define MONITOR_TTAUMU			// output violations of T^{\tau\mu} reproduction in InferredVariables.cpp
 
 //#define MONITOR_REGULATIONS	// output viscous or aniso regulations
 

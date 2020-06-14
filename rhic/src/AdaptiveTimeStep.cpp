@@ -7,11 +7,7 @@
 #include "../include/FluxTerms.h"
 #include "../include/DynamicalVariables.h"
 #include "../include/NeighborCells.h"
-//#include "../include/OpenMP.h"
-
-
-// not entirely sure how to use openmp on loops involving fmin()
-
+#include "../include/OpenMP.h"
 
 const precision sqrt_variables = sqrt(NUMBER_CONSERVED_VARIABLES - B_FIELD_COMPONENTS - E_CHECK_COMPONENTS);
 
@@ -59,18 +55,19 @@ precision compute_dt_CFL(precision t, lattice_parameters lattice, hydro_paramete
 	int stride_y = nx + 4;							// strides for neighbor cells along x, y, n (stride_x = 1)
 	int stride_z = (nx + 4) * (ny + 4);				// stride formulas based from linear_column_index()
 
-	precision ui1[6], uj1[6], uk1[6];				// these are just filler arguments below
-
-	precision vxi[4];								// vx of neighbor cells along x [i-2, i-1, i+1, i+2]
-	precision vyj[4];								// vy of neighbor cells along y [j-2, j-1, j+1, j+2]
-	precision vnk[4];								// vn of neighbor cells along n [k-2, k-1, k+1, k+2]
-
+	#pragma omp parallel for collapse(3)
 	for(int k = 2; k < nz + 2; k++)
 	{
 		for(int j = 2; j < ny + 2; j++)
 		{
 			for(int i = 2; i < nx + 2; i++)
 			{
+				precision ui1[6], uj1[6], uk1[6];				// these are just filler arguments below
+
+				precision vxi[4];								// vx of neighbor cells along x [i-2, i-1, i+1, i+2]
+				precision vyj[4];								// vy of neighbor cells along y [j-2, j-1, j+1, j+2]
+				precision vnk[4];								// vn of neighbor cells along n [k-2, k-1, k+1, k+2]
+
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
 				int simm = s - 2;			// neighbor cell indices (x)
@@ -103,7 +100,10 @@ precision compute_dt_CFL(precision t, lattice_parameters lattice, hydro_paramete
 				precision ay = compute_max_local_propagation_speed(vyj, uy / ut, Theta);
 				precision an = compute_max_local_propagation_speed(vnk, un / ut, Theta);
 
-				dt_CFL = fmin(dt_CFL, fmin(dx / ax, fmin(dy / ay, dn / an)));	// take the minimum wave propagation time
+				#pragma omp critical
+				{
+					dt_CFL = fmin(dt_CFL, fmin(dx / ax, fmin(dy / ay, dn / an)));	// take the minimum wave propagation time
+				}
 			}
 		}
 	}
@@ -350,6 +350,7 @@ precision compute_dt_source(precision t, const hydro_variables * const __restric
 	precision alpha = lattice.alpha;
 	precision delta_0 = lattice.delta_0;
 
+	#pragma omp parallel for collapse(3)
 	for(int k = 2; k < nz + 2; k++)
 	{
 		for(int j = 2; j < ny + 2; j++)
@@ -368,7 +369,10 @@ precision compute_dt_source(precision t, const hydro_variables * const __restric
 
 				precision dt_next = adaptive_method_norm(q_norm, f_norm, second_derivative_norm, q_dot_f, dt_prev, delta_0);
 
-				dt_source = fmin(dt_source, dt_next);
+				#pragma omp critical
+				{
+					dt_source = fmin(dt_source, dt_next);
+				}
 			}
 		}
 	}

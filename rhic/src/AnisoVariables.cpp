@@ -10,6 +10,7 @@
 #include "../include/Precision.h"
 #include "../include/Macros.h"
 #include "../include/OpenMP.h"
+
 using namespace std;
 
 

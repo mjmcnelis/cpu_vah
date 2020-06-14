@@ -10,6 +10,8 @@
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_spline.h>
 #include <gsl/gsl_interp.h>
+#include "../include/OpenMP.h"
+
 using namespace std;
 
 #define THETA_FUNCTION(X) ((double)X < (double)0 ? (double)0 : (double)1)
@@ -75,7 +77,7 @@ inline double Tpp_overlap(double distance2, double w2)
 
 double compute_sigma_gg(double w)
 {
-	// interpolation of sgg(w) data (note: this calculation is limited to sigma_NN = 6.4 fm^2)
+	// interpolation of sgg(w) data (note: this calculation is limited to sigma_NN = 6.4 fm^2 in Pb+Pb sqrt(s) = 2.76 TeV)
 
   	FILE * sgg_file;
   	sgg_file = fopen("tables/sgg.dat", "r");
@@ -263,10 +265,7 @@ void trento_transverse_energy_density_profile(double * const __restrict__ energy
 		seed = abs(initial.trento_fixed_seed);
 	}
 
-	//seed = 1590309962456778;
-
 	printf("Trento seed = %lu\n", seed);
-
 
    	default_random_engine generator(seed);
 
@@ -339,13 +338,13 @@ void trento_transverse_energy_density_profile(double * const __restrict__ energy
 			}
 		}
 
+		#pragma omp parallel for collapse(2)
 		for(int j = 0; j < ny; j++)									// compute the transverse energy density profile
 		{
-			double y = (j - (ny - 1.)/2.) * dy;						// fluid cell position y
-
 	   		for(int i = 0; i < nx; i++)
 	   	 	{
 	   	 		double x = (i - (nx - 1.)/2.) * dx;					// fluid cell position x
+	   	 		double y = (j - (ny - 1.)/2.) * dy;					// fluid cell position y
 
 	   	 		double TA = 0;
 
@@ -444,17 +443,31 @@ void set_trento_energy_density_and_flow_profile(lattice_parameters lattice, init
 		eL[k] = 0;
 	}
 
+#ifdef OPENMP
+	double t1 = omp_get_wtime();
+#endif
+
 	trento_transverse_energy_density_profile(eT, lattice, initial, hydro);
+
+#ifdef OPENMP
+	double t2 = omp_get_wtime();
+    printf("Trento took %lf seconds\n", t2 - t1);
+    exit(-1);
+ #endif
+
 	longitudinal_energy_density_extension(eL, lattice, initial);
 
-	FILE *energy;
+#ifndef OPENMP
+	FILE *energy;												// make energy density block file (only if openmp turned off)
 
 	if(initial.trento_average_over_events)
 	{
 		energy = fopen("tables/e_block_trento_avg.dat", "w");	// block file of energy denisty [GeV/fm^-3]
-		fprintf(energy, "%d\n%d\n%d\n", nx, ny, nz);			// write grid points at header
+		fprintf(energy, "%d\n%d\n%d\n", nx, ny, nz);			// write grid points at header ()
 	}
+#endif
 
+	#pragma omp parallel for collapse(3)
 	for(int k = 2; k < nz + 2; k++)
 	{
 		for(int j = 2; j < ny + 2; j++)
@@ -465,10 +478,12 @@ void set_trento_energy_density_and_flow_profile(lattice_parameters lattice, init
 
 				precision e_s = eT[i - 2  +  (j - 2) * nx] * eL[k - 2];
 
+			#ifndef OPENMP
 				if(initial.trento_average_over_events)
 				{
 					fprintf(energy, "%.6g\t", e_s);
 				}
+			#endif
 
 				e[s] = energy_density_cutoff(e_min, e_s);
 
@@ -485,6 +500,7 @@ void set_trento_energy_density_and_flow_profile(lattice_parameters lattice, init
 			#endif
 			}
 
+		#ifndef OPENMP
 			if(initial.trento_average_over_events)
 			{
 				if(j < ny + 1)
@@ -492,7 +508,10 @@ void set_trento_energy_density_and_flow_profile(lattice_parameters lattice, init
 					fprintf(energy, "\n");
 				}
 			}
+		#endif
 		}
+
+	#ifndef OPENMP
 		if(initial.trento_average_over_events)
 		{
 			if(k < nz + 1)
@@ -500,13 +519,16 @@ void set_trento_energy_density_and_flow_profile(lattice_parameters lattice, init
 				fprintf(energy, "\n");
 			}
 		}
+	#endif
 
 	}
 
+#ifndef OPENMP
 	if(initial.trento_average_over_events)
 	{
 		fclose(energy);
 	}
+#endif
 }
 
 

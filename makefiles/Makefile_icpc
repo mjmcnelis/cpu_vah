@@ -9,12 +9,12 @@ COMPILER       = icpc
 DEBUG          =
 OPTIMIZATION   = -O3
 FLOWTRACE      =
-OPTIONS        =
+OPTIONS        = -qopenmp -std=c++11
 LINK_OPTIONS   =
-CFLAGS         = -std=c++11 $(DEBUG) $(OPTIMIZATION) $(FLOWTRACE) $(OPTIONS)
+CFLAGS         = $(DEBUG) $(OPTIMIZATION) $(FLOWTRACE) $(OPTIONS)
 
-LIBS     = -L /usr/local/lib -lm -lgsl -lgslcblas -qopenmp
-INCLUDES = -I /usr/local/include -I rhic/include
+LIBS     = -lgsl -lgslcblas -qopenmp
+INCLUDES = -I rhic/include
 
 CPP := $(shell find $(DIR_SRC) -name '*.cpp')
 OBJ = $(CPP:$(DIR_SRC)%.cpp=$(DIR_OBJ)%.o)

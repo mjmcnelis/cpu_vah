@@ -300,7 +300,6 @@ void freezeout_finder::find_2d_freezeout_cells(double t_current, hydro_parameter
   double r_max_call = 0;
 #endif
 
-  //#pragma omp parallel for collapse(2)
   for(int i = 0; i < nx - 1; i++)
   {
     for(int j = 0; j < ny - 1; j++)
@@ -310,27 +309,6 @@ void freezeout_finder::find_2d_freezeout_cells(double t_current, hydro_parameter
       double cell_y = dy * ((double)j  -  (double)(ny - 1) / 2.);
       double cell_z = 0;
 
-      // make a 2+1 version
-      // restructured freezeout finder for openmp 6/11/20 (need to test though)
-      //:::::::::::::::::::::::::::::::::::::::::::::::::::
-      // double ***cube_test;
-
-      // cube_test = calloc_3d_array(cube_test, 2, 2, 2);
-
-      // construct_energy_density_cube_test(cube_test, hydro_evolution[3], i, j); // energy density hyper cube
-
-      // int freezeout_cells = 0;
-
-      // #pragma omp critical   // is this going to slow it down significantly?
-      // {
-      //   cornelius.find_surface_3d(cube_test);                                // find centroid and normal vector of each hypercube
-      //   freezeout_cells = cornelius.get_Nelements();
-      // }
-
-      // free_3d_array(cube_test, 2, 2);
-      //:::::::::::::::::::::::::::::::::::::::::::::::::::
-
-      // previous finder
       construct_energy_density_cube(hydro_evolution[3], i, j);                  // energy density cube
       cornelius.find_surface_3d(cube);                                          // find centroid and normal vector of each cube
       int freezeout_cells = cornelius.get_Nelements();
@@ -351,21 +329,15 @@ void freezeout_finder::find_2d_freezeout_cells(double t_current, hydro_parameter
 
         if(r > r_max_call)
         {
-          #pragma omp critical
-          {
-            r_max_call = r;
-          }
+          r_max_call = r;
         }
         if(r > max_radius)
         {
-          #pragma omp critical
-          {
-            tau_coord = t;
-            x_coord = x;
-            y_coord = y;
-            eta_coord = 0;
-            max_radius = r;
-          }
+          tau_coord = t;
+          x_coord = x;
+          y_coord = y;
+          eta_coord = 0;
+          max_radius = r;
         }
       #endif
 
@@ -433,59 +405,50 @@ void freezeout_finder::find_2d_freezeout_cells(double t_current, hydro_parameter
         double Pi = (pl + 2.*pt)/3. - p;
 
       #ifdef JETSCAPE
-        #pragma omp critical
-        {
-          surface.tau.push_back((float)t);                  // append freezeout surface
-          surface.x.push_back(  (float)x);
-          surface.y.push_back(  (float)y);
-          surface.eta.push_back((float)eta);
+        surface.tau.push_back((float)t);                  // append freezeout surface
+        surface.x.push_back(  (float)x);
+        surface.y.push_back(  (float)y);
+        surface.eta.push_back((float)eta);
 
-          surface.dsigma_tau.push_back((float)ds0);
-          surface.dsigma_x.push_back(  (float)ds1);
-          surface.dsigma_y.push_back(  (float)ds2);
-          surface.dsigma_eta.push_back((float)ds3);
+        surface.dsigma_tau.push_back((float)ds0);
+        surface.dsigma_x.push_back(  (float)ds1);
+        surface.dsigma_y.push_back(  (float)ds2);
+        surface.dsigma_eta.push_back((float)ds3);
 
-          surface.ux.push_back((float)ux);
-          surface.uy.push_back((float)uy);
-          surface.un.push_back((float)un);
+        surface.ux.push_back((float)ux);
+        surface.uy.push_back((float)uy);
+        surface.un.push_back((float)un);
 
-          surface.E.push_back((float)(e * hbarc));          // undo hbarc = 1 units
-          surface.T.push_back((float)(T * hbarc));
-          surface.P.push_back((float)(p * hbarc));
+        surface.E.push_back((float)(e * hbarc));          // undo hbarc = 1 units
+        surface.T.push_back((float)(T * hbarc));
+        surface.P.push_back((float)(p * hbarc));
 
-          surface.pixx.push_back((float)(pixx * hbarc));
-          surface.pixy.push_back((float)(pixy * hbarc));
-          surface.pixn.push_back((float)(pixn * hbarc));
-          surface.piyy.push_back((float)(piyy * hbarc));
-          surface.piyn.push_back((float)(piyn * hbarc));
+        surface.pixx.push_back((float)(pixx * hbarc));
+        surface.pixy.push_back((float)(pixy * hbarc));
+        surface.pixn.push_back((float)(pixn * hbarc));
+        surface.piyy.push_back((float)(piyy * hbarc));
+        surface.piyn.push_back((float)(piyn * hbarc));
 
           surface.Pi.push_back((float)(Pi * hbarc));
-        }
       #else
-        #pragma omp critical
-        {
-          freezeout_surface_file  << t    << " " << x    << " " << y    << " " << eta  << " "
-                                  << ds0  << " " << ds1  << " " << ds2  << " " << ds3  << " "
-                                  << ux   << " " << uy   << " " << un   << " "
-                                  << e    << " " << T    << " " << p    << " "
-                                  << pixx << " " << pixy << " " << pixn << " " << piyy << " " << piyn << " "
-                                  << Pi   << endl;
-        }
+        freezeout_surface_file  << t    << " " << x    << " " << y    << " " << eta  << " "
+                                << ds0  << " " << ds1  << " " << ds2  << " " << ds3  << " "
+                                << ux   << " " << uy   << " " << un   << " "
+                                << e    << " " << T    << " " << p    << " "
+                                << pixx << " " << pixy << " " << pixn << " " << piyy << " " << piyn << " "
+                                << Pi   << endl;
       #endif
 
       #else
 
       #ifndef JETSCAPE
-        #pragma omp critical
-        {
-          freezeout_surface_file  << t    << " " << x    << " " << y    << " " << eta  << " "
-                                  << ds0  << " " << ds1  << " " << ds2  << " " << ds3  << " "
-                                  << ux   << " " << uy   << " " << un   << " "
-                                  << e    << " " << T    << " " << p    << " "
-                                  << pl   << " " << pt   << " "
-                                  << pixx << " " << pixy << " "
-                                  << WTzx << " " << WTzy << endl;
-        }
+        freezeout_surface_file  << t    << " " << x    << " " << y    << " " << eta  << " "
+                                << ds0  << " " << ds1  << " " << ds2  << " " << ds3  << " "
+                                << ux   << " " << uy   << " " << un   << " "
+                                << e    << " " << T    << " " << p    << " "
+                                << pl   << " " << pt   << " "
+                                << pixx << " " << pixy << " "
+                                << WTzx << " " << WTzy << endl;
       #endif
 
       #endif
@@ -522,44 +485,38 @@ void freezeout_finder::find_2d_freezeout_cells(double t_current, hydro_parameter
       #endif
 
       #ifdef JETSCAPE
-        #pragma omp critical
-        {
-          surface.tau.push_back((float)t);                  // append freezeout surface
-          surface.x.push_back(  (float)x);
-          surface.y.push_back(  (float)y);
-          surface.eta.push_back((float)eta);
+        surface.tau.push_back((float)t);                  // append freezeout surface
+        surface.x.push_back(  (float)x);
+        surface.y.push_back(  (float)y);
+        surface.eta.push_back((float)eta);
 
-          surface.dsigma_tau.push_back((float)ds0);
-          surface.dsigma_x.push_back(  (float)ds1);
-          surface.dsigma_y.push_back(  (float)ds2);
-          surface.dsigma_eta.push_back((float)ds3);
+        surface.dsigma_tau.push_back((float)ds0);
+        surface.dsigma_x.push_back(  (float)ds1);
+        surface.dsigma_y.push_back(  (float)ds2);
+        surface.dsigma_eta.push_back((float)ds3);
 
-          surface.ux.push_back((float)ux);
-          surface.uy.push_back((float)uy);
-          surface.un.push_back((float)un);
+        surface.ux.push_back((float)ux);
+        surface.uy.push_back((float)uy);
+        surface.un.push_back((float)un);
 
-          surface.E.push_back((float)(e * hbarc));          // undo hbarc = 1 units
-          surface.T.push_back((float)(T * hbarc));
-          surface.P.push_back((float)(p * hbarc));
+        surface.E.push_back((float)(e * hbarc));          // undo hbarc = 1 units
+        surface.T.push_back((float)(T * hbarc));
+        surface.P.push_back((float)(p * hbarc));
 
-          surface.pixx.push_back((float)(pixx * hbarc));
-          surface.pixy.push_back((float)(pixy * hbarc));
-          surface.pixn.push_back((float)(pixn * hbarc));
-          surface.piyy.push_back((float)(piyy * hbarc));
-          surface.piyn.push_back((float)(piyn * hbarc));
+        surface.pixx.push_back((float)(pixx * hbarc));
+        surface.pixy.push_back((float)(pixy * hbarc));
+        surface.pixn.push_back((float)(pixn * hbarc));
+        surface.piyy.push_back((float)(piyy * hbarc));
+        surface.piyn.push_back((float)(piyn * hbarc));
 
-          surface.Pi.push_back((float)(Pi * hbarc));
-        }
+        surface.Pi.push_back((float)(Pi * hbarc));
       #else
-        #pragma omp critical
-        {
-          freezeout_surface_file  << t    << " " << x    << " " << y    << " " << eta  << " "
-                                  << ds0  << " " << ds1  << " " << ds2  << " " << ds3  << " "
-                                  << ux   << " " << uy   << " " << un   << " "
-                                  << e    << " " << T    << " " << p    << " "
-                                  << pixx << " " << pixy << " " << pixn << " " << piyy << " " << piyn << " "
-                                  << Pi   << endl;
-        }
+        freezeout_surface_file  << t    << " " << x    << " " << y    << " " << eta  << " "
+                                << ds0  << " " << ds1  << " " << ds2  << " " << ds3  << " "
+                                << ux   << " " << uy   << " " << un   << " "
+                                << e    << " " << T    << " " << p    << " "
+                                << pixx << " " << pixy << " " << pixn << " " << piyy << " " << piyn << " "
+                                << Pi   << endl;
       #endif
 
       #endif
@@ -659,7 +616,6 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
 
   double conformal_prefactor = hydro.conformal_eos_prefactor;
 
-  //#pragma omp parallel for collapse(3)
   for(int i = 0; i < nx - 1; i++)
   {
     for(int j = 0; j < ny - 1; j++)
@@ -671,26 +627,6 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
         double cell_y = dy * ((double)j  -  (double)(ny - 1) / 2.);
         double cell_z = dz * ((double)k  -  (double)(nz - 1) / 2.);
 
-        // restructured freezeout finder for openmp 6/11/20 (need to test though)
-        //:::::::::::::::::::::::::::::::::::::::::::::::::::
-        // double ****hypercube_test;
-
-        // hypercube_test = calloc_4d_array(hypercube_test, 2, 2, 2, 2);
-
-        // construct_energy_density_hypercube_test(hypercube_test, hydro_evolution[3], i, j, k);        // energy density hyper cube
-
-        // int freezeout_cells = 0;
-
-        // #pragma omp critical   // is this going to slow it down significantly?
-        // {
-        //   cornelius.find_surface_4d(hypercube_test);                                   // find centroid and normal vector of each hypercube
-        //   freezeout_cells = cornelius.get_Nelements();
-        // }
-
-        // free_4d_array(hypercube_test, 2, 2, 2);
-        //:::::::::::::::::::::::::::::::::::::::::::::::::::
-
-        // previous finder
         construct_energy_density_hypercube(hydro_evolution[3], i, j, k);        // energy density hyper cube
         cornelius.find_surface_4d(hypercube);                                   // find centroid and normal vector of each hypercube
         int freezeout_cells = cornelius.get_Nelements();
@@ -712,14 +648,11 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
 
           if(r > max_radius)
           {
-            #pragma omp critical
-            {
-              tau_coord = t;
-              x_coord = x;
-              y_coord = y;
-              eta_coord = eta;
-              max_radius = r;
-            }
+            tau_coord = t;
+            x_coord = x;
+            y_coord = y;
+            eta_coord = eta;
+            max_radius = r;
           }
       #endif
 
@@ -800,60 +733,51 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
           double Pi = (pl + 2.*pt)/3. - p;
 
         #ifdef JETSCAPE
-          #pragma omp critical
-          {
-            surface.tau.push_back((float)t);                  // append freezeout surface
-            surface.x.push_back(  (float)x);
-            surface.y.push_back(  (float)y);
-            surface.eta.push_back((float)eta);
+          surface.tau.push_back((float)t);                  // append freezeout surface
+          surface.x.push_back(  (float)x);
+          surface.y.push_back(  (float)y);
+          surface.eta.push_back((float)eta);
 
-            surface.dsigma_tau.push_back((float)ds0);
-            surface.dsigma_x.push_back(  (float)ds1);
-            surface.dsigma_y.push_back(  (float)ds2);
-            surface.dsigma_eta.push_back((float)ds3);
+          surface.dsigma_tau.push_back((float)ds0);
+          surface.dsigma_x.push_back(  (float)ds1);
+          surface.dsigma_y.push_back(  (float)ds2);
+          surface.dsigma_eta.push_back((float)ds3);
 
-            surface.ux.push_back((float)ux);
-            surface.uy.push_back((float)uy);
-            surface.un.push_back((float)un);
+          surface.ux.push_back((float)ux);
+          surface.uy.push_back((float)uy);
+          surface.un.push_back((float)un);
 
-            surface.E.push_back((float)(e * hbarc));          // undo hbarc = 1 units
-            surface.T.push_back((float)(T * hbarc));
-            surface.P.push_back((float)(p * hbarc));
+          surface.E.push_back((float)(e * hbarc));          // undo hbarc = 1 units
+          surface.T.push_back((float)(T * hbarc));
+          surface.P.push_back((float)(p * hbarc));
 
-            surface.pixx.push_back((float)(pixx * hbarc));
-            surface.pixy.push_back((float)(pixy * hbarc));
-            surface.pixn.push_back((float)(pixn * hbarc));
-            surface.piyy.push_back((float)(piyy * hbarc));
-            surface.piyn.push_back((float)(piyn * hbarc));
+          surface.pixx.push_back((float)(pixx * hbarc));
+          surface.pixy.push_back((float)(pixy * hbarc));
+          surface.pixn.push_back((float)(pixn * hbarc));
+          surface.piyy.push_back((float)(piyy * hbarc));
+          surface.piyn.push_back((float)(piyn * hbarc));
 
-            surface.Pi.push_back((float)(Pi * hbarc));
-          }
+          surface.Pi.push_back((float)(Pi * hbarc));
 
         #else
-          #pragma omp critical
-          {
-            freezeout_surface_file  << t    << " " << x    << " " << y    << " " << eta  << " "
+          freezeout_surface_file  << t    << " " << x    << " " << y    << " " << eta  << " "
                                   << ds0  << " " << ds1  << " " << ds2  << " " << ds3  << " "
                                   << ux   << " " << uy   << " " << un   << " "
                                   << e    << " " << T    << " " << p    << " "
                                   << pixx << " " << pixy << " " << pixn << " " << piyy << " " << piyn << " "
                                   << Pi   << endl;
-          }
         #endif
 
         #else                                                                 // freezeout surface vah format
 
         #ifndef JETSCAPE
-          #pragma omp critical
-          {
-            freezeout_surface_file  << t    << " " << x    << " " << y    << " " << eta  << " "
+          freezeout_surface_file  << t    << " " << x    << " " << y    << " " << eta  << " "
                                   << ds0  << " " << ds1  << " " << ds2  << " " << ds3  << " "
                                   << ux   << " " << uy   << " " << un   << " "
                                   << e    << " " << T    << " " << p    << " "
                                   << pl   << " " << pt   << " "
                                   << pixx << " " << pixy << " "
                                   << WTzx << " " << WTzy << endl;
-          }
         #endif
 
         #endif
@@ -883,49 +807,41 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
 
 
         #ifdef JETSCAPE
-          #pragma omp critical
-          {
-            surface.tau.push_back((float)t);                  // append freezeout surface
-            surface.x.push_back(  (float)x);
-            surface.y.push_back(  (float)y);
-            surface.eta.push_back((float)eta);
+          surface.tau.push_back((float)t);                  // append freezeout surface
+          surface.x.push_back(  (float)x);
+          surface.y.push_back(  (float)y);
+          surface.eta.push_back((float)eta);
 
-            surface.dsigma_tau.push_back((float)ds0);
-            surface.dsigma_x.push_back(  (float)ds1);
-            surface.dsigma_y.push_back(  (float)ds2);
-            surface.dsigma_eta.push_back((float)ds3);
+          surface.dsigma_tau.push_back((float)ds0);
+          surface.dsigma_x.push_back(  (float)ds1);
+          surface.dsigma_y.push_back(  (float)ds2);
+          surface.dsigma_eta.push_back((float)ds3);
 
-            surface.ux.push_back((float)ux);
-            surface.uy.push_back((float)uy);
-            surface.un.push_back((float)un);
+          surface.ux.push_back((float)ux);
+          surface.uy.push_back((float)uy);
+          surface.un.push_back((float)un);
 
-            surface.E.push_back((float)(e * hbarc));          // undo hbarc = 1 units
-            surface.T.push_back((float)(T * hbarc));
-            surface.P.push_back((float)(p * hbarc));
+          surface.E.push_back((float)(e * hbarc));          // undo hbarc = 1 units
+          surface.T.push_back((float)(T * hbarc));
+          surface.P.push_back((float)(p * hbarc));
 
-            surface.pixx.push_back((float)(pixx * hbarc));
-            surface.pixy.push_back((float)(pixy * hbarc));
-            surface.pixn.push_back((float)(pixn * hbarc));
-            surface.piyy.push_back((float)(piyy * hbarc));
-            surface.piyn.push_back((float)(piyn * hbarc));
+          surface.pixx.push_back((float)(pixx * hbarc));
+          surface.pixy.push_back((float)(pixy * hbarc));
+          surface.pixn.push_back((float)(pixn * hbarc));
+          surface.piyy.push_back((float)(piyy * hbarc));
+          surface.piyn.push_back((float)(piyn * hbarc));
 
-            surface.Pi.push_back((float)(Pi * hbarc));
-          }
+          surface.Pi.push_back((float)(Pi * hbarc));
         #else
-          #pragma omp critical
-          {
-            freezeout_surface_file  << t    << " " << x    << " " << y    << " " << eta  << " "
+          freezeout_surface_file  << t    << " " << x    << " " << y    << " " << eta  << " "
                                   << ds0  << " " << ds1  << " " << ds2  << " " << ds3  << " "
                                   << ux   << " " << uy   << " " << un   << " "
                                   << e    << " " << T    << " " << p    << " "
                                   << pixx << " " << pixy << " " << pixn << " " << piyy << " " << piyn << " "
                                   << Pi   << endl;
-          }
         #endif
 
-
         #endif
-
         } // n
       } // k
     } // j
