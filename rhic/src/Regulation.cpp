@@ -285,6 +285,8 @@ void regulate_viscous_currents(precision t, hydro_variables * const __restrict__
 		{
 			for(int i = 2; i < nx + 2; i++)
 			{
+//                printf("number of threads = %d\n", omp_get_num_threads());
+//                exit(-1);
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
 				equation_of_state_new eos(e[s], hydro.conformal_eos_prefactor);

@@ -19,6 +19,7 @@
 #include "../include/AnisoVariables.h"
 #include "../include/Viscosities.h"
 #include "../include/OpenMP.h"
+
 using namespace std;
 
 //#define THETA_FUNCTION(X) ((double)X < (double)0 ? (double)0 : (double)1)

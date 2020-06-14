@@ -16,6 +16,7 @@
 #include "../include/AdaptiveTimeStep.h"
 #include "../include/FreezeoutFinder.h"
 #include "../include/OpenMP.h"
+
 using namespace std;
 
 bool hit_CFL_bound = false;
@@ -40,8 +41,7 @@ bool all_cells_below_freezeout_temperature(lattice_parameters lattice, hydro_par
 	precision T_switch = hydro.freezeout_temperature_GeV;
 	precision e_switch = equilibrium_energy_density_new(T_switch / hbarc, hydro.conformal_eos_prefactor);
 
-	// use openmp?
-	for(int k = 2; k < nz + 2; k++)
+    for(int k = 2; k < nz + 2; k++)
 	{
 		for(int j = 2; j < ny + 2; j++)
 		{
@@ -51,11 +51,12 @@ bool all_cells_below_freezeout_temperature(lattice_parameters lattice, hydro_par
 
 				if(e[s] >= e_switch)
 				{
-					return false;
+                    return false;
 				}
 			}
+
 		}
-	}
+    }
 	return true;
 }
 
@@ -201,6 +202,7 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 
 #ifdef OPENMP
   	double t1 = omp_get_wtime();                        // is this the right omp time I want?
+    printf("Staring omp time = %lf\n", t1);
 #else
   	clock_t start = clock();
 #endif
@@ -288,14 +290,17 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 		{
 			if(n % PRINT_PERIOD == 0)
 			{
-				long cells_above_Tswitch = number_of_cells_above_freezeout_temperature(lattice, hydro);
+				//long cells_above_Tswitch = number_of_cells_above_freezeout_temperature(lattice, hydro);
 
-				print_hydro_center(n, t, lattice, hydro, cells_above_Tswitch);
-
-				if(!cells_above_Tswitch)
-				{
-					break;
-				}
+				//print_hydro_center(n, t, lattice, hydro, cells_above_Tswitch);
+                if(all_cells_below_freezeout_temperature(lattice, hydro))
+                {
+                    break;
+                }
+//				if(!cells_above_Tswitch)
+//				{
+//					break;
+//				}
 			}
 		}
 
@@ -319,6 +324,7 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 
 #ifdef OPENMP
   	double t2 = omp_get_wtime();                                   // is this the right omp time I want?
+    printf("End omp time = %lf\n", t2);
   	double duration = t2 - t1;
 #else
   	double duration = (clock() - start) / (double)CLOCKS_PER_SEC;  // hydro evolution runtime in seconds (ignores initalization runtime)

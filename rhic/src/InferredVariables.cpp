@@ -10,6 +10,7 @@
 #include "../include/Parameters.h"
 #include "../include/EquationOfState.h"
 #include "../include/OpenMP.h"
+
 using namespace std;
 
 double ttt_error = 1.e-13;
@@ -220,7 +221,7 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 
 	precision t2 = t * t;
 
-	#pragma omp parallel for collapse(3)
+    #pragma omp parallel for collapse(3)
 	for(int k = 2; k < nz + 2; k++)
 	{
 		for(int j = 2; j < ny + 2; j++)
