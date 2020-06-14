@@ -123,9 +123,9 @@ void HYDRO::free_freezeout_surface()
 
 void HYDRO::start_hydro(int argc, char **argv)
 {
-//#ifdef _OMP
+#ifdef OPENMP
 	printf("Running CPU-VAH with OpenMP acceleration: number of threads = %d\n\n", omp_get_max_threads());
-//#endif
+#endif
 
 	bool sample_parameters = false;						// default: use model parameters in parameters/
 	int sample = 0;
@@ -185,9 +185,10 @@ void HYDRO::start_hydro(int argc, char **argv)
 
 void HYDRO::start_hydro_no_arguments()
 {
-    //#ifdef _OMP
+#ifdef OPENMP
 	printf("Running CPU-VAH with OpenMP acceleration: number of threads = %d\n\n", omp_get_max_threads());
-//#endif
+#endif
+
 	bool sample_parameters = false;						// will read default parameters in parameters/
 	int sample = 0;                                     // can't use auto_grid (need different way to read in sample model parameters)
 	random_model_parameters random;
