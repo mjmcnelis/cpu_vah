@@ -9,6 +9,7 @@
 #include "../include/DynamicalVariables.h"
 #include "../include/Parameters.h"
 #include "../include/Print.h"
+#include "../include/OpenMP.h"
 using namespace std;
 
 inline int linear_column_index(int i, int j, int k, int nx, int ny)
@@ -45,13 +46,19 @@ void print_run_time(double t, double duration, double steps, lattice_parameters 
 	int nx = lattice.lattice_points_x;
 	int ny = lattice.lattice_points_y;
 	int nz = lattice.lattice_points_eta;
-
+    
+    int threads = 1;
+#ifdef OPENMP
+    threads = omp_get_max_threads();
+#endif
+    
 	printf("Lifetime               = %.5g fm/c\n", t);
 	printf("Run time               = %.4g s\n", duration);
 	printf("Number of time steps   = %d\n", (int)steps);
 	printf("Average time/step      = %.4g s\n", duration / steps);
 	printf("Average time/cell/step = %.4g ms\n", 1000. * duration / (nx * ny * nz * steps));
-
+    printf("Number of threads      = %d\n", threads);
+    
 #ifdef BENCHMARKS
 	FILE * benchmarks;
 
@@ -67,8 +74,8 @@ void print_run_time(double t, double duration, double steps, lattice_parameters 
 	}
 
 
-	// same data that was printed
-	fprintf(benchmarks, "%.5g\t%.5g\t%d\t%.5g\t%.5g\n", t, duration, (int)steps, duration / steps, 1000. * duration / (nx * ny * nz * steps));
+	// same data that was printed above
+	fprintf(benchmarks, "%.5g\t%.5g\t%d\t%.5g\t%.5g\t%d\n", t, duration, (int)steps, duration / steps, 1000. * duration / (nx * ny * nz * steps), threads);
 	fclose(benchmarks);
 #endif
 }

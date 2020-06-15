@@ -1,0 +1,90 @@
+
+CPU Type: Intel(R) Xeon(R) CPU E5-2680 v4 @ 2.40GHz
+
+Running CPU-VAH with OpenMP acceleration: number of threads = 1
+
+
+::::::::::::::::::::::::::::::::::::::::::::::
+:::   Running second order viscous hydro   :::
+::::::::::::::::::::::::::::::::::::::::::::::
+
+Time resolution     = 0.0005 fm/c (adaptive)
+Spatial grid points = 129 x 129 x 1
+Spatial resolution  = [0.220 fm, 0.220 fm, 0.220]
+Spatial dimensions  = 28.160 fm  x  28.160 fm  x  0.000
+
+Initial time  = 0.01 fm/c
+Initial pl/pt = 0.001
+
+eta/s(T)  = 0.200 (fixed)
+
+zetas = 0
+
+Kinetic theory model = Small mass expansion
+
+Freezeout temperature     = 150 MeV
+Freezeout energy density  = 1.03 GeV/fm^3
+Flux limiter              = 1.80
+Minimum energy density    = 1.00e-03 fm^-4
+Minimum pressure          = 1.00e-05 fm^-4
+
+Equation of state = Conformal
+
+Shear stress  = On
+Bulk pressure = Off
+
+Vorticity terms = Off
+
+Initial conditions = Reading custom energy density block file... (fluid velocity initialized to zero)
+
+Running 2+1d hydro simulation...
+
+Staring omp time = 1592238332.306631
+
+Hit CFL bound at t = 0.991673
+
+
+Number of times grid went below freezeout temperature during freezeout finder call: 1
+
+
+Number of times grid went below freezeout temperature during freezeout finder call: 2
+
+
+Number of times grid went below freezeout temperature during freezeout finder call: 3
+
+End omp time = 1592238359.327829
+Lifetime               = 7.096 fm/c
+Run time               = 27.02 s
+Number of time steps   = 376
+Average time/step      = 0.07186 s
+Average time/cell/step = 0.004319 ms
+Number of threads      = 1
+
+Freeing freezeout_finder memory... (except freezeout surface)
+Max radius of freezeout surface = 11.322 fm
+
+Finished hydro evolution
+
+Storing freezeout surface in memory for particlization module...
+
+Number of freezeout cells = 61401
+
+End of hydro simulation
+
+Freeing freezeout surface in hydro module...
+
+
+-----------------------
+Resources requested:
+nodes=1:ppn=1
+mem=4315mb
+-----------------------
+Resources used:
+cput=00:00:27
+walltime=00:00:28
+mem=0.046GB
+vmem=0.216GB
+-----------------------
+Resource units charged (estimate):
+0.000 RUs
+-----------------------

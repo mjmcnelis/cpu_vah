@@ -1,0 +1,10 @@
+#!/bin/bash -l
+#PBS -l walltime=00:01:00,nodes=1:ppn=1
+#PBS -j oe
+#PBS -A PAS0254
+cd cpu_vh
+
+export OMP_NUM_THREADS=1
+set OMP_NUM_THREADS 1
+./cpu_vah
+
