@@ -6,7 +6,7 @@
 
 //#define ANISO_HYDRO				// run anisotropic hydro (comment to run 2nd order viscous hydro)
 
-//#define BOOST_INVARIANT 		// run 2+1d hydro (comment to run 3+1d hydro)
+#define BOOST_INVARIANT 		// run 2+1d hydro (comment to run 3+1d hydro)
 
 #define RANDOM_MODEL_PARAMETERS // option to use python/random_model_parameters/model_parameters_x.dat (x = 1st command line argument)
 								// comment to use the fixed values in parameters/
@@ -54,7 +54,7 @@
 
 
 
-#define PRINT_HYDRO				// option to print current hydro info
+//#define PRINT_HYDRO				// option to print current hydro info
 #define PRINT_PERIOD 10			// number of steps per print (leave this defined!)
 
 //#define PRINT_PARAMETERS		// option to print parameters
@@ -63,7 +63,7 @@
 
 #define BENCHMARKS				// output benchmark data (e.g. hydro run time)
 
-#define ADAPTIVE_FILE			// output adaptive time steps
+//#define ADAPTIVE_FILE			// output adaptive time steps
 
 //#define MONITOR_TTAUMU			// output violations of T^{\tau\mu} reproduction in InferredVariables.cpp
 

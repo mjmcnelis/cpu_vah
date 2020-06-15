@@ -55,7 +55,7 @@ precision compute_dt_CFL(precision t, lattice_parameters lattice, hydro_paramete
 	int stride_y = nx + 4;							// strides for neighbor cells along x, y, n (stride_x = 1)
 	int stride_z = (nx + 4) * (ny + 4);				// stride formulas based from linear_column_index()
 
-	#pragma omp parallel for collapse(3)
+	#pragma omp parallel for collapse(3) reduction(min:dt_CFL)
 	for(int k = 2; k < nz + 2; k++)
 	{
 		for(int j = 2; j < ny + 2; j++)
@@ -100,10 +100,7 @@ precision compute_dt_CFL(precision t, lattice_parameters lattice, hydro_paramete
 				precision ay = compute_max_local_propagation_speed(vyj, uy / ut, Theta);
 				precision an = compute_max_local_propagation_speed(vnk, un / ut, Theta);
 
-				#pragma omp critical
-				{
-					dt_CFL = fmin(dt_CFL, fmin(dx / ax, fmin(dy / ay, dn / an)));	// take the minimum wave propagation time
-				}
+				dt_CFL = fmin(dt_CFL, fmin(dx / ax, fmin(dy / ay, dn / an)));	// take the minimum wave propagation time
 			}
 		}
 	}
@@ -350,7 +347,7 @@ precision compute_dt_source(precision t, const hydro_variables * const __restric
 	precision alpha = lattice.alpha;
 	precision delta_0 = lattice.delta_0;
 
-	#pragma omp parallel for collapse(3)
+	#pragma omp parallel for collapse(3) reduction(min:dt_source)
 	for(int k = 2; k < nz + 2; k++)
 	{
 		for(int j = 2; j < ny + 2; j++)
@@ -369,10 +366,7 @@ precision compute_dt_source(precision t, const hydro_variables * const __restric
 
 				precision dt_next = adaptive_method_norm(q_norm, f_norm, second_derivative_norm, q_dot_f, dt_prev, delta_0);
 
-				#pragma omp critical
-				{
-					dt_source = fmin(dt_source, dt_next);
-				}
+				dt_source = fmin(dt_source, dt_next);
 			}
 		}
 	}

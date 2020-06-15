@@ -449,12 +449,6 @@ void set_trento_energy_density_and_flow_profile(lattice_parameters lattice, init
 
 	trento_transverse_energy_density_profile(eT, lattice, initial, hydro);
 
-#ifdef OPENMP
-	double t2 = omp_get_wtime();
-    printf("Trento took %lf seconds\n", t2 - t1);
-    exit(-1);
- #endif
-
 	longitudinal_energy_density_extension(eL, lattice, initial);
 
 #ifndef OPENMP
@@ -467,10 +461,12 @@ void set_trento_energy_density_and_flow_profile(lattice_parameters lattice, init
 	}
 #endif
 
+#ifdef OPENMP
 	#pragma omp parallel for collapse(3)
+#endif
 	for(int k = 2; k < nz + 2; k++)
 	{
-		for(int j = 2; j < ny + 2; j++)
+        for(int j = 2; j < ny + 2; j++)
 		{
 			for(int i = 2; i < nx + 2; i++)
 			{
@@ -528,6 +524,11 @@ void set_trento_energy_density_and_flow_profile(lattice_parameters lattice, init
 	{
 		fclose(energy);
 	}
+#endif
+    
+#ifdef OPENMP
+   double t2 = omp_get_wtime();
+   printf("Trento initial conditions took %lf seconds\n", t2 - t1);
 #endif
 }
 

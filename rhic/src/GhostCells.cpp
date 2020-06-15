@@ -1,8 +1,6 @@
 #include "../include/Precision.h"
 #include "../include/DynamicalVariables.h"
-//#ifdef _OMP
-//#include <omp.h>
-//#endif
+#include "../include/OpenMP.h"
 
 inline int linear_column_index(int i, int j, int k, int nx, int ny)
 {
@@ -26,8 +24,7 @@ void set_ghost_cells(hydro_variables * const __restrict__ q, precision * const _
 
 	// loop over the physical (y,z) lattice points:
 
-	// openmp has little benefit here
-	//#pragma omp parallel for
+	#pragma omp parallel for collapse(2)
 	for(int j = 2; j < ny + 2; j++)
 	{
 		for(int k = 2; k < nz + 2; k++)
@@ -48,10 +45,9 @@ void set_ghost_cells(hydro_variables * const __restrict__ q, precision * const _
 		}
 	}
 
-	// loop over the physical (x,y) and (x,z) lattice points:
+	// loop over the physical (x,z) lattice points:
 
-	// openmp has little benefit here
-	//#pragma omp parallel for
+	#pragma omp parallel for collapse(2)
 	for(int i = 2; i < nx + 2; i++)
 	{
 		for(int k = 2; k < nz + 2; k++)
@@ -70,7 +66,13 @@ void set_ghost_cells(hydro_variables * const __restrict__ q, precision * const _
 				set_ghost_cell_boundary_conditions(q, e, u, s, sBC);
 			}
 		}
+    }
+    
+    // loop over the physical (x,y) lattice points:
 
+    #pragma omp parallel for collapse(2)
+    for(int i = 2; i < nx + 2; i++)
+    {
 		for(int j = 2; j < ny + 2; j++)
 		{
 			for(int k = 0; k <= 1; k++)				// set left ghost cells (z)
