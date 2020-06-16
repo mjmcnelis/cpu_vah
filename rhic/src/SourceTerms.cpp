@@ -603,22 +603,19 @@ precision zeta_LT, zeta_TT, lambda_WuT, lambda_WTT, lambda_piT;
 	Inn += lambda_WTpi * (WnTz * z_NabTn_u);
 #endif
 
-#ifndef BOOST_INVARIANT
-	if(hydro.include_vorticity)
-	{
-		printf("source_terms_aniso_hydro error: no vorticity terms yet\n");
-		exit(-1);
-		Itt += 0;
-		Itx += 0;
-		Ity += 0;
-		Itn += 0;
-		Ixx += 0;
-		Ixy += 0;
-		Ixn += 0;
-		Iyy += 0;
-		Iyn += 0;
-		Inn += 0;
-	}
+#ifdef VORTICITY
+	printf("source_terms_aniso_hydro error: no vorticity terms yet\n");
+	exit(-1);
+	Itt += 0;
+	Itx += 0;
+	Ity += 0;
+	Itn += 0;
+	Ixx += 0;
+	Ixy += 0;
+	Ixn += 0;
+	Iyy += 0;
+	Iyn += 0;
+	Inn += 0;
 #endif
 
 	// double project the first several terms
@@ -750,13 +747,14 @@ precision zeta_LT, zeta_TT, lambda_WuT, lambda_WTT, lambda_piT;
 	Iy += lambda_WTW * (sTty * WtTz  -  sTxy * WxTz  -  sTyy * WyTz  - t2 * sTyn * WnTz);
 	In += lambda_WTW * (sTtn * WtTz  -  sTxn * WxTz  -  sTyn * WyTz  - t2 * sTnn * WnTz);
 
-	if(hydro.include_vorticity)
-	{
-		It += 0.;		// haven't worked out vorticity terms yet
-		Ix += 0.;
-		Iy += 0.;
-		In += 0.;
-	}
+#ifdef VORTICITY
+	printf("source_terms_aniso_hydro error: no vorticity terms yet\n");
+	exit(-1);
+	It += 0.;		// haven't worked out vorticity terms yet
+	Ix += 0.;
+	Iy += 0.;
+	In += 0.;
+#endif
 
 #ifdef PIMUNU
 	It += lambda_piuW * (pitt * Dz_ut  -  pitx * Dz_ux  -  pity * Dz_uy  -  t2 * pitn * Dz_un);
@@ -1188,22 +1186,19 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	precision Iyn = - tau_pipi * (pity * stn  +  pitn * sty  -  pixy * sxn  -  pixn * sxy  -  piyy * syn  -  piyn * syy  -  t2 * (piyn * snn  +  pinn * syn)) / 2.;
 	precision Inn = - tau_pipi * (pitn * stn  -  pixn * sxn  -  piyn * syn  -  t2 * pinn * snn);
 
-#ifndef BOOST_INVARIANT
-	if(hydro.include_vorticity)
-	{
-		printf("source_terms_viscous_hydro error: no vorticity terms yet\n");
-		exit(-1);
-		Itt += 0.;
-		Itx += 0.;
-		Ity += 0.;
-		Itn += 0.;
-		Ixx += 0.;
-		Ixy += 0.;
-		Ixn += 0.;
-		Iyy += 0.;
-		Iyn += 0.;
-		Inn += 0.;
-	}
+#ifdef VORTICITY
+	printf("source_terms_viscous_hydro error: no vorticity terms yet\n");
+	exit(-1);
+	Itt += 0.;
+	Itx += 0.;
+	Ity += 0.;
+	Itn += 0.;
+	Ixx += 0.;
+	Ixy += 0.;
+	Ixn += 0.;
+	Iyy += 0.;
+	Iyn += 0.;
+	Inn += 0.;
 #endif
 
 	Delta_2.double_spatial_project_tensor(Itt, Itx, Ity, Itn, Ixx, Ixy, Ixn, Iyy, Iyn, Inn);

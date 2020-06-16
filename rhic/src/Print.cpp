@@ -46,19 +46,19 @@ void print_run_time(double t, double duration, double steps, lattice_parameters 
 	int nx = lattice.lattice_points_x;
 	int ny = lattice.lattice_points_y;
 	int nz = lattice.lattice_points_eta;
-    
+
     int threads = 1;
 #ifdef OPENMP
     threads = omp_get_max_threads();
 #endif
-    
+
 	printf("Lifetime               = %.5g fm/c\n", t);
 	printf("Run time               = %.4g s\n", duration);
 	printf("Number of time steps   = %d\n", (int)steps);
 	printf("Average time/step      = %.4g s\n", duration / steps);
 	printf("Average time/cell/step = %.4g ms\n", 1000. * duration / (nx * ny * nz * steps));
     printf("Number of threads      = %d\n", threads);
-    
+
 #ifdef BENCHMARKS
 	FILE * benchmarks;
 
@@ -324,12 +324,9 @@ void print_parameters(lattice_parameters lattice, hydro_parameters hydro)
 #endif
 #endif
 
-	if(hydro.include_vorticity)
-	{
-		printf("\nVorticity terms = On\n");
-	}
-	else
-	{
-		printf("\nVorticity terms = Off\n");
-	}
+#ifdef VORTICITY
+	printf("\nVorticity terms = On\n");
+#else
+	printf("\nVorticity terms = Off\n");
+#endif
 }

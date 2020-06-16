@@ -237,12 +237,6 @@ hydro_parameters load_hydro_parameters(bool sample_parameters, random_model_para
 		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
 		delimiterPos = line.find("=");
 		line = line.substr(delimiterPos + 1);
-		hydro.include_vorticity = atoi(line.c_str());
-
-		getline(cFile, line);
-		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
-		delimiterPos = line.find("=");
-		line = line.substr(delimiterPos + 1);
 		hydro.energy_min = atof(line.c_str());
 
 		getline(cFile, line);
@@ -308,7 +302,6 @@ hydro_parameters load_hydro_parameters(bool sample_parameters, random_model_para
 	printf("zetas_skew                 = %.3g\n", 	hydro.zetas_skew);
 	printf("freezeout_temperature_GeV  = %.3f\n", 	hydro.freezeout_temperature_GeV);
 	printf("flux_limiter               = %.3g\n", 	hydro.flux_limiter);
-	printf("include_vorticity          = %d\n", 	hydro.include_vorticity);
 	printf("energy_min                 = %.1e\n", 	hydro.energy_min);
 	printf("pressure_min               = %.1e\n", 	hydro.pressure_min);
 	printf("regulation_scheme          = %d\n", 	hydro.regulation_scheme);
@@ -394,6 +387,12 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro, initial_condi
 		delimiterPos = line.find("=");
 		line = line.substr(delimiterPos + 1);
 		lattice.resolve_nucleons = atoi(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
+		lattice.fit_rapidity_plateau = atoi(line.c_str());
 
 		getline(cFile, line);
 		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
@@ -511,6 +510,27 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro, initial_condi
 	#endif
 	}
 
+#ifndef BOOST_INVARIANT
+	if(lattice.fit_rapidity_plateau)
+	{
+		double eta_flat = initial.rapidity_flat;
+		double eta_sigma = sqrt(initial.rapidity_variance);
+
+		double Lz = eta_flat  +  10. * eta_sigma;			 // hard-coded to cover 5 sigmas
+		double dz = round_two_decimals(eta_sigma / 5.);
+
+		lattice.lattice_spacing_eta = dz;
+
+		int nz = (int)ceil(Lz / dz)  +  (1 + (int)ceil(Lz / dz)) % 2;
+
+		if((nz - 1) * dz < Lz)
+		{
+			nz += 2;
+		}
+		lattice.lattice_points_eta = nz;
+	}
+#endif
+
 
 	if(sample_parameters)
 	{
@@ -518,30 +538,48 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro, initial_condi
 		{
 			printf("\nRun hydro simulation on the training grid\n\n");
 
-			double L = 30;
+			double Lx = 30;
+			double Ly = 30;
+			double Lz = lattice.lattice_spacing_eta * (lattice.lattice_points_eta - 1);
 
 			if(lattice.train_coarse_factor < 1)
 			{
-				printf("load_lattice_parameters error: set train_coarse_factor >= 1\n");
+				printf("load_lattice_parameters error: for traning grid, set train_coarse_factor >= 1\n");
 				exit(-1);
 			}
 
-			double dx = lattice.lattice_spacing_x * lattice.train_coarse_factor;
-			double dy = lattice.lattice_spacing_y * lattice.train_coarse_factor;
+		#ifndef BOOST_INVARIANT
+			if(!lattice.fit_rapidity_plateau)
+			{
+				printf("load_lattice_parameters error: for training grid in 3+1d, set fit_rapidity_plateau = 1\n");
+				exit(-1);
+			}
+		#endif
+
+			double dx = lattice.lattice_spacing_x   * lattice.train_coarse_factor;
+			double dy = lattice.lattice_spacing_y   * lattice.train_coarse_factor;
 			double dz = lattice.lattice_spacing_eta * lattice.train_coarse_factor;
 
-			lattice.lattice_spacing_x = dx;
-			lattice.lattice_spacing_y = dy;
+			lattice.lattice_spacing_x   = dx;
+			lattice.lattice_spacing_y   = dy;
 			lattice.lattice_spacing_eta = dz;
 
-			int nx = (int)ceil(L / dx)  +  (1 + (int)ceil(L / dx)) % 2;
-			int ny = (int)ceil(L / dy)  +  (1 + (int)ceil(L / dy)) % 2;
-			int nz = (int)ceil(L / dz)  +  (1 + (int)ceil(L / dz)) % 2;
+			int nx = (int)ceil(Lx / dx)  +  (1 + (int)ceil(Lx / dx)) % 2;
+			int ny = (int)ceil(Ly / dy)  +  (1 + (int)ceil(Ly / dy)) % 2;
+			int nz = (int)ceil(Lz / dz)  +  (1 + (int)ceil(Lz / dz)) % 2;
 
-			if(((nx - 1) * dx < L) || ((ny - 1) * dy < L) || ((nz - 1) * dz < L))
+			if((nx - 1) * dx < Lx)
 			{
 				nx += 2;
+			}
+
+			if((ny - 1) * dy < Ly)
+			{
 				ny += 2;
+			}
+
+			if((nz - 1) * dz < Lz)
+			{
 				nz += 2;
 			}
 
@@ -583,31 +621,25 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro, initial_condi
 
 			double L = 2. * (fireball_radius_mean  +  sigma_factor * fireball_radius_std  +  buffer);
 
-			printf("\nAuto grid size length L = %.3f fm\n\n", L);
+			printf("\nAuto transverse grid size length L = %.3f fm\n\n", L);
 
 			double dx = lattice.lattice_spacing_x;
 			double dy = lattice.lattice_spacing_y;
-			double dz = lattice.lattice_spacing_eta;
 
 			// ensure odd number of points
 			int nx = (int)ceil(L / dx)  +  (1 + (int)ceil(L / dx)) % 2;
 			int ny = (int)ceil(L / dy)  +  (1 + (int)ceil(L / dy)) % 2;
-			int nz = (int)ceil(L / dz)  +  (1 + (int)ceil(L / dz)) % 2;
 
-			if(((nx - 1) * dx < L) || ((ny - 1) * dy < L) || ((nz - 1) * dz < L))
+			if(((nx - 1) * dx < L) || ((ny - 1) * dy < L))
 			{
 				nx += 2;
 				ny += 2;
-				nz += 2;
 			}
 
 			lattice.lattice_points_x   = nx;
 			lattice.lattice_points_y   = ny;
-		#ifndef BOOST_INVARIANT
-			lattice.lattice_points_eta = nz;
-		#endif
 
-			printf("Reconfiguring grid size length to L ~ %.3f fm\n\n", (nx - 1) * dx);
+			printf("Reconfiguring transverse grid size length to L ~ %.3f fm\n\n", (nx - 1) * dx);
 		}
 	}
 
@@ -658,6 +690,7 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro, initial_condi
 	printf("lattice_spacing_y   = %.3g\n", 	lattice.lattice_spacing_y);
 	printf("lattice_spacing_eta = %.3g\n", 	lattice.lattice_spacing_eta);
 	printf("resolve_nucleons    = %d\n", 	lattice.resolve_nucleons);
+	printf("fit_rapidity_plateau= %d\n", 	lattice.fit_rapidity_plateau);
 	printf("training_grid       = %d\n", 	lattice.training_grid);
 	printf("train_coarse_factor = %.2g\n", 	lattice.train_coarse_factor);
 	printf("auto_grid           = %d\n", 	lattice.auto_grid);

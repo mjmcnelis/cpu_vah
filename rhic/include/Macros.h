@@ -6,7 +6,7 @@
 
 //#define ANISO_HYDRO				// run anisotropic hydro (comment to run 2nd order viscous hydro)
 
-#define BOOST_INVARIANT 		// run 2+1d hydro (comment to run 3+1d hydro)
+//#define BOOST_INVARIANT 		// run 2+1d hydro (comment to run 3+1d hydro)
 
 #define RANDOM_MODEL_PARAMETERS // option to use python/random_model_parameters/model_parameters_x.dat (x = 1st command line argument)
 								// comment to use the fixed values in parameters/
@@ -17,7 +17,7 @@
 
 #define FREEZEOUT_VH			// option to convert vah to vh variables on freezeout surface
 
-#define BEST					// use the best eos (is this still used?)
+#define BEST					// use the best eos (I don't think this is used anymore)
 
 #define CONFORMAL_EOS			// conformal equation of state
 
@@ -52,12 +52,16 @@
 
 #endif
 
+#ifndef BOOST_INVARIANT
+	//#define VORTICITY			// include vorticity terms in relaxation equations
+#endif
 
 
-//#define PRINT_HYDRO				// option to print current hydro info
-#define PRINT_PERIOD 10			// number of steps per print (leave this defined!)
 
-//#define PRINT_PARAMETERS		// option to print parameters
+#define PRINT_HYDRO				// option to print current hydro info at center of grid (comment for no printing)
+#define PRINT_PERIOD 1			// number of steps per print for run_hydro = 3 (leave this defined!)
+
+#define PRINT_PARAMETERS		// option to print parameters
 
 #define FREEZEOUT_SIZE			// output maximum radius of freezeout surface
 

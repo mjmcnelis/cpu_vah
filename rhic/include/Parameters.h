@@ -53,7 +53,6 @@ typedef struct
 
 	double freezeout_temperature_GeV;
 	double flux_limiter;
-	int include_vorticity;
 
 	double energy_min;
 	double pressure_min;
@@ -76,6 +75,7 @@ typedef struct
 	double lattice_spacing_eta;
 
 	int resolve_nucleons;
+	int fit_rapidity_plateau;
 
 	int training_grid;
 	double train_coarse_factor;

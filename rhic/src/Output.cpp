@@ -222,7 +222,7 @@ void output_mean_field(const hydro_variables * const __restrict__ q, const fluid
 }
 
 
-void output_residual_shear_validity(const hydro_variables * const __restrict__ q, const fluid_velocity * const __restrict__ u, const precision * const e, double t, lattice_parameters lattice, hydro_parameters hydro)
+void output_residual_transverse_shear_validity(const hydro_variables * const __restrict__ q, const fluid_velocity * const __restrict__ u, const precision * const e, double t, lattice_parameters lattice, hydro_parameters hydro)
 {
 #ifdef PIMUNU
 	int nx = lattice.lattice_points_x;
@@ -319,6 +319,160 @@ void output_residual_shear_validity(const hydro_variables * const __restrict__ q
 	}
 	fclose(RpiT_inverse);
 #endif
+}
+
+
+void output_residual_longitudinal_shear_validity(const hydro_variables * const __restrict__ q, const fluid_velocity * const __restrict__ u, const precision * const e, double t, lattice_parameters lattice, hydro_parameters hydro)
+{
+#ifdef BOOST_INVARIANT
+	return;
+#endif
+
+#ifdef ANISO_HYDRO
+#ifndef WTZMU
+	return;
+#endif
+#else
+#ifndef PIMUNU
+	return;
+#endif
+#endif
+
+	int nx = lattice.lattice_points_x;
+	int ny = lattice.lattice_points_y;
+	int nz = lattice.lattice_points_eta;
+
+	precision dx = lattice.lattice_spacing_x;
+	precision dy = lattice.lattice_spacing_y;
+	precision dn = lattice.lattice_spacing_eta;
+
+	FILE *WTz_pl_2pt;
+	char fname[255];
+	sprintf(fname, "output/WTz_pl_2pt_%.3f.dat", t);
+	WTz_pl_2pt = fopen(fname, "w");
+
+	precision t2 = t * t;
+	precision t4 = t2 * t2;
+
+	for(int k = 2; k < nz + 2; k++)
+	{
+		double z = (k - 2. - (nz - 1.)/2.) * dn;
+
+		for(int j = 2; j < ny + 2; j++)
+		{
+			double y = (j - 2. - (ny - 1.)/2.) * dy;
+
+			for(int i = 2; i < nx + 2; i++)
+			{
+				double x = (i - 2. - (nx - 1.)/2.) * dx;
+
+				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
+
+			#ifdef ANISO_HYDRO
+				precision pl = q[s].pl;
+				precision pt = q[s].pt;
+			#ifdef WTZMU
+				precision WtTz = q[s].WtTz;
+				precision WxTz = q[s].WxTz;
+				precision WyTz = q[s].WyTz;
+				precision WnTz = q[s].WnTz;
+			#else
+				precision WtTz = 0;
+				precision WxTz = 0;
+				precision WyTz = 0;
+				precision WnTz = 0;
+			#endif
+
+			#else
+
+				precision e_s = e[s];
+				equation_of_state_new eos(e_s, hydro.conformal_eos_prefactor);
+				precision P = eos.equilibrium_pressure();
+
+			#ifdef PI
+				P += q[s].Pi;
+			#endif
+
+				precision ux = u[s].ux;
+				precision uy = u[s].uy;
+				precision un = 0;
+			#ifndef BOOST_INVARIANT
+				un = u[s].un;
+			#endif
+
+				precision ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t2 * un * un);
+				precision utperp = sqrt(1.  +  ux * ux  +  uy * uy);
+				precision zt = t * un / utperp;
+				precision zn = ut / t / utperp;
+
+			#ifdef PIMUNU
+				precision pitt = q[s].pitt;
+				precision pitx = q[s].pitx;
+				precision pity = q[s].pity;
+				precision pitn = 0;
+				precision pixx = q[s].pixx;
+				precision pixy = q[s].pixy;
+				precision pixn = 0;
+				precision piyy = q[s].piyy;
+				precision piyn = 0;
+				precision pinn = q[s].pinn;
+			#ifndef BOOST_INVARIANT
+				pitn = q[s].pitn;
+				pixn = q[s].pixn;
+				piyn = q[s].piyn;
+			#endif
+			#else
+				precision pitt = 0;
+				precision pitx = 0;
+				precision pity = 0;
+				precision pitn = 0;
+				precision pixx = 0;
+				precision pixy = 0;
+				precision pixn = 0;
+				precision piyy = 0;
+				precision piyn = 0;
+				precision pinn = 0;
+			#endif
+
+				// pl = zmu.z.nu.Tmunu
+				precision pl = P  +  zt * zt * pitt  +  t4 * zn * zn * pinn  +  2. * t2 * zt * zn * pitn;
+				// pt = -Ximunu.Tmunu / 2
+				precision pt = P  -  (zt * zt * pitt  +  t4 * zn * zn * pinn  +  2. * t2 * zt * zn * pitn) / 2.;
+
+
+				// z_\nu . pi^{\nu\alpha}
+				precision pizt = zt * pitt  -  t2 * zn * pitn;
+				precision pizx = zt * pitx  -  t2 * zn * pixn;
+				precision pizy = zt * pity  -  t2 * zn * piyn;
+				precision pizn = zt * pitn  -  t2 * zn * pinn;
+
+				transverse_projection Xi(ut, ux, uy, un, zt, zn, t2);
+
+				precision Xitt = Xi.Xitt;
+				precision Xitx = Xi.Xitx;
+				precision Xity = Xi.Xity;
+				precision Xitn = Xi.Xitn;
+				precision Xixx = Xi.Xixx;
+				precision Xixy = Xi.Xixy;
+				precision Xixn = Xi.Xixn;
+				precision Xiyy = Xi.Xiyy;
+				precision Xiyn = Xi.Xiyn;
+				precision Xinn = Xi.Xinn;
+
+				// WTz^\mu = - \Xi^\mu_\alpha . z_\nu . pi^{\nu\alpha}
+				precision WtTz = - Xitt * pizt  +  Xitx * pizx  +  Xity * pizy  +  t2 * Xitn * pizn;
+				precision WxTz = - Xitx * pizt  +  Xixx * pizx  +  Xixy * pizy  +  t2 * Xixn * pizn;
+				precision WyTz = - Xity * pizt  +  Xixy * pizx  +  Xiyy * pizy  +  t2 * Xiyn * pizn;
+				precision WnTz = - Xitn * pizt  +  Xixn * pizx  +  Xiyn * pizy  +  t2 * Xinn * pizn;
+			#endif
+
+				precision W_mag = sqrt(2. * fabs(WtTz * WtTz  -  WxTz * WxTz  -  WyTz * WyTz  -  t2 * WnTz * WnTz));
+
+				fprintf(WTz_pl_2pt, "%.2f\t%.2f\t%.2f\t%.6f\n", x, y, z, W_mag / sqrt(pl * pl  +  2. * pt * pt));
+			}
+		}
+	}
+	fclose(WTz_pl_2pt);
 }
 
 
@@ -868,12 +1022,13 @@ void output_dynamical_variables(double t, double dt_prev, lattice_parameters lat
 	else if(initial_type == 2 || initial_type == 3)
 	{
 		output_gubser(q, u, e, t, lattice);
-		output_residual_shear_validity(q, u, e, t, lattice, hydro);
+		output_residual_transverse_shear_validity(q, u, e, t, lattice, hydro);
 	}
 	else
 	{
 		output_hydro(q, u, e, t, lattice, hydro);
-		output_residual_shear_validity(q, u, e, t, lattice, hydro);
+		output_residual_transverse_shear_validity(q, u, e, t, lattice, hydro);
+		output_residual_longitudinal_shear_validity(q, u, e, t, lattice, hydro);
 
 	#ifdef LATTICE_QCD
 		output_mean_field(q, u, up, e, t, dt_prev, lattice, hydro);
