@@ -47,8 +47,8 @@ int main(int argc, char **argv)
 {
   // default: cpu_vah can run as a stand-alone program
   // wrapper: HYDRO class can be instantiated in a larger program (JETSCAPE)
-    
-    print_cpu();
+
+  print_cpu();
 
   HYDRO vah;
 
@@ -72,7 +72,7 @@ int main(int argc, char **argv)
 
 HYDRO vah;                                              // make HYDRO class
 vah.read_trento_energy_density_profile(trento_energy);  // pass energy density vector from trento
-vah.start_hydro_no_arguments();                         // run hydro (Derek: do I need version with no command line arguments?)
+vah.start_hydro_no_arguments();                         // run hydro
 
 IS3D particlization;                                    // make IS3D class and pass freezeout surface from vah (pinn is extraneous)
 particlization.read_fo_surf_from_memory(vah.tau, vah.x, vah.y, vah.eta,

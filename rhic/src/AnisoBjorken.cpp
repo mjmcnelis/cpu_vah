@@ -128,7 +128,7 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 	// kinetic theory model should be quasiparticle but it can run either lattice + quasiparticle or conformal (or switch_eos mode)
 
 	double t  = hydro.tau_initial;												// initial time
-	double dt = t / 100.;														// use minimum time step 100x smaller than t0
+	double dt = t / 20.;														// use minimum time step 20x smaller than t0
 	int decimal = - log10(dt);													// setprecision value for t output
 
 

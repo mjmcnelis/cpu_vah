@@ -71,7 +71,7 @@ long number_of_cells_above_freezeout_temperature(lattice_parameters lattice, hyd
 
 	long cells = 0;
 
-	// here you want the addition version
+	// add omp later
 	for(int k = 2; k < nz + 2; k++)
 	{
 		for(int j = 2; j < ny + 2; j++)
@@ -96,9 +96,9 @@ precision set_the_time_step(int n, precision t, precision dt_prev, precision t_n
 	precision dt_fix = lattice.fixed_time_step;
 	precision dt_min = lattice.min_time_step;
 
-	precision dt = dt_fix;											// default time step is fixed
+	precision dt = dt_fix;                                          // default time step is fixed
 
-	if(lattice.adaptive_time_step)									// adaptive time step
+	if(lattice.adaptive_time_step)                                  // adaptive time step
 	{
 		if(n == 0)
 		{
@@ -106,19 +106,19 @@ precision set_the_time_step(int n, precision t, precision dt_prev, precision t_n
 		}
 		else
 		{
-			precision dt_CFL = compute_dt_CFL(t, lattice, hydro);	// less strict CFL condition dx / (8.ax)
+			precision dt_CFL = compute_dt_CFL(t, lattice, hydro);   // less strict CFL condition dx / (8.ax)
 
 			if(lattice.adaptive_time_step == 2)
 			{
-				dt_CFL = dt_fix;									// strict CFL condition <= dx / 8 (lattice.fixed_time_step <= dx / 8)
+				dt_CFL = dt_fix;                                    // strict CFL condition <= dx / 8 (lattice.fixed_time_step <= dx / 8)
 			}
 
 			precision dt_source = 1./0.;
 
-			if(!hit_CFL_bound)		// assumes that dt_source remains > dt_CFL after hit bound
-			{						// (may not be always true, but it's convenient to skip this step eventually)
+			if(!hit_CFL_bound)      // assumes that dt_source remains > dt_CFL after hit bound
+			{                       // (may not be always true, but it's convenient to skip this step eventually)
 
-				euler_step(t, q, qI, e, lambda, aT, aL, up, u, dt_prev, dt_prev, lattice, hydro, 0, 0);		// compute source function
+				euler_step(t, q, qI, e, lambda, aT, aL, up, u, dt_prev, dt_prev, lattice, hydro, 0, 0);    // compute source function
 
 				dt_source = compute_dt_source(t, Q, q, qI, dt_prev, lattice);
 
@@ -133,7 +133,7 @@ precision set_the_time_step(int n, precision t, precision dt_prev, precision t_n
 		}
 	}
 
-	if(hydro.run_hydro == 1 && initial.initial_condition_type != 1)	// adjust dt further (for timed hydro outputs, except Bjorken)
+	if(hydro.run_hydro == 1 && initial.initial_condition_type != 1) // adjust dt further (for timed hydro outputs, except Bjorken)
 	{
 		if(after_output)
 		{
@@ -213,9 +213,9 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 	{
 		dt = set_the_time_step(n, t, dt_prev, t_out + dt_out, lattice, initial, hydro);
 
-		if(hydro.run_hydro == 1)								// outputs hydro data at regular time intervals (if hydro.output = 1)
+		if(hydro.run_hydro == 1)                                // outputs hydro data at regular time intervals (if hydro.output = 1)
 		{
-			if(n == 0 || initial.initial_condition_type == 1)	// output first time or output bjorken at every time step
+			if(n == 0 || initial.initial_condition_type == 1)   // output first time or output bjorken at every time step
 			{
 			#ifdef PRINT_HYDRO
 				long cells_above_Tswitch = number_of_cells_above_freezeout_temperature(lattice, hydro);
@@ -252,9 +252,9 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 				t_out += dt_out;
 			}
 		}
-		else if(hydro.run_hydro == 2)							// construct freezeout surface
+		else if(hydro.run_hydro == 2)                           // construct freezeout surface
 		{
-			if(n == 0)											// initialize hydro info in freezeout finder
+			if(n == 0)                                          // initialize hydro info in freezeout finder
 			{
 			#ifdef PRINT_HYDRO
 				long cells_above_Tswitch = number_of_cells_above_freezeout_temperature(lattice, hydro);
@@ -263,7 +263,7 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 
 				fo_finder.set_hydro_evolution(t, q, e, u);
 			}
-			else if(n % freezeout_period == 0)					// find freezeout cells
+			else if(n % freezeout_period == 0)                  // find freezeout cells
 			{
 			#ifdef PRINT_HYDRO
 				long cells_above_Tswitch = number_of_cells_above_freezeout_temperature(lattice, hydro);
@@ -324,7 +324,7 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 	}
 
 #ifdef OPENMP
-  	double t2 = omp_get_wtime();                                   // is this the right omp time I want?
+  	double t2 = omp_get_wtime();
     printf("End omp time = %lf\n", t2);
   	double duration = t2 - t1;
 #else
@@ -339,12 +339,12 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 	{
 		fo_finder.free_finder_memory(sample);
 		printf("\nFinished hydro evolution\n");
-		return fo_finder.surface;					// return freezeout surface
+		return fo_finder.surface;                   // return freezeout surface
 	}
 
 	printf("\nFinished hydro evolution\n");
 
-	freezeout_surface surface;						// return an empty surface (default)
+	freezeout_surface surface;                      // return an empty surface (default)
 
 	return surface;
 }

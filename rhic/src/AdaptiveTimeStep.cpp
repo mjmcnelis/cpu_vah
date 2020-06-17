@@ -28,7 +28,7 @@ precision compute_adaptive_time_step(precision t, precision dt_CFL, precision dt
 
 #ifdef ADAPTIVE_FILE
 	FILE * dt_adaptive;
-	dt_adaptive = fopen("output/dt_adaptive.dat", "a");
+	dt_adaptive = fopen("output/adaptive/dt_adaptive.dat", "a");
 	fprintf(dt_adaptive, "%.8f\t%.8f\n", t, dt);
 	fclose(dt_adaptive);
 #endif
@@ -52,8 +52,8 @@ precision compute_dt_CFL(precision t, lattice_parameters lattice, hydro_paramete
 	precision t2 = t * t;
 	precision Theta = hydro.flux_limiter;
 
-	int stride_y = nx + 4;							// strides for neighbor cells along x, y, n (stride_x = 1)
-	int stride_z = (nx + 4) * (ny + 4);				// stride formulas based from linear_column_index()
+	int stride_y = nx + 4;                         // strides for neighbor cells along x, y, n (stride_x = 1)
+	int stride_z = (nx + 4) * (ny + 4);            // stride formulas based from linear_column_index()
 
 	#pragma omp parallel for collapse(3) reduction(min:dt_CFL)
 	for(int k = 2; k < nz + 2; k++)
@@ -62,30 +62,30 @@ precision compute_dt_CFL(precision t, lattice_parameters lattice, hydro_paramete
 		{
 			for(int i = 2; i < nx + 2; i++)
 			{
-				precision ui1[6], uj1[6], uk1[6];				// these are just filler arguments below
+				precision ui1[6], uj1[6], uk1[6];  // these are just filler arguments below
 
-				precision vxi[4];								// vx of neighbor cells along x [i-2, i-1, i+1, i+2]
-				precision vyj[4];								// vy of neighbor cells along y [j-2, j-1, j+1, j+2]
-				precision vnk[4];								// vn of neighbor cells along n [k-2, k-1, k+1, k+2]
+				precision vxi[4];                  // vx of neighbor cells along x [i-2, i-1, i+1, i+2]
+				precision vyj[4];                  // vy of neighbor cells along y [j-2, j-1, j+1, j+2]
+				precision vnk[4];                  // vn of neighbor cells along n [k-2, k-1, k+1, k+2]
 
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
-				int simm = s - 2;			// neighbor cell indices (x)
+				int simm = s - 2;                  // neighbor cell indices (x)
 				int sim  = s - 1;
 				int sip  = s + 1;
 				int sipp = s + 2;
 
-				int sjmm = s - 2*stride_y;	// neighbor cell indices (y)
+				int sjmm = s - 2*stride_y;         // neighbor cell indices (y)
 				int sjm  = s - stride_y;
 				int sjp  = s + stride_y;
 				int sjpp = s + 2*stride_y;
 
-				int skmm = s - 2*stride_z;	// neighbor cell indices (n)
+				int skmm = s - 2*stride_z;         // neighbor cell indices (n)
 				int skm  = s - stride_z;
 				int skp  = s + stride_z;
 				int skpp = s + 2*stride_z;
 
-				precision ux = u[s].ux;		// current fluid velocity
+				precision ux = u[s].ux;            // current fluid velocity
 				precision uy = u[s].uy;
 			#ifndef BOOST_INVARIANT
 				precision un = u[s].un;
@@ -100,14 +100,14 @@ precision compute_dt_CFL(precision t, lattice_parameters lattice, hydro_paramete
 				precision ay = compute_max_local_propagation_speed(vyj, uy / ut, Theta);
 				precision an = compute_max_local_propagation_speed(vnk, un / ut, Theta);
 
-				dt_CFL = fmin(dt_CFL, fmin(dx / ax, fmin(dy / ay, dn / an)));	// take the minimum wave propagation time
+				dt_CFL = fmin(dt_CFL, fmin(dx / ax, fmin(dy / ay, dn / an)));   // take the minimum wave propagation time
 			}
 		}
 	}
 
 #ifdef ADAPTIVE_FILE
 	FILE * dt_CFL_bound;
-	dt_CFL_bound = fopen("output/dt_CFL.dat", "a");
+	dt_CFL_bound = fopen("output/adaptive/dt_CFL.dat", "a");
 	fprintf(dt_CFL_bound, "%.8f\t%.8f\n", t, dt_CFL / 8.);
 	fclose(dt_CFL_bound);
 #endif
@@ -118,7 +118,7 @@ precision compute_dt_CFL(precision t, lattice_parameters lattice, hydro_paramete
 
 hydro_variables compute_q_star(hydro_variables q, hydro_variables f, precision dt_prev)
 {
-	hydro_variables q_star;		// add euler step using old time step
+	hydro_variables q_star;                 // add euler step using old time step
 
 	q_star.ttt = q.ttt  +  dt_prev * f.ttt;
 	q_star.ttx = q.ttx  +  dt_prev * f.ttx;
@@ -129,7 +129,7 @@ hydro_variables compute_q_star(hydro_variables q, hydro_variables f, precision d
 
 #ifdef ANISO_HYDRO
 	q_star.pl  = q.pl  +  dt_prev * f.pl;
-	q_star.pt  = q.pt  +  dt_prev * f.pt;		// figure out what to do with this later
+	q_star.pt  = q.pt  +  dt_prev * f.pt;   // figure out what to do with this later
 #endif
 
 #ifdef PIMUNU
@@ -168,7 +168,7 @@ hydro_variables compute_q_star(hydro_variables q, hydro_variables f, precision d
 }
 
 
-precision compute_hydro_norm2(hydro_variables q)		// I should probably add things with the same dimension...(which times to use?)
+precision compute_hydro_norm2(hydro_variables q)   // should probably add things with the same dimension...
 {
 	precision norm2 = q.ttt * q.ttt  +  q.ttx * q.ttx  +  q.tty * q.tty;
 
@@ -178,7 +178,7 @@ precision compute_hydro_norm2(hydro_variables q)		// I should probably add thing
 
 #ifdef ANISO_HYDRO
 	norm2 += (q.pl * q.pl);
-	norm2 += (q.pt * q.pt);			// add this in later (with if/else statements)
+	norm2 += (q.pt * q.pt);
 #endif
 
 #ifdef PIMUNU
@@ -208,7 +208,7 @@ precision compute_hydro_norm2(hydro_variables q)		// I should probably add thing
 
 precision second_derivative_squared(precision q_prev, precision q, precision q_star)
 {
-	return (q_prev  -  2. * q  +  q_star) * (q_prev  -  2. * q  +  q_star);		// left out prefactor 2 / dt_prev^2
+	return (q_prev  -  2. * q  +  q_star) * (q_prev  -  2. * q  +  q_star);    // left out prefactor 2 / dt_prev^2
 }
 
 
@@ -224,7 +224,7 @@ precision compute_second_derivative_norm(hydro_variables q_prev, hydro_variables
 
 #ifdef ANISO_HYDRO
 	norm2 += second_derivative_squared(q_prev.pl, q.pl, q_star.pl);
-	norm2 += second_derivative_squared(q_prev.pt, q.pt, q_star.pt);   // include later
+	norm2 += second_derivative_squared(q_prev.pt, q.pt, q_star.pt);
 #endif
 
 #ifdef PIMUNU
@@ -271,7 +271,7 @@ precision dot_product(hydro_variables q, hydro_variables f)
 
 #ifdef ANISO_HYDRO
 	dot += (q.pl * f.pl);
-	dot += (q.pt * f.pt);  // include later
+	dot += (q.pt * f.pt);
 
 #endif
 
@@ -302,20 +302,20 @@ precision adaptive_method_norm(precision q_norm2, precision f_norm2, precision s
 {
 	precision dt_abs = dt_prev * sqrt(delta_0 * sqrt_variables / second_derivative_norm);
 
-	precision dt_abs2 = dt_abs * dt_abs / sqrt_variables;	// additionally divide out sqrt_variables
+	precision dt_abs2 = dt_abs * dt_abs / sqrt_variables;   // additionally divide out sqrt_variables
 	precision dt_abs4 = dt_abs2 * dt_abs2;
 
-	precision c = f_norm2 * dt_abs4;				// quartic equation: x^4 - c.x^2 - b.x - a = 0  (x = dt_rel)
+	precision c = f_norm2 * dt_abs4;                        // quartic equation: x^4 - c.x^2 - b.x - a = 0  (x = dt_rel)
 	precision b = 2. * q_dot_f * dt_abs4;
 	precision a = q_norm2 * dt_abs4;
 
-	precision y0, y1, y2;							// resolvent cubic equation: y^3 + d.y^2 + e.y + f = 0  (d,e,f)
+	precision y0, y1, y2;                                   // resolvent cubic equation: y^3 + d.y^2 + e.y + f = 0  (d,e,f)
 	int cubic_roots = gsl_poly_solve_cubic(-2. * c,  c * c  +  4. * a,  - b * b, &y0, &y1, &y2);
 
-	if(y0 > 0.)										// take the greatest positive solution (see gsl manual)
+	if(y0 > 0.)                                             // take the greatest positive solution (see gsl manual)
 	{
-		precision u = sqrt(y0);						// quartic equation factored:
-													// x^4 - c.x^2 - b.x - a = (x^2 - u.x + t)(x^2 + u.x + v)
+		precision u = sqrt(y0);                             // quartic equation factored:
+                                                            // x^4 - c.x^2 - b.x - a = (x^2 - u.x + t)(x^2 + u.x + v)
 		precision discriminant_1 = 2. * (c  +  b / u)  -  y0;
 		precision discriminant_2 = 2. * (c  -  b / u)  -  y0;
 
@@ -364,9 +364,7 @@ precision compute_dt_source(precision t, const hydro_variables * const __restric
 
 				precision second_derivative_norm = compute_second_derivative_norm(q_prev[s], q[s], q_star);
 
-				precision dt_next = adaptive_method_norm(q_norm, f_norm, second_derivative_norm, q_dot_f, dt_prev, delta_0);
-
-				dt_source = fmin(dt_source, dt_next);
+				dt_source = fmin(dt_source, adaptive_method_norm(q_norm, f_norm, second_derivative_norm, q_dot_f, dt_prev, delta_0));
 			}
 		}
 	}
@@ -375,7 +373,7 @@ precision compute_dt_source(precision t, const hydro_variables * const __restric
 
 #ifdef ADAPTIVE_FILE
 	FILE * dt_predict;
-	dt_predict = fopen("output/dt_source.dat", "a");
+	dt_predict = fopen("output/adaptive/dt_source.dat", "a");
 	fprintf(dt_predict, "%.4f\t%.8f\n", t, dt_source);
 	fclose(dt_predict);
 #endif

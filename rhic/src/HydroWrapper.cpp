@@ -32,7 +32,7 @@ HYDRO::~HYDRO()
 
 void HYDRO::read_trento_energy_density_profile(std::vector<double> trento_energy)
 {
-	// read initial energy density profile from TRENTo (for JETSCAPE, initial_condition_type = 6)
+    // read initial energy density profile from TRENTo (for JETSCAPE, initial_condition_type = 6)
     // note: units should be [GeV/fm^3], later converted to [fm^-4]
 
 	trento_energy_density_profile = trento_energy;
@@ -127,12 +127,12 @@ void HYDRO::start_hydro(int argc, char **argv)
 	printf("Running CPU-VAH with OpenMP acceleration: number of threads = %d\n\n", omp_get_max_threads());
 #endif
 
-	bool sample_parameters = false;						// default: use model parameters in parameters/
+	bool sample_parameters = false;     // default: use model parameters in parameters/
 	int sample = 0;
 	random_model_parameters random;
 
 #ifdef RANDOM_MODEL_PARAMETERS
-	if(argc == 2)										// read sample model parameters
+	if(argc == 2)                       // read sample model parameters
 	{
 		sample_parameters = true;
 
@@ -168,7 +168,7 @@ void HYDRO::start_hydro(int argc, char **argv)
 	lattice_parameters lattice = load_lattice_parameters(hydro, initial, sample_parameters, sample);
 
 
-	if(hydro.run_hydro)									// main hydro simulation (freezeout surface empty by default)
+	if(hydro.run_hydro)                 // main hydro simulation (freezeout surface empty by default)
 	{
 		print_hydro_mode(hydro);
 		store_freezeout_surface(run_hydro(lattice, initial, hydro, sample, trento_energy_density_profile));
@@ -189,8 +189,8 @@ void HYDRO::start_hydro_no_arguments()
 	printf("Running CPU-VAH with OpenMP acceleration: number of threads = %d\n\n", omp_get_max_threads());
 #endif
 
-	bool sample_parameters = false;						// will read default parameters in parameters/
-	int sample = 0;                                     // can't use auto_grid (need different way to read in sample model parameters)
+	bool sample_parameters = false;     // will read default parameters in parameters/
+	int sample = 0;                     // can't use auto_grid (need different way to read in sample model parameters)
 	random_model_parameters random;
 
 	hydro_parameters hydro = load_hydro_parameters(sample_parameters, random);
@@ -198,7 +198,7 @@ void HYDRO::start_hydro_no_arguments()
 	lattice_parameters lattice = load_lattice_parameters(hydro, initial, sample_parameters, sample);
 
 
-	if(hydro.run_hydro)									// main hydro simulation (freezeout surface empty by default)
+	if(hydro.run_hydro)                 // main hydro simulation (freezeout surface empty by default)
 	{
 		print_hydro_mode(hydro);
 		store_freezeout_surface(run_hydro(lattice, initial, hydro, sample, trento_energy_density_profile));

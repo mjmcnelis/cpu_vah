@@ -35,15 +35,15 @@ void compute_F(precision Ea, precision PTa, precision PLa, precision mass, preci
 	precision I_220 = 0;
 	precision I_201 = 0;
 
-	for(int i = 0; i < pbar_pts; i++)														// gauss integration
+	for(int i = 0; i < pbar_pts; i++)         // gauss integration
 	{
-		precision pbar = pbar_root_a2[i];													// pbar roots / weights for a = 2 (a = n + s)
+		precision pbar = pbar_root_a2[i];     // pbar roots / weights for a = 2 (a = n + s)
 		precision total_weight = pbar * pbar_weight_a2[i] * exp(pbar - sqrt(pbar * pbar + mbar2));
 
 		precision w = sqrt(aL2  +  mbar2 / (pbar * pbar));
 		precision z = aT2_minus_aL2 / (w * w);
 
-		if(z > delta)																		// compute hypergeometric functions
+		if(z > delta)                         // compute hypergeometric functions
 		{
 			precision sqrtz = sqrt(z);
 			precision t = atan(sqrtz) / sqrtz;
@@ -80,7 +80,6 @@ void compute_F(precision Ea, precision PTa, precision PLa, precision mass, preci
 			printf("compute_F error: z = %lf is out of bounds\n", z);
 			exit(-1);
 		}
-
 		I_200 += total_weight * t_200 * w;
 		I_220 += total_weight * t_220 / w;
 		I_201 += total_weight * t_201 / w;
@@ -127,18 +126,18 @@ void compute_J(precision Ea, precision PTa, precision PLa, precision mass, preci
     precision I_421m1 = 0;
     precision I_440m1 = 0;
 
-	for(int i = 0; i < pbar_pts; i++)														// gauss integration loop
+	for(int i = 0; i < pbar_pts; i++)                 // gauss integration loop
 	{
-		precision pbar = pbar_root_a3[i];													// pbar roots / weights for a = 3 (a = n + s)
+		precision pbar = pbar_root_a3[i];             // pbar roots / weights for a = 3 (a = n + s)
 		precision pbar2 = pbar * pbar;
 		precision Ebar = sqrt(pbar2 + mbar2);
-		precision common_weight = pbar_weight_a3[i] * exp(pbar - Ebar);						// common weight factor
+		precision common_weight = pbar_weight_a3[i] * exp(pbar - Ebar);   // common weight factor
 
 		precision w = sqrt(aL2  +  mbar2 / pbar2);
 		precision z = aT2_minus_aL2 / (w * w);
 		precision z2 =  z * z;
 
-		if(z > delta)																		// compute hypergeometric functions
+		if(z > delta)                                 // compute hypergeometric functions
 		{
 			precision sqrtz = sqrt(z);
 			precision t = atan(sqrtz) / sqrtz;
@@ -197,13 +196,13 @@ void compute_J(precision Ea, precision PTa, precision PLa, precision mass, preci
 	}
 
 	I_2001 *= prefactor;
-    I_2011 *= prefactor * aT2 / 2.;
-    I_2201 *= prefactor * aL2;
-    I_402m1 *= prefactor * aT2 * aT2 / 8.;
-    I_421m1 *= prefactor * aT2 * aL2 / 2.;
-    I_440m1 *= prefactor * aL2 * aL2;
+	I_2011 *= prefactor * aT2 / 2.;
+	I_2201 *= prefactor * aL2;
+	I_402m1 *= prefactor * aT2 * aT2 / 8.;
+	I_421m1 *= prefactor * aT2 * aL2 / 2.;
+	I_440m1 *= prefactor * aL2 * aL2;
 
-    precision Eai = F[0] + Ea;					// compute Eai, PTai, PLai from F
+	precision Eai = F[0] + Ea;     // compute Eai, PTai, PLai from F
 	precision PTai = F[1] + PTa;
 	precision PLai = F[2] + PLa;
 
@@ -220,48 +219,48 @@ precision line_backtrack(precision Ea, precision PTa, precision PLa, precision m
 	// This line backtracking algorithm is from the book Numerical Recipes in C
 
 	// initial data for g(l) model:
-	// g0 = f(Xcurrent)								// f at Xcurrent
-	// f  = f(Xcurrent + dX)						// f at full newton step Xcurrent + dX
-	// gprime0 = - 2g0 								// descent derivative at Xcurrent
+	// g0 = f(Xcurrent)                // f at Xcurrent
+	// f  = f(Xcurrent + dX)           // f at full newton step Xcurrent + dX
+	// gprime0 = - 2g0                 // descent derivative at Xcurrent
 
 	precision X[3];
 
 	for(int i = 0; i < 3; i++)
 	{
-		X[i] = Xcurrent[i] + dX[i];					// default newton step
+		X[i] = Xcurrent[i] + dX[i];                 // default newton step
 	}
 
-	compute_F(Ea, PTa, PLa, mass, X, F);			// update F at least once, default = F(Xcurrent + dX)
+	compute_F(Ea, PTa, PLa, mass, X, F);            // update F at least once, default = F(Xcurrent + dX)
 
 	precision f = (F[0] * F[0]  +  F[1] * F[1]  +  F[2] * F[2]) / 2.;
 	precision gprime0 = - 2. * g0;
 
-	precision l = 1.;         						// default value for partial step parameter
-	precision alpha = 0.0001;   					// descent rate
+	precision l = 1.;                               // default value for partial step parameter
+	precision alpha = 0.0001;                       // descent rate
 
 	precision lroot, lprev, fprev;
 
-	for(int n = 0; n < 20; n++)						// line search iterations (max is 20)
+	for(int n = 0; n < 20; n++)                     // line search iterations (max is 20)
 	{
-		if((l * dX_abs) <= tol_dX)					// check if l.|dX| within desired tolerance
+		if((l * dX_abs) <= tol_dX)                  // check if l.|dX| within desired tolerance
 		{
 			return l;
 		}
-		else if(f <= (g0  +  l * alpha * gprime0))	// check for sufficient decrease in f
+		else if(f <= (g0  +  l * alpha * gprime0))  // check for sufficient decrease in f
 		{
 			return l;
 		}
-		else if(n == 0)								// compute l (start with quadratic model)
+		else if(n == 0)                             // compute l (start with quadratic model)
 		{
 			lroot = - gprime0 / (2. * (f - g0 - gprime0));
 		}
-		else 										// cubic model for subsequent iterations
+		else                                        // cubic model for subsequent iterations
 		{
 			// fixed bug on 3/25/20
 			precision a = ((f  -  g0  -  l * gprime0) / (l * l)  -  (fprev  -  g0  -  lprev * gprime0) / (lprev * lprev)) / (l - lprev);
 			precision b = (-lprev * (f  -  g0  -  l * gprime0) / (l * l)  +  l * (fprev  -  g0  -  lprev * gprime0)  /  (lprev * lprev)) / (l - lprev);
 
-			if(a == 0) 								// quadratic solution to dg/dl = 0
+			if(a == 0)                              // quadratic solution to dg/dl = 0
 			{
 				lroot = - gprime0 / (2. * b);
 			}
@@ -279,17 +278,17 @@ precision line_backtrack(precision Ea, precision PTa, precision PLa, precision m
 				}
 				else
 				{
-					lroot = - gprime0 / (b + sqrt(z));		// what does this mean?
+					lroot = - gprime0 / (b + sqrt(z));   // what does this mean?
 				}
 			}
 
 			lroot = fmin(lroot, 0.5 * l);
 		}
 
-		lprev = l;									// store current values for the next iteration
+		lprev = l;                                  // store current values for the next iteration
 		fprev = f;
 
-		l = fmax(lroot, 0.1 * l);					// update l and f
+		l = fmax(lroot, 0.1 * l);                   // update l and f
 
 		for(int i = 0; i < 3; i++)
 		{
