@@ -47,6 +47,10 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 	precision t2 = t * t;
 	precision t4 = t2 * t2;
 
+	int pl_reg = 0;
+	int pt_reg = 0;
+	int pt_reg_conformal = 0;
+
 	#pragma omp parallel for collapse(3)
 	for(int k = 2; k < nz + 2; k++)
 	{
@@ -61,14 +65,18 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 				precision pt  = q[s].pt;
 
 			#ifdef MONITOR_PLPT
-				plpt_regulation[s] = 0;					// default
+				plpt_regulation[s] = 0;					// 0 = no regulation
 
 				if(pl < pressure_min)
 				{
+					pl_reg++;
+
 					plpt_regulation[s] += 1;			// 1 = pl regulated
 				}
 				if(pt < pressure_min)
 				{
+					pt_reg++;
+
 					plpt_regulation[s] += 2;			// 2 = pt regulated (3 = both regulated)
 				}
 			#endif
@@ -78,7 +86,12 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 
 			#ifdef CONFORMAL_EOS
 				pt = (e_s - pl) / 2.;
-				//pt = pressure_cutoff(pressure_min, pt);
+
+				if(pt < pressure_min)
+				{
+					pt_reg_conformal++;
+					pt = pressure_cutoff(pressure_min, pt);  // is this still a problem?
+				}
 			#endif
 
 				q[s].pl = pl;							// regulate longitudinal and transverse pressures
@@ -191,6 +204,8 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 				// enforce orthogonality
 				WtTz = (WxTz * ux  +  WyTz * uy) * ut / (utperp * utperp);
 				WnTz = WtTz * un / ut;
+
+				// am I doing this right?
 			#else
 				precision WtTz = 0;
 				precision WxTz = 0;
@@ -260,6 +275,10 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 			}
 		}
 	}
+	if(pl_reg || pt_reg || pt_reg_conformal)
+	{
+		printf("Number of (pl, pt, pt_conformal) regulations = (%d, %d, %d)\n", pl_reg, pt_reg, pt_reg_conformal);
+	}
 #endif
 }
 
@@ -285,8 +304,6 @@ void regulate_viscous_currents(precision t, hydro_variables * const __restrict__
 		{
 			for(int i = 2; i < nx + 2; i++)
 			{
-//                printf("number of threads = %d\n", omp_get_num_threads());
-//                exit(-1);
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
 				equation_of_state_new eos(e[s], hydro.conformal_eos_prefactor);
@@ -385,14 +402,9 @@ void regulate_viscous_currents(precision t, hydro_variables * const __restrict__
 
 						break;
 					}
-					case 2:
-					{
-						viscous_regulation[s] = 0;
-						break;
-					}
 					default:
 					{
-						printf("regulate_viscous_currents error: set regulate_scheme = (0,1,2)\n");
+						printf("regulate_viscous_currents error: set regulate_scheme = (0,1)\n");
 						exit(-1);
 					}
 				}

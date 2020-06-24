@@ -480,34 +480,30 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro, initial_condi
 	{
 		double Lx = lattice.lattice_spacing_x * (lattice.lattice_points_x - 1);
 		double Ly = lattice.lattice_spacing_y * (lattice.lattice_points_y - 1);
-		double Lz = lattice.lattice_spacing_eta * (lattice.lattice_points_eta - 1);
 
 		double w = initial.trento_nucleon_width;
 
 		double dx = round_two_decimals(w / 5.);
 		double dy = round_two_decimals(w / 5.);
-		double dz = round_two_decimals(w / 5.);		// think this works
 
 		lattice.lattice_spacing_x = dx;
 		lattice.lattice_spacing_y = dy;
-		lattice.lattice_spacing_eta = dz;
 
 		int nx = (int)ceil(Lx / dx)  +  (1 + (int)ceil(Lx / dx)) % 2;
 		int ny = (int)ceil(Ly / dy)  +  (1 + (int)ceil(Ly / dy)) % 2;
-		int nz = (int)ceil(Lz / dz)  +  (1 + (int)ceil(Lz / dz)) % 2;
 
-		if(((nx - 1) * dx < Lx) || ((ny - 1) * dy < Ly) || ((nz - 1) * dz < Lz))
+		if((nx - 1) * dx < Lx)
 		{
 			nx += 2;
-			ny += 2;
-			nz += 2;
 		}
 
-		lattice.lattice_points_x   = nx;
-		lattice.lattice_points_y   = ny;
-	#ifndef BOOST_INVARIANT
-		lattice.lattice_points_eta = nz;
-	#endif
+		if((ny - 1) * dy < Ly)
+		{
+			ny += 2;
+		}
+
+		lattice.lattice_points_x = nx;
+		lattice.lattice_points_y = ny;
 	}
 
 #ifndef BOOST_INVARIANT
@@ -636,8 +632,8 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro, initial_condi
 				ny += 2;
 			}
 
-			lattice.lattice_points_x   = nx;
-			lattice.lattice_points_y   = ny;
+			lattice.lattice_points_x = nx;
+			lattice.lattice_points_y = ny;
 
 			printf("Reconfiguring transverse grid size length to L ~ %.3f fm\n\n", (nx - 1) * dx);
 		}

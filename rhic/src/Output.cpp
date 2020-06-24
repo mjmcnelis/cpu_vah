@@ -71,8 +71,12 @@ void output_mean_field(const hydro_variables * const __restrict__ q, const fluid
 #ifdef ANISO_HYDRO
 	db_peq 		= fopen(fname1, "w");
 	dbasy_peq 	= fopen(fname2, "w");
+
+	fprintf(db_peq,    "%d\n%d\n%d\n", nx, ny, nz);
+	fprintf(dbasy_peq, "%d\n%d\n%d\n", nx, ny, nz);
 #endif
 	db2_peq 	= fopen(fname3, "w");
+	fprintf(db2_peq, "%d\n%d\n%d\n", nx, ny, nz);
 
 	precision t2 = t * t;
 	precision t4 = t2 * t2;
@@ -233,10 +237,12 @@ void output_residual_transverse_shear_validity(const hydro_variables * const __r
 	precision dy = lattice.lattice_spacing_y;
 	precision dn = lattice.lattice_spacing_eta;
 
-	FILE *RpiT_inverse;
+	FILE *piperp_pt;
 	char fname1[255];
 	sprintf(fname1, "output/piperp_pt_%.3f.dat", t);
-	RpiT_inverse = fopen(fname1, "w");
+	piperp_pt = fopen(fname1, "w");
+
+	fprintf(piperp_pt, "%d\n%d\n%d\n", nx, ny, nz);
 
 	precision t2 = t * t;
 	precision t4 = t2 * t2;
@@ -313,11 +319,11 @@ void output_residual_transverse_shear_validity(const hydro_variables * const __r
 
 				precision pi_mag = sqrt(fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
 
-				fprintf(RpiT_inverse, "%.2f\t%.2f\t%.2f\t%.6f\n", x, y, z, pi_mag / (sqrt(2.) * pt));
+				fprintf(piperp_pt, "%.2f\t%.2f\t%.2f\t%.4e\n", x, y, z, pi_mag / (sqrt(2.) * pt));
 			}
 		}
 	}
-	fclose(RpiT_inverse);
+	fclose(piperp_pt);
 #endif
 }
 
@@ -350,6 +356,8 @@ void output_residual_longitudinal_shear_validity(const hydro_variables * const _
 	char fname[255];
 	sprintf(fname, "output/WTz_pl_2pt_%.3f.dat", t);
 	WTz_pl_2pt = fopen(fname, "w");
+
+	fprintf(WTz_pl_2pt, "%d\n%d\n%d\n", nx, ny, nz);
 
 	precision t2 = t * t;
 	precision t4 = t2 * t2;
@@ -468,7 +476,7 @@ void output_residual_longitudinal_shear_validity(const hydro_variables * const _
 
 				precision W_mag = sqrt(2. * fabs(WtTz * WtTz  -  WxTz * WxTz  -  WyTz * WyTz  -  t2 * WnTz * WnTz));
 
-				fprintf(WTz_pl_2pt, "%.2f\t%.2f\t%.2f\t%.6f\n", x, y, z, W_mag / sqrt(pl * pl  +  2. * pt * pt));
+				fprintf(WTz_pl_2pt, "%.2f\t%.2f\t%.2f\t%.4e\n", x, y, z, W_mag / sqrt(pl * pl  +  2. * pt * pt));
 			}
 		}
 	}
@@ -733,13 +741,27 @@ void output_hydro(const hydro_variables * const __restrict__ q, const fluid_velo
 	energy       = fopen(fname1, "w");
 	plptratio    = fopen(fname2, "w");
 	uxplot       = fopen(fname3, "w");
+
+	fprintf(energy,    "%d\n%d\n%d\n", nx, ny, nz);
+	fprintf(plptratio, "%d\n%d\n%d\n", nx, ny, nz);
+	fprintf(uxplot,    "%d\n%d\n%d\n", nx, ny, nz);
+
+#ifndef CONFORMAL_EOS
 	shear        = fopen(fname4, "w");
 	bulk         = fopen(fname5, "w");
+
+	fprintf(shear, "%d\n%d\n%d\n", nx, ny, nz);
+	fprintf(bulk,  "%d\n%d\n%d\n", nx, ny, nz);
+#endif
 #ifdef E_CHECK
 	energy_check = fopen(fname6, "w");
+
+	fprintf(energy_check, "%d\n%d\n%d\n", nx, ny, nz);
 #endif
 #ifndef BOOST_INVARIANT
 	unplot       = fopen(fname7, "w");
+
+	fprintf(unplot, "%d\n%d\n%d\n", nx, ny, nz);
 #endif
 
 	precision t2 = t * t;
@@ -806,16 +828,18 @@ void output_hydro(const hydro_variables * const __restrict__ q, const fluid_velo
 				precision pt = p  +  Pi  -  (zt * zt * pitt  +  t4 * zn * zn * pinn  +  2. * t2 * zt * zn * pitn) / 2.;
 			#endif
 
-				fprintf(energy, 	"%.2f\t%.2f\t%.2f\t%.6e\n", x, y, z, e_s * hbarc);
-				fprintf(plptratio,	"%.2f\t%.2f\t%.2f\t%.6f\n", x, y, z, pl / pt);
-				fprintf(uxplot, 	"%.2f\t%.2f\t%.2f\t%.6f\n", x, y, z, ux);
-				fprintf(shear,	 	"%.2f\t%.2f\t%.2f\t%.6f\n", x, y, z, 2. * (pl - pt) / (3. * p));
-				fprintf(bulk,	 	"%.2f\t%.2f\t%.2f\t%.6f\n", x, y, z, (pl + 2.*pt) / (3. * p)  -  1.);
+				fprintf(energy, 	"%.2f\t%.2f\t%.2f\t%.4e\n", x, y, z, e_s * hbarc);
+				fprintf(plptratio,	"%.2f\t%.2f\t%.2f\t%.4e\n", x, y, z, pl / pt);
+				fprintf(uxplot, 	"%.2f\t%.2f\t%.2f\t%.4e\n", x, y, z, ux);
+			#ifndef CONFORMAL_EOS
+				fprintf(shear,	 	"%.2f\t%.2f\t%.2f\t%.4e\n", x, y, z, 2. * (pl - pt) / (3. * p));
+				fprintf(bulk,	 	"%.2f\t%.2f\t%.2f\t%.4e\n", x, y, z, (pl + 2.*pt) / (3. * p)  -  1.);
+			#endif
 			#ifdef E_CHECK
-				fprintf(energy_check, "%.2f\t%.2f\t%.2f\t%.6e\n", x, y, z, q[s].e_check * hbarc);
+				fprintf(energy_check, "%.2f\t%.2f\t%.2f\t%.4e\n", x, y, z, q[s].e_check * hbarc);
 			#endif
 			#ifndef BOOST_INVARIANT
-				fprintf(unplot, 	"%.2f\t%.2f\t%.2f\t%.6f\n", x, y, z, un);
+				fprintf(unplot, 	"%.2f\t%.2f\t%.2f\t%.4e\n", x, y, z, un);
 			#endif
 			}
 		}
@@ -823,8 +847,10 @@ void output_hydro(const hydro_variables * const __restrict__ q, const fluid_velo
 	fclose(energy);
 	fclose(plptratio);
 	fclose(uxplot);
+#ifndef CONFORMAL_EOS
 	fclose(shear);
 	fclose(bulk);
+#endif
 #ifdef E_CHECK
 	fclose(energy_check);
 #endif
@@ -850,6 +876,8 @@ void output_Tmunu_violations(const float * const __restrict__ Tmunu_violations, 
 
 	violations = fopen(fname, "w");
 
+	fprintf(violations, "%d\n%d\n%d\n", nx, ny, nz);
+
 	for(int k = 2; k < nz + 2; k++)
 	{
 		double z = (k - 2. - (nz - 1.)/2.) * dz;
@@ -864,7 +892,7 @@ void output_Tmunu_violations(const float * const __restrict__ Tmunu_violations, 
 
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
-				fprintf(violations, "%.3f\t%.3f\t%.3f\t%f\n", x, y, z, hbarc * Tmunu_violations[s]);
+				fprintf(violations, "%.2f\t%.2f\t%.2f\t%.4e\n", x, y, z, hbarc * Tmunu_violations[s]);
 			}
 		}
 	}
@@ -890,6 +918,8 @@ void output_plpt_regulations(const int * const __restrict__ plpt_regulation, dou
 
 	regulation = fopen(fname, "w");
 
+	fprintf(regulation, "%d\n%d\n%d\n", nx, ny, nz);
+
 	for(int k = 2; k < nz + 2; k++)
 	{
 		double z = (k - 2. - (nz - 1.)/2.) * dz;
@@ -904,7 +934,7 @@ void output_plpt_regulations(const int * const __restrict__ plpt_regulation, dou
 
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
-				fprintf(regulation, "%.3f\t%.3f\t%.3f\t%d\n", x, y, z, plpt_regulation[s]);
+				fprintf(regulation, "%.2f\t%.2f\t%.2f\t%d\n", x, y, z, plpt_regulation[s]);
 			}
 		}
 	}
@@ -930,6 +960,8 @@ void output_b_regulations(const int * const __restrict__ b_regulation, double t,
 
 	regulation = fopen(fname, "w");
 
+	fprintf(regulation, "%d\n%d\n%d\n", nx, ny, nz);
+
 	for(int k = 2; k < nz + 2; k++)
 	{
 		double z = (k - 2. - (nz - 1.)/2.) * dz;
@@ -944,7 +976,7 @@ void output_b_regulations(const int * const __restrict__ b_regulation, double t,
 
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
-				fprintf(regulation, "%.3f\t%.3f\t%.3f\t%d\n", x, y, z, b_regulation[s]);
+				fprintf(regulation, "%.2f\t%.2f\t%.2f\t%d\n", x, y, z, b_regulation[s]);
 			}
 		}
 	}
@@ -975,6 +1007,7 @@ void output_regulations(const int * const __restrict__ regulation, double t, lat
 #endif
 
 	regulations = fopen(fname, "w");
+	fprintf(regulations, "%d\n%d\n%d\n", nx, ny, nz);
 
 	for(int k = 2; k < nz + 2; k++)
 	{
@@ -992,10 +1025,10 @@ void output_regulations(const int * const __restrict__ regulation, double t, lat
 
 			#ifdef ANISO_HYDRO
 			#ifdef LATTICE_QCD
-				fprintf(regulations, "%.3f\t%.3f\t%.3f\t%d\n", x, y, z, aniso_regulation[s]);
+				fprintf(regulations, "%.2f\t%.2f\t%.2f\t%d\n", x, y, z, aniso_regulation[s]);
 			#endif
 			#else
-				fprintf(regulations, "%.3f\t%.3f\t%.3f\t%d\n", x, y, z, viscous_regulation[s]);
+				fprintf(regulations, "%.2f\t%.2f\t%.2f\t%d\n", x, y, z, viscous_regulation[s]);
 			#endif
 			}
 		}

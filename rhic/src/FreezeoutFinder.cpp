@@ -140,8 +140,8 @@ void freezeout_finder::set_hydro_evolution(double t_set, hydro_variables * const
       #endif
 
       #ifdef WTZMU
-        hydro_evolution[8][1][i-2][j-2][k-2] = (float)q[s].WTzx;
-        hydro_evolution[9][1][i-2][j-2][k-2] = (float)q[s].WTzy;
+        hydro_evolution[8][1][i-2][j-2][k-2] = (float)q[s].WxTz;
+        hydro_evolution[9][1][i-2][j-2][k-2] = (float)q[s].WyTz;
       #endif
 
       #else                                                           // independent viscous hydro variables
@@ -208,8 +208,8 @@ void freezeout_finder::swap_and_set_hydro_evolution(hydro_variables * const __re
       #endif
 
       #ifdef WTZMU
-        hydro_evolution[8][1][i-2][j-2][k-2] = (float)q[s].WTzx;
-        hydro_evolution[9][1][i-2][j-2][k-2] = (float)q[s].WTzy;
+        hydro_evolution[8][1][i-2][j-2][k-2] = (float)q[s].WxTz;
+        hydro_evolution[9][1][i-2][j-2][k-2] = (float)q[s].WyTz;
       #endif
 
       #else																	                          // independent viscous hydro variables
@@ -381,8 +381,8 @@ void freezeout_finder::find_2d_freezeout_cells(double t_current, hydro_parameter
         double pixy = 0;
       #endif
 
-        double WTzx = 0;
-        double WTzy = 0;
+        double WxTz = 0;
+        double WyTz = 0;
 
       #ifdef FREEZEOUT_VH                                                     // freezeout surface in vh format
 
@@ -448,7 +448,7 @@ void freezeout_finder::find_2d_freezeout_cells(double t_current, hydro_parameter
                                 << e    << " " << T    << " " << p    << " "
                                 << pl   << " " << pt   << " "
                                 << pixx << " " << pixy << " "
-                                << WTzx << " " << WTzy << endl;
+                                << WxTz << " " << WyTz << endl;
       #endif
 
       #endif
@@ -694,11 +694,11 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
         #endif
 
         #ifdef WTZMU
-          double WTzx = linear_interpolate_4d(hydro_evolution[8], i, j, k, t_frac, x_frac, y_frac, z_frac);
-          double WTzy = linear_interpolate_4d(hydro_evolution[9], i, j, k, t_frac, x_frac, y_frac, z_frac);
+          double WxTz = linear_interpolate_4d(hydro_evolution[8], i, j, k, t_frac, x_frac, y_frac, z_frac);
+          double WyTz = linear_interpolate_4d(hydro_evolution[9], i, j, k, t_frac, x_frac, y_frac, z_frac);
         #else
-          double WTzx = 0;
-          double WTzy = 0;
+          double WxTz = 0;
+          double WyTz = 0;
         #endif
 
 
@@ -726,9 +726,9 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
           // pi^\munu = (pl - pt)/3 .(\Delta^\munu + 3.z^\mu.z^\nu)  +  Wperp^\mu.z^\nu  +  Wperp^\nu.z^\mu  +  piperp^\munu
           pixx = (pl - pt) * Dxx / 3.  +  pixx;                               // pixx on rhs is piperp^xx, etc
           pixy = (pl - pt) * Dxy / 3.  +  pixy;
-          pixn = (pl - pt) * Dxn / 3.  +  WTzx * zn  +  pixn;
+          pixn = (pl - pt) * Dxn / 3.  +  WxTz * zn  +  pixn;
           piyy = (pl - pt) * Dyy / 3.  +  piyy;
-          piyn = (pl - pt) * Dyn / 3.  +  WTzy * zn  +  piyn;
+          piyn = (pl - pt) * Dyn / 3.  +  WyTz * zn  +  piyn;
 
           double Pi = (pl + 2.*pt)/3. - p;
 
@@ -777,7 +777,7 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
                                   << e    << " " << T    << " " << p    << " "
                                   << pl   << " " << pt   << " "
                                   << pixx << " " << pixy << " "
-                                  << WTzx << " " << WTzy << endl;
+                                  << WxTz << " " << WyTz << endl;
         #endif
 
         #endif

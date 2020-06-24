@@ -7,6 +7,8 @@ mathematica
 Makefile
 notes
 other
+tests/conformal_bjorken/results
+tests/conformal_gubser/results
 python/model_parameters
 python/train/model_parameters
 python/train/fireball_radius

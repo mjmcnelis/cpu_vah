@@ -13,6 +13,8 @@
 
 using namespace std;
 
+//#define PRINT_TTAUMU_ERROR
+
 double ttt_error = 1.e-13;
 double ttx_error = 1.e-13;
 double tty_error = 1.e-13;
@@ -100,6 +102,9 @@ void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict
 				precision t2A2 = t2 * A * A;
 				precision t2B2 = t2 * B * B;
 
+
+				// something funny going on here?
+
 				// figure out how to deal with this
 				precision F = (A  -  B * sqrt(fabs(1. + t2B2 - t2A2))) / (1. + t2B2);	// [fm^-1]
 				precision Ft = t * F;													// [1]
@@ -124,11 +129,12 @@ void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict
 
 				precision e_s = energy_density_cutoff(e_min, Mt  -  Ltt  -  (Mx * Mx  +  My * My) / ut_numerator  -  t2 * Mn * Mn * ut_numerator / (Mt + pl) / (Mt + pl));
 			#else
-			/*
+
 				precision zt2  = zt * zt;
 				precision ztzn = zt * zn;
 
 				// what a pain in the ass (so far testing shows it works though...)
+
 				precision a = 0.25 * t2 * ztzn * ztzn  +  0.5 * (1. + zt2) * (1.  -  0.5 * zt2);
 				precision b = 0.5 * t2 * Mn * ztzn  -  1.5 * t2 * pl * ztzn * ztzn  -  (0.5 * (1. + zt2) * (Mt - 1.5 * pl * zt2)  -  (1. - 0.5 * zt2) * (Mt - 0.5 * pl * (1. + 3. * zt2)));
 				precision c = Mx * Mx  +  My * My  +  t2 * Mn * Mn  -  1.5 * t2 * Mn * pl * ztzn  +  2.25 * t2 * pl * pl * ztzn * ztzn  -  (Mt - 0.5 * pl * (1. + 3. * zt2)) * (Mt - 1.5 * pl * zt2);
@@ -138,12 +144,13 @@ void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict
 				pt = (e_s - pl) / 2.;
 
 				precision ut_numerator = Mt  +  pt  -  (pl - pt) * zt2;
-			*/
 
-				precision Ltt = (pl - pt) * zt * zt;
-				precision ut_numerator = Mt  +  pt  -  Ltt;
 
-				precision e_s = energy_density_cutoff(e_min, Mt  -  Ltt  -  (Mx * Mx  +  My * My) / ut_numerator  -  t2 * Mn * Mn * ut_numerator / (Mt + pl) / (Mt + pl));
+
+				// precision Ltt = (pl - pt) * zt * zt;
+				// precision ut_numerator = Mt  +  pt  -  Ltt;
+
+				// precision e_s = energy_density_cutoff(e_min, Mt  -  Ltt  -  (Mx * Mx  +  My * My) / ut_numerator  -  t2 * Mn * Mn * ut_numerator / (Mt + pl) / (Mt + pl));
 
 
 
@@ -159,15 +166,15 @@ void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict
 				precision un_s = 0;
 			#endif
 
-				if(std::isnan(ut_s))
+				if(std::isnan(e_s) || std::isnan(ut_s))
 				{
-					printf("\nget_inferred_variables_aniso_hydro error: u^mu = (%lf, %lf, %lf, %lf) is nan\n", ut_s, ux_s, uy_s, un_s);
+					printf("\nget_inferred_variables_aniso_hydro error: (e, ut, ux, uy, un) = (%lf, %lf, %lf, %lf, %lf) is nan\n", e_s, ut_s, ux_s, uy_s, un_s);
 					exit(-1);
 				}
 
 			// this is old stuff
-			/*
-			#ifdef TEST_TTAUMU
+
+			#ifdef PRINT_TTAUMU_ERROR
 				ut_s = sqrt(1.  +  ux_s * ux_s  +  uy_s * uy_s  +  t2 * un_s * un_s);
 
 			#ifndef BOOST_INVARIANT
@@ -193,7 +200,7 @@ void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict
 					printf("get_inferred_variables_aniso_hydro: |dt^{tau/mu}| = (%.6g, %.6g, %.6g, %.6g)\n", ttt_error, ttx_error, tty_error, ttn_error);
 				}
 			#endif
-			*/
+
 				// todo: write MONITOR_TTAUMU block for vah
 
 

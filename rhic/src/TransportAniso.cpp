@@ -237,6 +237,7 @@ void aniso_transport_coefficients::compute_transport_coefficients(precision e, p
 	precision I_403 = prefactor * t_403 * Lambda2 * 5. / (12. * aL2);
 #endif
 
+
 	// pl transport coefficients
 	zeta_LL = I_240  -  3. * pl;
 	zeta_TL = I_221 - pl;
@@ -252,6 +253,7 @@ void aniso_transport_coefficients::compute_transport_coefficients(precision e, p
 #else
 	lambda_piL = 0;
 #endif
+
 
 	// pt transport coefficients
 	zeta_LT = I_221  -  pt;
@@ -270,6 +272,7 @@ void aniso_transport_coefficients::compute_transport_coefficients(precision e, p
 	lambda_piT = 0;
 #endif
 
+
 	// WTz transport coefficients
 #ifdef WTZMU
 	eta_uW = 0.5 * (pl - I_221);
@@ -286,6 +289,8 @@ void aniso_transport_coefficients::compute_transport_coefficients(precision e, p
 	lambda_piTW = 0;
 #endif
 #endif
+
+
 	// piT transport coefficients (validated 1st four are same as v1)
 #ifdef PIMUNU
 	eta_T 		= pt  -  I_202;

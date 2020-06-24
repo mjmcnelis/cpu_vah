@@ -98,9 +98,18 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 	precision pl  = q[a];	a++;
 	precision pt  = q[a];	a++;
 
+
+
+
+
+// Debug 1: should I remove this? it messes with the pt regulation
 #ifdef CONFORMAL_EOS
 	pt  = (e_s - pl) / 2.;						// I don't think I need this (because it's already regulated to conformal formula)
 #endif
+
+
+
+
 
 	precision pavg = (pl + 2.*pt) / 3.;			// average pressure
 
@@ -173,56 +182,83 @@ void source_terms_aniso_hydro(precision * const __restrict__ S, const precision 
 // relaxation times and transport coefficients
 //-------------------------------------------------
 
-// pl, pt transport coefficients
-precision zeta_LL, zeta_TL, lambda_WuL, lambda_WTL, lambda_piL;
-precision zeta_LT, zeta_TT, lambda_WuT, lambda_WTT, lambda_piT;
+// pl transport coefficients
+precision zeta_LL    = 0;
+precision zeta_TL    = 0;
+precision lambda_WuL = 0;
+precision lambda_WTL = 0;
+precision lambda_piL = 0;
+
+// pt transport coefficients
+precision zeta_LT    = 0;
+precision zeta_TT    = 0;
+precision lambda_WuT = 0;
+precision lambda_WTT = 0;
+precision lambda_piT = 0;
 
 // piT transport coefficients
-#ifdef PIMUNU
-	precision eta_T, delta_pipi, tau_pipi, lambda_pipi, lambda_Wupi, lambda_WTpi;
-#endif
+precision eta_T       = 0;
+precision delta_pipi  = 0;
+precision tau_pipi    = 0;
+precision lambda_pipi = 0;
+precision lambda_Wupi = 0;
+precision lambda_WTpi = 0;
 
 // WTz transport coefficients
-#ifdef WTZMU
-	eta_uW, eta_TW, tau_zW, delta_WW, lambda_WuW, lambda_WTW, lambda_piuW, lambda_piTW;
-#endif
-
+precision eta_uW      = 0;
+precision eta_TW      = 0;
+precision tau_zW      = 0;
+precision delta_WW    = 0;
+precision lambda_WuW  = 0;
+precision lambda_WTW  = 0;
+precision lambda_piuW = 0;
+precision lambda_piTW = 0;
 
 #ifdef CONFORMAL_EOS        								// conformal eos only
 	precision taupi_inverse = T / (5. * etabar);			// set relaxation times
 	precision taubulk_inverse = 0;
 
+
+
+
+
+	// Debug 2: need to check Wperp-related coefficients
 	aniso_transport_coefficients aniso;
 	aniso.compute_transport_coefficients(e_s, pl, pt, conformal_eos_prefactor);
 
-	zeta_LL = aniso.zeta_LL;								// set pl coefficients
-	zeta_TL = aniso.zeta_TL;
+
+
+
+
+
+	zeta_LL    = aniso.zeta_LL;								// set pl coefficients
+	zeta_TL    = aniso.zeta_TL;
 	lambda_WuL = aniso.lambda_WuL;
 	lambda_WTL = aniso.lambda_WTL;
 	lambda_piL = aniso.lambda_piL;
 
-	zeta_LT = aniso.zeta_LT;								// set pt coefficients
-	zeta_TT = aniso.zeta_TT;
+	zeta_LT    = aniso.zeta_LT;								// set pt coefficients
+	zeta_TT    = aniso.zeta_TT;
 	lambda_WuT = aniso.lambda_WuT;
 	lambda_WTT = aniso.lambda_WTT;
 	lambda_piT = aniso.lambda_piT;
 
 #ifdef PIMUNU
-	eta_T = aniso.eta_T;									// set piT coefficients
-	delta_pipi = aniso.delta_pipi;
-	tau_pipi = aniso.tau_pipi;
+	eta_T       = aniso.eta_T;								// set piT coefficients
+	delta_pipi  = aniso.delta_pipi;
+	tau_pipi    = aniso.tau_pipi;
 	lambda_pipi = aniso.lambda_pipi;
 	lambda_Wupi = aniso.lambda_Wupi;
 	lambda_WTpi = aniso.lambda_WTpi;
 #endif
 
 #ifdef WTZMU
-	eta_uW = aniso.eta_uW;									// set WTz coefficients
-	eta_TW = aniso.eta_TW;
-	tau_zW = aniso.tau_zW;
-	delta_WW = aniso.delta_WW;
-	lambda_WuW = aniso.lambda_WuW;
-	lambda_WTW = aniso.lambda_WTW;
+	eta_uW      = aniso.eta_uW;								// set WTz coefficients
+	eta_TW      = aniso.eta_TW;
+	tau_zW      = aniso.tau_zW;
+	delta_WW    = aniso.delta_WW;
+	lambda_WuW  = aniso.lambda_WuW;
+	lambda_WTW  = aniso.lambda_WTW;
 	lambda_piuW = aniso.lambda_piuW;
 	lambda_piTW = aniso.lambda_piTW;
 #endif
@@ -230,41 +266,41 @@ precision zeta_LT, zeta_TT, lambda_WuT, lambda_WTT, lambda_piT;
 #endif
 
 
-#ifdef LATTICE_QCD 											// lattice qcd only
-	precision taupi_inverse = eos.beta_shear() / (s * etabar);		// set relaxation times
+#ifdef LATTICE_QCD 											     // lattice qcd only
+	precision taupi_inverse = eos.beta_shear() / (s * etabar);   // set relaxation times
 	precision taubulk_inverse = eos.beta_bulk() / (s * zetabar);
 
 	aniso_transport_coefficients_nonconformal aniso;
 	aniso.compute_transport_coefficients(e_s, pl, pt, b, lambda_s, aT_s, aL_s, mbar, mass, mdmde);
 
-	zeta_LL = aniso.zeta_LL;								// set pl coefficients
-	zeta_TL = aniso.zeta_TL;
+	zeta_LL    = aniso.zeta_LL;								// set pl coefficients
+	zeta_TL    = aniso.zeta_TL;
 	lambda_WuL = aniso.lambda_WuL;
 	lambda_WTL = aniso.lambda_WTL;
 	lambda_piL = aniso.lambda_piL;
 
-	zeta_LT = aniso.zeta_LT;								// set pt coefficients
-	zeta_TT = aniso.zeta_TT;
+	zeta_LT    = aniso.zeta_LT;								// set pt coefficients
+	zeta_TT    = aniso.zeta_TT;
 	lambda_WuT = aniso.lambda_WuT;
 	lambda_WTT = aniso.lambda_WTT;
 	lambda_piT = aniso.lambda_piT;
 
 #ifdef PIMUNU
-	eta_T = aniso.eta_T;									// set piT coefficients
-	delta_pipi = aniso.delta_pipi;
-	tau_pipi = aniso.tau_pipi;
+	eta_T       = aniso.eta_T;								// set piT coefficients
+	delta_pipi  = aniso.delta_pipi;
+	tau_pipi    = aniso.tau_pipi;
 	lambda_pipi = aniso.lambda_pipi;
 	lambda_Wupi = aniso.lambda_Wupi;
 	lambda_WTpi = aniso.lambda_WTpi;
 #endif
 
 #ifdef WTZMU
-	eta_uW = aniso.eta_uW;									// set WTz coefficients
-	eta_TW = aniso.eta_TW;
-	tau_zW = aniso.tau_zW;
-	delta_WW = aniso.delta_WW;
-	lambda_WuW = aniso.lambda_WuW;
-	lambda_WTW = aniso.lambda_WTW;
+	eta_uW      = aniso.eta_uW;								// set WTz coefficients
+	eta_TW      = aniso.eta_TW;
+	tau_zW      = aniso.tau_zW;
+	delta_WW    = aniso.delta_WW;
+	lambda_WuW  = aniso.lambda_WuW;
+	lambda_WTW  = aniso.lambda_WTW;
 	lambda_piuW = aniso.lambda_piuW;
 	lambda_piTW = aniso.lambda_piTW;
 #endif
@@ -286,7 +322,7 @@ precision zeta_LT, zeta_TT, lambda_WuT, lambda_WTT, lambda_piT;
 #ifndef BOOST_INVARIANT
 	int n = 8;
 #else
-	int n = 6;
+	int n = 6;											// check this again?
 #endif
 
 	precision dpl_dx = central_derivative(qi1, n, dx);
@@ -303,11 +339,11 @@ precision zeta_LT, zeta_TT, lambda_WuT, lambda_WTT, lambda_piT;
 #ifdef CONFORMAL_EOS
 	dpt_dx = (de_dx  -  dpl_dx) / 2.;
 	dpt_dy = (de_dy  -  dpl_dy) / 2.;
-	dpt_dn = (de_dn  -  dpl_dn) / 2.;
+	dpt_dn = (de_dn  -  dpl_dn) / 2.;					// I think this is okay to use
 #endif
 
 
-#ifdef B_FIELD										// don't need b derivatives so just skip it
+#ifdef B_FIELD  // don't need b derivatives so just skip it
 	n += 2;
 #endif
 
@@ -333,7 +369,7 @@ precision zeta_LT, zeta_TT, lambda_WuT, lambda_WTT, lambda_piT;
 	precision dpitn_dn = central_derivative(qk1, n, dn);	n += 2;
 #else
 	precision dpitn_dx = 0;
-	precision dpitn_dy = 0;			// I can also removed eta-derivatives if boost-invariant
+	precision dpitn_dy = 0;
 	precision dpitn_dn = 0;
 #endif
 
@@ -450,29 +486,37 @@ precision zeta_LT, zeta_TT, lambda_WuT, lambda_WTT, lambda_piT;
 	precision dun_dn = central_derivative(uk1, 4, dn);
 
 
-	// chain rule for ut derivatives
+	// ut derivatives
 	precision dut_dt = vx * dux_dt  +  vy * duy_dt  +  t2 * vn * dun_dt  +  t * vn * un;
 	precision dut_dx = vx * dux_dx  +  vy * duy_dx  +  t2 * vn * dun_dx;
 	precision dut_dy = vx * dux_dy  +  vy * duy_dy  +  t2 * vn * dun_dy;
 	precision dut_dn = vx * dux_dn  +  vy * duy_dn  +  t2 * vn * dun_dn;
 
-	// spatial velocity derivatives and divergence
-	precision dvx_dx = (dux_dx  -  vx * dut_dx) / ut;
-	precision dvy_dy = (duy_dy  -  vy * dut_dy) / ut;
-	precision dvn_dn = (dun_dn  -  vn * dut_dn) / ut;
+	// spatial velocity divergence
+	//precision dvx_dx = (dux_dx  -  vx * dut_dx) / ut;
+	//precision dvy_dy = (duy_dy  -  vy * dut_dy) / ut;
+	//precision dvn_dn = (dun_dn  -  vn * dut_dn) / ut;
+	//precision div_v = dvx_dx  +  dvy_dy  +  dvn_dn;
 
-	precision div_v = dvx_dx  +  dvy_dy  +  dvn_dn;
+	precision div_v = (dux_dx  -  vx * dut_dx  +  duy_dy  -  vy * dut_dy  +  dun_dn  -  vn * dut_dn) / ut;
 
+
+
+
+
+	// Debug 3: I removed these terms, was I wrong?
 	// other spatial velocity derivatives (is this still needed?)
-	precision dvx_dn = (dux_dn  -  vx * dut_dn) / ut;
-	precision dvy_dn = (duy_dn  -  vy * dut_dn) / ut;
+	//precision dvx_dn = (dux_dn  -  vx * dut_dn) / ut;
+	//precision dvy_dn = (duy_dn  -  vy * dut_dn) / ut;
+
+
 
 
 
 // scalar, longitudinal and transverse expansion rates: theta = D_\mu u^\mu, thetaL = z_\mu Dz u^\mu, thetaT = NablaT_\mu u^\mu
 //-------------------------------------------------
 	precision theta = dut_dt  +  dux_dx  +  duy_dy  +  dun_dn  +  ut / t;
-	precision thetaL = - zt2 * dut_dt  +  t2 * zn2 * dun_dn  +  ztzn * (t2 * dun_dt  -  dut_dn)  +  t * zn2 * ut;
+	precision thetaL = - zt2 * dut_dt  +  ztzn * (t2 * dun_dt  -  dut_dn)  +  t2 * zn2 * dun_dn  +  t * zn2 * ut;
 	precision thetaT = theta  -  thetaL;
 
 
@@ -492,8 +536,18 @@ precision zeta_LT, zeta_TT, lambda_WuT, lambda_WTT, lambda_piT;
 
 
 #if (NUMBER_OF_RESIDUAL_CURRENTS != 0)
+
+
+
+
+
+	// Debug 4: test projection properties in 3d (should test actual projections, not random vector/tensor)
 	transverse_projection Xi(ut, ux, uy, un, zt, zn, t2);	// Xi^{\mu\nu}
 	double_transverse_projection Xi_2(Xi, t2, t4);			// Xi^{\mu\nu\alpha\beta}
+
+
+
+
 
 	// acceleration = D u^\mu
 	precision at = ut * dut_dt  +  ux * dut_dx  +  uy * dut_dy  +  un * dut_dn  +  t * un2;
@@ -511,25 +565,28 @@ precision zeta_LT, zeta_TT, lambda_WuT, lambda_WTT, lambda_piT;
 	precision Dz_uy = - zt * duy_dt  -  zn * duy_dn;
 	precision Dz_un = - zt * dun_dt  -  zn * dun_dn  -  (ut * zn  +  un * zt) / t;
 
-	// covariant transverse derivative of u contracted with z = z_\nu NablaT^\mu u^\nu (first compute z_\nu D^\mu u^\nu )
+	// transverse derivative of u projected along z: z_\nu NablaT^\mu u^\nu (first compute z_\nu D^\mu u^\nu )
 	precision z_NabTt_u =   zt * dut_dt  -  t2zn * dun_dt  -  t * unzn;
 	precision z_NabTx_u = -(zt * dut_dx  -  t2zn * dun_dx);
 	precision z_NabTy_u = -(zt * dut_dy  -  t2zn * dun_dy);
 	precision z_NabTn_u = -(zt * dut_dn  -  t2zn * dun_dn  +  t * (un * zt  -  ut * zn)) / t2;
+
 	Xi.transverse_project_vector(z_NabTt_u, z_NabTx_u, z_NabTy_u, z_NabTn_u);
 
 	// transverse shear velocity tensor = sigmaT^{\mu\nu} (first compute D^{(\mu) u^{\nu)} )
 	precision sTtt = dut_dt;
 	precision sTtx = (dux_dt  -  dut_dx) / 2.;
 	precision sTty = (duy_dt  -  dut_dy) / 2.;
-	precision sTtn = (dun_dt  +  un / t  -  (dut_dn  +  tun) / t2) / 2.;
+	precision sTtn = (dun_dt  -  dut_dn / t2) / 2.;
 	precision sTxx = - dux_dx;
 	precision sTxy = - (dux_dy  +  duy_dx) / 2.;
 	precision sTxn = - (dun_dx  +  dux_dn / t2) / 2.;
 	precision sTyy = - duy_dy;
 	precision sTyn = - (dun_dy  +  duy_dn / t2) / 2.;
 	precision sTnn = - (dun_dn  +  ut / t) / t2;
+
 	Xi_2.double_transverse_project_tensor(sTtt, sTtx, sTty, sTtn, sTxx, sTxy, sTxn, sTyy, sTyn, sTnn);
+
 #endif
 
 	// L^munu components and derivatives
@@ -568,12 +625,13 @@ precision zeta_LT, zeta_TT, lambda_WuT, lambda_WTT, lambda_piT;
 	precision Iyn = - tau_pipi * (pity * sTtn  +  pitn * sTty  -  pixy * sTxn  -  pixn * sTxy  -  piyy * sTyn  -  piyn * sTyy  -  t2 * (piyn * sTnn  +  pinn * sTyn)) / 2.;
 	precision Inn = - tau_pipi * (pitn * sTtn  -  pixn * sTxn  -  piyn * sTyn  -  t2 * pinn * sTnn);
 
+
 #ifdef WTZMU
 	// 2 . WTz^{(\mu} . \dot{z}^{\nu)}
 	Itt -= 2. * WtTz * D_zt;
 	Itx -= WxTz * D_zt;
 	Ity -= WyTz * D_zt;
-	Itn -= WtTz * D_zn  +  WnTz * D_zt;
+	Itn -= (WtTz * D_zn  +  WnTz * D_zt);
 	Ixn -= WxTz * D_zn;
 	Iyn -= WyTz * D_zn;
 	Inn -= 2. * WnTz * D_zn;
@@ -595,13 +653,14 @@ precision zeta_LT, zeta_TT, lambda_WuT, lambda_WTT, lambda_piT;
 	Itx += lambda_WTpi * (WtTz * z_NabTx_u  +  WxTz * z_NabTt_u) / 2.;
 	Ity += lambda_WTpi * (WtTz * z_NabTy_u  +  WyTz * z_NabTt_u) / 2.;
 	Itn += lambda_WTpi * (WtTz * z_NabTn_u  +  WnTz * z_NabTt_u) / 2.;
-	Ixx += lambda_WTpi * (WxTz * Dz_ux);
+	Ixx += lambda_WTpi * (WxTz * z_NabTx_u);								// fixed on 6/23/20
 	Ixy += lambda_WTpi * (WxTz * z_NabTy_u  +  WyTz * z_NabTx_u) / 2.;
 	Ixn += lambda_WTpi * (WxTz * z_NabTn_u  +  WnTz * z_NabTx_u) / 2.;
 	Iyy += lambda_WTpi * (WyTz * z_NabTy_u);
 	Iyn += lambda_WTpi * (WyTz * z_NabTn_u  +  WnTz * z_NabTy_u) / 2.;
 	Inn += lambda_WTpi * (WnTz * z_NabTn_u);
 #endif
+
 
 #ifdef VORTICITY
 	printf("source_terms_aniso_hydro error: no vorticity terms yet\n");
@@ -618,7 +677,7 @@ precision zeta_LT, zeta_TT, lambda_WuT, lambda_WTT, lambda_piT;
 	Inn += 0;
 #endif
 
-	// double project the first several terms
+	// double transverse project first several terms
 	Xi_2.double_transverse_project_tensor(Itt, Itx, Ity, Itn, Ixx, Ixy, Ixn, Iyy, Iyn, Inn);
 
 	// 2 . \eta_T . \sigma_T^{\mu\nu}  -  pi_T^{\mu\nu}. (\lambda^\pi_\pi . \theta_L  -  \delta^\pi_\pi . \theta_T)
@@ -642,19 +701,19 @@ precision zeta_LT, zeta_TT, lambda_WuT, lambda_WTT, lambda_piT;
 	precision Gyn = (ut * piyn  +  un * pity) / t;
 	precision Gnn = 2. * (ut * pinn  +  un * pitn) / t;
 
-	// pi_T^{\mu\alpha} . a_\alpha
+	// piT^{\mu\alpha} . a_\alpha
 	precision piat = pitt * at  -  pitx * ax  -  pity * ay  -  t2 * pitn * an;
 	precision piax = pitx * at  -  pixx * ax  -  pixy * ay  -  t2 * pixn * an;
 	precision piay = pity * at  -  pixy * ax  -  piyy * ay  -  t2 * piyn * an;
 	precision pian = pitn * at  -  pixn * ax  -  piyn * ay  -  t2 * pinn * an;
 
-	// pi_T^{\mu\alpha} . \dot{z}_\alpha
+	// piT^{\mu\alpha} . Dz_\alpha
 	precision piDzt = pitt * D_zt  -  t2 * pitn * D_zn;
 	precision piDzx = pitx * D_zt  -  t2 * pixn * D_zn;
 	precision piDzy = pity * D_zt  -  t2 * piyn * D_zn;
 	precision piDzn = pitn * D_zt  -  t2 * pinn * D_zn;
 
-	// Product rule terms: P^{\mu\nu} = 2.(- u^{(\mu} . \pi_{\nu)\alpha} . a_\alpha  +  z^{(\mu} . \pi_{\nu)\alpha} . \dot{z}_\alpha)
+	// Product rule terms: P^{\mu\nu} = 2.(- u^{(\mu} . \pi_{\nu)\alpha} . a_\alpha  +  z^{(\mu} . \pi_{\nu)\alpha} . Dz_\alpha)
 	precision Ptt = 2. * (- ut * piat  +  zt * piDzt);
 	precision Ptx = - ut * piax  -  ux * piat  +  zt * piDzx;
 	precision Pty = - ut * piay  -  uy * piat  +  zt * piDzy;
@@ -705,7 +764,8 @@ precision zeta_LT, zeta_TT, lambda_WuT, lambda_WTT, lambda_piT;
 
 	precision dWnn_dn = 2. * (dWnTz_dn * zn  +  WnTz * dzn_dn);
 
-	// 2nd order gradient terms in dpl and dpt
+
+	// 2nd order scalar terms in dpl and dpt
 	precision WTz_D_z = WtTz * D_zt  -  t2 * WnTz * D_zn;
 	precision WTz_Dz_u = WtTz * Dz_ut  -  WxTz * Dz_ux  -  WyTz * Dz_uy  -  t2 * WnTz * Dz_un;
 	precision WTz_z_NabT_u = WtTz * z_NabTt_u  -  WxTz * z_NabTx_u  -  WyTz * z_NabTy_u  -  t2 * WnTz * z_NabTn_u;
@@ -713,39 +773,43 @@ precision zeta_LT, zeta_TT, lambda_WuT, lambda_WTT, lambda_piT;
 	precision IplW = - 2. * WTz_D_z  +  lambda_WuL * WTz_Dz_u  +  lambda_WTL * WTz_z_NabT_u;
 	precision IptW = WTz_D_z  +  lambda_WuT * WTz_Dz_u  -  lambda_WTT * WTz_z_NabT_u;
 
-	// gradient terms in dWTz (some are unprojected)
-	precision It = 2. * eta_uW * Dz_ut;
+
+	// first-order gradient terms in dWTz (need to project first 2)
+	// 2 . eta_u^W . Dz u^\mu  -  tau_z^W . Dz^\mu
+	precision It = 2. * eta_uW * Dz_ut  -  tau_zW * D_zt;
 	precision Ix = 2. * eta_uW * Dz_ux;
 	precision Iy = 2. * eta_uW * Dz_uy;
-	precision In = 2. * eta_uW * Dz_un;
+	precision In = 2. * eta_uW * Dz_un  -  tau_zW * D_zn;
 
+	Xi.transverse_project_vector(It, Ix, Iy, In);
+
+	// - 2 eta_T^W . z_\alpha NablaT^\mu u^\alpha
 	It -= 2. * eta_TW * z_NabTt_u;
 	Ix -= 2. * eta_TW * z_NabTx_u;
 	Iy -= 2. * eta_TW * z_NabTy_u;
 	In -= 2. * eta_TW * z_NabTn_u;
 
-	It -= tau_zW * D_zt;
-	In -= tau_zW * D_zn;
-
+	// - piT^{\mu\nu} . Dz_\nu
 #ifdef PIMUNU
-	It -= pitt * D_zt  -  t2 * pitn * D_zn;
-	In -= pitn * D_zt  -  t2 * pinn * D_zn;
+	It += (-pitt * D_zt  +  t2 * pitn * D_zn);		// forgot to include Ix, Iy (fixed on 6/23/20)
+	Ix += (-pitx * D_zt  +  t2 * pixn * D_zn);
+	Iy += (-pity * D_zt  +  t2 * piyn * D_zn);
+	In += (-pitn * D_zt  +  t2 * pinn * D_zn);
 #endif
 
-	It += delta_WW * WtTz * thetaT;
-	Ix += delta_WW * WxTz * thetaT;
-	Iy += delta_WW * WyTz * thetaT;
-	In += delta_WW * WnTz * thetaT;
 
-	It -= lambda_WuW * WtTz * thetaL;
-	Ix -= lambda_WuW * WxTz * thetaL;
-	Iy -= lambda_WuW * WyTz * thetaL;
-	In -= lambda_WuW * WnTz * thetaL;
+	// second-order gradient terms in dWTz
+	// delta_W^W . WTz^\mu . theta_T  -  lambda_Wu^W . WTz^\mu . theta_L
+	It += WtTz * (delta_WW * thetaT  -  lambda_WuW * thetaL);
+	Ix += WxTz * (delta_WW * thetaT  -  lambda_WuW * thetaL);
+	Iy += WyTz * (delta_WW * thetaT  -  lambda_WuW * thetaL);
+	In += WnTz * (delta_WW * thetaT  -  lambda_WuW * thetaL);
 
-	It += lambda_WTW * (sTtt * WtTz  -  sTtx * WxTz  -  sTty * WyTz  - t2 * sTtn * WnTz);
-	Ix += lambda_WTW * (sTtx * WtTz  -  sTxx * WxTz  -  sTxy * WyTz  - t2 * sTxn * WnTz);
-	Iy += lambda_WTW * (sTty * WtTz  -  sTxy * WxTz  -  sTyy * WyTz  - t2 * sTyn * WnTz);
-	In += lambda_WTW * (sTtn * WtTz  -  sTxn * WxTz  -  sTyn * WyTz  - t2 * sTnn * WnTz);
+	// lambda_WT^W . sigmaT^{\mu\nu} . WTz_\nu
+	It += lambda_WTW * (sTtt * WtTz  -  sTtx * WxTz  -  sTty * WyTz  -  t2 * sTtn * WnTz);
+	Ix += lambda_WTW * (sTtx * WtTz  -  sTxx * WxTz  -  sTxy * WyTz  -  t2 * sTxn * WnTz);
+	Iy += lambda_WTW * (sTty * WtTz  -  sTxy * WxTz  -  sTyy * WyTz  -  t2 * sTyn * WnTz);
+	In += lambda_WTW * (sTtn * WtTz  -  sTxn * WxTz  -  sTyn * WyTz  -  t2 * sTnn * WnTz);
 
 #ifdef VORTICITY
 	printf("source_terms_aniso_hydro error: no vorticity terms yet\n");
@@ -768,13 +832,12 @@ precision zeta_LT, zeta_TT, lambda_WuT, lambda_WTT, lambda_piT;
 	In -= lambda_piTW * (pitn * z_NabTt_u  -  pixn * z_NabTx_u  -  piyn * z_NabTy_u  -  t2 * pinn * z_NabTn_u);
 #endif
 
-	Xi.transverse_project_vector(It, Ix, Iy, In);
 
-	// Christofel terms (G_W^\mu  =  u^\alpha . \Gamma^\mu_{\alpha\beta} . WTz^\mu)
+	// Christofel terms: G_W^\mu  =  u^\alpha . \Gamma^\mu_{\alpha\beta} . WTz^\beta
 	precision Gt = tun * WnTz;
 	precision Gn = (ut * WnTz  +  un * WtTz) / t;
 
-	// product rule terms (P_W^\mu  =  - u^\mu . Wtz^\nu . a_\nu  +  z^\mu . Wtz^\nu . Dz_\nu)
+	// product rule terms: P_W^\mu  =  - u^\mu . WTz^\nu . a_\nu  +  z^\mu . WTz^\nu . Dz_\nu
 	precision WTza  = WtTz * at  -  WxTz * ax  -  WyTz * ay  -  t2 * WnTz * an;
 	precision WTzDz = WtTz * D_zt  -  t2 * WnTz * D_zn;
 
@@ -783,8 +846,39 @@ precision zeta_LT, zeta_TT, lambda_WuT, lambda_WTT, lambda_piT;
 	precision Py = - uy * WTza;
 	precision Pn = - un * WTza  +  zn * WTzDz;
 #else
-	precision Wtt = 0, Wtx = 0, Wty = 0, Wtn = 0, Wxn = 0, Wyn = 0, Wnn = 0;
-	precision dWtt_dx = 0, dWtt_dy = 0, dWtt_dn = 0, dWtx_dx = 0, dWtx_dy = 0, dWtx_dn = 0, dWty_dx = 0, dWty_dy = 0, dWty_dn = 0, dWtn_dx = 0, dWtn_dy = 0, dWtn_dn = 0, dWxn_dx = 0,dWxn_dn = 0, dWyn_dy = 0, dWyn_dn = 0, dWnn_dn = 0;
+	precision Wtt = 0;
+	precision Wtx = 0;
+	precision Wty = 0;
+	precision Wtn = 0;
+
+	precision Wxn = 0;
+	precision Wyn = 0;
+
+	precision Wnn = 0;
+
+	precision dWtt_dx = 0;
+	precision dWtt_dy = 0;
+	precision dWtt_dn = 0;
+
+	precision dWtx_dx = 0;
+	precision dWtx_dy = 0;
+	precision dWtx_dn = 0;
+
+	precision dWty_dx = 0;
+	precision dWty_dy = 0;
+	precision dWty_dn = 0;
+
+	precision dWtn_dx = 0;
+	precision dWtn_dy = 0;
+	precision dWtn_dn = 0;
+
+	precision dWxn_dx = 0;
+	precision dWxn_dn = 0;
+
+	precision dWyn_dy = 0;
+	precision dWyn_dn = 0;
+
+	precision dWnn_dn = 0;
 
 	precision WTz_Dz_u = 0;
 	precision WTz_z_NabT_u = 0;
@@ -1155,7 +1249,8 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	precision stt = dut_dt;
 	precision stx = (dux_dt  -  dut_dx) / 2.;
 	precision sty = (duy_dt  -  dut_dy) / 2.;
-	precision stn = (dun_dt  +  un / t  -  (dut_dn  +  tun) / t2) / 2.;
+	precision stn = (dun_dt  -  dut_dn / t2) / 2.;
+	//precision stn = (dun_dt  +  un / t  -  (dut_dn  +  tun) / t2) / 2.;
 	precision sxx = - dux_dx;
 	precision sxy = - (dux_dy  +  duy_dx) / 2.;
 	precision sxn = - (dun_dx  +  dux_dn / t2) / 2.;

@@ -186,6 +186,8 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 	precision t_out = t;                                         // output times
 	precision dt_out = lattice.output_interval;
 
+	bool double_dt_out = true;									 // double output interval after three outputs
+  	int number_outputs = 0;                                      // set to false if want regular outputs
 
 #ifdef BOOST_INVARIANT
 	printf("Running 2+1d hydro simulation...\n\n");
@@ -224,6 +226,7 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 
 				if(hydro.output)
 				{
+					number_outputs++;
 					output_dynamical_variables(t, dt_prev, lattice, initial, hydro);
 				}
 
@@ -241,6 +244,7 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 
 				if(hydro.output)
 				{
+					number_outputs++;
 					output_dynamical_variables(t, dt_prev, lattice, initial, hydro);
 				}
 
@@ -314,6 +318,11 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 		dt_prev = dt;
 
 		steps++;
+
+		if(number_outputs == 3 && double_dt_out)
+		{
+			dt_out = 2. * lattice.output_interval;
+		}
 	}
 	//----------------------------------------------------------
 
