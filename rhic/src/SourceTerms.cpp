@@ -573,7 +573,7 @@ precision lambda_piTW = 0;
 
 	Xi.transverse_project_vector(z_NabTt_u, z_NabTx_u, z_NabTy_u, z_NabTn_u);
 
-	// transverse shear velocity tensor = sigmaT^{\mu\nu} (first compute D^{(\mu) u^{\nu)} )
+	// transverse velocity-shear tensor = sigmaT^{\mu\nu} (first compute D^{(\mu} u^{\nu)} components)
 	precision sTtt = dut_dt;
 	precision sTtx = (dux_dt  -  dut_dx) / 2.;
 	precision sTty = (duy_dt  -  dut_dy) / 2.;
@@ -586,6 +586,35 @@ precision lambda_piTW = 0;
 	precision sTnn = - (dun_dn  +  ut / t) / t2;
 
 	Xi_2.double_transverse_project_tensor(sTtt, sTtx, sTty, sTtn, sTxx, sTxy, sTxn, sTyy, sTyn, sTnn);
+
+#ifdef VORTICITY
+	// precision wTtx = ( dux_dt  +  dut_dx) / 2.;
+	// precision wTty = ( duy_dt  +  dut_dy) / 2.;
+	// precision wTtn = ( dun_dt  +  dut_dn / t2) / 2.  +  un / t;
+	// precision wTxy = (-dux_dy  +  duy_dx) / 2.;
+	// precision wTxn = (-dun_dx  +  dux_dn / t2) / 2.;
+	// precision wTyn = (-dun_dy  +  duy_dn / t2) / 2.;
+	// probably another class function that speicfically projects vorticity
+	//Xi.project_vorticity(wtt, wtx, wty, wtn, wxx, wxy, wxn, wyy, wyn, wnn);
+
+	// z_\alpha D^\mu u^\alpha
+	precision z_Dt_u =  zt * dut_dt       -  t2zn * dun_dt  -  t * unzn;
+	precision z_Dx_u = -zt * dut_dx       +  t2zn * dun_dx;
+	precision z_Dy_u = -zt * dut_dy       +  t2zn * dun_dy;
+	precision z_Dn_u = -zt * dut_dn / t2  +    zn * dun_dn  +  (ut * zn  -  un * zt) / t;
+
+	// transverse vorticity tensor:
+	// omegaT^{\mu\nu} = D^{[\mu} u^{\nu]}  -  u^\mu.a^\nu / 2  +  u^\nu.a^\mu / 2
+	//                   -  z^\mu . (Dz u^\nu  +  z_\alpha D^\nu u^\alpha) / 2
+	//                   +  z^\nu . (Dz u^\mu  +  z_\alpha D^\mu u^\alpha) / 2
+	precision wTtx = ( dux_dt  +  dut_dx       -  ut * ax  +  ux * at  -  zt * (Dz_ux + z_Dx_u)) / 2.;
+	precision wTty = ( duy_dt  +  dut_dy       -  ut * ay  +  uy * at  -  zt * (Dz_uy + z_Dy_u)) / 2.;
+	precision wTtn = ( dun_dt  +  dut_dn / t2  -  ut * an  +  un * at  -  zt * (Dz_un + z_Dn_u)  +  zn * (Dz_ut + z_Dt_u)) / 2.  +  un / t;
+	precision wTxy = (-dux_dy  +  duy_dx       -  ux * ay  +  uy * ax) / 2.;
+	precision wTxn = (-dun_dx  +  dux_dn / t2  -  ux * an  +  un * ax  +  zn * (Dz_ux + z_Dx_u)) / 2.;
+	precision wTyn = (-dun_dy  +  duy_dn / t2  -  uy * an  +  un * ay  +  zn * (Dz_uy + z_Dy_u)) / 2.;
+#endif
+
 
 #endif
 
@@ -613,7 +642,7 @@ precision lambda_piTW = 0;
 	//piT^{\mu\nu} . sigmaT_{\mu\nu}
 	precision pi_sT = pitt * sTtt  +  pixx * sTxx  +  piyy * sTyy  +  t4 * pinn * sTnn  +  2. * (pixy * sTxy  -  pitx * sTtx  -  pity * sTty  +  t2 * (pixn * sTxn  +  piyn * sTyn  -  pitn * sTtn));
 
-	// \tau^\pi_\pi . \pi_T^{\alpha (\mu} . \sigma_T^{\nu)}_\alpha
+	// - \tau^\pi_\pi . \pi_T^{\alpha (\mu} . \sigma_T^{\nu)}_\alpha
 	precision Itt = - tau_pipi * (pitt * sTtt  -  pitx * sTtx  -  pity * sTty  -  t2 * pitn * sTtn);
 	precision Itx = - tau_pipi * (pitt * sTtx  +  pitx * sTtt  -  pitx * sTxx  -  pixx * sTtx  -  pity * sTxy  -  pixy * sTty  -  t2 * (pitn * sTxn  +  pixn * sTtn)) / 2.;
 	precision Ity = - tau_pipi * (pitt * sTty  +  pity * sTtt  -  pitx * sTxy  -  pixy * sTtx  -  pity * sTyy  -  piyy * sTty  -  t2 * (pitn * sTyn  +  piyn * sTtn)) / 2.;
@@ -661,20 +690,18 @@ precision lambda_piTW = 0;
 	Inn += lambda_WTpi * (WnTz * z_NabTn_u);
 #endif
 
-
+	// 2 piT^{\alpha(mu} omegaT^{\nu)}_\alpha
 #ifdef VORTICITY
-	printf("source_terms_aniso_hydro error: no vorticity terms yet\n");
-	exit(-1);
-	Itt += 0;
+	Itt += 2. * (-pitx * wTtx  -  pity * wTty  -  t2 * pitn * wTtn);
 	Itx += 0;
 	Ity += 0;
 	Itn += 0;
-	Ixx += 0;
+	Ixx += 2. * (-pitx * wTtx  -  pixy * wTxy  -  t2 * pixn * wTxn);
 	Ixy += 0;
 	Ixn += 0;
-	Iyy += 0;
+	Iyy += 2. * (-pity * wTty  +  pixy * wTxy  -  t2 * piyn * wTyn);
 	Iyn += 0;
-	Inn += 0;
+	Inn += 2. * (-pitn * wTtn  +  pixn * wTxn  +  piyn * wTyn);
 #endif
 
 	// double transverse project first several terms
@@ -713,17 +740,17 @@ precision lambda_piTW = 0;
 	precision piDzy = pity * D_zt  -  t2 * piyn * D_zn;
 	precision piDzn = pitn * D_zt  -  t2 * pinn * D_zn;
 
-	// Product rule terms: P^{\mu\nu} = 2.(- u^{(\mu} . \pi_{\nu)\alpha} . a_\alpha  +  z^{(\mu} . \pi_{\nu)\alpha} . Dz_\alpha)
-	precision Ptt = 2. * (- ut * piat  +  zt * piDzt);
-	precision Ptx = - ut * piax  -  ux * piat  +  zt * piDzx;
-	precision Pty = - ut * piay  -  uy * piat  +  zt * piDzy;
-	precision Ptn = - ut * pian  -  un * piat  +  zt * piDzn  +  zn * piDzt;
-	precision Pxx = - 2. * ux * piax;
-	precision Pxy = - ux * piay  -  uy * piax;
-	precision Pxn = - ux * pian  -  un * piax  +  zn * piDzx;	// don't see anything wrong with this
-	precision Pyy = - 2. * uy * piay;
-	precision Pyn = - uy * pian  -  un * piay  +  zn * piDzy;
-	precision Pnn = 2. * (- un * pian  +  zn * piDzn);
+	// Product rule terms: P^{\mu\nu} = 2.(u^{(\mu} . \pi_{\nu)\alpha} . a_\alpha  -  z^{(\mu} . \pi_{\nu)\alpha} . Dz_\alpha)
+	precision Ptt = 2. * (ut * piat  -  zt * piDzt);
+	precision Ptx = ut * piax  +  ux * piat  -  zt * piDzx;
+	precision Pty = ut * piay  +  uy * piat  -  zt * piDzy;
+	precision Ptn = ut * pian  +  un * piat  -  zt * piDzn  -  zn * piDzt;
+	precision Pxx = 2. * ux * piax;
+	precision Pxy = ux * piay  +  uy * piax;
+	precision Pxn = ux * pian  +  un * piax  -  zn * piDzx;	// don't see anything wrong with this
+	precision Pyy = 2. * uy * piay;
+	precision Pyn = uy * pian  +  un * piay  -  zn * piDzy;
+	precision Pnn = 2. * (un * pian  -  zn * piDzn);
 
 #else
 	precision pi_sT = 0;
@@ -789,6 +816,8 @@ precision lambda_piTW = 0;
 	Iy -= 2. * eta_TW * z_NabTy_u;
 	In -= 2. * eta_TW * z_NabTn_u;
 
+
+	// second-order gradient terms in dWTz
 	// - piT^{\mu\nu} . Dz_\nu
 #ifdef PIMUNU
 	It += (-pitt * D_zt  +  t2 * pitn * D_zn);		// forgot to include Ix, Iy (fixed on 6/23/20)
@@ -797,8 +826,6 @@ precision lambda_piTW = 0;
 	In += (-pitn * D_zt  +  t2 * pinn * D_zn);
 #endif
 
-
-	// second-order gradient terms in dWTz
 	// delta_W^W . WTz^\mu . theta_T  -  lambda_Wu^W . WTz^\mu . theta_L
 	It += WtTz * (delta_WW * thetaT  -  lambda_WuW * thetaL);
 	Ix += WxTz * (delta_WW * thetaT  -  lambda_WuW * thetaL);
@@ -811,21 +838,22 @@ precision lambda_piTW = 0;
 	Iy += lambda_WTW * (sTty * WtTz  -  sTxy * WxTz  -  sTyy * WyTz  -  t2 * sTyn * WnTz);
 	In += lambda_WTW * (sTtn * WtTz  -  sTxn * WxTz  -  sTyn * WyTz  -  t2 * sTnn * WnTz);
 
+	// omegaT^{\mu\nu} . WTz_\nu
 #ifdef VORTICITY
-	printf("source_terms_aniso_hydro error: no vorticity terms yet\n");
-	exit(-1);
-	It += 0.;		// haven't worked out vorticity terms yet
-	Ix += 0.;
-	Iy += 0.;
-	In += 0.;
+	It += (              -  wTtx * WxTz  -  wTty * WyTz  -  t2 * wTtn * WnTz);
+	Ix += (-wTtx * WtTz                  -  wTxy * WyTz  -  t2 * wTxn * WnTz);
+	Iy += (-wTty * WtTz  +  wTxy * WxTz                  -  t2 * wTyn * WnTz);
+	In += (-wTtn * WtTz  +  wTxn * WxTz  +  wTyn * WyTz);
 #endif
 
 #ifdef PIMUNU
+	// lambda_piu^W . piT^{\mu\nu} . z_\alpha NablaT_\nu u^\alpha
 	It += lambda_piuW * (pitt * Dz_ut  -  pitx * Dz_ux  -  pity * Dz_uy  -  t2 * pitn * Dz_un);
 	Ix += lambda_piuW * (pitx * Dz_ut  -  pixx * Dz_ux  -  pixy * Dz_uy  -  t2 * pixn * Dz_un);
 	Iy += lambda_piuW * (pity * Dz_ut  -  pixy * Dz_ux  -  piyy * Dz_uy  -  t2 * piyn * Dz_un);
 	In += lambda_piuW * (pitn * Dz_ut  -  pixn * Dz_ux  -  piyn * Dz_uy  -  t2 * pinn * Dz_un);
 
+	// - lambda_piT^W . piT^{\mu\nu} . Dz u_\nu
 	It -= lambda_piTW * (pitt * z_NabTt_u  -  pitx * z_NabTx_u  -  pity * z_NabTy_u  -  t2 * pitn * z_NabTn_u);
 	Ix -= lambda_piTW * (pitx * z_NabTt_u  -  pixx * z_NabTx_u  -  pixy * z_NabTy_u  -  t2 * pixn * z_NabTn_u);
 	Iy -= lambda_piTW * (pity * z_NabTt_u  -  pixy * z_NabTx_u  -  piyy * z_NabTy_u  -  t2 * piyn * z_NabTn_u);
@@ -837,14 +865,14 @@ precision lambda_piTW = 0;
 	precision Gt = tun * WnTz;
 	precision Gn = (ut * WnTz  +  un * WtTz) / t;
 
-	// product rule terms: P_W^\mu  =  - u^\mu . WTz^\nu . a_\nu  +  z^\mu . WTz^\nu . Dz_\nu
+	// product rule terms: P_W^\mu  =  u^\mu . WTz^\nu . a_\nu  -  z^\mu . WTz^\nu . Dz_\nu
 	precision WTza  = WtTz * at  -  WxTz * ax  -  WyTz * ay  -  t2 * WnTz * an;
 	precision WTzDz = WtTz * D_zt  -  t2 * WnTz * D_zn;
 
-	precision Pt = - ut * WTza  +  zt * WTzDz;
-	precision Px = - ux * WTza;
-	precision Py = - uy * WTza;
-	precision Pn = - un * WTza  +  zn * WTzDz;
+	precision Pt = ut * WTza  -  zt * WTzDz;
+	precision Px = ux * WTza;
+	precision Py = uy * WTza;
+	precision Pn = un * WTza  -  zn * WTzDz;
 #else
 	precision Wtt = 0;
 	precision Wtx = 0;
@@ -933,16 +961,16 @@ precision lambda_piTW = 0;
 
 	// piT relaxation equation (checked it, looks ok)
 #ifdef PIMUNU
-	precision dpitt = - pitt * taupi_inverse  +  Itt  +  Ptt  -  Gtt;
-	precision dpitx = - pitx * taupi_inverse  +  Itx  +  Ptx  -  Gtx;
-	precision dpity = - pity * taupi_inverse  +  Ity  +  Pty  -  Gty;
-	precision dpitn = - pitn * taupi_inverse  +  Itn  +  Ptn  -  Gtn;
-	precision dpixx = - pixx * taupi_inverse  +  Ixx  +  Pxx;
-	precision dpixy = - pixy * taupi_inverse  +  Ixy  +  Pxy;
-	precision dpixn = - pixn * taupi_inverse  +  Ixn  +  Pxn  -  Gxn;
-	precision dpiyy = - piyy * taupi_inverse  +  Iyy  +  Pyy;
-	precision dpiyn = - piyn * taupi_inverse  +  Iyn  +  Pyn  -  Gyn;
-	precision dpinn = - pinn * taupi_inverse  +  Inn  +  Pnn  -  Gnn;
+	precision dpitt = - pitt * taupi_inverse  +  Itt  -  Ptt  -  Gtt;
+	precision dpitx = - pitx * taupi_inverse  +  Itx  -  Ptx  -  Gtx;
+	precision dpity = - pity * taupi_inverse  +  Ity  -  Pty  -  Gty;
+	precision dpitn = - pitn * taupi_inverse  +  Itn  -  Ptn  -  Gtn;
+	precision dpixx = - pixx * taupi_inverse  +  Ixx  -  Pxx;
+	precision dpixy = - pixy * taupi_inverse  +  Ixy  -  Pxy;
+	precision dpixn = - pixn * taupi_inverse  +  Ixn  -  Pxn  -  Gxn;
+	precision dpiyy = - piyy * taupi_inverse  +  Iyy  -  Pyy;
+	precision dpiyn = - piyn * taupi_inverse  +  Iyn  -  Pyn  -  Gyn;
+	precision dpinn = - pinn * taupi_inverse  +  Inn  -  Pnn  -  Gnn;
 
 	S[a] = dpitt / ut  +  div_v * pitt;		a++;
 	S[a] = dpitx / ut  +  div_v * pitx;		a++;
@@ -964,10 +992,10 @@ precision lambda_piTW = 0;
 
 	// WTz relaxation equation
 #ifdef WTZMU
-	precision dWtTz = - WtTz * taupi_inverse  +  It  +  Pt  -  Gt;
-	precision dWxTz = - WxTz * taupi_inverse  +  Ix  +  Px;
-	precision dWyTz = - WyTz * taupi_inverse  +  Iy  +  Py;
-	precision dWnTz = - WnTz * taupi_inverse  +  In  +  Pn  -  Gn;
+	precision dWtTz = - WtTz * taupi_inverse  +  It  -  Pt  -  Gt;
+	precision dWxTz = - WxTz * taupi_inverse  +  Ix  -  Px;
+	precision dWyTz = - WyTz * taupi_inverse  +  Iy  -  Py;
+	precision dWnTz = - WnTz * taupi_inverse  +  In  -  Pn  -  Gn;
 
 	S[a] = dWtTz / ut  +  div_v * WtTz;		a++;
 	S[a] = dWxTz / ut  +  div_v * WxTz;		a++;
@@ -1235,22 +1263,17 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	spatial_projection Delta(ut, ux, uy, un, t2);		// \Delta^{\mu\nu}
 	double_spatial_projection Delta_2(Delta, t2, t4);	// \Delta^{\mu\nu\alpha\beta}
 
-	//Delta.test_spatial_projector();
-	//Delta_2.test_double_spatial_projector(ut,ux,uy,un);	// these tests passed
-
-#ifdef PIMUNU 	// acceleration: a^\mu = D u^\mu
+	// fluid acceleration: a^\mu = D u^\mu
 	precision at = ut * dut_dt  +  ux * dut_dx  +  uy * dut_dy  +  un * dut_dn  +  t * un * un;
 	precision ax = ut * dux_dt  +  ux * dux_dx  +  uy * dux_dy  +  un * dux_dn;
 	precision ay = ut * duy_dt  +  ux * duy_dx  +  uy * duy_dy  +  un * duy_dn;
-	precision an = ut * dun_dt  +  ux * dun_dx  +  uy * dun_dy  +  un * dun_dn  +  2. * ut * un / t;
-#endif
+	precision an = ut * dun_dt  +  ux * dun_dx  +  uy * dun_dy  +  un * dun_dn  +  2. * ut * un / t
 
-	// shear velocity tensor: sigma^{\mu\nu} (first compute D^{(\mu) u^{\nu)})
+	// velocity-shear tensor: sigma^{\mu\nu} (first compute D^{(\mu) u^{\nu)})
 	precision stt = dut_dt;
 	precision stx = (dux_dt  -  dut_dx) / 2.;
 	precision sty = (duy_dt  -  dut_dy) / 2.;
 	precision stn = (dun_dt  -  dut_dn / t2) / 2.;
-	//precision stn = (dun_dt  +  un / t  -  (dut_dn  +  tun) / t2) / 2.;
 	precision sxx = - dux_dx;
 	precision sxy = - (dux_dy  +  duy_dx) / 2.;
 	precision sxn = - (dun_dx  +  dux_dn / t2) / 2.;
@@ -1258,6 +1281,17 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	precision syn = - (dun_dy  +  duy_dn / t2) / 2.;
 	precision snn = - (dun_dn  +  ut / t) / t2;
 	Delta_2.double_spatial_project_tensor(stt, stx, sty, stn, sxx, sxy, sxn, syy, syn, snn);
+
+	// vorticity tensor: omega^{\mu\nu} = D^{[\mu} u^{\nu]}  -  u^\mu a^\nu / 2  +  u^\nu a^\mu) / 2
+#ifdef VORTICITY
+	precision wtx = ( dux_dt  +  dut_dx       -  ut * ax  +  ux * at) / 2.;
+	precision wty = ( duy_dt  +  dut_dy       -  ut * ay  +  uy * at) / 2.;
+	precision wtn = ( dun_dt  +  dut_dn / t2  -  ut * an  +  un * at) / 2.  +  un / t;
+	precision wxy = (-dux_dy  +  duy_dx       -  ux * ay  +  uy * ax) / 2.;
+	precision wxn = (-dun_dx  +  dux_dn / t2  -  ux * an  +  un * ax) / 2.;
+	precision wyn = (-dun_dy  +  duy_dn / t2  -  uy * an  +  un * ay) / 2.;
+#endif
+
 #endif
 
 #ifdef PIMUNU

@@ -123,8 +123,6 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 				q[s].b = beq + db;
 			#endif
 
-
-
 			#if (NUMBER_OF_RESIDUAL_CURRENTS != 0)		// regulate residual currents
 				precision ux = u[s].ux;
 				precision uy = u[s].uy;
@@ -133,20 +131,18 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 			#else
 				precision un = 0;
 			#endif
+
 				precision ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t2 * un * un);
 				precision utperp = sqrt(1.  +  ux * ux  +  uy * uy);
 
 			#ifndef BOOST_INVARIANT
 				precision zt = t * un / utperp;
 				precision zn = ut / t / utperp;
+				precision Taniso = sqrt(pl * pl  +  2. * pt * pt);
 			#else
 				precision zt = 0;
 				precision zn = 1. / t;
-			#endif
-
 				precision Taniso = sqrt_two * pt;
-			#ifdef WTZMU
-				Taniso = sqrt(pl * pl  +  2. * pt * pt);
 			#endif
 
 				// 2+1d: pitt, pitx, pity, pixx, pixy (piyy = f(pixx, piyy, ux, uy); pixn, piyn, pitn, pinn = 0)
@@ -204,8 +200,6 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 				// enforce orthogonality
 				WtTz = (WxTz * ux  +  WyTz * uy) * ut / (utperp * utperp);
 				WnTz = WtTz * un / ut;
-
-				// am I doing this right?
 			#else
 				precision WtTz = 0;
 				precision WxTz = 0;

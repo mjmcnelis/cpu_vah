@@ -26,16 +26,13 @@ void print_line()
 
 void print_hydro_mode(hydro_parameters hydro)
 {
-	string mode = "Running";
-	if(hydro.run_hydro == 1) mode = "Testing";
-
 #ifdef ANISO_HYDRO
 	printf("\n:::::::::::::::::::::::::::::::::::::::::::\n");
-	printf(":::  %s viscous anisotropic hydro  :::\n", mode.c_str());
+	printf(":::  Running viscous anisotropic hydro  :::\n");
 	printf(":::::::::::::::::::::::::::::::::::::::::::\n\n");
 #else
 	printf("\n::::::::::::::::::::::::::::::::::::::::::::::\n");
-	printf(":::   %s second order viscous hydro   :::\n", mode.c_str());
+	printf(":::   Running second order viscous hydro   :::\n");
 	printf("::::::::::::::::::::::::::::::::::::::::::::::\n\n");
 #endif
 }

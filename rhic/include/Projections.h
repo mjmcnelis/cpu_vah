@@ -48,9 +48,9 @@ class double_spatial_projection
 		precision Dyn;
 		precision Dnn;
 
-		precision Dtt_tt;	// \Delta^{\mu\nu\alpha\beta} 
+		precision Dtt_tt;	// \Delta^{\mu\nu\alpha\beta}
 		precision Dtt_tx;	// all upper indices (55 independent components)
-		precision Dtt_ty;	
+		precision Dtt_ty;
 		precision Dtt_tn;
 		precision Dtt_xx;
 		precision Dtt_xy;
@@ -114,7 +114,7 @@ class double_spatial_projection
 		precision Dnn_nn;
 
 	public:
-	
+
 		double_spatial_projection(spatial_projection Delta, precision t2_in, precision t4_in);
 		~double_spatial_projection();
 
@@ -130,7 +130,7 @@ class transverse_projection
 		precision ux;
 		precision uy;
 		precision un;
-		
+
 		precision zt;
 		precision zn;
 
@@ -152,6 +152,7 @@ class transverse_projection
 		~transverse_projection();
 
 		void transverse_project_vector(precision & At, precision & Ax, precision & Ay, precision & An);
+		void transverse_project_vorticity(precision & wtx, precision & wty, precision & wtn, precision & wxy, precision & wxn, precision & wyn);
 
 		void test_transverse_projector();
 };
@@ -174,9 +175,9 @@ class double_transverse_projection
 		precision Xiyn;
 		precision Xinn;
 
-		precision Xitt_tt;	// Xi^{\mu\nu\alpha\beta} 
+		precision Xitt_tt;	// Xi^{\mu\nu\alpha\beta}
 		precision Xitt_tx;	// all upper indices (55 independent components)
-		precision Xitt_ty;	
+		precision Xitt_ty;
 		precision Xitt_tn;
 		precision Xitt_xx;
 		precision Xitt_xy;
@@ -240,7 +241,7 @@ class double_transverse_projection
 		precision Xinn_nn;
 
 	public:
-	
+
 		double_transverse_projection(transverse_projection Xi, precision t2_in, precision t4_in);
 
 		~double_transverse_projection();

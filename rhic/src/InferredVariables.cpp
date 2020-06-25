@@ -96,19 +96,28 @@ void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict
 				precision kn = ttn  -  pitn;			// [fm^-5]
 
 			#ifndef BOOST_INVARIANT
-				precision A = kn / (kt + pl);		  	// [fm^-1] (check these formulas)
+				precision A = kn / (kt + pl);		  	// [fm^-1]
 				precision B = WtTz / (t * (kt + pl));	// [fm^-1]
 
 				precision t2A2 = t2 * A * A;
 				precision t2B2 = t2 * B * B;
 
+				if(1. + t2B2 - t2A2 < 0)
+				{
+					printf("set_inferred_variables_aniso_hydro flag: 1. + t2B2 - t2A2 = %lf is negative\n", 1. + t2B2 - t2A2);
+				}
 
 				// something funny going on here?
 
 				// figure out how to deal with this
 				precision F = (A  -  B * sqrt(fabs(1. + t2B2 - t2A2))) / (1. + t2B2);	// [fm^-1]
 				precision Ft = t * F;													// [1]
-				precision x = sqrt(fabs(1.  -  Ft * Ft));								// [1]
+				precision x = sqrt(fabs(1.  -  Ft * Ft));
+
+				if(1. -  Ft * Ft < 0)
+				{
+					printf("set_inferred_variables_aniso_hydro flag: x = %lf is imaginary before regulation\n", x);
+				}
 
 				precision zt = Ft / x;					// [1]
 				precision zn = 1. / (x * t);			// [fm^-1]
@@ -130,27 +139,27 @@ void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict
 				precision e_s = energy_density_cutoff(e_min, Mt  -  Ltt  -  (Mx * Mx  +  My * My) / ut_numerator  -  t2 * Mn * Mn * ut_numerator / (Mt + pl) / (Mt + pl));
 			#else
 
-				precision zt2  = zt * zt;
-				precision ztzn = zt * zn;
+				//precision zt2  = zt * zt;
+				//precision ztzn = zt * zn;
 
 				// what a pain in the ass (so far testing shows it works though...)
 
-				precision a = 0.25 * t2 * ztzn * ztzn  +  0.5 * (1. + zt2) * (1.  -  0.5 * zt2);
-				precision b = 0.5 * t2 * Mn * ztzn  -  1.5 * t2 * pl * ztzn * ztzn  -  (0.5 * (1. + zt2) * (Mt - 1.5 * pl * zt2)  -  (1. - 0.5 * zt2) * (Mt - 0.5 * pl * (1. + 3. * zt2)));
-				precision c = Mx * Mx  +  My * My  +  t2 * Mn * Mn  -  1.5 * t2 * Mn * pl * ztzn  +  2.25 * t2 * pl * pl * ztzn * ztzn  -  (Mt - 0.5 * pl * (1. + 3. * zt2)) * (Mt - 1.5 * pl * zt2);
+				// precision a = 0.25 * t2 * ztzn * ztzn  +  0.5 * (1. + zt2) * (1.  -  0.5 * zt2);
+				// precision b = 0.5 * t2 * Mn * ztzn  -  1.5 * t2 * pl * ztzn * ztzn  -  (0.5 * (1. + zt2) * (Mt - 1.5 * pl * zt2)  -  (1. - 0.5 * zt2) * (Mt - 0.5 * pl * (1. + 3. * zt2)));
+				// precision c = Mx * Mx  +  My * My  +  t2 * Mn * Mn  -  1.5 * t2 * Mn * pl * ztzn  +  2.25 * t2 * pl * pl * ztzn * ztzn  -  (Mt - 0.5 * pl * (1. + 3. * zt2)) * (Mt - 1.5 * pl * zt2);
 
-				precision e_s = energy_density_cutoff(e_min, (sqrt(fabs(b * b  -  4. * a * c))  -  b) / (2. * a));
+				// precision e_s = energy_density_cutoff(e_min, (sqrt(fabs(b * b  -  4. * a * c))  -  b) / (2. * a));
 
-				pt = (e_s - pl) / 2.;
+				// pt = (e_s - pl) / 2.;
 
-				precision ut_numerator = Mt  +  pt  -  (pl - pt) * zt2;
+				// precision ut_numerator = Mt  +  pt  -  (pl - pt) * zt2;
 
 
 
-				// precision Ltt = (pl - pt) * zt * zt;
-				// precision ut_numerator = Mt  +  pt  -  Ltt;
+				precision Ltt = (pl - pt) * zt * zt;
+				precision ut_numerator = Mt  +  pt  -  Ltt;
 
-				// precision e_s = energy_density_cutoff(e_min, Mt  -  Ltt  -  (Mx * Mx  +  My * My) / ut_numerator  -  t2 * Mn * Mn * ut_numerator / (Mt + pl) / (Mt + pl));
+				precision e_s = energy_density_cutoff(e_min, Mt  -  Ltt  -  (Mx * Mx  +  My * My) / ut_numerator  -  t2 * Mn * Mn * ut_numerator / (Mt + pl) / (Mt + pl));
 
 
 
