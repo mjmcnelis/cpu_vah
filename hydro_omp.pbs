@@ -1,18 +1,11 @@
 #!/bin/bash -l
-#PBS -l walltime=00:01:00,nodes=1:ppn=20,mem=1gb
+#PBS -l walltime=01:30:00,nodes=1:ppn=20
 #PBS -j oe
 #PBS -A PAS0254
-cd cpu_vh
+cd cpu_vah
 
-# for((n = 1; n <= 20; n++))
-# do
-# 	export OMP_NUM_THREADS=$n
-# 	set OMP_NUM_THREADS $n
-# 	./cpu_vah
-# done
-
-export OMP_NUM_THREADS=1
-set OMP_NUM_THREADS 1
+export OMP_NUM_THREADS=2
+set OMP_NUM_THREADS 2
 ./cpu_vah
 
 export OMP_NUM_THREADS=5
