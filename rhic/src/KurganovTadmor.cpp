@@ -344,7 +344,7 @@ const precision * const __restrict__ e_current, const precision * const __restri
 						qs[n] += dt * (S[n]  +  (Hx_minus[n] - Hx_plus[n]) / dx  +  (Hy_minus[n] - Hy_plus[n]) / dy  +  (Hn_minus[n] - Hn_plus[n]) / dn);
 					}
 
-					q_update[s].ttt = (q[s].ttt  +  qs[0]) / 2.;
+					q_update[s].ttt = (q[s].ttt  +  qs[0]) / 2.;	// q is the extern variable (not one of the function arguments)
 					q_update[s].ttx = (q[s].ttx  +  qs[1]) / 2.;
 					q_update[s].tty = (q[s].tty  +  qs[2]) / 2.;
 

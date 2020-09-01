@@ -1267,7 +1267,7 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	precision at = ut * dut_dt  +  ux * dut_dx  +  uy * dut_dy  +  un * dut_dn  +  t * un * un;
 	precision ax = ut * dux_dt  +  ux * dux_dx  +  uy * dux_dy  +  un * dux_dn;
 	precision ay = ut * duy_dt  +  ux * duy_dx  +  uy * duy_dy  +  un * duy_dn;
-	precision an = ut * dun_dt  +  ux * dun_dx  +  uy * dun_dy  +  un * dun_dn  +  2. * ut * un / t
+	precision an = ut * dun_dt  +  ux * dun_dx  +  uy * dun_dy  +  un * dun_dn  +  2. * ut * un / t;
 
 	// velocity-shear tensor: sigma^{\mu\nu} (first compute D^{(\mu) u^{\nu)})
 	precision stt = dut_dt;

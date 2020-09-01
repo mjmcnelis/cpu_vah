@@ -24,7 +24,7 @@ inline precision minmod3(precision x, precision y, precision z)
 }
 
 
-precision approximate_derivative(precision qm, precision q, precision qp, precision Theta)
+precision minmod_derivative(precision qm, precision q, precision qp, precision Theta)
 {
 	return minmod3(Theta * (q - qm), (qp - qm) / 2., Theta * (qp - q));
 }
@@ -37,21 +37,21 @@ precision compute_max_local_propagation_speed(const precision * const __restrict
 	precision vp  = v_data[2];
 	precision vpp = v_data[3];
 
-	precision dvp = approximate_derivative(v,   vp, vpp, Theta);
-	precision dv  = approximate_derivative(vm,  v,  vp,  Theta);
-	precision dvm = approximate_derivative(vmm, vm, v,   Theta);
+	precision dvp = minmod_derivative(v,   vp, vpp, Theta);
+	precision dv  = minmod_derivative(vm,  v,  vp,  Theta);
+	precision dvm = minmod_derivative(vmm, vm, v,   Theta);
 
-	// extrapolated spatial velocities
-	precision vRp = fabs(vp  -  dvp / 2.);	// v^{+}_{i+1/2}
-	precision vLp = fabs(v   +  dv  / 2.);	// v^{-}_{i+1/2}
-	precision vRm = fabs(v   -  dv  / 2.);	// v^{+}_{i-1/2}
-	precision vLm = fabs(vm  +  dvm / 2.);	// v^{-}_{i-1/2}
+	// extrapolated spatial speeds
+	precision vRp = fabs(vp  -  dvp / 2.);	// |v^{+}_{i+1/2}|
+	precision vLp = fabs(v   +  dv  / 2.);	// |v^{-}_{i+1/2}|
+	precision vRm = fabs(v   -  dv  / 2.);	// |v^{+}_{i-1/2}|
+	precision vLm = fabs(vm  +  dvm / 2.);	// |v^{-}_{i-1/2}|
 
 	// local propagation speeds
-	precision ap = fmax(vLp, vRp);	// a_{i+1/2}
-	precision am = fmax(vLm, vRm);	// a_{i-1/2}
+	precision sp = fmax(vLp, vRp);	// s_{i+1/2}
+	precision sm = fmax(vLm, vRm);	// s_{i-1/2}
 
-	return fmax(ap, am);			// max local speed
+	return fmax(sp, sm);			// max local speed for cell index i
 }
 
 
@@ -63,9 +63,9 @@ void flux_terms(precision * const __restrict__ Hp, precision * const __restrict_
 	precision vp  = v_data[2];
 	precision vpp = v_data[3];
 
-	precision dvp = approximate_derivative(v,   vp, vpp, Theta);
-	precision dv  = approximate_derivative(vm,  v,  vp,  Theta);
-	precision dvm = approximate_derivative(vmm, vm, v,   Theta);
+	precision dvp = minmod_derivative(v,   vp, vpp, Theta);
+	precision dv  = minmod_derivative(vm,  v,  vp,  Theta);
+	precision dvm = minmod_derivative(vmm, vm, v,   Theta);
 
 	// extrapolated spatial velocities
 	precision vRp = vp  -  dvp / 2.;	// v^{+}_{i+1/2}
@@ -74,46 +74,46 @@ void flux_terms(precision * const __restrict__ Hp, precision * const __restrict_
 	precision vLm = vm  +  dvm / 2.;	// v^{-}_{i-1/2}
 
 	// local propagation speeds
-	precision ap = fmax(fabs(vLp), fabs(vRp));
-	precision am = fmax(fabs(vLm), fabs(vRm));
+	precision sp = fmax(fabs(vLp), fabs(vRp));	// s_{i+1/2}
+	precision sm = fmax(fabs(vLm), fabs(vRm));	// s_{}
 
 	int p = 0;
 
 	// compute the flux terms Hp, Hm
 	for(int n = 0; n < NUMBER_CONSERVED_VARIABLES; n++)
 	{
-		// neighbor conserved variables
+		// neighbor dynamical variables
 		precision q   =  q_data[n];
 		precision qm  = q1_data[p];
 		precision qp  = q1_data[p + 1];
 		precision qmm = q2_data[p];
 		precision qpp = q2_data[p + 1];
 
-		// conserved variable derivatives
-		precision dqp = approximate_derivative(q,   qp, qpp, Theta);
-		precision dq  = approximate_derivative(qm,  q,  qp,  Theta);
-		precision dqm = approximate_derivative(qmm, qm, q,   Theta);
+		// dynamical variable derivatives
+		precision dqp = minmod_derivative(q,   qp, qpp, Theta);
+		precision dq  = minmod_derivative(qm,  q,  qp,  Theta);
+		precision dqm = minmod_derivative(qmm, qm, q,   Theta);
 
-		// extrapolated conserved variables
-		precision qRp = qp  -  dqp / 2.;	// q^{+}_{i+1/2}	Eq. (63)
-		precision qLp = q   +  dq  / 2.;	// q^{-}_{i+1/2}	Eq. (64)
-		precision qRm = q   -  dq  / 2.;	// q^{+}_{i-1/2}	Eq. (65)
-		precision qLm = qm  +  dqm / 2.;	// q^{-}_{i-1/2}	Eq. (66)
+		// extrapolated dynamical variables
+		precision qRp = qp  -  dqp / 2.;	// q^{+}_{i+1/2}
+		precision qLp = q   +  dq  / 2.;	// q^{-}_{i+1/2}
+		precision qRm = q   -  dq  / 2.;	// q^{+}_{i-1/2}
+		precision qLm = qm  +  dqm / 2.;	// q^{-}_{i-1/2}
 
-		// neighbor fluxes
+		// neighbor currents
 		precision Fm  = qm * vm;
 		precision F   = q  * v;
 		precision Fp  = qp * vp;
 
-		// extrapolated fluxes (chain rule)
-		precision FRp = Fp  -  (qp * dvp  +  vp * dqp) / 2.;	// F^{+}_{i+1/2}	Eq. (63)
-		precision FLp = F   +  (q  * dv   +  v  * dq)  / 2.;	// F^{-}_{i+1/2}	Eq. (64)
-		precision FRm = F   -  (q  * dv   +  v  * dq)  / 2.;	// F^{+}_{i-1/2}	Eq. (65)
-		precision FLm = Fm  +  (qm * dvm  +  vm * dqm) / 2.;	// F^{-}_{i-1/2}	Eq. (66)
+		// extrapolated currents (chain rule)
+		precision FRp = Fp  -  (qp * dvp  +  vp * dqp) / 2.;	// F^{+}_{i+1/2}
+		precision FLp = F   +  (q  * dv   +  v  * dq)  / 2.;	// F^{-}_{i+1/2}
+		precision FRm = F   -  (q  * dv   +  v  * dq)  / 2.;	// F^{+}_{i-1/2}
+		precision FLm = Fm  +  (qm * dvm  +  vm * dqm) / 2.;	// F^{-}_{i-1/2}
 
-		// Hp, Hm from Eq.(61)
-		Hp[n] = (FRp  +  FLp  -  ap * (qRp - qLp)) / 2.;
-		Hm[n] = (FRm  +  FLm  -  am * (qRm - qLm)) / 2.;
+		// numerical fluxes in KT algorithm
+		Hp[n] = (FRp  +  FLp  -  sp * (qRp - qLp)) / 2.;		// H_{i+1/2}
+		Hm[n] = (FRm  +  FLm  -  sm * (qRm - qLm)) / 2.;		// H_{i-1/2}
 
 		p += 2;
 	}

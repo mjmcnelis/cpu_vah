@@ -48,6 +48,7 @@ inline precision central_derivative(const precision * const __restrict__ f, int 
 void output_mean_field(const hydro_variables * const __restrict__ q, const fluid_velocity * const __restrict__ u, const fluid_velocity  * const __restrict__ up, const precision * const e, double t, double dt_prev, lattice_parameters lattice, hydro_parameters hydro)
 {
 #ifdef LATTICE_QCD
+
 	int nx = lattice.lattice_points_x;
 	int ny = lattice.lattice_points_y;
 	int nz = lattice.lattice_points_eta;
@@ -200,8 +201,8 @@ void output_mean_field(const hydro_variables * const __restrict__ q, const fluid
 
 				precision dbasy = 3. * taubulk * mdot * Pi / (mass - 4.*taubulk*mdot);
 
-				fprintf(db_peq, 	"%.2f\t%.2f\t%.2f\t%.6f\n", x, y, z, (b - beq) / p);
-				fprintf(dbasy_peq, 	"%.2f\t%.2f\t%.2f\t%.6f\n", x, y, z, dbasy / p);
+				fprintf(db_peq, 	"%.2f\t%.2f\t%.2f\t%.4e\n", x, y, z, (b - beq) / p);
+				fprintf(dbasy_peq, 	"%.2f\t%.2f\t%.2f\t%.4e\n", x, y, z, dbasy / p);
 
 			#else
 			#ifdef PI
@@ -213,7 +214,7 @@ void output_mean_field(const hydro_variables * const __restrict__ q, const fluid
 
 				precision db2 = -3.* taubulk * mdmde * (e_s + p) * Pi * theta / (mass * mass);
 
-				fprintf(db2_peq, "%.2f\t%.2f\t%.2f\t%.6f\n", x, y, z, db2 / p);
+				fprintf(db2_peq, "%.2f\t%.2f\t%.2f\t%.4e\n", x, y, z, db2 / p);
 			}
 		}
 	}
@@ -831,6 +832,9 @@ void output_hydro(const hydro_variables * const __restrict__ q, const fluid_velo
 				fprintf(energy, 	"%.2f\t%.2f\t%.2f\t%.4e\n", x, y, z, e_s * hbarc);
 				fprintf(plptratio,	"%.2f\t%.2f\t%.2f\t%.4e\n", x, y, z, pl / pt);
 				fprintf(uxplot, 	"%.2f\t%.2f\t%.2f\t%.4e\n", x, y, z, ux);
+			#ifndef BOOST_INVARIANT
+				fprintf(unplot, 	"%.2f\t%.2f\t%.2f\t%.4e\n", x, y, z, un);
+			#endif
 			#ifndef CONFORMAL_EOS
 				fprintf(shear,	 	"%.2f\t%.2f\t%.2f\t%.4e\n", x, y, z, 2. * (pl - pt) / (3. * p));
 				fprintf(bulk,	 	"%.2f\t%.2f\t%.2f\t%.4e\n", x, y, z, (pl + 2.*pt) / (3. * p)  -  1.);
@@ -838,24 +842,21 @@ void output_hydro(const hydro_variables * const __restrict__ q, const fluid_velo
 			#ifdef E_CHECK
 				fprintf(energy_check, "%.2f\t%.2f\t%.2f\t%.4e\n", x, y, z, q[s].e_check * hbarc);
 			#endif
-			#ifndef BOOST_INVARIANT
-				fprintf(unplot, 	"%.2f\t%.2f\t%.2f\t%.4e\n", x, y, z, un);
-			#endif
 			}
 		}
 	}
 	fclose(energy);
 	fclose(plptratio);
 	fclose(uxplot);
+#ifndef BOOST_INVARIANT
+	fclose(unplot);
+#endif
 #ifndef CONFORMAL_EOS
 	fclose(shear);
 	fclose(bulk);
 #endif
 #ifdef E_CHECK
 	fclose(energy_check);
-#endif
-#ifndef BOOST_INVARIANT
-	fclose(unplot);
 #endif
 }
 
