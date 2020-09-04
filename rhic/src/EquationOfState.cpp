@@ -116,7 +116,7 @@ precision equation_of_state_new::equilibrium_pressure()
 
 	if(p < 0)
 	{
-		//printf("equation_of_state_new::equilibrium_pressure flag: (p, e, T) = (%lf, %lf, %lf) is negative\n", p, e1, T1);
+		printf("equation_of_state_new::equilibrium_pressure flag: (p, e, T) = (%lf, %lf, %lf) is negative. Using linear interpolation...\n", p, e1, T1);
 
 		int iT = (int)floor((T1 - lattice_temperature[0]) / dT);
 
@@ -134,8 +134,8 @@ precision equation_of_state_new::equilibrium_pressure()
 		}
 		else
 		{
-			printf("equation_of_state_new::equilibrium_pressure error: temperature outside linear interpolation table (iT = %d)\n", iT);
-			exit(-1);
+			printf("equation_of_state_new::equilibrium_pressure error: temperature outside linear interpolation table (iT = %d). Setting p = 0.0005\n", iT);
+			p = pressure_cutoff(5.e-4, p);
 		}
 		//p = fmax(p, 0.);
 		//p = pressure_cutoff(5.e-4, p);
