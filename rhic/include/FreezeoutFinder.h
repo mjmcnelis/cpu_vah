@@ -48,6 +48,15 @@ class freezeout_finder
 		std::ofstream freezeout_surface_file;				// file for output/surface.dat
 	#endif
 
+	#ifdef FREEZEOUT_SLICE
+		std::vector<float> tau_slice_x;
+		std::vector<float> x_slice_x;
+	#ifndef BOOST_INVARIANT
+		std::vector<float> tau_slice_z;
+		std::vector<float> eta_slice_z;
+	#endif
+	#endif
+
 	public:
 
 		freezeout_finder(lattice_parameters lattice, hydro_parameters hydro);

@@ -9,6 +9,14 @@ notes
 other
 tests/conformal_bjorken/results
 tests/conformal_gubser/results
+tests/lattice_trento_fluctuating/fireball/vah/xy_plane
+tests/lattice_trento_fluctuating/fireball/vh/xy_plane
+tests/lattice_trento_fluctuating/fireball/vh2/xy_plane
+tests/lattice_trento_fluctuating/freezeout/vah
+tests/lattice_trento_fluctuating/freezeout/vh
+tests/lattice_trento_fluctuating/freezeout/vh2
+tests/lattice_trento_fluctuating/initial_profile
+tests/lattice_trento_fluctuating/*.png
 python/model_parameters
 python/train/model_parameters
 python/train/fireball_radius

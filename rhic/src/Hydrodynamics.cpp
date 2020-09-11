@@ -217,6 +217,13 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 
 		if(hydro.run_hydro == 1)                                // outputs hydro data at regular time intervals (if hydro.output = 1)
 		{
+		#ifdef FREEZEOUT_SLICE
+			output_freezeout_slice_x(t, lattice, hydro);		// output freezeout surface slices
+		#ifndef BOOST_INVARIANT
+			output_freezeout_slice_z(t, lattice, hydro);
+		#endif
+		#endif
+
 			if(n == 0 || initial.initial_condition_type == 1)   // output first time or output bjorken at every time step
 			{
 			#ifdef PRINT_HYDRO
@@ -235,7 +242,7 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 					break;
 				}
 			}
-			else if(fabs(t - t_out - dt_out) < dt_eps)
+			else if(fabs(t - t_out - dt_out) < dt_eps) 			// output hydrodynamic quantities at regular time intervals
 			{
 			#ifdef PRINT_HYDRO
 				long cells_above_Tswitch = number_of_cells_above_freezeout_temperature(lattice, hydro);

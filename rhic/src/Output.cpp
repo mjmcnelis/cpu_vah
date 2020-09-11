@@ -860,6 +860,276 @@ void output_hydro(const hydro_variables * const __restrict__ q, const fluid_velo
 #endif
 }
 
+
+void output_freezeout_slice_x(double t, lattice_parameters lattice, hydro_parameters hydro)
+{
+	int nx = lattice.lattice_points_x;
+	int ny = lattice.lattice_points_y;
+	int nz = lattice.lattice_points_eta;
+	precision dx = lattice.lattice_spacing_x;
+
+	precision T_switch = hydro.freezeout_temperature_GeV;
+	precision e_switch = equilibrium_energy_density_new(T_switch / hbarc, hydro.conformal_eos_prefactor);
+
+	FILE * surface_slice_x;	// tau-x slice of freezeout surface (only freezeout cell positions)
+	FILE * Rinv_pi_x;		// tau-x slice of (transverse) shear inverse Reynolds number
+	FILE * Rinv_bulk_x;		// tau-x slice of bulk inverse Reynolds number
+	FILE * Rinv_W_x;		// tau-x slice of WTz inverse Reynolds number
+
+	char fname1[255];
+	char fname2[255];
+	char fname3[255];
+	char fname4[255];
+
+	sprintf(fname1, "output/surface_slice_x.dat");
+	sprintf(fname2, "output/Rinv_shear_x.dat");
+	sprintf(fname3, "output/Rinv_bulk_x.dat");
+	sprintf(fname4, "output/Rinv_Wperp_x.dat");
+
+	surface_slice_x  = fopen(fname1, "a");
+	Rinv_pi_x        = fopen(fname2, "a");
+	Rinv_bulk_x      = fopen(fname3, "a");
+	Rinv_W_x         = fopen(fname4, "a");
+
+	precision t2 = t * t;
+	precision t4 = t2 * t2;
+
+	double xL;	  // left-side position and energy density
+	double eL;
+
+	for(int i = 2; i < nx + 2; i++)
+	{
+		double x = (i - 2. - (nx - 1.)/2.) * dx;
+
+		int j = (ny - 1) / 2;
+		int k = (nz - 1) / 2;
+		int s = linear_column_index(i, j, k, nx + 4, ny + 4);
+
+		precision e_s = e[s];
+
+		// search for freezeout cells along x-direction
+		if(i > 2)
+		{
+			// check if crossed freezeout energy density
+			if((eL >= e_switch && e_s <= e_switch) || (eL <= e_switch && e_s >= e_switch))
+			{
+				double x_cell = xL  +  (e_switch - eL) * dx / (e_s - eL);	// linear interpolation
+
+				fprintf(surface_slice_x, "%.4e\t%.2f\n", x_cell, t);
+			}
+		}
+
+    	xL = x;		// update left side
+    	eL = e_s;
+
+	#ifdef PIMUNU
+		precision pitt = q[s].pitt;
+		precision pitx = q[s].pitx;
+		precision pity = q[s].pity;
+		precision pitn = 0;
+		precision pixx = q[s].pixx;
+		precision pixy = q[s].pixy;
+		precision pixn = 0;
+		precision piyy = q[s].piyy;
+		precision piyn = 0;
+		precision pinn = 0;
+
+	#ifndef BOOST_INVARIANT
+		pitn = q[s].pitn;
+		pixn = q[s].pixn;
+		piyn = q[s].piyn;
+		pinn = q[s].pinn;
+	#else
+	#ifndef ANISO_HYDRO
+		pinn = q[s].pinn;
+	#endif
+	#endif
+	#endif
+
+		precision WtTz = 0;
+		precision WxTz = 0;
+		precision WyTz = 0;
+		precision WnTz = 0;
+
+	#ifdef WTZMU
+		WtTz = q[s].WtTz;
+		WxTz = q[s].WxTz;
+		WyTz = q[s].WyTz;
+		WnTz = q[s].WnTz;
+	#endif
+
+		precision pi_mag = sqrt(fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
+
+		precision W_mag = sqrt(2. * fabs(WtTz * WtTz  -  WxTz * WxTz  -  WyTz * WyTz  -  t2 * WnTz * WnTz));
+
+
+	#ifdef ANISO_HYDRO
+		double pl = q[s].pl;
+		double pt = q[s].pt;
+
+	#ifdef PIMUNU
+		fprintf(Rinv_pi_x, "%.4e\t%.2f\t%.4e\n", x, t, pi_mag / (sqrt(2.) * pt));			// sqrt(pi.pi/2) / pt;
+	#endif
+	#ifdef WTZMU
+		fprintf(Rinv_W_x,  "%.4e\t%.2f\t%.4e\n", x, t, W_mag / sqrt(pl*pl + 2.*pt*pt));		// sqrt(W.W) / sqrt(pl.pl + 2pt.pt);
+	#endif
+
+	#else
+		equation_of_state_new eos(e_s, hydro.conformal_eos_prefactor);
+		precision p = eos.equilibrium_pressure();
+
+	#ifdef PIMUNU
+		fprintf(Rinv_pi_x, "%.4e\t%.2f\t%.4e\n", x, t, pi_mag / (sqrt(3.) * p));	// sqrt(pi.pi/3) / p
+	#endif
+	#ifdef PI
+		fprintf(Rinv_bulk_x, "%.4e\t%.2f\t%.4e\n", x, t, fabs(q[s].Pi) / p);		// |Pi| / p
+	#endif
+
+	#endif
+	}
+
+	fclose(surface_slice_x);
+	fclose(Rinv_pi_x);
+	fclose(Rinv_bulk_x);
+	fclose(Rinv_W_x);
+
+}
+
+
+void output_freezeout_slice_z(double t, lattice_parameters lattice, hydro_parameters hydro)
+{
+	int nx = lattice.lattice_points_x;
+	int ny = lattice.lattice_points_y;
+	int nz = lattice.lattice_points_eta;
+	precision dz = lattice.lattice_spacing_eta;
+
+	precision T_switch = hydro.freezeout_temperature_GeV;
+	precision e_switch = equilibrium_energy_density_new(T_switch / hbarc, hydro.conformal_eos_prefactor);
+
+	FILE * surface_slice_z;	// tau-eta slice of freezeout surface (only freezeout cell positions)
+	FILE * Rinv_pi_z;		// tau-eta slice of (transverse) shear inverse Reynolds number
+	FILE * Rinv_bulk_z;		// tau-eta slice of bulk inverse Reynolds number
+	FILE * Rinv_W_z;		// tau-eta slice of WTz inverse Reynolds number
+
+	char fname1[255];
+	char fname2[255];
+	char fname3[255];
+	char fname4[255];
+
+	sprintf(fname1, "output/surface_slice_z.dat");
+	sprintf(fname2, "output/Rinv_shear_z.dat");
+	sprintf(fname3, "output/Rinv_bulk_z.dat");
+	sprintf(fname4, "output/Rinv_Wperp_z.dat");
+
+	surface_slice_z  = fopen(fname1, "a");
+	Rinv_pi_z        = fopen(fname2, "a");
+	Rinv_bulk_z      = fopen(fname3, "a");
+	Rinv_W_z         = fopen(fname4, "a");
+
+	precision t2 = t * t;
+	precision t4 = t2 * t2;
+
+	double zL;	  // left-side position and energy density
+	double eL;
+
+	for(int k = 2; k < nz + 2; k++)
+	{
+		double z = (k - 2. - (nz - 1.)/2.) * dz;
+
+		int i = (nx - 1) / 2;
+		int j = (ny - 1) / 2;
+		int s = linear_column_index(i, j, k, nx + 4, ny + 4);
+
+		precision e_s = e[s];
+
+		// search for freezeout cells along eta-direction
+		if(k > 2)
+		{
+			// check if crossed freezeout energy density
+			if((eL >= e_switch && e_s <= e_switch) || (eL <= e_switch && e_s >= e_switch))
+			{
+				double z_cell = zL  +  (e_switch - eL) * dz / (e_s - eL);	// linear interpolation
+
+				fprintf(surface_slice_z, "%.4e\t%.2f\n", z_cell, t);
+			}
+		}
+
+    	zL = z;		// update left side
+    	eL = e_s;
+
+	#ifdef PIMUNU
+		precision pitt = q[s].pitt;
+		precision pitx = q[s].pitx;
+		precision pity = q[s].pity;
+		precision pitn = 0;
+		precision pixx = q[s].pixx;
+		precision pixy = q[s].pixy;
+		precision pixn = 0;
+		precision piyy = q[s].piyy;
+		precision piyn = 0;
+		precision pinn = 0;
+
+	#ifndef BOOST_INVARIANT
+		pitn = q[s].pitn;
+		pixn = q[s].pixn;
+		piyn = q[s].piyn;
+		pinn = q[s].pinn;
+	#else
+	#ifndef ANISO_HYDRO
+		pinn = q[s].pinn;
+	#endif
+	#endif
+	#endif
+
+		precision WtTz = 0;
+		precision WxTz = 0;
+		precision WyTz = 0;
+		precision WnTz = 0;
+
+	#ifdef WTZMU
+		WtTz = q[s].WtTz;
+		WxTz = q[s].WxTz;
+		WyTz = q[s].WyTz;
+		WnTz = q[s].WnTz;
+	#endif
+
+		precision pi_mag = sqrt(fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
+
+		precision W_mag = sqrt(2. * fabs(WtTz * WtTz  -  WxTz * WxTz  -  WyTz * WyTz  -  t2 * WnTz * WnTz));
+
+
+	#ifdef ANISO_HYDRO
+		double pl = q[s].pl;
+		double pt = q[s].pt;
+
+	#ifdef PIMUNU
+		fprintf(Rinv_pi_z, "%.4e\t%.2f\t%.4e\n", z, t, pi_mag / (sqrt(2.) * pt));			// sqrt(pi.pi/2) / pt;
+	#endif
+	#ifdef WTZMU
+		fprintf(Rinv_W_z,  "%.4e\t%.2f\t%.4e\n", z, t, W_mag / sqrt(pl*pl + 2.*pt*pt));		// sqrt(W.W) / sqrt(pl.pl + 2pt.pt);
+	#endif
+
+	#else
+		equation_of_state_new eos(e_s, hydro.conformal_eos_prefactor);
+		precision p = eos.equilibrium_pressure();
+
+	#ifdef PIMUNU
+		fprintf(Rinv_pi_z, "%.4e\t%.2f\t%.4e\n", z, t, pi_mag / (sqrt(3.) * p));	// sqrt(pi.pi/3) / p
+	#endif
+	#ifdef PI
+		fprintf(Rinv_bulk_z, "%.4e\t%.2f\t%.4e\n", z, t, fabs(q[s].Pi) / p);		// |Pi| / p
+	#endif
+
+	#endif
+	}
+
+	fclose(surface_slice_z);
+	fclose(Rinv_pi_z);
+	fclose(Rinv_bulk_z);
+	fclose(Rinv_W_z);
+}
+
+
 void output_Tmunu_violations(const float * const __restrict__ Tmunu_violations, double t, lattice_parameters lattice)
 {
 #ifdef MONITOR_TTAUMU

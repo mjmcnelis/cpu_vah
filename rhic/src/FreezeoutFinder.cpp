@@ -324,6 +324,15 @@ void freezeout_finder::find_2d_freezeout_cells(double t_current, hydro_parameter
         double y = cornelius.get_centroid_elem(n, 2) + cell_y;
         double eta = 0;
 
+
+      #ifdef FREEZEOUT_SLICE
+        if(fabs(y) <= dy)
+        {
+          tau_slice_x.push_back(t);
+          x_slice_x.push_back(x);
+        }
+      #endif
+
       #ifdef FREEZEOUT_SIZE
         double r = sqrt(x * x  +  y * y);
 
@@ -643,6 +652,19 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
           double y   = cornelius.get_centroid_elem(n, 2) + cell_y;
           double eta = cornelius.get_centroid_elem(n, 3) + cell_z;
 
+        #ifdef FREEZEOUT_SLICE
+        if(fabs(y) <= dy && fabs(eta) < dz)
+        {
+          tau_slice_x.push_back(t);
+          x_slice_x.push_back(x);
+
+        #ifndef BOOST_INVARIANT
+          tau_slice_z.push_back(t);
+          eta_slice_z.push_back(eta);
+        #endif
+        }
+        #endif
+
         #ifdef FREEZEOUT_SIZE
           double r = sqrt(x * x  +  y * y  +  eta * eta);                       // radius in grid (not cartesian radius)
 
@@ -863,6 +885,49 @@ void freezeout_finder::free_finder_memory(int sample)
 	free_5d_array(hydro_evolution, independent_hydro_variables, 2, nx, ny);
 	free_4d_array(hypercube, 2, 2, 2);
 	free_3d_array(cube, 2, 2);
+
+
+#ifdef FREEZEOUT_SLICE
+
+  int cells_x = tau_slice_x.size();
+
+  printf("\nNumber of freezeout cells in tau-x slice = %d\n", cells_x);
+
+  FILE * surface_slice_x;
+  char fname[255];
+  sprintf(fname, "output/surface_slice_x.dat");
+  surface_slice_x = fopen(fname, "w");
+
+  for(int i = 0; i < cells_x; i++)
+  {
+    fprintf(surface_slice_x, "%.4e\t%.4e\n", tau_slice_x[i], x_slice_x[i]);
+  }
+
+  fclose(surface_slice_x);
+  tau_slice_x.clear();
+  x_slice_x.clear();
+
+#ifndef BOOST_INVARIANT
+  int cells_z = tau_slice_z.size();
+
+  printf("\nNumber of freezeout cells in tau-eta slice = %d\n", cells_z);
+
+  FILE * surface_slice_z;
+  sprintf(fname, "output/surface_slice_z.dat");
+  surface_slice_z = fopen(fname, "w");
+
+  for(int i = 0; i < cells_z; i++)
+  {
+    fprintf(surface_slice_z, "%.4e\t%.4e\n", tau_slice_z[i], eta_slice_z[i]);
+  }
+
+  fclose(surface_slice_z);
+  tau_slice_z.clear();
+  eta_slice_z.clear();
+#endif
+
+#endif
+
 
 #ifdef FREEZEOUT_SIZE
   printf("Max radius of freezeout surface = %.3f fm\n", max_radius);
