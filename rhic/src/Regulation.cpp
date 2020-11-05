@@ -64,6 +64,8 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 				precision pl  = q[s].pl;
 				precision pt  = q[s].pt;
 
+				precision pavg = (pl + 2.*pt)/3.;
+
 			#ifdef MONITOR_PLPT
 				plpt_regulation[s] = 0;					// 0 = no regulation
 
@@ -109,19 +111,50 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 				b_regulation[s] = 0;
 			#endif
 
-				if(db < 0)
+				// old
+				// if(db < 0)
+				// {
+				// 	db *= fmin(1., fabs(beq / db));
+
+				// #ifdef MONITOR_B
+				// 	b_regulation[s] = 1;
+				// #endif
+				// }
+
+
+				// monitor if actually regulate (only one that seems to work)
+				if(db < 0. && fabs(beq / db) < 1.)
 				{
-					db *= fmin(1., fabs(beq / db));
+					db *= fabs(beq / db);
 
 				#ifdef MONITOR_B
 					b_regulation[s] = 1;
 				#endif
 				}
 
+				//db *= fmin(1., fabs(beq / db));
+
+
+
+
+				// regulate wrt bulk pressure
+
+				// precision p = eos.equilibrium_pressure();
+				// precision Pi = pavg - p;
+
+				// if(db < 0)
+				// {
+				// 	db *= fmin(1., fabs(0.75 * Pi / db));
+				// }
+
+
+
 				//db *= fmin(1., fabs(2.*beq / db));
 
 				q[s].b = beq + db;
 			#endif
+
+
 
 			#if (NUMBER_OF_RESIDUAL_CURRENTS != 0)		// regulate residual currents
 				precision ux = u[s].ux;

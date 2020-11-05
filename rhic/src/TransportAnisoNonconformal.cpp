@@ -154,7 +154,7 @@ void aniso_transport_coefficients_nonconformal::compute_hypergeometric_functions
 }
 
 
-void aniso_transport_coefficients_nonconformal::compute_transport_coefficients(precision e, precision pl, precision pt, precision b, precision lambda, precision aT, precision aL, precision mbar, precision mass, precision mdmde)
+void aniso_transport_coefficients_nonconformal::compute_transport_coefficients(precision e, precision p, precision pl, precision pt, precision b, precision beq, precision lambda, precision aT, precision aL, precision mbar, precision mass, precision mdmde)
 {
 	// can I cross-check with the conformal case by setting mbar = 0?
 	precision lambda2 = lambda * lambda;
@@ -273,33 +273,73 @@ void aniso_transport_coefficients_nonconformal::compute_transport_coefficients(p
 
 	// note: I don't remember how quasiparticle terms ~ mdmde enter in transport coefficients
 	//		 (this is based off my paper, maybe there are notes somewhere...)
-	precision trace_term = (2.*pt + pl - e + 4.*b) / (mass * mass);
+
+	// # unstable
+	precision trace_term = (2.*pt + pl + 4.*b - e) / (mass * mass);
+
+	// # option 1,2
+	//precision trace_term = (2.*pt + pl + 4.*beq - e) / (mass * mass);
+
+	// option #3
+	//precision trace_term = (3.*p + 4.*beq - e) / (mass * mass);			// equilibrium part
+	//precision Pi = (pl + 2.*pt)/3. - p;									// bulk pressure
+
+
+	// option #2,3 need to gneralize to 3+1d
+
 
 
 	// pl transport coefficients
-	zeta_LL = I_240  -  3. * (pl + b)  +  mdmde * (e + pl) * (I_020 + trace_term);
-	zeta_TL = I_221  -  pl  -  b  +  mdmde * (e + pt) * (I_020 + trace_term);
+
+
+	// oh this should have beq + db
+	zeta_LL = I_240  -  3. * (pl + b)  +  mdmde * (e + pl) * (I_020 + trace_term);										// option #1 (or previous)
+	//zeta_LL = I_240  -  3. * (pl + b)  +  mdmde * ((e + pl) * I_020  +  (e + p) * trace_term);							// option #2
+	//zeta_LL = I_240  -  3. * (pl + b)  +  mdmde * ((e + p) * I_020  +  (e + p) * trace_term);							// option #2 (simplify mdot)
+
+
+	//zeta_LL = I_240  -  3. * (pl + b)  +  mdmde * ((e + pl) * (I_020 + trace_term)  +  3. * (e + p) * Pi / (mass * mass));  // option #3
+
+
+
+	zeta_TL = I_221  -  pl  -  b  +  mdmde * (e + pt) * (I_020 + trace_term);					// previous
+	//zeta_TL = I_221  -  pl  -  b  +  mdmde * ((e + pt) * I_020  +  (e + p) * trace_term);		// option #2
+	//zeta_TL = I_221  -  pl  -  b  +  mdmde * ((e + p) * I_020  +  (e + p) * trace_term);		// option #2  (simplify mdot)
+
+
 
 #ifdef WTZMU
-	lambda_WuL = I_441 / I_421  +  mdmde * (I_020 + trace_term);
+	lambda_WuL = I_441 / I_421  +  mdmde * (I_020 + trace_term);		// previous
+	//lambda_WuL = I_441 / I_421  +  mdmde * I_020;						// option #2
 	lambda_WTL = 1. - lambda_WuL;
 #else
 	lambda_WuL = 0;
 	lambda_WTL = 0;
 #endif
 #ifdef PIMUNU
-	lambda_piL = I_422 / I_402  +  mdmde * (I_020 + trace_term);			// changed to + trace on 5/14/20
+	lambda_piL = I_422 / I_402  +  mdmde * (I_020 + trace_term);		// changed to + trace on 5/14/20
+	//lambda_piL = I_422 / I_402  +  mdmde * I_020;						// option #2
 #else
 	lambda_piL = 0;
 #endif
 
 
 	// pt transport coefficients
-	zeta_LT = I_221  -  pt  -  b  +  mdmde * (e + pl) * (I_001  +  trace_term);
-	zeta_TT = 2. * (I_202 - pt - b)  +  mdmde * (e + pt) * (I_001  +  trace_term);
+	zeta_LT = I_221  -  pt  -  b  +  mdmde * (e + pl) * (I_001  +  trace_term);										// option #1 (or previous)
+	//zeta_LT = I_221  -  pt  -  b  +  mdmde * ((e + pl) * I_001  +  (e + p) * trace_term);								// option #2
+	//zeta_LT = I_221  -  pt  -  b  +  mdmde * ((e + p) * I_001  +  (e + p) * trace_term);								// option #2 (simplify mdot)
+
+	//zeta_LT = I_221  -  pt  -  b  +  mdmde * ((e + pl) * (I_001 + trace_term)  +  3. * (e + p) * Pi / (mass * mass));	// option #3
+
+
+
+	zeta_TT = 2. * (I_202 - pt - b)  +  mdmde * (e + pt) * (I_001  +  trace_term);				// previous
+	//zeta_TT = 2. * (I_202 - pt - b)  +  mdmde * ((e + pt) * I_001  +  (e + p) * trace_term);		// option #2
+	//zeta_TT = 2. * (I_202 - pt - b)  +  mdmde * ((e + p) * I_001  +  (e + p) * trace_term);		// option #2 (simplify mdot)
 
 #ifdef WTZMU
-	lambda_WTT = 2. * I_422 / I_421  +  mdmde * (I_001 + trace_term);
+	lambda_WTT = 2. * I_422 / I_421  +  mdmde * (I_001 + trace_term);		// previous
+	//lambda_WTT = 2. * I_422 / I_421  +  mdmde * I_001;						// option #2
 	lambda_WuT = lambda_WTT  -  1.;
 #else
 	lambda_WTT = 0;
@@ -307,7 +347,8 @@ void aniso_transport_coefficients_nonconformal::compute_transport_coefficients(p
 #endif
 
 #ifdef PIMUNU
-	lambda_piT = 1.  -  3. * I_403 / I_402  -  mdmde * (I_001 + trace_term);
+	lambda_piT = 1.  -  3. * I_403 / I_402  -  mdmde * (I_001 + trace_term);	// previous
+	//lambda_piT = 1.  -  3. * I_403 / I_402  -  mdmde * I_001;					// previous
 #else
 	lambda_piT = 0;
 #endif

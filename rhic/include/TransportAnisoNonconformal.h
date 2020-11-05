@@ -420,7 +420,7 @@ class aniso_transport_coefficients_nonconformal
 		void compute_hypergeometric_functions_n_equals_2(precision z);
 		void compute_hypergeometric_functions_n_equals_4(precision z);
 
-		void compute_transport_coefficients(precision e, precision pl, precision pt, precision b, precision lambda, precision aT, precision aL, precision mbar, precision mass, precision mdmde);
+		void compute_transport_coefficients(precision e, precision p, precision pl, precision pt, precision b, precision beq, precision lambda, precision aT, precision aL, precision mbar, precision mass, precision mdmde);
 };
 
 

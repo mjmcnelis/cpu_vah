@@ -37,6 +37,9 @@ const precision * const __restrict__ e_current, const precision * const __restri
 	int stride_y = nx + 4;							// strides for neighbor cells along x, y, n (stride_x = 1)
 	int stride_z = (nx + 4) * (ny + 4);				// stride formulas based from linear_column_index()
 
+	int grid = nx * ny * nz;
+	int taubulk_regulated = 0;
+
 	#pragma omp parallel for collapse(3)
 	for(int k = 2; k < nz + 2; k++)
 	{
@@ -198,7 +201,7 @@ const precision * const __restrict__ e_current, const precision * const __restri
 
 				// compute external source term (S)
 			#ifdef ANISO_HYDRO
-				source_terms_aniso_hydro(S, qs, e_s, lambda_s, aT_s, aL_s, t, qi1, qj1, qk1, e1, ui1, uj1, uk1, ux, uy, un, ux_p, uy_p, un_p, dt_prev, dx, dy, dn, hydro);
+				taubulk_regulated += source_terms_aniso_hydro(S, qs, e_s, lambda_s, aT_s, aL_s, t, qi1, qj1, qk1, e1, ui1, uj1, uk1, ux, uy, un, ux_p, uy_p, un_p, dt_prev, dx, dy, dn, hydro);
 			#else
 				source_terms_viscous_hydro(S, qs, e_s, t, qi1, qj1, qk1, e1, ui1, uj1, uk1, ux, uy, un, ux_p, uy_p, un_p, dt_prev, dx, dy, dn, hydro);
 			#endif
@@ -404,6 +407,12 @@ const precision * const __restrict__ e_current, const precision * const __restri
 			}
 		}
 	}
+
+	if(RK2)
+	{
+		//printf("\ntaubulk regulated in %lf%% of grid at t = %lf\n\n", 100. * (double)taubulk_regulated / grid, t);
+	}
+
 }
 
 

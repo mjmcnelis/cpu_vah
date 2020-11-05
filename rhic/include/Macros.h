@@ -2,9 +2,11 @@
 #ifndef MACROS_H_
 #define MACROS_H_
 
-//#define ANISO_HYDRO				// run anisotropic hydro (comment to run 2nd order viscous hydro)
+// macro parameters to fix hydrodynamic variables at compile time
 
-//#define BOOST_INVARIANT 		// run 2+1d hydro (comment to run 3+1d hydro)
+#define ANISO_HYDRO				// run anisotropic hydro (comment to run 2nd order viscous hydro)
+
+#define BOOST_INVARIANT 		// run 2+1d hydro (comment to run 3+1d hydro)
 
 #define RANDOM_MODEL_PARAMETERS // option to use python/random_model_parameters/model_parameters_x.dat (x = 1st command line argument)
 								// comment to use the fixed values in parameters/
@@ -57,13 +59,11 @@
 
 
 #define PRINT_HYDRO				// option to print current hydro info at center of grid (comment for no printing)
-#define PRINT_PERIOD 10			// number of steps per print for run_hydro = 3 (leave this defined!)
+#define PRINT_PERIOD 1			// number of steps per print for run_hydro = 3 (leave this defined!)
 
-#define PRINT_PARAMETERS		// option to print parameters
+//#define PRINT_PARAMETERS		// option to print parameters
 
-//#define FREEZEOUT_SIZE			// output maximum radius of freezeout surface
-
-#define FREEZEOUT_SLICE			// output tau-x slice (y = eta = 0) and tau-eta slice (x = y = 0, only for 3+1d) of freezeout surface
+#define FREEZEOUT_SIZE			// output maximum radius of freezeout surface
 
 #define BENCHMARKS				// output benchmark data (e.g. hydro run time)
 
@@ -71,7 +71,7 @@
 
 //#define MONITOR_TTAUMU			// output violations of T^{\tau\mu} reproduction in InferredVariables.cpp
 
-//#define MONITOR_REGULATIONS	// output viscous or aniso regulations
+//#define MONITOR_REGULATIONS		// output viscous or aniso regulations
 
 #ifdef ANISO_HYDRO
 	//#define MONITOR_PLPT		// output pl,pt regulation
