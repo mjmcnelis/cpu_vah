@@ -875,21 +875,26 @@ void output_freezeout_slice_x(double t, lattice_parameters lattice, hydro_parame
 	FILE * Rinv_pi_x;		// tau-x slice of (transverse) shear inverse Reynolds number
 	FILE * Rinv_bulk_x;		// tau-x slice of bulk inverse Reynolds number
 	FILE * Rinv_W_x;		// tau-x slice of WTz inverse Reynolds number
+	FILE * Rinv_dB_x;		// tau-x slice of dB/Peq inverse Reynolds number
 
 	char fname1[255];
 	char fname2[255];
 	char fname3[255];
 	char fname4[255];
+	char fname5[255];
 
 	sprintf(fname1, "output/surface_slice_x.dat");
 	sprintf(fname2, "output/Rinv_shear_x.dat");
 	sprintf(fname3, "output/Rinv_bulk_x.dat");
 	sprintf(fname4, "output/Rinv_Wperp_x.dat");
+	sprintf(fname5, "output/Rinv_dB_x.dat");
+
 
 	surface_slice_x  = fopen(fname1, "a");
 	Rinv_pi_x        = fopen(fname2, "a");
 	Rinv_bulk_x      = fopen(fname3, "a");
 	Rinv_W_x         = fopen(fname4, "a");
+	Rinv_dB_x        = fopen(fname5, "a");
 
 	precision t2 = t * t;
 	precision t4 = t2 * t2;
@@ -921,6 +926,15 @@ void output_freezeout_slice_x(double t, lattice_parameters lattice, hydro_parame
 
     	xL = x;		// update left side
     	eL = e_s;
+
+    	equation_of_state_new eos(e_s, hydro.conformal_eos_prefactor);
+		precision p = eos.equilibrium_pressure();
+
+    #ifdef B_FIELD
+    	precision b = q[s].b;
+    	precision beq = eos.equilibrium_mean_field();
+    	precision db =  b - beq;
+    #endif
 
 	#ifdef PIMUNU
 		precision pitt = q[s].pitt;
@@ -979,10 +993,11 @@ void output_freezeout_slice_x(double t, lattice_parameters lattice, hydro_parame
 	#ifdef WTZMU
 		fprintf(Rinv_W_x,  "%.3f\t%.4e\t%.4e\n", x, t, W_mag / sqrt(pl*pl + 2.*pt*pt));		// sqrt(W.W) / sqrt(pl.pl + 2pt.pt);
 	#endif
+	#ifdef B_FIELD
+		fprintf(Rinv_dB_x, "%.3f\t%.4e\t%.4e\n", x, t, fabs(db / p));						// |dB| / p
+	#endif
 
 	#else
-		equation_of_state_new eos(e_s, hydro.conformal_eos_prefactor);
-		precision p = eos.equilibrium_pressure();
 
 	#ifdef PIMUNU
 		fprintf(Rinv_pi_x, "%.3f\t%.4e\t%.4e\n", x, t, pi_mag / (sqrt(3.) * p));	// sqrt(pi.pi/3) / p
@@ -998,6 +1013,7 @@ void output_freezeout_slice_x(double t, lattice_parameters lattice, hydro_parame
 	fclose(Rinv_pi_x);
 	fclose(Rinv_bulk_x);
 	fclose(Rinv_W_x);
+	fclose(Rinv_dB_x);
 
 }
 
@@ -1016,21 +1032,25 @@ void output_freezeout_slice_z(double t, lattice_parameters lattice, hydro_parame
 	FILE * Rinv_pi_z;		// tau-eta slice of (transverse) shear inverse Reynolds number
 	FILE * Rinv_bulk_z;		// tau-eta slice of bulk inverse Reynolds number
 	FILE * Rinv_W_z;		// tau-eta slice of WTz inverse Reynolds number
+	FILE * Rinv_dB_z;		// tau-eta slice of dB inverse Reynolds number
 
 	char fname1[255];
 	char fname2[255];
 	char fname3[255];
 	char fname4[255];
+	char fname5[255];
 
 	sprintf(fname1, "output/surface_slice_z.dat");
 	sprintf(fname2, "output/Rinv_shear_z.dat");
 	sprintf(fname3, "output/Rinv_bulk_z.dat");
 	sprintf(fname4, "output/Rinv_Wperp_z.dat");
+	sprintf(fname5, "output/Rinv_dB_z.dat");
 
 	surface_slice_z  = fopen(fname1, "a");
 	Rinv_pi_z        = fopen(fname2, "a");
 	Rinv_bulk_z      = fopen(fname3, "a");
 	Rinv_W_z         = fopen(fname4, "a");
+	Rinv_dB_z		 = fopen(fname5, "a");
 
 	precision t2 = t * t;
 	precision t4 = t2 * t2;
@@ -1062,6 +1082,15 @@ void output_freezeout_slice_z(double t, lattice_parameters lattice, hydro_parame
 
     	zL = z;		// update left side
     	eL = e_s;
+
+    	equation_of_state_new eos(e_s, hydro.conformal_eos_prefactor);
+		precision p = eos.equilibrium_pressure();
+
+    #ifdef B_FIELD
+    	precision b = q[s].b;
+    	precision beq = eos.equilibrium_mean_field();
+    	precision db =  b - beq;
+    #endif
 
 	#ifdef PIMUNU
 		precision pitt = q[s].pitt;
@@ -1120,11 +1149,11 @@ void output_freezeout_slice_z(double t, lattice_parameters lattice, hydro_parame
 	#ifdef WTZMU
 		fprintf(Rinv_W_z,  "%.3f\t%.4e\t%.4e\n", z, t, W_mag / sqrt(pl*pl + 2.*pt*pt));		// sqrt(W.W) / sqrt(pl.pl + 2pt.pt);
 	#endif
+	#ifdef B_FIELD
+		fprintf(Rinv_dB_z, "%.3f\t%.4e\t%.4e\n", z, t, fabs(db / p));						// |dB| / p
+	#endif
 
 	#else
-		equation_of_state_new eos(e_s, hydro.conformal_eos_prefactor);
-		precision p = eos.equilibrium_pressure();
-
 	#ifdef PIMUNU
 		fprintf(Rinv_pi_z, "%.3f\t%.4e\t%.4e\n", z, t, pi_mag / (sqrt(3.) * p));	// sqrt(pi.pi/3) / p
 	#endif
@@ -1139,6 +1168,7 @@ void output_freezeout_slice_z(double t, lattice_parameters lattice, hydro_parame
 	fclose(Rinv_pi_z);
 	fclose(Rinv_bulk_z);
 	fclose(Rinv_W_z);
+	fclose(Rinv_dB_z);
 }
 
 
