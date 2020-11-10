@@ -958,13 +958,14 @@ precision lambda_piTW = 0;
 
 	//taubulk_inverse = taubulk_inverse / fmin(1., 0.25 * taubulk_inverse * mass * mass / (mdmde * edot));
 
-// #ifdef REGULATE_TAU_BULK
-// 	if(taubulk_inverse < mdmde * edot / (mass * mass))			// enforce taubulk_inverse >= mdot/m
-// 	{
-// 		taubulk_inverse = mdmde * edot / (mass * mass);
-// 		taubulk_regulated = 1;
-// 	}
-// #endif
+#ifdef REGULATE_TAU_BULK
+	if(taubulk_inverse < mdmde * edot / (mass * mass))			// enforce taubulk_inverse >= mdot/m
+	{
+		printf("Regulating tau_bulk\n");
+		taubulk_inverse = mdmde * edot / (mass * mass);
+		taubulk_regulated = 1;
+	}
+#endif
 
 #endif
 

@@ -915,7 +915,7 @@ void output_freezeout_slice_x(double t, lattice_parameters lattice, hydro_parame
 			{
 				double x_cell = xL  +  (e_switch - eL) * dx / (e_s - eL);	// linear interpolation
 
-				fprintf(surface_slice_x, "%.4e\t%.2f\n", x_cell, t);
+				fprintf(surface_slice_x, "%.3f\t%.4e\n", x_cell, t);
 			}
 		}
 
@@ -965,7 +965,7 @@ void output_freezeout_slice_x(double t, lattice_parameters lattice, hydro_parame
 		pi_mag = sqrt(fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
 	#endif
 	#ifdef WTZMU
-		precision W_mag = sqrt(2. * fabs(WtTz * WtTz  -  WxTz * WxTz  -  WyTz * WyTz  -  t2 * WnTz * WnTz));
+		W_mag = sqrt(2. * fabs(WtTz * WtTz  -  WxTz * WxTz  -  WyTz * WyTz  -  t2 * WnTz * WnTz));
 	#endif
 
 
@@ -974,10 +974,10 @@ void output_freezeout_slice_x(double t, lattice_parameters lattice, hydro_parame
 		double pt = q[s].pt;
 
 	#ifdef PIMUNU
-		fprintf(Rinv_pi_x, "%.4e\t%.2f\t%.4e\n", x, t, pi_mag / (sqrt(2.) * pt));			// sqrt(pi.pi/2) / pt;
+		fprintf(Rinv_pi_x, "%.3f\t%.4e\t%.4e\n", x, t, pi_mag / (sqrt(2.) * pt));			// sqrt(pi.pi/2) / pt;
 	#endif
 	#ifdef WTZMU
-		fprintf(Rinv_W_x,  "%.4e\t%.2f\t%.4e\n", x, t, W_mag / sqrt(pl*pl + 2.*pt*pt));		// sqrt(W.W) / sqrt(pl.pl + 2pt.pt);
+		fprintf(Rinv_W_x,  "%.3f\t%.4e\t%.4e\n", x, t, W_mag / sqrt(pl*pl + 2.*pt*pt));		// sqrt(W.W) / sqrt(pl.pl + 2pt.pt);
 	#endif
 
 	#else
@@ -985,10 +985,10 @@ void output_freezeout_slice_x(double t, lattice_parameters lattice, hydro_parame
 		precision p = eos.equilibrium_pressure();
 
 	#ifdef PIMUNU
-		fprintf(Rinv_pi_x, "%.4e\t%.2f\t%.4e\n", x, t, pi_mag / (sqrt(3.) * p));	// sqrt(pi.pi/3) / p
+		fprintf(Rinv_pi_x, "%.3f\t%.4e\t%.4e\n", x, t, pi_mag / (sqrt(3.) * p));	// sqrt(pi.pi/3) / p
 	#endif
 	#ifdef PI
-		fprintf(Rinv_bulk_x, "%.4e\t%.2f\t%.4e\n", x, t, fabs(q[s].Pi) / p);		// |Pi| / p
+		fprintf(Rinv_bulk_x, "%.3f\t%.4e\t%.4e\n", x, t, fabs(q[s].Pi) / p);		// |Pi| / p
 	#endif
 
 	#endif
@@ -1056,7 +1056,7 @@ void output_freezeout_slice_z(double t, lattice_parameters lattice, hydro_parame
 			{
 				double z_cell = zL  +  (e_switch - eL) * dz / (e_s - eL);	// linear interpolation
 
-				fprintf(surface_slice_z, "%.4e\t%.2f\n", z_cell, t);
+				fprintf(surface_slice_z, "%.3f\t%.4e\n", z_cell, t);
 			}
 		}
 
@@ -1115,10 +1115,10 @@ void output_freezeout_slice_z(double t, lattice_parameters lattice, hydro_parame
 		double pt = q[s].pt;
 
 	#ifdef PIMUNU
-		fprintf(Rinv_pi_z, "%.4e\t%.2f\t%.4e\n", z, t, pi_mag / (sqrt(2.) * pt));			// sqrt(pi.pi/2) / pt;
+		fprintf(Rinv_pi_z, "%.3f\t%.4e\t%.4e\n", z, t, pi_mag / (sqrt(2.) * pt));			// sqrt(pi.pi/2) / pt;
 	#endif
 	#ifdef WTZMU
-		fprintf(Rinv_W_z,  "%.4e\t%.2f\t%.4e\n", z, t, W_mag / sqrt(pl*pl + 2.*pt*pt));		// sqrt(W.W) / sqrt(pl.pl + 2pt.pt);
+		fprintf(Rinv_W_z,  "%.3f\t%.4e\t%.4e\n", z, t, W_mag / sqrt(pl*pl + 2.*pt*pt));		// sqrt(W.W) / sqrt(pl.pl + 2pt.pt);
 	#endif
 
 	#else
@@ -1126,10 +1126,10 @@ void output_freezeout_slice_z(double t, lattice_parameters lattice, hydro_parame
 		precision p = eos.equilibrium_pressure();
 
 	#ifdef PIMUNU
-		fprintf(Rinv_pi_z, "%.4e\t%.2f\t%.4e\n", z, t, pi_mag / (sqrt(3.) * p));	// sqrt(pi.pi/3) / p
+		fprintf(Rinv_pi_z, "%.3f\t%.4e\t%.4e\n", z, t, pi_mag / (sqrt(3.) * p));	// sqrt(pi.pi/3) / p
 	#endif
 	#ifdef PI
-		fprintf(Rinv_bulk_z, "%.4e\t%.2f\t%.4e\n", z, t, fabs(q[s].Pi) / p);		// |Pi| / p
+		fprintf(Rinv_bulk_z, "%.3f\t%.4e\t%.4e\n", z, t, fabs(q[s].Pi) / p);		// |Pi| / p
 	#endif
 
 	#endif

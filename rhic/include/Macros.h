@@ -6,7 +6,7 @@
 
 #define ANISO_HYDRO				// run anisotropic hydro (comment to run 2nd order viscous hydro)
 
-#define BOOST_INVARIANT 		// run 2+1d hydro (comment to run 3+1d hydro)
+//#define BOOST_INVARIANT 		// run 2+1d hydro (comment to run 3+1d hydro)
 
 #define RANDOM_MODEL_PARAMETERS // option to use python/random_model_parameters/model_parameters_x.dat (x = 1st command line argument)
 								// comment to use the fixed values in parameters/
@@ -25,11 +25,11 @@
 	#define LATTICE_QCD			// lattice qcd equation of state
 #endif
 
-#ifdef ANISO_HYDRO
-#ifdef LATTICE_QCD
-	//#define REGULATE_TAU_BULK	// option to regulate the bulk relaxation time in nonconformal anisotropic hydro
-#endif							// (it doesn't stablize mean field equation...)
-#endif
+// #ifdef ANISO_HYDRO
+// #ifdef LATTICE_QCD
+// 	//#define REGULATE_TAU_BULK	// option to regulate the bulk relaxation time in nonconformal anisotropic hydro
+// #endif							// (it doesn't stablize mean field equation...)
+// #endif
 
 
 //#define E_CHECK				// separately evolve energy density w/ KT algorithm as a cross check
@@ -82,10 +82,10 @@
 //#define MONITOR_REGULATIONS		// output viscous or aniso regulations
 
 #ifdef ANISO_HYDRO
-	#define MONITOR_PLPT		// output pl,pt regulation
+	//#define MONITOR_PLPT		// output pl,pt regulation
 
 #ifdef LATTICE_QCD
-	#define MONITOR_B			// output b regulation
+	//#define MONITOR_B			// output b regulation
 #endif
 #endif
 
