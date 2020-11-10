@@ -21,9 +21,8 @@ inline precision central_derivative(const precision * const __restrict__ f, int 
 
 int source_terms_aniso_hydro(precision * const __restrict__ S, const precision * const __restrict__ q, precision e_s, precision lambda_s, precision aT_s, precision aL_s, precision t, const precision * const __restrict__ qi1, const precision * const __restrict__ qj1, const precision * const __restrict__ qk1, const precision * const __restrict__ e1, const precision * const __restrict__ ui1, const precision * const __restrict__ uj1, const precision * const __restrict__ uk1, precision ux, precision uy, precision un, precision ux_p, precision uy_p, precision un_p, precision dt_prev, precision dx, precision dy, precision dn, hydro_parameters hydro)
 {
-#ifdef ANISO_HYDRO
-
 	int taubulk_regulated = 0;
+#ifdef ANISO_HYDRO
 
 // useful expressions
 //-------------------------------------------------
@@ -959,13 +958,14 @@ precision lambda_piTW = 0;
 
 	//taubulk_inverse = taubulk_inverse / fmin(1., 0.25 * taubulk_inverse * mass * mass / (mdmde * edot));
 
-	// if(taubulk_inverse < 4. * mdmde * edot / (mass * mass))			// enforce taubulk_inverse >= 4.mdot/m
-	// {
-	// 	//printf("taubulk regulated\n");
-	// 	taubulk_inverse = 4. * mdmde * edot / (mass * mass);
+// #ifdef REGULATE_TAU_BULK
+// 	if(taubulk_inverse < mdmde * edot / (mass * mass))			// enforce taubulk_inverse >= mdot/m
+// 	{
+// 		taubulk_inverse = mdmde * edot / (mass * mass);
+// 		taubulk_regulated = 1;
+// 	}
+// #endif
 
-	// 	taubulk_regulated = 1;
-	// }
 #endif
 
 
@@ -1068,9 +1068,8 @@ precision lambda_piTW = 0;
 	S[a] = de / ut  +  div_v * e_check;
 #endif
 
-	return taubulk_regulated;
-
 #endif
+	return taubulk_regulated;
 }
 
 

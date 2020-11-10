@@ -50,6 +50,7 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 	int pl_reg = 0;
 	int pt_reg = 0;
 	int pt_reg_conformal = 0;
+	int b_reg = 0;
 
 	#pragma omp parallel for collapse(3)
 	for(int k = 2; k < nz + 2; k++)
@@ -122,15 +123,22 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 				// }
 
 
+
+
 				// monitor if actually regulate (only one that seems to work)
 				if(db < 0. && fabs(beq / db) < 1.)
 				{
 					db *= fabs(beq / db);
 
+					b_reg += 1;
+
 				#ifdef MONITOR_B
 					b_regulation[s] = 1;
 				#endif
 				}
+
+
+
 
 				//db *= fmin(1., fabs(beq / db));
 
@@ -302,10 +310,10 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 			}
 		}
 	}
-	if(pl_reg || pt_reg || pt_reg_conformal)
-	{
-		printf("Number of (pl, pt, pt_conformal) regulations = (%d, %d, %d)\n", pl_reg, pt_reg, pt_reg_conformal);
-	}
+	// if(pl_reg || pt_reg || pt_reg_conformal || b_reg)
+	// {
+	// 	printf("Number of (pl, pt, b_reg, pt_conformal) regulations = (%d, %d, %d, %d) at t = %.3g fm/c\n", pl_reg, pt_reg, b_reg, pt_reg_conformal, t);
+	// }
 #endif
 }
 

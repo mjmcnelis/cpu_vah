@@ -25,6 +25,12 @@
 	#define LATTICE_QCD			// lattice qcd equation of state
 #endif
 
+#ifdef ANISO_HYDRO
+#ifdef LATTICE_QCD
+	//#define REGULATE_TAU_BULK	// option to regulate the bulk relaxation time in nonconformal anisotropic hydro
+#endif							// (it doesn't stablize mean field equation...)
+#endif
+
 
 //#define E_CHECK				// separately evolve energy density w/ KT algorithm as a cross check
 								// can be commented (still have issue with piperp evolution when turned on)
@@ -65,6 +71,8 @@
 
 #define FREEZEOUT_SIZE			// output maximum radius of freezeout surface
 
+#define FREEZEOUT_SLICE			// output tau-x and/or tau-eta slice up to tau = 17 fm (comment for real runs)
+
 #define BENCHMARKS				// output benchmark data (e.g. hydro run time)
 
 #define ADAPTIVE_FILE			// output adaptive time steps
@@ -74,10 +82,10 @@
 //#define MONITOR_REGULATIONS		// output viscous or aniso regulations
 
 #ifdef ANISO_HYDRO
-	//#define MONITOR_PLPT		// output pl,pt regulation
+	#define MONITOR_PLPT		// output pl,pt regulation
 
 #ifdef LATTICE_QCD
-	//#define MONITOR_B			// output b regulation
+	#define MONITOR_B			// output b regulation
 #endif
 #endif
 

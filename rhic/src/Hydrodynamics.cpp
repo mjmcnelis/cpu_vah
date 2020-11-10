@@ -257,7 +257,15 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 
 				if(all_cells_below_freezeout_temperature(lattice, hydro))
 				{
+				#ifndef FREEZEOUT_SLICE
 					break;
+				#else
+					if(t > 17.0)								// this is for the freezeout slice plot
+					{
+						printf("Ending hydro simulation at t = %lf fm/c for freezeout slice plot\n", t);
+						break;
+					}
+				#endif
 				}
 
 				t_out += dt_out;

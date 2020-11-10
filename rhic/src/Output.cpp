@@ -958,9 +958,15 @@ void output_freezeout_slice_x(double t, lattice_parameters lattice, hydro_parame
 		WnTz = q[s].WnTz;
 	#endif
 
-		precision pi_mag = sqrt(fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
+		precision pi_mag = 0;
+		precision W_mag = 0;
 
+	#ifdef PIMUNU
+		pi_mag = sqrt(fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
+	#endif
+	#ifdef WTZMU
 		precision W_mag = sqrt(2. * fabs(WtTz * WtTz  -  WxTz * WxTz  -  WyTz * WyTz  -  t2 * WnTz * WnTz));
+	#endif
 
 
 	#ifdef ANISO_HYDRO
@@ -1093,9 +1099,15 @@ void output_freezeout_slice_z(double t, lattice_parameters lattice, hydro_parame
 		WnTz = q[s].WnTz;
 	#endif
 
-		precision pi_mag = sqrt(fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
+		precision pi_mag = 0;
+		precision W_mag = 0;
 
-		precision W_mag = sqrt(2. * fabs(WtTz * WtTz  -  WxTz * WxTz  -  WyTz * WyTz  -  t2 * WnTz * WnTz));
+	#ifdef PIMUNU
+		pi_mag = sqrt(fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
+	#endif
+	#ifdef WTZMU
+		W_mag = sqrt(2. * fabs(WtTz * WtTz  -  WxTz * WxTz  -  WyTz * WyTz  -  t2 * WnTz * WnTz));
+	#endif
 
 
 	#ifdef ANISO_HYDRO
