@@ -872,29 +872,32 @@ void output_freezeout_slice_x(double t, lattice_parameters lattice, hydro_parame
 	precision e_switch = equilibrium_energy_density_new(T_switch / hbarc, hydro.conformal_eos_prefactor);
 
 	FILE * surface_slice_x;	// tau-x slice of freezeout surface (only freezeout cell positions)
-	FILE * Rinv_pi_x;		// tau-x slice of (transverse) shear inverse Reynolds number
+	FILE * Rinv_pi_x;		// tau-x slice of (residual) shear inverse Reynolds number
 	FILE * Rinv_bulk_x;		// tau-x slice of bulk inverse Reynolds number
-	FILE * Rinv_W_x;		// tau-x slice of WTz inverse Reynolds number
 	FILE * Rinv_dB_x;		// tau-x slice of dB/Peq inverse Reynolds number
+	FILE * reg_viscous_x;	// tau-x slice of residual shear or shear + bulk regulations
+	FILE * reg_dB_x;		// tau-x slice of dB regulation;
 
 	char fname1[255];
 	char fname2[255];
 	char fname3[255];
 	char fname4[255];
 	char fname5[255];
+	char fname6[255];
 
 	sprintf(fname1, "output/surface_slice_x.dat");
 	sprintf(fname2, "output/Rinv_shear_x.dat");
 	sprintf(fname3, "output/Rinv_bulk_x.dat");
-	sprintf(fname4, "output/Rinv_Wperp_x.dat");
-	sprintf(fname5, "output/Rinv_dB_x.dat");
-
+	sprintf(fname4, "output/Rinv_dB_x.dat");
+	sprintf(fname5, "output/regulate_viscous_x.dat");
+	sprintf(fname6, "output/regulate_dB_x.dat");
 
 	surface_slice_x  = fopen(fname1, "a");
 	Rinv_pi_x        = fopen(fname2, "a");
 	Rinv_bulk_x      = fopen(fname3, "a");
-	Rinv_W_x         = fopen(fname4, "a");
-	Rinv_dB_x        = fopen(fname5, "a");
+	Rinv_dB_x        = fopen(fname4, "a");
+	reg_viscous_x    = fopen(fname5, "a");
+	reg_dB_x         = fopen(fname6, "a");
 
 	precision t2 = t * t;
 	precision t4 = t2 * t2;
@@ -906,8 +909,9 @@ void output_freezeout_slice_x(double t, lattice_parameters lattice, hydro_parame
 	{
 		double x = (i - 2. - (nx - 1.)/2.) * dx;
 
-		int j = (ny - 1) / 2;
-		int k = (nz - 1) / 2;
+		int j = 2  +  (ny - 1) / 2;
+		int k = 2  +  (nz - 1) / 2;
+
 		int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
 		precision e_s = e[s];
@@ -915,7 +919,7 @@ void output_freezeout_slice_x(double t, lattice_parameters lattice, hydro_parame
 		// search for freezeout cells along x-direction
 		if(i > 2)
 		{
-			// check if crossed freezeout energy density
+			// check if crossed freezeout energy density (freezeout surface construction)
 			if((eL >= e_switch && e_s <= e_switch) || (eL <= e_switch && e_s >= e_switch))
 			{
 				double x_cell = xL  +  (e_switch - eL) * dx / (e_s - eL);	// linear interpolation
@@ -936,17 +940,28 @@ void output_freezeout_slice_x(double t, lattice_parameters lattice, hydro_parame
     	precision db =  b - beq;
     #endif
 
-	#ifdef PIMUNU
-		precision pitt = q[s].pitt;
-		precision pitx = q[s].pitx;
-		precision pity = q[s].pity;
+    	precision pitt = 0;
+		precision pitx = 0;
+		precision pity = 0;
 		precision pitn = 0;
-		precision pixx = q[s].pixx;
-		precision pixy = q[s].pixy;
+		precision pixx = 0;
+		precision pixy = 0;
 		precision pixn = 0;
-		precision piyy = q[s].piyy;
+		precision piyy = 0;
 		precision piyn = 0;
 		precision pinn = 0;
+
+	#ifdef PIMUNU
+		pitt = q[s].pitt;
+		pitx = q[s].pitx;
+		pity = q[s].pity;
+		pitn = 0;
+		pixx = q[s].pixx;
+		pixy = q[s].pixy;
+		pixn = 0;
+		piyy = q[s].piyy;
+		piyn = 0;
+		pinn = 0;
 
 	#ifndef BOOST_INVARIANT
 		pitn = q[s].pitn;
@@ -972,49 +987,56 @@ void output_freezeout_slice_x(double t, lattice_parameters lattice, hydro_parame
 		WnTz = q[s].WnTz;
 	#endif
 
-		precision pi_mag = 0;
-		precision W_mag = 0;
-
-	#ifdef PIMUNU
-		pi_mag = sqrt(fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
-	#endif
-	#ifdef WTZMU
-		W_mag = sqrt(2. * fabs(WtTz * WtTz  -  WxTz * WxTz  -  WyTz * WyTz  -  t2 * WnTz * WnTz));
-	#endif
-
-
 	#ifdef ANISO_HYDRO
+		precision pi_mag = sqrt(fabs(2. * (WtTz * WtTz  -  WxTz * WxTz  -  WyTz * WyTz  -  t2 * WnTz * WnTz)  +  pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
+	#else
+		precision pi_mag = sqrt(fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
+	#endif
+
+
+	#ifdef ANISO_HYDRO			// aniso hydro slice:
 		double pl = q[s].pl;
 		double pt = q[s].pt;
 
-	#ifdef PIMUNU
-		fprintf(Rinv_pi_x, "%.3f\t%.4e\t%.4e\n", x, t, pi_mag / (sqrt(2.) * pt));			// sqrt(pi.pi/2) / pt;
-	#endif
-	#ifdef WTZMU
-		fprintf(Rinv_W_x,  "%.3f\t%.4e\t%.4e\n", x, t, W_mag / sqrt(pl*pl + 2.*pt*pt));		// sqrt(W.W) / sqrt(pl.pl + 2pt.pt);
-	#endif
+		// sqrt((piT.piT-2.WTz.WTz)/(pl.pl+2.pt.pt))
+		fprintf(Rinv_pi_x, "%.3f\t%.4e\t%.4e\n", x, t, pi_mag / sqrt(pl*pl + 2.*pt*pt));
+
 	#ifdef B_FIELD
-		fprintf(Rinv_dB_x, "%.3f\t%.4e\t%.4e\n", x, t, fabs(db / p));						// |dB| / p
+		// |dB| / p
+		fprintf(Rinv_dB_x, "%.3f\t%.4e\t%.4e\n", x, t, fabs(db / p));
 	#endif
 
-	#else
-
-	#ifdef PIMUNU
-		fprintf(Rinv_pi_x, "%.3f\t%.4e\t%.4e\n", x, t, pi_mag / (sqrt(3.) * p));	// sqrt(pi.pi/3) / p
+	#ifdef MONITOR_B
+		// dB regulation
+		fprintf(reg_dB_x, "%.3f\t%.4e\t%d\n", x, t, b_regulation[s]);
 	#endif
+
+
+	#else 						// viscous hydro slice:
+
+		// sqrt(pi.pi/3) / p
+		fprintf(Rinv_pi_x, "%.3f\t%.4e\t%.4e\n", x, t, pi_mag / (sqrt(3.) * p));
+
 	#ifdef PI
-		fprintf(Rinv_bulk_x, "%.3f\t%.4e\t%.4e\n", x, t, fabs(q[s].Pi) / p);		// |Pi| / p
+		// |Pi| / p
+		fprintf(Rinv_bulk_x, "%.3f\t%.4e\t%.4e\n", x, t, fabs(q[s].Pi) / p);
 	#endif
 
+	#endif
+
+
+	#ifdef MONITOR_REGULATIONS
+		// residual shear or shear + bulk regulation
+		fprintf(reg_viscous_x, "%.3f\t%.4e\t%d\n", x, t, viscous_regulation[s]);
 	#endif
 	}
 
 	fclose(surface_slice_x);
 	fclose(Rinv_pi_x);
 	fclose(Rinv_bulk_x);
-	fclose(Rinv_W_x);
 	fclose(Rinv_dB_x);
-
+	fclose(reg_viscous_x);
+	fclose(reg_dB_x);
 }
 
 
@@ -1029,28 +1051,32 @@ void output_freezeout_slice_z(double t, lattice_parameters lattice, hydro_parame
 	precision e_switch = equilibrium_energy_density_new(T_switch / hbarc, hydro.conformal_eos_prefactor);
 
 	FILE * surface_slice_z;	// tau-eta slice of freezeout surface (only freezeout cell positions)
-	FILE * Rinv_pi_z;		// tau-eta slice of (transverse) shear inverse Reynolds number
+	FILE * Rinv_pi_z;		// tau-eta slice of (residual) shear inverse Reynolds number
 	FILE * Rinv_bulk_z;		// tau-eta slice of bulk inverse Reynolds number
-	FILE * Rinv_W_z;		// tau-eta slice of WTz inverse Reynolds number
-	FILE * Rinv_dB_z;		// tau-eta slice of dB inverse Reynolds number
+	FILE * Rinv_dB_z;		// tau-eta slice of dB/Peq inverse Reynolds number
+	FILE * reg_viscous_z;	// tau-eta slice of residual shear or shear + bulk regulations
+	FILE * reg_dB_z;		// tau-eta slice of dB regulation;
 
 	char fname1[255];
 	char fname2[255];
 	char fname3[255];
 	char fname4[255];
 	char fname5[255];
+	char fname6[255];
 
 	sprintf(fname1, "output/surface_slice_z.dat");
 	sprintf(fname2, "output/Rinv_shear_z.dat");
 	sprintf(fname3, "output/Rinv_bulk_z.dat");
-	sprintf(fname4, "output/Rinv_Wperp_z.dat");
-	sprintf(fname5, "output/Rinv_dB_z.dat");
+	sprintf(fname4, "output/Rinv_dB_z.dat");
+	sprintf(fname5, "output/regulate_viscous_z.dat");
+	sprintf(fname6, "output/regulate_dB_z.dat");
 
 	surface_slice_z  = fopen(fname1, "a");
 	Rinv_pi_z        = fopen(fname2, "a");
 	Rinv_bulk_z      = fopen(fname3, "a");
-	Rinv_W_z         = fopen(fname4, "a");
-	Rinv_dB_z		 = fopen(fname5, "a");
+	Rinv_dB_z        = fopen(fname4, "a");
+	reg_viscous_z    = fopen(fname5, "a");
+	reg_dB_z         = fopen(fname6, "a");
 
 	precision t2 = t * t;
 	precision t4 = t2 * t2;
@@ -1062,8 +1088,8 @@ void output_freezeout_slice_z(double t, lattice_parameters lattice, hydro_parame
 	{
 		double z = (k - 2. - (nz - 1.)/2.) * dz;
 
-		int i = (nx - 1) / 2;
-		int j = (ny - 1) / 2;
+		int i = 2  +  (nx - 1) / 2;											// x = y = 0
+		int j = 2  +  (ny - 1) / 2;
 		int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
 		precision e_s = e[s];
@@ -1092,17 +1118,24 @@ void output_freezeout_slice_z(double t, lattice_parameters lattice, hydro_parame
     	precision db =  b - beq;
     #endif
 
-	#ifdef PIMUNU
-		precision pitt = q[s].pitt;
-		precision pitx = q[s].pitx;
-		precision pity = q[s].pity;
+    	precision pitt = 0;
+		precision pitx = 0;
+		precision pity = 0;
 		precision pitn = 0;
-		precision pixx = q[s].pixx;
-		precision pixy = q[s].pixy;
+		precision pixx = 0;
+		precision pixy = 0;
 		precision pixn = 0;
-		precision piyy = q[s].piyy;
+		precision piyy = 0;
 		precision piyn = 0;
 		precision pinn = 0;
+
+	#ifdef PIMUNU
+		pitt = q[s].pitt;
+		pitx = q[s].pitx;
+		pity = q[s].pity;
+		pixx = q[s].pixx;
+		pixy = q[s].pixy;
+		piyy = q[s].piyy;
 
 	#ifndef BOOST_INVARIANT
 		pitn = q[s].pitn;
@@ -1113,6 +1146,79 @@ void output_freezeout_slice_z(double t, lattice_parameters lattice, hydro_parame
 	#ifndef ANISO_HYDRO
 		pinn = q[s].pinn;
 	#endif
+	#endif
+	#endif
+
+		precision pi_mag = sqrt(fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
+
+
+	#ifdef ANISO_HYDRO			// aniso hydro slice:
+
+	#ifdef B_FIELD
+		// |dB| / p
+		fprintf(Rinv_dB_z, "%.3f\t%.4e\t%.4e\n", z, t, fabs(db / p));
+	#endif
+
+	#ifdef MONITOR_B
+		// dB regulation
+		fprintf(reg_dB_z, "%.3f\t%.4e\t%d\n", z, t, b_regulation[s]);
+	#endif
+
+
+	#else 						// viscous hydro slice:
+
+		// sqrt(pi.pi/3) / p
+		fprintf(Rinv_pi_z, "%.3f\t%.4e\t%.4e\n", z, t, pi_mag / (sqrt(3.) * p));
+
+	#ifdef PI
+		// |Pi| / p
+		fprintf(Rinv_bulk_z, "%.3f\t%.4e\t%.4e\n", z, t, fabs(q[s].Pi) / p);
+	#endif
+
+	#endif
+
+
+	#ifdef MONITOR_REGULATIONS
+		// residual shear or shear + bulk regulation
+		fprintf(reg_viscous_z, "%.3f\t%.4e\t%d\n", z, t, viscous_regulation[s]);
+	#endif
+	}
+
+
+	// separate loop for residual shear inverse Reynolds number (shift x to ~ right-half of grid)
+#ifdef ANISO_HYDRO
+	for(int k = 2; k < nz + 2; k++)
+	{
+		double z = (k - 2. - (nz - 1.)/2.) * dz;
+
+		int i = 2  +  (3 * (nx - 1)) / 4;	// right half
+		int j = 2  +  (ny - 1) / 2;
+		int s = linear_column_index(i, j, k, nx + 4, ny + 4);
+
+    	precision pitt = 0;
+		precision pitx = 0;
+		precision pity = 0;
+		precision pitn = 0;
+		precision pixx = 0;
+		precision pixy = 0;
+		precision pixn = 0;
+		precision piyy = 0;
+		precision piyn = 0;
+		precision pinn = 0;
+
+	#ifdef PIMUNU
+		pitt = q[s].pitt;
+		pitx = q[s].pitx;
+		pity = q[s].pity;
+		pixx = q[s].pixx;
+		pixy = q[s].pixy;
+		piyy = q[s].piyy;
+
+	#ifndef BOOST_INVARIANT
+		pitn = q[s].pitn;
+		pixn = q[s].pixn;
+		piyn = q[s].piyn;
+		pinn = q[s].pinn;
 	#endif
 	#endif
 
@@ -1128,47 +1234,22 @@ void output_freezeout_slice_z(double t, lattice_parameters lattice, hydro_parame
 		WnTz = q[s].WnTz;
 	#endif
 
-		precision pi_mag = 0;
-		precision W_mag = 0;
+		precision pi_mag = sqrt(fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
 
-	#ifdef PIMUNU
-		pi_mag = sqrt(fabs(pitt * pitt  +  pixx * pixx  +  piyy * piyy  +  t4 * pinn * pinn  -  2. * (pitx * pitx  +  pity * pity  -  pixy * pixy  +  t2 * (pitn * pitn  -  pixn * pixn  -  piyn * piyn))));
-	#endif
-	#ifdef WTZMU
-		W_mag = sqrt(2. * fabs(WtTz * WtTz  -  WxTz * WxTz  -  WyTz * WyTz  -  t2 * WnTz * WnTz));
-	#endif
+		precision pl = q[s].pl;
+		precision pt = q[s].pt;
 
-
-	#ifdef ANISO_HYDRO
-		double pl = q[s].pl;
-		double pt = q[s].pt;
-
-	#ifdef PIMUNU
-		fprintf(Rinv_pi_z, "%.3f\t%.4e\t%.4e\n", z, t, pi_mag / (sqrt(2.) * pt));			// sqrt(pi.pi/2) / pt;
-	#endif
-	#ifdef WTZMU
-		fprintf(Rinv_W_z,  "%.3f\t%.4e\t%.4e\n", z, t, W_mag / sqrt(pl*pl + 2.*pt*pt));		// sqrt(W.W) / sqrt(pl.pl + 2pt.pt);
-	#endif
-	#ifdef B_FIELD
-		fprintf(Rinv_dB_z, "%.3f\t%.4e\t%.4e\n", z, t, fabs(db / p));						// |dB| / p
-	#endif
-
-	#else
-	#ifdef PIMUNU
-		fprintf(Rinv_pi_z, "%.3f\t%.4e\t%.4e\n", z, t, pi_mag / (sqrt(3.) * p));	// sqrt(pi.pi/3) / p
-	#endif
-	#ifdef PI
-		fprintf(Rinv_bulk_z, "%.3f\t%.4e\t%.4e\n", z, t, fabs(q[s].Pi) / p);		// |Pi| / p
-	#endif
-
-	#endif
+		// sqrt((piT.piT-2.WTz.WTz)/(pl.pl+2.pt.pt))
+		fprintf(Rinv_pi_z, "%.3f\t%.4e\t%.4e\n", z, t, pi_mag / sqrt(pl*pl + 2.*pt*pt));
 	}
+#endif
 
 	fclose(surface_slice_z);
 	fclose(Rinv_pi_z);
 	fclose(Rinv_bulk_z);
-	fclose(Rinv_W_z);
 	fclose(Rinv_dB_z);
+	fclose(reg_viscous_z);
+	fclose(reg_dB_z);
 }
 
 

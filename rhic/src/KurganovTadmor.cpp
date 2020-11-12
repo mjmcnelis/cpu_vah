@@ -523,15 +523,18 @@ void evolve_hydro_one_time_step(int n, precision t, precision dt, precision dt_p
 #ifdef ANISO_HYDRO
 	set_inferred_variables_aniso_hydro(qI, e, uI, t, lattice, hydro);		// compute (uI, e)
 
+
+// should I regulate or solve for aniso variables first?...
+
 #ifdef LATTICE_QCD
 	set_anisotropic_variables(qI, e, lambda, aT, aL, lattice, hydro);		// compute (lambda, aT, aL)
 #endif
 
-	regulate_residual_currents(t, qI, e, uI, lattice, hydro);				// regulate qI
-
+	regulate_residual_currents(t, qI, e, uI, lattice, hydro, RK2);			// regulate qI
+																			// note: never tested putting it before previous line
 #else
 	set_inferred_variables_viscous_hydro(qI, e, uI, t, lattice, hydro);
-	regulate_viscous_currents(t, qI, e, uI, lattice, hydro);
+	regulate_viscous_currents(t, qI, e, uI, lattice, hydro, RK2);
 #endif
 
 	set_ghost_cells(qI, e, uI, lattice);									// set (qI, uI, e) ghost cells
@@ -550,10 +553,10 @@ void evolve_hydro_one_time_step(int n, precision t, precision dt, precision dt_p
 	set_anisotropic_variables(Q, e, lambda, aT, aL, lattice, hydro);		// compute (lambda, aT, aL)
 #endif
 
-	regulate_residual_currents(t, Q, e, up, lattice, hydro);				// regulate Q
+	regulate_residual_currents(t, Q, e, up, lattice, hydro, RK2);			// regulate Q
 #else
 	set_inferred_variables_viscous_hydro(Q, e, up, t, lattice, hydro);
-	regulate_viscous_currents(t, Q, e, up, lattice, hydro);
+	regulate_viscous_currents(t, Q, e, up, lattice, hydro, RK2);
 #endif
 
 	swap_hydro_variables(&q, &Q);											// swap q and Q

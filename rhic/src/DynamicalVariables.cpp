@@ -11,10 +11,12 @@ precision *e, *lambda, *aT, *aL;
 
 #ifdef ANISO_HYDRO
 #ifdef LATTICE_QCD
-	int *aniso_regulation;				// for monitoring regulation of lambda, aT, aL in aniso hydro
+	int *aniso_regulation;				// for monitoring regulation of (lambda, aT, aL) in aniso hydro
 #endif
-#else
-	int *viscous_regulation;			// for monitoring regulation of pimunu, Pi in 2nd order viscous hydro
+#endif
+
+#ifdef MONITOR_REGULATIONS
+	int *viscous_regulation;			// for monitoring regulation of (piperp, Wperp) or (pimunu, Pi)
 #endif
 
 #ifdef MONITOR_PLPT
@@ -53,9 +55,11 @@ void allocate_memory(lattice_parameters lattice)
 	aT = (precision *)calloc(length, bytes);
 	aL = (precision *)calloc(length, bytes);
 
-	aniso_regulation = (int *)calloc(length, sizeof(int)); 	// anisotropic variable regulation monitoring
+	aniso_regulation = (int *)calloc(length, sizeof(int));
 #endif
-#else
+#endif
+
+#ifdef MONITOR_REGULATIONS
 	viscous_regulation = (int *)calloc(length, sizeof(int));
 #endif
 

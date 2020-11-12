@@ -33,7 +33,7 @@ inline precision pressure_cutoff(precision p_min, precision p)
 }
 
 
-void regulate_residual_currents(precision t, hydro_variables * const __restrict__ q, precision * const __restrict__ e, const fluid_velocity * const __restrict__ u, lattice_parameters lattice, hydro_parameters hydro)
+void regulate_residual_currents(precision t, hydro_variables * const __restrict__ q, precision * const __restrict__ e, const fluid_velocity * const __restrict__ u, lattice_parameters lattice, hydro_parameters hydro, int RK2)
 {
 #ifdef ANISO_HYDRO
 	int nx = lattice.lattice_points_x;
@@ -84,8 +84,10 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 				}
 			#endif
 
-				pl = pressure_cutoff(pressure_min, pl);
+
+				pl = pressure_cutoff(pressure_min, pl);	// pl, pt regulation
 				pt = pressure_cutoff(pressure_min, pt);
+
 
 			#ifdef CONFORMAL_EOS
 				pt = (e_s - pl) / 2.;
@@ -103,7 +105,7 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 
 			#ifdef B_FIELD 								// regulate non-equilibrium mean field component
 				precision b = q[s].b;
-				equation_of_state_new eos(e_s, 1);
+				equation_of_state_new eos(e_s, hydro.conformal_eos_prefactor);
 				precision beq = eos.equilibrium_mean_field();
 
 				precision db = b - beq;
@@ -136,6 +138,7 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 					b_regulation[s] = 1;
 				#endif
 				}
+
 
 
 
@@ -251,6 +254,10 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 				precision factor_pi = 1;
 				precision factor_W = 1;
 
+			#ifdef MONITOR_REGULATIONS
+ 				viscous_regulation[s] = 0;
+ 			#endif
+
 				switch(regulation_scheme)
 				{
 					case 0:
@@ -260,6 +267,10 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 
 						factor_pi = tanh_function(pi_mag / (rho_max * Taniso));
 						factor_W = tanh_function(WTz_mag / (rho_max * Taniso));
+
+					#ifdef MONITOR_REGULATIONS
+ 						viscous_regulation[s] = 1;
+ 					#endif
 
 						break;
 					}
@@ -273,6 +284,10 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
  						{
  							factor_pi = factor;
  							factor_W = factor;
+
+ 						#ifdef MONITOR_REGULATIONS
+ 							viscous_regulation[s] = 1;
+ 						#endif
  						}
 						break;
 					}
@@ -318,7 +333,7 @@ void regulate_residual_currents(precision t, hydro_variables * const __restrict_
 }
 
 
-void regulate_viscous_currents(precision t, hydro_variables * const __restrict__ q, precision * const __restrict__ e, const fluid_velocity * const __restrict__ u, lattice_parameters lattice, hydro_parameters hydro)
+void regulate_viscous_currents(precision t, hydro_variables * const __restrict__ q, precision * const __restrict__ e, const fluid_velocity * const __restrict__ u, lattice_parameters lattice, hydro_parameters hydro, int RK2)
 {
 #ifndef ANISO_HYDRO
 #if (NUMBER_OF_VISCOUS_CURRENTS != 0)
@@ -404,6 +419,14 @@ void regulate_viscous_currents(precision t, hydro_variables * const __restrict__
  				precision factor_pi = 1;
  				precision factor_bulk = 1;
 
+ 			#ifdef MONITOR_REGULATIONS
+ 				if(RK2)
+ 				{	// most regulations occur after first intermediate Euler step (very few after RK2 averaging)
+
+ 					viscous_regulation[s] = 0;
+ 				}
+ 			#endif
+
 				// regulation of viscous pressures
 				switch(regulation_scheme)
 				{
@@ -414,7 +437,12 @@ void regulate_viscous_currents(precision t, hydro_variables * const __restrict__
 						factor_pi = tanh_function(pi_mag / (rho_max * Teq));
 						factor_bulk = tanh_function(fabs(sqrt_three * Pi / (rho_max * Teq)));
 
-						viscous_regulation[s] = 1;
+					#ifdef MONITOR_REGULATIONS
+						if(RK2)
+						{
+							viscous_regulation[s] = 1;
+						}
+					#endif
 
 						break;
 					}
@@ -428,11 +456,13 @@ void regulate_viscous_currents(precision t, hydro_variables * const __restrict__
 						{
 							factor_pi = factor;
 							factor_bulk = factor;
-							viscous_regulation[s] = 1;
-						}
-						else
-						{
-							viscous_regulation[s] = 0;
+
+						#ifdef MONITOR_REGULATIONS
+							if(RK2)
+							{
+								viscous_regulation[s] = 1;
+							}
+						#endif
 						}
 
 						break;

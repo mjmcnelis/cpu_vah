@@ -6,7 +6,7 @@
 
 #define ANISO_HYDRO				// run anisotropic hydro (comment to run 2nd order viscous hydro)
 
-//#define BOOST_INVARIANT 		// run 2+1d hydro (comment to run 3+1d hydro)
+#define BOOST_INVARIANT 		// run 2+1d hydro (comment to run 3+1d hydro)
 
 #define RANDOM_MODEL_PARAMETERS // option to use python/random_model_parameters/model_parameters_x.dat (x = 1st command line argument)
 								// comment to use the fixed values in parameters/
@@ -79,13 +79,13 @@
 
 //#define MONITOR_TTAUMU			// output violations of T^{\tau\mu} reproduction in InferredVariables.cpp
 
-//#define MONITOR_REGULATIONS		// output viscous or aniso regulations
+#define MONITOR_REGULATIONS		// output regulation of residual shear or shear and bulk
 
 #ifdef ANISO_HYDRO
 	//#define MONITOR_PLPT		// output pl,pt regulation
 
 #ifdef LATTICE_QCD
-	//#define MONITOR_B			// output b regulation
+	#define MONITOR_B			// output b regulation
 #endif
 #endif
 

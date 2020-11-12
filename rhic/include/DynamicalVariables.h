@@ -149,7 +149,9 @@ extern precision *e, *lambda, *aT, *aL;
 #ifdef LATTICE_QCD
 	extern int *aniso_regulation;
 #endif
-#else
+#endif
+
+#ifdef MONITOR_REGULATIONS
 	extern int *viscous_regulation;
 #endif
 
