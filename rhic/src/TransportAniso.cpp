@@ -175,8 +175,9 @@ void aniso_transport_coefficients::compute_transport_coefficients(precision e, p
 
 		if(!(z >= -0.99999999 && z <= 1.e-8))
 		{
-			//printf("z = %lf is out of range (x = %lf)\n", z, x);
-			//exit(-1);
+		#ifdef FLAGS
+			printf("z = %lf is out of range (x = %lf). Putting z in bounds\n", z, x);
+		#endif
 			z = fmax(-0.99999999, fmin(z, 1.e-8));
 		}
 		aL  = 1. / sqrt(1. + z);
@@ -197,8 +198,9 @@ void aniso_transport_coefficients::compute_transport_coefficients(precision e, p
 
    		if(!(aL >= 0.0001 && aL <= 1.0001))
 		{
-			//printf("aL = %lf is out of range [%lf, %lf]\n", aL, 0.0001, 1.0001);
-			//exit(-1);
+		#ifdef FLAGS
+			printf("aL = %lf is out of range [%lf, %lf]. Putting aL in bounds\n", aL, 0.0001, 1.0001);
+		#endif
 			aL = fmax(0.0001, fmin(aL, 1.0001));
 		}
 

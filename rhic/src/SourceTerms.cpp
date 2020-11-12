@@ -961,7 +961,9 @@ precision lambda_piTW = 0;
 #ifdef REGULATE_TAU_BULK
 	if(taubulk_inverse < mdmde * edot / (mass * mass))			// enforce taubulk_inverse >= mdot/m
 	{
+	#ifdef FLAGS
 		printf("Regulating tau_bulk\n");
+	#endif
 		taubulk_inverse = mdmde * edot / (mass * mass);
 		taubulk_regulated = 1;
 	}

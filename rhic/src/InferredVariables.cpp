@@ -102,10 +102,12 @@ void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict
 				precision t2A2 = t2 * A * A;
 				precision t2B2 = t2 * B * B;
 
+			#ifdef FLAGS
 				if(1. + t2B2 - t2A2 < 0)
 				{
 					printf("set_inferred_variables_aniso_hydro flag: 1. + t2B2 - t2A2 = %lf is negative\n", 1. + t2B2 - t2A2);
 				}
+			#endif
 
 				// something funny going on here?
 
@@ -114,10 +116,12 @@ void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict
 				precision Ft = t * F;													// [1]
 				precision x = sqrt(fabs(1.  -  Ft * Ft));
 
+			#ifdef FLAGS
 				if(1. -  Ft * Ft < 0)
 				{
 					printf("set_inferred_variables_aniso_hydro flag: x = %lf is imaginary before regulation\n", x);
 				}
+			#endif
 
 				precision zt = Ft / x;					// [1]
 				precision zn = 1. / (x * t);			// [fm^-1]
@@ -181,7 +185,7 @@ void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict
 					exit(-1);
 				}
 
-			// this is old stuff
+			// this is very old stuff (don't use anymore even)
 
 			#ifdef PRINT_TTAUMU_ERROR
 				ut_s = sqrt(1.  +  ux_s * ux_s  +  uy_s * uy_s  +  t2 * un_s * un_s);
@@ -330,10 +334,12 @@ void set_inferred_variables_viscous_hydro(const hydro_variables * const __restri
 					}
 				}
 
-				// if(n > max_iterations)
-				// {
-				// 	printf("newton method (eprev, e_s, |de/e_s|) = (%.6g, %.6g, %.6g) failed to converge within desired percentage tolerance %lf at (i, j, k) = (%d, %d, %d)\n", eprev, e_s, fabs(de / e_s), energy_tolerance, i, j, k);
-				// }
+			#ifdef FLAGS
+				if(n > max_iterations)
+				{
+					printf("newton method (eprev, e_s, |de/e_s|) = (%.6g, %.6g, %.6g) failed to converge within desired percentage tolerance %lf at (i, j, k) = (%d, %d, %d)\n", eprev, e_s, fabs(de / e_s), energy_tolerance, i, j, k);
+				}
+			#endif
 
 			#endif
 

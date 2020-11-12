@@ -5,6 +5,7 @@
 #include <chrono>
 #include "../include/Precision.h"
 #include "../include/Projections.h"
+#include "../include/Marcos.h"
 using namespace std;
 
 inline double canonical(default_random_engine & generator)
@@ -74,7 +75,9 @@ void spatial_projection::test_spatial_projector()
 
 	precision Au = fabs(At * ut  -  Ax * ux  -  Ay * uy  -  t2 * An * un) / (ut * A_mag);
 
-    if(Au > 1.e-12)  printf("test_spatial_projector error: A is not orthogonal to u (%.6g)\n", Au);
+#ifdef FLAGS
+    if(Au > 1.e-12)  printf("test_spatial_projector flag: A is not orthogonal to u (%.6g)\n", Au);
+#endif
 }
 
 
@@ -227,8 +230,10 @@ void double_spatial_projection::test_double_spatial_projector(precision ut, prec
 
 	precision trA = fabs(Att  -  Axx  -  Ayy  -  t2 * Ann) / A_mag;
 
-    if(Au > 1.e-12)  printf("test_double_spatial_projector error: A is not orthogonal to u (%.6g)\n", Au);
-    if(trA > 1.e-12) printf("test_double_spatial_projector error: A is not traceless (%.6g)\n", trA);
+#ifdef FLAGS
+    if(Au > 1.e-12)  printf("test_double_spatial_projector flag: A is not orthogonal to u (%.6g)\n", Au);
+    if(trA > 1.e-12) printf("test_double_spatial_projector flag: A is not traceless (%.6g)\n", trA);
+ #endif
 }
 
 
@@ -290,8 +295,10 @@ void transverse_projection::test_transverse_projector()
 	precision Au = fabs(At * ut  -  Ax * ux  -  Ay * uy  -  t2 * An * un);
 	precision Az = fabs(At * zt  -  t2 * An * zn);
 
-    if(Au > 1.e-14)  printf("test_transverse_projector error: A is not orthogonal to u (%.6g)\n", Au);
-    if(Az > 1.e-14)  printf("test_transverse_projector error: A is not orthogonal to z (%.6g)\n", Az);
+#ifdef FLAGS
+    if(Au > 1.e-14)  printf("test_transverse_projector flag: A is not orthogonal to u (%.6g)\n", Au);
+    if(Az > 1.e-14)  printf("test_transverse_projector flag: A is not orthogonal to z (%.6g)\n", Az);
+#endif
 }
 
 
@@ -489,9 +496,11 @@ void double_transverse_projection::test_double_transverse_projector(precision ut
 
     precision eps = 1.e-14;
 
-    if(Au > eps)  printf("test_double_transverse_projector error: A is not orthogonal to u (%.6g)\n", Au);
-    if(Az > eps)  printf("test_double_transverse_projector error: A is not orthogonal to z (%.6g)\n", Az);
-    if(trA > eps) printf("test_double_transverse_projector error: A is not traceless (%.6g)\n", trA);
+#ifdef FLAGS
+    if(Au > eps)  printf("test_double_transverse_projector flag: A is not orthogonal to u (%.6g)\n", Au);
+    if(Az > eps)  printf("test_double_transverse_projector flag: A is not orthogonal to z (%.6g)\n", Az);
+    if(trA > eps) printf("test_double_transverse_projector flag: A is not traceless (%.6g)\n", trA);
+#endif
 }
 
 

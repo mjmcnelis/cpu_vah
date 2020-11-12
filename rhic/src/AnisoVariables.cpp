@@ -323,7 +323,9 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 
 	if(Ea < 0 || PTa < 0 || PLa < 0)
 	{
-		//printf("find_anisotropic_variables error: (E_a, PT_a, PL_a) = (%lf, %lf, %lf) is negative\n", Ea, PTa, PLa);
+	#ifdef FLAGS
+		printf("find_anisotropic_variables flag: (E_a, PT_a, PL_a) = (%lf, %lf, %lf) is negative\n", Ea, PTa, PLa);
+	#endif
 
 		aniso_variables variables;
 		variables.lambda = lambda_0;
@@ -446,7 +448,9 @@ aniso_variables find_anisotropic_variables(precision e, precision pl, precision 
 
 	}	// newton iteration (n)
 
-	//printf("find_anisotropic_variables error: number of iterations on (lambda_0, aT_0, aL_0) = (%lf, %lf, %lf) exceed maximum (%lf, %lf, %lf)\n", lambda_0, aT_0, aL_0, X[0], X[1], X[2]);
+#ifdef FLAGS
+	printf("find_anisotropic_variables flag: exceeded max number of iterations on (lambda_0, aT_0, aL_0) = (%lf, %lf, %lf) --> X = (%lf, %lf, %lf)\n", lambda_0, aT_0, aL_0, X[0], X[1], X[2]);
+#endif
 
 	aniso_variables variables;
 	variables.lambda = lambda_0;

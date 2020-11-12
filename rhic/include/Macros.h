@@ -69,6 +69,8 @@
 
 //#define PRINT_PARAMETERS		// option to print parameters
 
+#define FLAGS					// option to print warnings that could repeat during runtime (doesn't include nans or exit(-1) errors)
+
 #define FREEZEOUT_SIZE			// output maximum radius of freezeout surface
 
 #define FREEZEOUT_SLICE			// output tau-x and/or tau-eta slice up to tau = 17 fm (comment for real runs)
