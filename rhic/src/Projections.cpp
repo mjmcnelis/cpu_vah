@@ -5,7 +5,7 @@
 #include <chrono>
 #include "../include/Precision.h"
 #include "../include/Projections.h"
-#include "../include/Marcos.h"
+#include "../include/Macros.h"
 using namespace std;
 
 inline double canonical(default_random_engine & generator)
