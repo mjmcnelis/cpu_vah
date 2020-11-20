@@ -35,7 +35,7 @@ Results from the simulation are stored in `output`\
 Semi-analytic solutions (e.g. Bjorken and Gubser) are stored in `semi_analytic`
 
 The above script clears the previous results prior to compiling.\
-Alternatively, the user can clear the results once by doing
+Alternatively, you can clear the results once by doing
 
     sh clear_results.sh
     make clean
@@ -48,9 +48,34 @@ Alternatively, the user can clear the results once by doing
 This routine is often used by the job submissions in `scripts/`
 
 
+## Makefiles
+
+By default, the Makefile uses the `gcc` compiler (assumes no openmp support).\
+Alternatively, you could use the `icpc` compiler (assumes openmp support)
+
+The two Makefiles are stored in `makefiles`; to switch them out do
+
+    sh makefiles.sh icpc    (or gcc)
+    
+
+# Installation
+
+Both Makefiles assume the GSL libaries `-lgsl` and `-lgslcblas` are installed\
+The Makefile with the Intel compiler assumes the OpenMP library `-qopenmp` is installed
+
+To compile with the `icpc` compiler, install `intel/19.0.3`\
+To run the python3 scripts (i.e. sample model parameters and train auto-grid), install `python/3.6` 
+
+To run CPU VAH with the Intel compiler on the Ohio State Supercomputer (OSC), do
+    
+    sh makefile.sh icpc
+    module load python/3.6
+    module load intel/19.0.3
+
+
 ## Runtime parameters
 
-The user can edit the runtime `parameters`
+You can edit the runtime `parameters`
 
     hydro.properties
     initial.properties
@@ -102,7 +127,7 @@ or simply run the executable
 
 ## Macro parameters
 
-The user can edit the macros in `rhic/include`
+You can edit the macros in `rhic/include`
 
     Macros.h
     OpenMP.h
