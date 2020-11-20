@@ -1,7 +1,7 @@
 CPU VAH (c) Mike McNelis and Dennis Bazow
 
-Date created:   10/2015      (Dennis Bazow)\
-Last edited:    11/2020     (Mike McNelis)\
+Date created:   10/2015     (Dennis Bazow)\
+Last edited:    11/2020     (Mike McNelis)
 
 
 ## Summary
