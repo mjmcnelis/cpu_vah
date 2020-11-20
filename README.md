@@ -59,7 +59,7 @@ The most important runtime parameters to adjust are
     kinetic_theory_model = 0, 1    0 to run VH2; 1 to run VH (also need comment macro ANISO_HYDRO)
     
 
-The impact parameter *b* and Bayesian model parameters *P<sub>B</sub>* can be replaced during runtime.\
+The Bayesian model parameters *P<sub>B</sub>* can be replaced during runtime.\
 To generate *s* model parameter samples, go to `scripts/auto_grid` and do
 
     sh sample_model_parameters.sh s        
