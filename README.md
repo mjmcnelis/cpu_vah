@@ -54,7 +54,7 @@ The user can edit the runtime `parameters`
     initial.properties
     lattice.properties
 
-The impact parameter `b` and Bayesian model parameters `P` can be replaced during runtime.\
+The impact parameter `b` and Bayesian model parameters `P<sub>B</sub>` can be replaced during runtime.\
 To generate `<s>` model parameter samples, go to `scripts/auto_grid` and do
 
     sh sample_model_parameters.sh <s>        
