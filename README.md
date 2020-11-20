@@ -32,7 +32,7 @@ Results from the simulation are stored in `output`\
 Semi-analytic solutions (e.g. Bjorken and Gubser) are stored in `semi_analytic`
 
 The above script clears the previous results prior to compiling.\
-Alternatively, the user can the clear results once by doing
+Alternatively, the user can clear the results once by doing
 
     sh clear_results.sh
     make clean
