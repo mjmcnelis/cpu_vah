@@ -7,7 +7,8 @@ Last edited on 11/2020 by Mike McNelis
 ## Summary
 A 3+1d relativistic hydrodynamic simulation for heavy-ion collisions
 
-The C++ module is based off the hydrodynamic code GPU VH and runs three hydrodynamic models with shear and bulk viscosity
+The C++ module is based off the hydrodynamic code GPU VH
+The code can run three hydrodynamic models with shear and bulk viscosity
 
     VAH = anisotropic hydrodynamics
     VH  = quasiparticle second-order viscous hydrodynamics
