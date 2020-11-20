@@ -59,9 +59,9 @@ You can switch out the Makefile by doing
 ## Installation
 
 You need to install the GSL libaries `-lgsl` and `-lgslcblas`\
-The `icpc` Makefile assumes the OpenMP library `-qopenmp` is installed
+The `icpc` compiler assumes the OpenMP library `-qopenmp` is installed
 
-To compile with the `icpc` compiler, install `intel/19.0.3`\
+To use the `icpc` compiler, install `intel/19.0.3`\
 To run the python3 scripts (i.e. sample model parameters and train auto-grid), install `python/3.6` 
 
 To run CPU VAH with the Intel compiler on the Ohio State Supercomputer (OSC), do
