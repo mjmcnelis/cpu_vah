@@ -28,8 +28,21 @@ To compile and run `<n>` hydro events with default runtime `parameters`
 
     sh hydro.sh <n>     
 
-Simulation results are stored in `output`\
+Simulation results are stored in `output` (previous results are cleared) 
 Bjorken and Gubser 0+1d solutions are stored in `semi_analytic`
+
+The script `sh hydro.sh` automatically clears the previous results\
+Alternatively, the user can the clear results once by running
+
+    sh clear_results.sh
+    make clean
+    make
+    for((i = 1; i <= N; i++))   # N = number of events
+    do
+        ./cpu_vah   # or submit your job
+    done
+    
+This routine is often used by the job submissions in `scripts/`
 
 
 ## Runtime parameters
@@ -47,7 +60,7 @@ To generate `<s>` model parameter samples
     
 The model parameter samples are stored in `python/model_parameters`
 
-Then run `<n>` hydro events with `model_parameters_<p>.dat`  (`<p> ∈ [1, <s>]`)
+Then run `<n>` hydro events with `model_parameters_<p>.dat  (<p> ∈ [1, <s>])`
 
     sh hydro.sh <n> <p>    
 
