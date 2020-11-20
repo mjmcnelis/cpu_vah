@@ -29,10 +29,10 @@ To compile and run `<n>` hydro events with default runtime `parameters`
 
     sh hydro.sh <n>     
 
-Simulation results are stored in `output`\
-Bjorken and Gubser 0+1d solutions are stored in `semi_analytic`
+Results from the simulation are stored in `output`\
+Semi-analytic solutions (e.g. Bjorken and Gubser) are stored in `semi_analytic`
 
-The above script automatically clears the previous results\
+The above script clears the previous results prior to compiling.\
 Alternatively, the user can the clear results once by doing
 
     sh clear_results.sh
@@ -48,16 +48,16 @@ This routine is often used by the job submissions in `scripts/`
 
 ## Runtime parameters
 
-User can edit the runtime `parameters`
+The user can edit the runtime `parameters`
 
     hydro.properties
     initial.properties
     lattice.properties
 
-The impact parameter `b` and Bayesian model parameters `P_B` can be replaced during runtime\
-To generate `<s>` model parameter samples
+The impact parameter `b` and Bayesian model parameters `P` can be replaced during runtime.\
+To generate `<s>` model parameter samples, go to `scripts/auto_grid` and do
 
-    sh generate_model_parameter <s>         (scripts/auto_grid)
+    sh sample_model_parameters.sh <s>        
     
 The model parameter samples are stored in `python/model_parameters`
 
@@ -65,14 +65,32 @@ Then run `<n>` hydro events with `model_parameters_<p>.dat  (<p> ∈ [1, <s>])`
 
     sh hydro.sh <n> <p>    
 
+or simply run the executable
+
+    ./cpu_vah <p>
+
 
 ## Macro parameters
 
+The user can edit the in `rhic/include`
 
-Source and header files are located in `rhic`
+    Macros.h
+    OpenMP.h
+    
+The most important parameters to adjust are
+    
+    BOOST_INVARIANT  (run 2+1d hydro, comment to run 3+1d hydro)
+    #CONFORMAL_EOS   (comment to use the QCD equation of state)
+    
+    OPENMP           (run simulation with OpenMP acceleration)
 
-Macro parameters are located in rhic/include/Marcos.h
+## Files
 
-Option for OpenMP acceleration is located in rhic/include/OpenMP.h
+The C++ source and header files are located in `rhic`
+
+
+## Tests
+
+
 
 Python files for training automated grid are located in python/
