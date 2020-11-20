@@ -2,31 +2,32 @@ CPU VAH (c) Mike McNelis and Dennis Bazow
 
 A 3+1d relativistic hydrodynamic simulation for heavy ion collisions
 
-
-Code can run three different hydrodynamic models with shear and bulk viscosity:
+Code can run three hydrodynamic models with shear and bulk viscosity:
 
     VAH = anisotropic hydrodynamics
     VH  = quasiparticle viscous hydrodynamics
     VH2 = standard viscous hydrodynamics
 
 
-## Compile
-To run a single hydro event with default `parameters`
+## Compile and 
+To compile run a `<n>` hydro events with default runtime `parameters`
 
-    sh hydro.sh 1
+    sh hydro.sh <n>
 
-## Usage 
+Or run `<n>` hydro events with sampled model parameters
 
-To run iS3D
+Simulation results are stored in `output` 
+Bjorken and Gubser mode and `semi_analytic` for 0+1d Bjorken and Gubser solutions)
 
-    ./iS3D
+## Runtime parameters
 
-or
+User can edit runtime `parameters`
 
-    sh runCPU.sh <num_threads>
+        hydro.properties
+        initial.properties
+        lattice.properties
 
 
-Results are stored in `output`
 
 
 
