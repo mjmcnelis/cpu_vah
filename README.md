@@ -55,8 +55,8 @@ The user can edit the runtime `parameters`
     
 The most important runtime parameters to adjust are
 
-    run_hydro = 2                  construct the freezeout surface
-    kinetic_theory_model = 0, 1    run VH2 or VH, respectively (also need comment macro ANISO_HYDRO)
+    run_hydro = 1, 2               1 to output hydrodynamic quantites; 2 to construct the freezeout surface
+    kinetic_theory_model = 0, 1    0 to run VH2; 1 to run VH (also need comment macro ANISO_HYDRO)
     
 
 The impact parameter *b* and Bayesian model parameters *P<sub>B</sub>* can be replaced during runtime.\
