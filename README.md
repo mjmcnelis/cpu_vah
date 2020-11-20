@@ -1,4 +1,4 @@
-**CPU VAH** (c) Mike McNelis and Dennis Bazow
+**CPU VAH (c) Mike McNelis and Dennis Bazow**
 
 Created on 10/2015 by Dennis Bazow\
 Last edited on 11/2020 by Mike McNelis
@@ -6,9 +6,7 @@ Last edited on 11/2020 by Mike McNelis
 ## Summary
 A 3+1d relativistic hydrodynamic simulation for heavy-ion collisions
 
-The C++ module is based off the hydrodynamic code GPU VH
-
-    git clone https://github.com/bazow/gpu-vh.git
+The C++ module is based off the hydrodynamic code [GPU VH](https://github.com/bazow/gpu-vh.git)
     
 CPU VAH can run three hydrodynamic models with shear and bulk viscosity
 
@@ -50,18 +48,18 @@ This routine is often used by the job submissions in `scripts/`
 
 ## Makefiles
 
-By default, the Makefile uses the `gcc` compiler (assumes no openmp support).\
-Alternatively, you could use the `icpc` compiler (assumes openmp support)
+By default, the Makefile uses the `gcc` compiler (assumes no OpenMP support).\
+Alternatively, you could use the `icpc` compiler (assumes OpenMP support)
 
-The two Makefiles are stored in `makefiles`; to switch them out do
+You can switch out the Makefile by doing
 
     sh makefiles.sh icpc    (or gcc)
     
 
-# Installation
+## Installation
 
-Both Makefiles assume the GSL libaries `-lgsl` and `-lgslcblas` are installed\
-The Makefile with the Intel compiler assumes the OpenMP library `-qopenmp` is installed
+You need to install the GSL libaries `-lgsl` and `-lgslcblas`\
+The `icpc` Makefile assumes the OpenMP library `-qopenmp` is installed
 
 To compile with the `icpc` compiler, install `intel/19.0.3`\
 To run the python3 scripts (i.e. sample model parameters and train auto-grid), install `python/3.6` 
@@ -88,7 +86,8 @@ The most important runtime parameters to adjust are
                                         
     kinetic_theory_model                0 to run VH2 (comment macro ANISO_HYDRO)
                                         1 to run VH  (comment macro ANISO_HYDRO)
-      
+    
+    ---------------------------------------------------------------------------------
       
     initial_condition_type              4 to run a smooth or fluctuating Trento initial condition (only for Pb+Pb at sqrt(s) = 2.76 TeV)
                                         5 to read in energy density profile from file (tables/e_block.dat)
@@ -101,8 +100,18 @@ The most important runtime parameters to adjust are
     
     trento_fixed_seed                   0 to set seed = clocktime
                                         x > 0 to fix seed = x (e.g. 1000)
-        
-        
+    
+    ---------------------------------------------------------------------------------
+    
+    number_of_points_x                  (and similarly for y, eta)
+    
+    lattice_spacing_x                   (and similarly for y, eta)
+    
+    resolve_
+    
+    auto_grid                           0 to use the customized spatial grid above
+                                        1 to automate the transverse grid lengths (need to run sh.predict_fireball_radius.sh)
+    
     adaptive_time_step                  0 to set time step to fixed_time_step
                                         1 to use adaptive time step
     
