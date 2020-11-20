@@ -52,6 +52,11 @@ The user can edit the runtime `parameters`
     hydro.properties
     initial.properties
     lattice.properties
+    
+Important runtime parameters
+    hydro_mode = 2                  (
+    kinetic_theory_model = 0, 1     run VH2 or VH (also need comment macro ANISO_HYDRO)
+    
 
 The impact parameter *b* and Bayesian model parameters *P<sub>B</sub>* can be replaced during runtime.\
 To generate *s* model parameter samples, go to `scripts/auto_grid` and do
@@ -60,7 +65,7 @@ To generate *s* model parameter samples, go to `scripts/auto_grid` and do
     
 The model parameter samples are stored in `python/model_parameters`
 
-Then run *n* hydro events with `model_parameters_p.dat`  (*p ∈ [1, s]*)
+Then run *n* hydro events with `model_parameters_p.dat`  (*p* ∈ [1, *s*])
 
     sh hydro.sh n p    
 
@@ -71,17 +76,19 @@ or simply run the executable
 
 ## Macro parameters
 
-The user can edit the in `rhic/include`
+The user can edit the macros in `rhic/include`
 
     Macros.h
     OpenMP.h
     
-The most important parameters to adjust are
+The most important macros to adjust are
     
-    BOOST_INVARIANT  (run 2+1d hydro, comment to run 3+1d hydro)
-    #CONFORMAL_EOS   (comment to use the QCD equation of state)
+    ANISO_HYDRO     (run anisotropic hydro, comment to run second-order viscous hydro)
+    BOOST_INVARIANT (run 2+1d hydro, comment to run 3+1d hydro)
+    CONFORMAL_EOS   (comment to use QCD equation of state)
+    JETSCAPE        (store the freezeout surface)
     
-    OPENMP           (run simulation with OpenMP acceleration)
+    OPENMP          (accelerate simulation with OpenMP)
 
 ## Files
 
