@@ -53,9 +53,10 @@ The user can edit the runtime `parameters`
     initial.properties
     lattice.properties
     
-Important runtime parameters
-    hydro_mode = 2                  (
-    kinetic_theory_model = 0, 1     run VH2 or VH (also need comment macro ANISO_HYDRO)
+The most important runtime parameters to adjust are
+
+    run_hydro = 2                  construct the freezeout surface
+    kinetic_theory_model = 0, 1    run VH2 or VH (also need comment macro ANISO_HYDRO)
     
 
 The impact parameter *b* and Bayesian model parameters *P<sub>B</sub>* can be replaced during runtime.\
