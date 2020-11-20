@@ -1,7 +1,7 @@
 CPU VAH (c) Mike McNelis and Dennis Bazow
 
-Date created:   10/2015      (Dennis Bazow)
-Last edited:    11/2020     (Mike McNelis)
+Date created:   10/2015      (Dennis Bazow)__
+Last edited:    11/2020     (Mike McNelis)__
 
 
 ## Summary
@@ -28,8 +28,7 @@ To generate model parameter samples run in `scripts/auto_grid`
     sh hydro.sh <n> <p>         
 
 
-Simulation results are stored in `output` 
-
+Simulation results are stored in `output`__
 Bjorken and Gubser 0+1d solutions are stored in `semi_analytic`
 
 
