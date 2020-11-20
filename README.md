@@ -1,18 +1,26 @@
 CPU VAH (c) Mike McNelis and Dennis Bazow
 
-Date created:   10/2015     (Dennis Bazow)\
-Last edited:    11/2020     (Mike McNelis)
+Created on 10/2015 by Dennis Bazow\
+Last edited on 11/2020 Mike McNelis
 
 
 ## Summary
 A 3+1d relativistic hydrodynamic simulation for heavy-ion collisions
 
-Code can run three hydrodynamic models with shear and bulk viscosity
+The C++ module is based off the hydrodynamic code GPU VH but runs three hydrodynamic models with shear and bulk viscosity
 
     VAH = anisotropic hydrodynamics
-    VH  = quasiparticle viscous hydrodynamics
-    VH2 = standard viscous hydrodynamics
+    VH  = quasiparticle second-order viscous hydrodynamics
+    VH2 = standard second-order viscous hydrodynamics
 
+
+## References
+
+If you use this code, please cite the following papers
+
+     D. Bazow, U. Heinz and M. Strickland, Comput. Phys. Commun. 225 (2018) 92-113    
+     M. McNelis, D. Bazow and U. Heinz, Phys. Rev. C 97, 054912 (2018)
+     D. P. Bazow, Fluid dynamics for the anisotropically expanding quark gluon plasma, Ph.D. thesis (2017)
 
 
 ## Compile and run
