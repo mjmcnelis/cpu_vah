@@ -1,4 +1,4 @@
-CPU VAH (c) Mike McNelis and Dennis Bazow
+**CPU VAH** (c) Mike McNelis and Dennis Bazow
 
 Created on 10/2015 by Dennis Bazow\
 Last edited on 11/2020 by Mike McNelis
@@ -24,9 +24,9 @@ If you use this code, please cite the following papers
 
 
 ## Compile and run
-To compile and run `<n>` hydro events with default runtime `parameters`
+To compile and run *n* hydro events with default runtime `parameters`
 
-    sh hydro.sh <n>     
+    sh hydro.sh n  
 
 Results from the simulation are stored in `output`\
 Semi-analytic solutions (e.g. Bjorken and Gubser) are stored in `semi_analytic`
@@ -53,20 +53,20 @@ The user can edit the runtime `parameters`
     initial.properties
     lattice.properties
 
-The impact parameter `b` and Bayesian model parameters P<sub>B</sub> can be replaced during runtime.\
-To generate `<s>` model parameter samples, go to `scripts/auto_grid` and do
+The impact parameter *b* and Bayesian model parameters *P<sub>B</sub>* can be replaced during runtime.\
+To generate *s* model parameter samples, go to `scripts/auto_grid` and do
 
-    sh sample_model_parameters.sh <s>        
+    sh sample_model_parameters.sh s        
     
 The model parameter samples are stored in `python/model_parameters`
 
-Then run `<n>` hydro events with `model_parameters_<p>.dat  (<p> ∈ [1, <s>])`
+Then run *n* hydro events with `model_parameters_p.dat`  (*p ∈ [1, s]*)
 
-    sh hydro.sh <n> <p>    
+    sh hydro.sh n p    
 
 or simply run the executable
 
-    ./cpu_vah <p>
+    ./cpu_vah p
 
 
 ## Macro parameters
