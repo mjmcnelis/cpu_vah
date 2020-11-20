@@ -7,7 +7,10 @@ Last edited on 11/2020 by Mike McNelis
 A 3+1d relativistic hydrodynamic simulation for heavy-ion collisions
 
 The C++ module is based off the hydrodynamic code GPU VH\
-The code can run three hydrodynamic models with shear and bulk viscosity
+
+    [GitHub](http://github.com)
+    
+CPU VAH can run three hydrodynamic models with shear and bulk viscosity
 
     VAH = anisotropic hydrodynamics
     VH  = second-order viscous hydrodynamics (quasiparticle)
@@ -20,7 +23,7 @@ If you use this code, please cite the following papers
 
      D. Bazow, U. Heinz and M. Strickland, Comput. Phys. Commun. 225 (2018) 92-113    
      M. McNelis, D. Bazow and U. Heinz, Phys. Rev. C 97, 054912 (2018)
-     D. P. Bazow, Fluid dynamics for the anisotropically expanding quark gluon plasma, Ph.D. thesis (2017)
+     D.P. Bazow, Fluid dynamics for the anisotropically expanding quark gluon plasma, Ph.D. thesis (2017)
 
 
 ## Compile and run
@@ -37,9 +40,9 @@ Alternatively, the user can clear the results once by doing
     sh clear_results.sh
     make clean
     make
-    for((i = 1; i <= N; i++))   # N = number of events
+    for((i = 1; i <= n; i++))   # n = number of events (or jobs)
     do
-        ./cpu_vah   # or submit your job
+        ./cpu_vah               # or submit your job
     done
     
 This routine is often used by the job submissions in `scripts/`
