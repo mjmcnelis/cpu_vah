@@ -3,7 +3,6 @@ CPU VAH (c) Mike McNelis and Dennis Bazow
 Created on 10/2015 by Dennis Bazow\
 Last edited on 11/2020 by Mike McNelis
 
-
 ## Summary
 A 3+1d relativistic hydrodynamic simulation for heavy-ion collisions
 
@@ -54,7 +53,7 @@ The user can edit the runtime `parameters`
     initial.properties
     lattice.properties
 
-The impact parameter `b` and Bayesian model parameters `P<sub>B</sub>` can be replaced during runtime.\
+The impact parameter `b` and Bayesian model parameters P<sub>B</sub> can be replaced during runtime.\
 To generate `<s>` model parameter samples, go to `scripts/auto_grid` and do
 
     sh sample_model_parameters.sh <s>        
