@@ -89,27 +89,32 @@ The most important runtime parameters to adjust are
     
     ---------------------------------------------------------------------------------
       
-    initial_condition_type              4 to run a smooth or fluctuating Trento initial condition (only for Pb+Pb at sqrt(s) = 2.76 TeV)
+    initial_condition_type              4 to run a smooth or fluctuating Trento initial condition (only for Pb+Pb sqrt(s) = 2.76 TeV)
                                         5 to read in energy density profile from file (tables/e_block.dat)
                                         6 to read in energy density profile from memory (JETSCAPE)
                                         
-    trento_average_over_events          0 to run fluctuating Trento profile (set initial_condition_type = 4)
-                                        1 to run smooth Trento profile (set initial_condition_type = 4)
+    trento_average_over_events          0 to run fluctuating Trento event (set initial_condition_type = 4)
+                                        1 to run smooth Trento event (set initial_condition_type = 4)
                                         
-    trento_number_of_average_events     number of events to average for smooth Trento profile (e.g. 2000)
+    trento_number_of_average_events     number of events to event-average (e.g. 2000)
     
     trento_fixed_seed                   0 to set seed = clocktime
                                         x > 0 to fix seed = x (e.g. 1000)
     
     ---------------------------------------------------------------------------------
     
-    number_of_points_x                  (and similarly for y, eta)
+    number_of_points_x                  number of physical grid points along x-direction (and similarly for y, eta)
     
-    lattice_spacing_x                   (and similarly for y, eta)
+    lattice_spacing_x                   lattice spacing (and similarly for y, eta)
     
-    resolve_
+    resolve_nucleon_width               0 to use customized transverse lattice_spacing_x(y)
+                                        1 to set lattice_spacing_x(y) = w/5 (w = nucleon width parameter)
+                                                                            (transverse grid size is preserved)
     
-    auto_grid                           0 to use the customized spatial grid above
+    training_grid                       0 to use the customized spatial grid
+                                        1 to use the 30 fm x 30 fm transverse grid (for training auto-grid) 
+                                        
+    auto_grid                           0 to use the customized spatial grid
                                         1 to automate the transverse grid lengths (need to run sh.predict_fireball_radius.sh)
     
     adaptive_time_step                  0 to set time step to fixed_time_step
@@ -136,12 +141,12 @@ or simply run the executable
 
 ## Macro parameters
 
-You can edit the macros in `rhic/include`
+You can edit the macro parameters in `rhic/include`
 
     Macros.h
     OpenMP.h
     
-The most important macros to adjust are
+The most important macro parameters to adjust are
     
     ANISO_HYDRO     (run anisotropic hydro, comment to run second-order viscous hydro)
     BOOST_INVARIANT (run 2+1d hydro, comment to run 3+1d hydro)
