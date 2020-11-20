@@ -590,7 +590,7 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro, initial_condi
 		{
 			printf("\nRun hydro simulation on the auto grid\n");
 
-			printf("\nLoading predicted fireball size from python/random_model_parameters/fireball_size_%d.dat\n\n", sample);
+			printf("\nLoading predicted fireball size from python/fireball_size_predictions/fireball_size_%d.dat\n\n", sample);
 
 			FILE * fireball_size;
 			char fname[255];

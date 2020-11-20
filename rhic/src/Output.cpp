@@ -626,6 +626,11 @@ void output_gubser(const hydro_variables * const __restrict__ q, const fluid_vel
 	uxplot    	= fopen(fname3, "w");
 	urplot		= fopen(fname4, "w");
 
+	fprintf(energy,    "%d\n%d\n%d\n", nx, ny, nz);
+	fprintf(plptratio, "%d\n%d\n%d\n", nx, ny, nz);
+	fprintf(uxplot,    "%d\n%d\n%d\n", nx, ny, nz);
+	fprintf(urplot,    "%d\n%d\n%d\n", nx, ny, nz);
+
 	precision t2 = t * t;
 	precision t4 = t2 * t2;
 
@@ -1379,8 +1384,9 @@ void output_b_regulations(const int * const __restrict__ b_regulation, double t,
 }
 
 
-void output_regulations(const int * const __restrict__ regulation, double t, lattice_parameters lattice)
+void output_viscous_regulations(const int * const __restrict__ viscous_regulation, double t, lattice_parameters lattice)
 {
+#ifdef MONITOR_REGULATIONS
 	int nx = lattice.lattice_points_x;
 	int ny = lattice.lattice_points_y;
 	int nz = lattice.lattice_points_eta;
@@ -1389,19 +1395,14 @@ void output_regulations(const int * const __restrict__ regulation, double t, lat
 	precision dy = lattice.lattice_spacing_y;
 	precision dz = lattice.lattice_spacing_eta;
 
-	FILE *regulations;
+	FILE *reg_file;
 	char fname[255];
 
-#ifdef ANISO_HYDRO
-#ifdef LATTICE_QCD
-	sprintf(fname, "output/aniso_regulations_%.3f.dat", t);
-#endif
-#else
 	sprintf(fname, "output/viscous_regulations_%.3f.dat", t);
-#endif
 
-	regulations = fopen(fname, "w");
-	fprintf(regulations, "%d\n%d\n%d\n", nx, ny, nz);
+	reg_file = fopen(fname, "w");
+
+	fprintf(reg_file, "%d\n%d\n%d\n", nx, ny, nz);
 
 	for(int k = 2; k < nz + 2; k++)
 	{
@@ -1417,17 +1418,12 @@ void output_regulations(const int * const __restrict__ regulation, double t, lat
 
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
-			#ifdef ANISO_HYDRO
-			#ifdef LATTICE_QCD
-				fprintf(regulations, "%.2f\t%.2f\t%.2f\t%d\n", x, y, z, aniso_regulation[s]);
-			#endif
-			#else
-				fprintf(regulations, "%.2f\t%.2f\t%.2f\t%d\n", x, y, z, viscous_regulation[s]);
-			#endif
+				fprintf(reg_file, "%.2f\t%.2f\t%.2f\t%d\n", x, y, z, viscous_regulation[s]);
 			}
 		}
 	}
-	fclose(regulations);
+	fclose(reg_file);
+#endif
 }
 
 
@@ -1474,13 +1470,7 @@ void output_dynamical_variables(double t, double dt_prev, lattice_parameters lat
 	#endif
 
 	#ifdef MONITOR_REGULATIONS
-	#ifdef ANISO_HYDRO
-	#ifdef LATTICE_QCD
-		output_regulations(aniso_regulation, t, lattice);
-	#endif
-	#else
-		output_regulations(viscous_regulation, t, lattice);
-	#endif
+		output_viscous_regulations(viscous_regulation, t, lattice);
 	#endif
 	}
 }

@@ -67,27 +67,27 @@
 #define PRINT_HYDRO				// option to print current hydro info at center of grid (comment for no printing)
 #define PRINT_PERIOD 1			// number of steps per print for run_hydro = 3 (leave this defined!)
 
-//#define PRINT_PARAMETERS		// option to print parameters
+#define PRINT_PARAMETERS		// option to print parameters
 
-#define FLAGS					// option to print warnings that could repeat during runtime (doesn't include nans or exit(-1) errors)
+//#define FLAGS					// option to print warnings that could repeat during runtime (doesn't include nans or exit(-1) errors)
 
 #define FREEZEOUT_SIZE			// output maximum radius of freezeout surface
 
-#define FREEZEOUT_SLICE			// output tau-x and/or tau-eta slice up to tau = 17 fm (comment for real runs)
+//#define FREEZEOUT_SLICE			// output tau-x and/or tau-eta slice up to tau = 17 fm (comment for real runs)
 
 #define BENCHMARKS				// output benchmark data (e.g. hydro run time)
 
-#define ADAPTIVE_FILE			// output adaptive time steps
+//#define ADAPTIVE_FILE			// output adaptive time steps
 
 //#define MONITOR_TTAUMU			// output violations of T^{\tau\mu} reproduction in InferredVariables.cpp
 
-#define MONITOR_REGULATIONS		// output regulation of residual shear or shear and bulk
+//#define MONITOR_REGULATIONS		// output regulation of residual shear or shear and bulk
 
 #ifdef ANISO_HYDRO
 	//#define MONITOR_PLPT		// output pl,pt regulation
 
 #ifdef LATTICE_QCD
-	#define MONITOR_B			// output b regulation
+	//#define MONITOR_B			// output b regulation
 #endif
 #endif
 

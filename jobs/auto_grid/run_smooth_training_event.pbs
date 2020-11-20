@@ -1,0 +1,14 @@
+#!/bin/bash -l
+#PBS -l walltime=00:30:00,nodes=1:ppn=1,mem=1gb
+#PBS -j oe
+#PBS -A PAS0254
+
+cd cpu_vah
+
+for((n = 1; n <= $EVENTS; n++))
+do
+	echo
+	echo "Running event $n"
+	./cpu_vah $JOBID
+	echo
+done

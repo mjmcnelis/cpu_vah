@@ -594,15 +594,6 @@ precision lambda_piTW = 0;
 	Xi_2.double_transverse_project_tensor(sTtt, sTtx, sTty, sTtn, sTxx, sTxy, sTxn, sTyy, sTyn, sTnn);
 
 #ifdef VORTICITY
-	// precision wTtx = ( dux_dt  +  dut_dx) / 2.;
-	// precision wTty = ( duy_dt  +  dut_dy) / 2.;
-	// precision wTtn = ( dun_dt  +  dut_dn / t2) / 2.  +  un / t;
-	// precision wTxy = (-dux_dy  +  duy_dx) / 2.;
-	// precision wTxn = (-dun_dx  +  dux_dn / t2) / 2.;
-	// precision wTyn = (-dun_dy  +  duy_dn / t2) / 2.;
-	// probably another class function that speicfically projects vorticity
-	//Xi.project_vorticity(wtt, wtx, wty, wtn, wxx, wxy, wxn, wyy, wyn, wnn);
-
 	// z_\alpha D^\mu u^\alpha
 	precision z_Dt_u =  zt * dut_dt       -  t2zn * dun_dt  -  t * unzn;
 	precision z_Dx_u = -zt * dut_dx       +  t2zn * dun_dx;
@@ -696,17 +687,17 @@ precision lambda_piTW = 0;
 	Inn += lambda_WTpi * (WnTz * z_NabTn_u);
 #endif
 
-	// 2 piT^{\alpha(mu} omegaT^{\nu)}_\alpha
+	// 2 . piT^{\alpha(mu} . omegaT^{\nu)}_\alpha
 #ifdef VORTICITY
 	Itt += 2. * (-pitx * wTtx  -  pity * wTty  -  t2 * pitn * wTtn);
-	Itx += 0;
-	Ity += 0;
-	Itn += 0;
+	Itx += (-pitt * wTtx  -  pixx * wTtx  -  pity * wTxy  -  pixy * wTty  -  t2 * (pitn * wTxn  +  pixn * wTtn));
+	Ity += (-pitt * wTty  +  pitx * wTxy  -  pixy * wTtx  -  piyy * wTty  -  t2 * (pitn * wTyn  +  piyn * wTtn));
+	Itn += (-pitt * wTtn  +  pitx * wTxn  -  pixn * wTtx  +  pity * wTyn  -  piyn * wTty  -  t2 * pinn * wTtn);
 	Ixx += 2. * (-pitx * wTtx  -  pixy * wTxy  -  t2 * pixn * wTxn);
-	Ixy += 0;
-	Ixn += 0;
+	Ixy += (-pitx * wTty  -  pity * wTtx  +  pixx * wTxy  -  piyy * wTxy  -  t2 * (pixn * wTyn  +  piyn * wTxn));
+	Ixn += (-pitx * wTtn  -  pitn * wTtx  +  pixx * wTxn  +  pixy * wTyn  -  piyn * wTxy  -  t2 * pinn * wTxn);
 	Iyy += 2. * (-pity * wTty  +  pixy * wTxy  -  t2 * piyn * wTyn);
-	Iyn += 0;
+	Iyn += (-pity * wTtn  -  pitn * wTty  +  pixy * wTxn  +  pixn * wTxy  +  piyy * wTyn  -  t2 * pinn * wTyn);
 	Inn += 2. * (-pitn * wTtn  +  pixn * wTxn  +  piyn * wTyn);
 #endif
 
@@ -995,7 +986,6 @@ precision lambda_piTW = 0;
 	// }
 
 
-	// I forgot the divergence of Wperp (need to include later)
 	precision db = (beq - b) * taubulk_inverse  -  mdmde * edot * (e_s - 2.*pt - pl - 4.*b) / (mass * mass);	// previous unstable version
 
 
@@ -1380,18 +1370,16 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	precision Inn = - tau_pipi * (pitn * stn  -  pixn * sxn  -  piyn * syn  -  t2 * pinn * snn);
 
 #ifdef VORTICITY
-	printf("source_terms_viscous_hydro error: no vorticity terms yet\n");
-	exit(-1);
-	Itt += 0.;
-	Itx += 0.;
-	Ity += 0.;
-	Itn += 0.;
-	Ixx += 0.;
-	Ixy += 0.;
-	Ixn += 0.;
-	Iyy += 0.;
-	Iyn += 0.;
-	Inn += 0.;
+	Itt += 2. * (-pitx * wtx  -  pity * wty  -  t2 * pitn * wtn);
+	Itx += (-pitt * wtx  -  pixx * wtx  -  pity * wxy  -  pixy * wty  -  t2 * (pitn * wxn  +  pixn * wtn));
+	Ity += (-pitt * wty  +  pitx * wxy  -  pixy * wtx  -  piyy * wty  -  t2 * (pitn * wyn  +  piyn * wtn));
+	Itn += (-pitt * wtn  +  pitx * wxn  -  pixn * wtx  +  pity * wyn  -  piyn * wty  -  t2 * pinn * wtn);
+	Ixx += 2. * (-pitx * wtx  -  pixy * wxy  -  t2 * pixn * wxn);
+	Ixy += (-pitx * wty  -  pity * wtx  +  pixx * wxy  -  piyy * wxy  -  t2 * (pixn * wyn  +  piyn * wxn));
+	Ixn += (-pitx * wtn  -  pitn * wtx  +  pixx * wxn  +  pixy * wyn  -  piyn * wxy  -  t2 * pinn * wxn);
+	Iyy += 2. * (-pity * wty  +  pixy * wxy  -  t2 * piyn * wyn);
+	Iyn += (-pity * wtn  -  pitn * wty  +  pixy * wxn  +  pixn * wxy  +  piyy * wyn  -  t2 * pinn * wyn);
+	Inn += 2. * (-pitn * wtn  +  pixn * wxn  +  piyn * wyn);
 #endif
 
 	Delta_2.double_spatial_project_tensor(Itt, Itx, Ity, Itn, Ixx, Ixy, Ixn, Iyy, Iyn, Inn);

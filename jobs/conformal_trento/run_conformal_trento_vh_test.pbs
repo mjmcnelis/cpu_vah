@@ -1,0 +1,15 @@
+#!/bin/bash -l
+#PBS -l walltime=00:10:00,nodes=1:ppn=28
+#PBS -j oe
+#PBS -A PAS0254
+cd cpu_vah
+
+export OMP_NUM_THREADS=28
+set OMP_NUM_THREADS 28
+
+./cpu_vah
+
+cp -r output/adaptive tests/conformal_trento/data/vh
+
+cd tests/conformal_trento/data/vh
+make

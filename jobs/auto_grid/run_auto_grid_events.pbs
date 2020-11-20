@@ -1,0 +1,17 @@
+#!/bin/bash -l
+#PBS -l walltime=24:00:00,nodes=1:ppn=1,mem=1gb
+#PBS -j oe
+#PBS -A PAS0254
+
+cd cpu_vah
+
+for((n = 1; n <= $EVENTS; n++))
+do
+	echo
+	echo "Running event $n"
+	./cpu_vah $JOBID
+	echo
+done
+
+cp output/benchmarks/benchmarks_$JOBID.dat tests/auto_grid/benchmark_test/auto_grid/$HYDRO/benchmarks
+cp output/fireball_radius/fireball_radius_$JOBID.dat tests/auto_grid/benchmark_test/auto_grid/$HYDRO/fireball_radius

@@ -9,12 +9,11 @@ COMPILER       = gcc
 DEBUG          =
 OPTIMIZATION   = -O3
 FLOWTRACE      =
-OPTIONS        =
+OPTIONS        = -std=c++11
 LINK_OPTIONS   =
-CFLAGS         = -std=c++11 $(DEBUG) $(OPTIMIZATION) $(FLOWTRACE) $(OPTIONS)
+CFLAGS         = $(DEBUG) $(OPTIMIZATION) $(FLOWTRACE) $(OPTIONS)
 
 LIBS     = -L /usr/local/lib -lm -lgsl -lgslcblas -lc++
-#LIBS     = -L /usr/local/lib -lm -lgsl -lgslcblas
 INCLUDES = -I /usr/local/include -I rhic/include
 
 CPP := $(shell find $(DIR_SRC) -name '*.cpp')
@@ -30,14 +29,6 @@ $(DIR_OBJ)%.o: $(DIR_SRC)%.cpp
 	@[ -d $(DIR_OBJ) ] || find rhic -type d -exec mkdir -p ./build/{} \;
 	@echo "Compiling: $< ($(COMPILER))"
 	$(COMPILER) $(CFLAGS) $(INCLUDES) -c -o $@ $<
-
-#hydro: $(EXE)
-#	echo "Running hydro: $(EXE)"
-#	rm -rf output
-#	mkdir output
-#	rm -rf semi_analytic
-#	mkdir semi_analytic
-#	$(DIR_MAIN)$(EXE)
 
 clean:
 	@echo "Object files and executable deleted"

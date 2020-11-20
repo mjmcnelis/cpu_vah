@@ -1,4 +1,5 @@
-# cpu_vah
+# CPU VAH (c) Mike McNelis and Dennis Bazow
+
 A 3+1d relativistic viscous hydrodynamic simulation for heavy ion collisions
 
 Code can run three different hydrodynamic models with shear and bulk viscosity:
@@ -17,4 +18,4 @@ Macro parameters are located in rhic/include/Marcos.h
 
 Option for OpenMP acceleration is located in rhic/include/OpenMP.h
 
-Python files for training auto grid are located in python/
+Python files for training automated grid are located in python/

@@ -210,7 +210,11 @@ void print_hydro_center(int n, double t, lattice_parameters lattice, hydro_param
 	printf("\t%d\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.1f%%\t|\t%.1f%%\t|\n", n, t, T, e_s, p, pl, pt, e_max, percent_aniso_reg, percent_above_Tsw);
 #else
 
+#ifdef MONITOR_REGULATIONS
 	double percent_viscous_reg = 100. * (double)compute_total_regulations(viscous_regulation, lattice) / (double)(nx * ny * nz);
+#else
+	double percent_viscous_reg = sqrt(-1.);		// print nan
+#endif
 
 	printf("\t%d\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.4g\t|\t%.3g\t|\t%.3g\t|\t%.1f%%\t|\t%.1f%%\t|\n", n, t, T, e_s, p, e_max, T_max, gamma_max, percent_viscous_reg, percent_above_Tsw);
 #endif

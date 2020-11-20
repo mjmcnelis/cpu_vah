@@ -523,6 +523,7 @@ void set_aniso_bjorken_initial_condition(int nx, int ny, int nz, initial_conditi
 
 
 	// initialize anisotropic variables
+#ifdef LATTICE_QCD
 	precision lambda0 = T0;														// initial guess
 	precision aT0 = 1.0;
 	precision aL0 = 1.0;
@@ -536,6 +537,7 @@ void set_aniso_bjorken_initial_condition(int nx, int ny, int nz, initial_conditi
 	// printf("lambda  = %lf\n", lambda0);
 	// printf("aT      = %lf\n", aT0);
 	// printf("aL      = %lf\n", aL0);
+#endif
 
 	// leave out openmp for now
 	for(int k = 2; k < nz + 2; k++)

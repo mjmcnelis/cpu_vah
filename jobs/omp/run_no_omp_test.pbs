@@ -1,0 +1,7 @@
+#!/bin/bash -l
+#PBS -l walltime=05:00:00,nodes=1:ppn=1
+#PBS -j oe
+#PBS -A PAS0254
+cd cpu_vah
+
+./cpu_vah

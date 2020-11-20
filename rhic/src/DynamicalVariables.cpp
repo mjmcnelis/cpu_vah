@@ -5,9 +5,9 @@
 #include "../include/Parameters.h"
 
 
-hydro_variables *q, *Q, *qI;
+hydro_variables *q, *Q, *qI;			// fluid dynamic variables
 fluid_velocity *u, *up, *uI;
-precision *e, *lambda, *aT, *aL;
+precision *e, *lambda, *aT, *aL;		// anisotropic variables
 
 #ifdef ANISO_HYDRO
 #ifdef LATTICE_QCD
