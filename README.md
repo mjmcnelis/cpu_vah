@@ -6,9 +6,9 @@ Last edited on 11/2020 by Mike McNelis
 ## Summary
 A 3+1d relativistic hydrodynamic simulation for heavy-ion collisions
 
-The C++ module is based off the hydrodynamic code GPU VH\
+The C++ module is based off the hydrodynamic code GPU VH
 
-    [GitHub](http://github.com)
+    git clone https://github.com/bazow/gpu-vh.git
     
 CPU VAH can run three hydrodynamic models with shear and bulk viscosity
 
@@ -58,8 +58,30 @@ The user can edit the runtime `parameters`
     
 The most important runtime parameters to adjust are
 
-    run_hydro = 1, 2               1 to output hydrodynamic quantites; 2 to construct the freezeout surface
-    kinetic_theory_model = 0, 1    0 to run VH2; 1 to run VH (also need comment macro ANISO_HYDRO)
+    run_hydro                           1 to output hydrodynamic quantites
+                                        2 to construct the freezeout surface
+                                        
+    kinetic_theory_model                0 to run VH2 (comment macro ANISO_HYDRO)
+                                        1 to run VH  (comment macro ANISO_HYDRO)
+      
+      
+    initial_condition_type              4 to run a smooth or fluctuating Trento initial condition (only for Pb+Pb at sqrt(s) = 2.76 TeV)
+                                        5 to read in energy density profile from file (tables/e_block.dat)
+                                        6 to read in energy density profile from memory (JETSCAPE)
+                                        
+    trento_average_over_events          0 to run fluctuating Trento profile (set initial_condition_type = 4)
+                                        1 to run smooth Trento profile (set initial_condition_type = 4)
+                                        
+    trento_number_of_average_events     number of events to average for smooth Trento profile (e.g. 2000)
+    
+    trento_fixed_seed                   0 to set seed = clocktime
+                                        x > 0 to fix seed = x (e.g. 1000)
+        
+        
+    adaptive_time_step                  0 to set time step to fixed_time_step
+                                        1 to use adaptive time step
+    
+    tau_coarse_factor                   number of time steps between freezeout finder calls (e.g. 2)
     
 
 The Bayesian model parameters *P<sub>B</sub>* can be replaced during runtime.\
