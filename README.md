@@ -1,13 +1,13 @@
 CPU VAH (c) Mike McNelis and Dennis Bazow
 
 Created on 10/2015 by Dennis Bazow\
-Last edited on 11/2020 Mike McNelis
+Last edited on 11/2020 by Mike McNelis
 
 
 ## Summary
 A 3+1d relativistic hydrodynamic simulation for heavy-ion collisions
 
-The C++ module is based off the hydrodynamic code GPU VH but runs three hydrodynamic models with shear and bulk viscosity
+The C++ module is based off the hydrodynamic code GPU VH and runs three hydrodynamic models with shear and bulk viscosity
 
     VAH = anisotropic hydrodynamics
     VH  = quasiparticle second-order viscous hydrodynamics
@@ -26,19 +26,10 @@ If you use this code, please cite the following papers
 ## Compile and run
 To compile and run `<n>` hydro events with default runtime `parameters`
 
-    sh hydro.sh <n>
-
-
-Or run `<n>` hydro events with sampled model parameters `<p>` in `python/model_parameters`
-
-To generate model parameter samples run in `scripts/auto_grid`
-
-    sh hydro.sh <n> <p>         
-
+    sh hydro.sh <n>     
 
 Simulation results are stored in `output`\
 Bjorken and Gubser 0+1d solutions are stored in `semi_analytic`
-
 
 
 ## Runtime parameters
@@ -49,24 +40,22 @@ User can edit the runtime `parameters`
     initial.properties
     lattice.properties
 
-The impact parameter `b` and Bayesian model parameters `P_B` can be replaced during runtime
+The impact parameter `b` and Bayesian model parameters `P_B` can be replaced during runtime\
+To generate `<s>` model parameter samples
 
-To generate `<s>` model parameter samples, run in `scripts/auto_grid`
-
-    sh generateh <n> <p>         (note: model parameters are subset of runtime parameters)
+    sh generate_model_parameter <s>         (scripts/auto_grid)
     
 The model parameter samples are stored in `python/model_parameters`
 
-Then run `<n>` hydro events with sampled model parameters `<p> \on [1,s]`
+Then run `<n>` hydro events with `model_parameters_<p>.dat`  (`<p> ∈ [1, <s>]`)
 
+    sh hydro.sh <n> <p>    
 
 
 ## Macro parameters
 
 
 Source and header files are located in `rhic`
-
-
 
 Macro parameters are located in rhic/include/Marcos.h
 
