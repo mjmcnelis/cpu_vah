@@ -28,11 +28,11 @@ To compile and run `<n>` hydro events with default runtime `parameters`
 
     sh hydro.sh <n>     
 
-Simulation results are stored in `output` (previous results are cleared) 
+Simulation results are stored in `output`\
 Bjorken and Gubser 0+1d solutions are stored in `semi_analytic`
 
-The script `sh hydro.sh` automatically clears the previous results\
-Alternatively, the user can the clear results once by running
+The above script automatically clears the previous results\
+Alternatively, the user can the clear results once by doing
 
     sh clear_results.sh
     make clean
