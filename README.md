@@ -1,5 +1,7 @@
 CPU VAH (c) Mike McNelis and Dennis Bazow
 
+
+## Summary
 A 3+1d relativistic hydrodynamic simulation for heavy ion collisions
 
 Code can run three hydrodynamic models with shear and bulk viscosity
@@ -7,6 +9,7 @@ Code can run three hydrodynamic models with shear and bulk viscosity
     VAH = anisotropic hydrodynamics
     VH  = quasiparticle viscous hydrodynamics
     VH2 = standard viscous hydrodynamics
+
 
 
 ## Compile and run
@@ -27,6 +30,7 @@ Simulation results are stored in `output`
 Bjorken and Gubser 0+1d solutions are stored in `semi_analytic`
 
 
+
 ## Runtime parameters
 
 User can edit the runtime `parameters`
@@ -44,6 +48,8 @@ To generate `<s>` model parameter samples, run in `scripts/auto_grid`
 The model parameter samples are stored in `python/model_parameters`
 
 Then run `<n>` hydro events with sampled model parameters `<p> \on [1,s]`
+
+
 
 ## Macro parameters
 
