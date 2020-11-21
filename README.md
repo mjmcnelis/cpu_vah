@@ -32,7 +32,7 @@ To compile and run *n* hydro events with the default runtime `parameters`
 Results from the simulation are stored in `output`\
 Semi-analytic solutions (e.g. Bjorken and Gubser) are stored in `semi_analytic`
 
-The above script is not ideal for multiple jobs because it clears the results prior to compiling. Instead, you can clear the results once by doing
+The above script is not ideal for multiple jobs because it clears `output` prior to compiling. Instead, you can clear `output` once by doing
 
     sh clear_results.sh
     make clean
