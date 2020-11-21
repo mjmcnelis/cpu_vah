@@ -135,7 +135,7 @@ You can replace the impact parameter *b* (if `initial_condition_type = 4`) and B
     
 The model parameter samples are stored in `python/model_parameters`
 
-Then run *n* hydro events with `model_parameters_p.dat`  (*p* ∈ [1, *s*]), do
+To run *n* hydro events with `model_parameters_p.dat`  (*p* ∈ [1, *s*]), do
 
     sh hydro.sh n p    
 
