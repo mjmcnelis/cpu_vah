@@ -63,7 +63,7 @@ The `icpc` compiler assumes the OpenMP library `-qopenmp` is installed.
 To use the `icpc` compiler, install `intel/19.0.3`.\
 To run the python3 scripts, install `python/3.6`.
 
-To run CPU VAH with the Intel compiler on the Ohio State Supercomputer (OSC), do
+To run CPU VAH with the Intel compiler on the Ohio Supercomputer Center (OSC), do
     
     sh makefile.sh icpc
     module load python/3.6
