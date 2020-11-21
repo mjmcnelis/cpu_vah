@@ -8,7 +8,8 @@ eos
 
 
 # tables
-tables/energy_density/lattice_trento/smooth_2d
+tables/energy_density/lattice_trento/fluctuating/small
+tables/energy_density/lattice_trento/fluctuating/large
 
 
 # python
@@ -19,22 +20,30 @@ python/.ipynb_checkpoints
 
 
 # tests/conformal_bjorken
-tests/conformal_bjorken/data/vah
-tests/conformal_bjorken/data/semi_analytic
-
-tests/conformal_bjorken/figures/bjorken_plot.pdf
-tests/conformal_bjorken/figures/bjorken_adaptive.pdf
+tests/conformal_bjorken/data
+tests/conformal_bjorken/bjorken_plot.pdf
+tests/conformal_bjorken/bjorken_adaptive.pdf
 
 
 # tests/conformal_gubser
-tests/conformal_gubser/data/vah
-tests/conformal_gubser/data/semi_analytic
-tests/conformal_gubser/figures/gubser_aniso_test.pdf
-tests/conformal_gubser/figures/gubser_aniso_2d.png
-tests/conformal_gubser/figures/gubser_timestep.pdf
+tests/conformal_gubser/data
+tests/conformal_gubser/gubser_aniso_test.pdf
+tests/conformal_gubser/gubser_aniso_2d.png
+tests/conformal_gubser/gubser_timestep.pdf
 
 
-# tests/omp_test
+# tests/conformal_trento
+tests/conformal_trento/conformal_trento_vah_vh_x_axis.pdf
+tests/conformal_trento/conformal_trento_vah_vh_z_axis.pdf
+tests/conformal_trento/conformal_trento_adaptive.pdf
+
+
+# tests/lattice_bjorken
+tests/lattice_bjorken/data
+tests/lattice_bjorken/nonconformal_bjorken.pdf
+
+
+# tests/omp_test (results need to be automated...)
 tests/omp_test/omp_test.pdf
 
 
@@ -46,3 +55,12 @@ tests/lattice_trento_fluctuating/freezeout/vh/*.dat
 tests/lattice_trento_fluctuating/freezeout/vh2/*.dat
 tests/lattice_trento_fluctuating/initial_profile/*.dat
 tests/lattice_trento_fluctuating/*.png
+
+
+
+
+
+
+
+
+
