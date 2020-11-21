@@ -167,7 +167,9 @@ The most important macro parameters to adjust are
 
 You can run the various tests performed in the code documentation paper in `scripts`
 
-The files and jobs needed to run the tests are located in `tests` and `jobs`, respectively. You will need to copy `tables/example/e_block.dat` to the `initial_profile` directories in `tests`\ (only smooth 2d and 3d Trento energy density profiles are provided)
+The files and jobs needed to run the tests are located in `tests` and `jobs`, respectively
+
+You need to copy `tables/example/e_block.dat` to the `initial_profile` directories in `tests` (only smooth 2d and 3d Trento energy density profiles are provided). You also need to edit the project number in `jobs`
 
 Results from the test runs are stored in `tests`
 
