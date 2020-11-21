@@ -25,15 +25,14 @@ If you use this code, please cite the following papers
 
 
 ## Compile and run
-To compile and run *n* hydro events with default runtime `parameters`
+To compile and run *n* hydro events with the default runtime `parameters`
 
     sh hydro.sh n  
 
 Results from the simulation are stored in `output`\
 Semi-analytic solutions (e.g. Bjorken and Gubser) are stored in `semi_analytic`
 
-The above script clears the previous results prior to compiling.\
-Alternatively, you can clear the results once by doing
+The above script clears the previous results prior to compiling. Alternatively, you can clear the results once by doing
 
     sh clear_results.sh
     make clean
@@ -71,7 +70,7 @@ To run CPU VAH with the Intel compiler on the Ohio State Supercomputer (OSC), do
     module load intel/19.0.3
 
 
-## Files
+## Source files
 
 The C++ source and header files are located in `rhic`
 
@@ -120,7 +119,7 @@ The most important runtime parameters to adjust are
                                         1 to use the 30 fm x 30 fm transverse grid (for training auto-grid) 
                                         
     auto_grid                           0 to use the customized spatial grid
-                                        1 to automate the transverse grid lengths (need to run sh.predict_fireball_radius.sh below)
+                                        1 to automate the transverse grid lengths (need to run sh.predict_fireball_radius.sh)
     
     adaptive_time_step                  0 to set time step to fixed_time_step
                                         1 to use adaptive time step
@@ -128,8 +127,7 @@ The most important runtime parameters to adjust are
     tau_coarse_factor                   number of time steps between freezeout finder calls (e.g. 2)
     
 
-The Bayesian model parameters *P<sub>B</sub>* can be replaced during runtime.\
-To generate *s* model parameter samples, go to `scripts/auto_grid` and do
+The Bayesian model parameters *P<sub>B</sub>* can be replaced during runtime. To generate *s* model parameter samples, go to `scripts/auto_grid` and do
 
     sh sample_model_parameters.sh s        
     
@@ -167,23 +165,18 @@ The most important macro parameters to adjust are
 
 You can run the various tests performed in the code documentation paper in `scripts`
 
-The files and jobs needed to run the tests are located in `tests` and `jobs`, respectively.\
-You will need to copy `tables/example/e_block.dat` to the `initial_profile` directories in `tests`\
-    note: only smooth 2d and 3d Trento energy density profiles are provided
+The files and jobs needed to run the tests are located in `tests` and `jobs`, respectively. You will need to copy `tables/example/e_block.dat` to the `initial_profile` directories in `tests`\ (only smooth 2d and 3d Trento energy density profiles are provided)
 
 Results from the test runs are stored in `tests`
 
 
 ## Auto grid
 
-The regression models used for the auto-grid are located in `tests/auto_grid/regression_models`
-To launch them, go to `scripts/auto_grid` and do
+The regression models used for the auto-grid are located in `tests/auto_grid/regression_models`. To launch them, go to `scripts/auto_grid` and do
 
         sh predict_fireball_radius.sh h s
 
-where *h* ∈ [*vah*, *vh*, *vh2*] is hydrodynamic model you wish to run and *s*\
-is the number of model parameter samples (see above). The script generates the\
-`model_parameters` and `fireball_size_predictions` directories in `python`.
+where *h* ∈ [*vah*, *vh*, *vh2*] is hydrodynamic model you wish to run and *s* is the number of model parameter samples (see above). The script generates the `model_parameters` and `fireball_size_predictions` directories in `python`.
 
 Then to use the auto grid, set `auto_grid = 1` in `parameters/lattice.properties` and do (see above)
 
