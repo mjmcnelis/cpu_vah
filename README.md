@@ -46,9 +46,9 @@ Alternatively, you can clear the results once by doing
 This routine is often used by the job submissions in `scripts/`
 
 
-## Makefiles
+## Compiler
 
-By default, the Makefile uses the `gcc` compiler (assumes no OpenMP support).\
+By default, the code uses the `gcc` compiler (assumes no OpenMP support).\
 Alternatively, you could use the `icpc` compiler (assumes OpenMP support)
 
 You can switch out the Makefile by doing
@@ -69,6 +69,11 @@ To run CPU VAH with the Intel compiler on the Ohio State Supercomputer (OSC), do
     sh makefile.sh icpc
     module load python/3.6
     module load intel/19.0.3
+
+
+## Files
+
+The C++ source and header files are located in `rhic`
 
 
 ## Runtime parameters
@@ -148,20 +153,17 @@ You can edit the macro parameters in `rhic/include`
     
 The most important macro parameters to adjust are
     
-    ANISO_HYDRO     (run anisotropic hydro, comment to run second-order viscous hydro)
-    BOOST_INVARIANT (run 2+1d hydro, comment to run 3+1d hydro)
-    CONFORMAL_EOS   (comment to use QCD equation of state)
-    JETSCAPE        (store the freezeout surface)
+    ANISO_HYDRO         (run anisotropic hydro; comment to run second-order viscous hydro)
+    BOOST_INVARIANT     (run 2+1d hydro; comment to run 3+1d hydro)
+    CONFORMAL_EOS       (comment to use QCD equation of state)
+    FREEZEOUT_VH        (write viscous hydrodymamic variables on freezeout surface for iS3D)
+    JETSCAPE            (store the freezeout surface in memory; comment to output surface.dat)
+    FLAGS               (to print warnings during runtime)
+    PRINT_PARAMETERS    (to print the runtime parameters)
     
-    OPENMP          (accelerate simulation with OpenMP)
-
-## Files
-
-The C++ source and header files are located in `rhic`
+    OPENMP              (accelerate simulation with OpenMP)
 
 
 ## Tests
-
-
 
 Python files for training automated grid are located in python/
