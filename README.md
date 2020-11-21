@@ -160,6 +160,7 @@ The most important macro parameters to adjust are
     JETSCAPE            store the freezeout surface in memory for JETSCAPE; comment to output surface.dat
     FLAGS               print warnings during runtime
     PRINT_PARAMETERS    print the runtime parameters
+    
     OPENMP              accelerate simulation with OpenMP
 
 
@@ -169,7 +170,7 @@ You can run the various tests performed in the code documentation paper in `scri
 
 Results from the test runs are stored in `tests`.
 
-You need to copy `tables/example/e_block.dat` to the `initial_profile` directories in `tests`. Because only the smooth 3D Trento energy density profile is provided, you cannot run the `lattice_trento_fluctuating` test unless you rename `lattice_smooth.properties` to `lattice.properties`.
+You need to copy `tables/example/e_block.dat` to the `initial_profile` directories in `tests`. Since only the smooth 3D Trento energy density profile is provided, you cannot run the `lattice_trento_fluctuating` test unless you rename `lattice_smooth.properties` to `lattice.properties`.
 
 You also need to edit the project number in `jobs`.
 
@@ -180,7 +181,7 @@ The regression models used for the auto-grid are located in `tests/auto_grid/reg
 
         sh predict_fireball_radius.sh h s n
 
-where *h* ∈ [*vah*, *vh*, *vh2*] is hydrodynamic model you wish to run, *s* is the number of model parameter samples (see above) and *n* is the number of hydro events per job used to generate the training data (default value is *n = 1*). The script generates the `model_parameters` and `fireball_size_predictions` directories in `python`.
+where *h* ∈ [*vah*, *vh*, *vh2*] is the hydrodynamic model you wish to run, *s* is the number of model parameter samples (see above) and *n* is the number of hydro events per job used to generate the training data (default value is *n = 1*). The script generates the `model_parameters` and `fireball_size_predictions` directories in `python`.
 
 Then to use the auto grid, set `auto_grid = 1` in `parameters/lattice.properties` and do (see above)
 
