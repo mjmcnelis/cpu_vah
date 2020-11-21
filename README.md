@@ -62,7 +62,7 @@ You need to install the GSL libaries `-lgsl` and `-lgslcblas`\
 The `icpc` compiler assumes the OpenMP library `-qopenmp` is installed
 
 To use the `icpc` compiler, install `intel/19.0.3`\
-To run the python3 scripts (i.e. sample model parameters and train auto-grid), install `python/3.6` 
+To run the python3 scripts, install `python/3.6` 
 
 To run CPU VAH with the Intel compiler on the Ohio State Supercomputer (OSC), do
     
@@ -99,7 +99,7 @@ The most important runtime parameters to adjust are
                                         6 to read in energy density profile from memory (JETSCAPE)
                                         
     trento_average_over_events          0 to run fluctuating Trento event (set initial_condition_type = 4)
-                                        1 to run smooth Trento event and store profile in tables/ (set initial_condition_type = 4)
+                                        1 to run smooth Trento event and store initial energy density profile in tables/ (set initial_condition_type = 4)
                                         
     trento_number_of_average_events     number of events to event-average (e.g. 2000)
     
@@ -120,7 +120,7 @@ The most important runtime parameters to adjust are
                                         1 to use the 30 fm x 30 fm transverse grid (for training auto-grid) 
                                         
     auto_grid                           0 to use the customized spatial grid
-                                        1 to automate the transverse grid lengths (need to run sh.predict_fireball_radius.sh)
+                                        1 to automate the transverse grid lengths (need to run sh.predict_fireball_radius.sh below)
     
     adaptive_time_step                  0 to set time step to fixed_time_step
                                         1 to use adaptive time step
@@ -168,12 +168,25 @@ The most important macro parameters to adjust are
 You can run the various tests performed in the code documentation paper in `scripts`
 
 The files and jobs needed to run the tests are located in `tests` and `jobs`, respectively.\
-You will need to copy to `tables/example/e_block.dat` to the `initial_profile` directory in `tests` 
-    - Only 1 smooth Trento profile is provided
+You will need to copy `tables/example/e_block.dat` to the `initial_profile` directories in `tests`\
+    note: only smooth 2d and 3d Trento energy density profiles are provided
 
-Simulation results from the test runs are stored in `tests`
+Results from the test runs are stored in `tests`
 
 
 ## Auto grid
 
-Python files for training automated grid are located in python
+The regression models used for the auto-grid are located in `tests/auto_grid/regression_models`
+To launch them, go to `scripts/auto_grid` and do
+
+        sh predict_fireball_radius.sh h s
+
+where *h* ∈ [*vah*, *vh*, *vh2*] is hydrodynamic model you wish to run and *s*\
+is the number of model parameter samples (see above). The script generates the\
+`model_parameters` and `fireball_size_predictions` directories in `python`.
+
+Then to use the auto grid, set `auto_grid = 1` in `parameters/lattice.properties` and do (see above)
+
+    sh hydro.sh n p 
+
+If you want to re-train the regression models, follow the steps in `scripts/auto_grid.README.txt`
