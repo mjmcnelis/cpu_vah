@@ -1,8 +1,9 @@
-# cpu_vah/
+# cpu_vah
 build
 cpu_vah
 output
 semi_analytic
+eos
 *.DS_Store
 
 
@@ -10,14 +11,14 @@ semi_analytic
 tables/energy_density/lattice_trento/smooth_2d
 
 
-# python/
+# python
 python/model_parameters
 python/fireball_size_predictions
 python/figures
 python/.ipynb_checkpoints
 
 
-# tests/
+# tests
 tests/conformal_bjorken/results
 tests/conformal_gubser/results
 
