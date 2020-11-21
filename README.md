@@ -39,7 +39,7 @@ The above script is not ideal for multiple jobs because it clears `output` prior
     make
     for((i = 1; i <= n; i++))   # n = number of hydro events (or jobs)
     do
-        ./cpu_vah               # or submit your job
+        ./cpu_vah               # executable or submit your job
     done
     
 This routine is often used by the job submissions in `scripts/`
