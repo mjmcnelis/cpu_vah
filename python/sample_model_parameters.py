@@ -17,7 +17,7 @@ def sample_impact_parameter(R):
             return b
 
 samples = 10                       # default number of parameter samples
-R       = 7.0                      # radius of Pb nucleus [fm]
+R       = 7.0                      # assumed radius of Pb nucleus [fm]
 
 if len(sys.argv) > 1:
     samples = int(sys.argv[1])     # overwrite with command argument

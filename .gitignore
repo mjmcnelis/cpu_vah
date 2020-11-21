@@ -10,13 +10,11 @@ other
 # 3d energy density profiles (too much memory)
 tables/examples/*3d.dat
 
+
 # python/
 python/model_parameters
-python/train/model_parameters
-python/train/fireball_radius
 python/fireball_size_predictions
-python/launch_fixed_grid
-python/.ipynb_checkpoints
+python/figures
 
 
 # tests/
