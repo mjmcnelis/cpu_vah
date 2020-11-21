@@ -1,20 +1,20 @@
 # cpu_vah/
 build
+cpu_vah
 output
-cpu-vah
 semi_analytic
 *.DS_Store
-notes
-other
 
-# 3d energy density profiles (too much memory)
-tables/examples/*3d.dat
+
+# tables
+tables/energy_density/lattice_trento/smooth_2d
 
 
 # python/
 python/model_parameters
 python/fireball_size_predictions
 python/figures
+python/.ipynb_checkpoints
 
 
 # tests/
