@@ -168,9 +168,7 @@ The most important macro parameters to adjust are
 
 You can run the various tests performed in the code documentation paper in `scripts`. 
 
-The files and jobs needed to run the tests are located in `tests` and `jobs`, respectively. 
-
-You need to copy `e_block.dat` in `tables` to the appropriate `initial_profile` directory in `tests`. You also need to edit the project number in `jobs`.
+The files and jobs needed to run the tests are located in `tables`, `tests` and `jobs`. You will need to edit the project number in `jobs`.
 
 Results from the test runs are stored in `tests`.
 
