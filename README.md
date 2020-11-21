@@ -32,12 +32,12 @@ To compile and run *n* hydro events with the default runtime `parameters`
 Results from the simulation are stored in `output`\
 Semi-analytic solutions (e.g. Bjorken and Gubser) are stored in `semi_analytic`
 
-The above script clears the previous results prior to compiling. Alternatively, you can clear the results once by doing
+The above script is not ideal for multiple jobs because it clears the results prior to compiling. Instead, you can clear the results once by doing
 
     sh clear_results.sh
     make clean
     make
-    for((i = 1; i <= n; i++))   # n = number of events (or jobs)
+    for((i = 1; i <= n; i++))   # n = number of hydro events (or jobs)
     do
         ./cpu_vah               # or submit your job
     done
