@@ -153,14 +153,14 @@ You can edit the macro parameters in `rhic/include`
     
 The most important macro parameters to adjust are
     
-    ANISO_HYDRO         (run anisotropic hydro; comment to run second-order viscous hydro)
-    BOOST_INVARIANT     (run 2+1d hydro; comment to run 3+1d hydro)
-    CONFORMAL_EOS       (comment to use QCD equation of state)
-    FREEZEOUT_VH        (write viscous hydrodymamic variables on freezeout surface for iS3D)
-    JETSCAPE            (store the freezeout surface in memory for JETSCAPE; comment to output surface.dat)
-    FLAGS               (print warnings during runtime)
-    PRINT_PARAMETERS    (print the runtime parameters)
-    OPENMP              (accelerate simulation with OpenMP)
+    ANISO_HYDRO         run anisotropic hydro; comment to run second-order viscous hydro
+    BOOST_INVARIANT     run 2+1d hydro; comment to run 3+1d hydro
+    CONFORMAL_EOS       comment to use QCD equation of state
+    FREEZEOUT_VH        write viscous hydrodymamic variables on freezeout surface for iS3D
+    JETSCAPE            store the freezeout surface in memory for JETSCAPE; comment to output surface.dat
+    FLAGS               print warnings during runtime
+    PRINT_PARAMETERS    print the runtime parameters
+    OPENMP              accelerate simulation with OpenMP
 
 
 ## Tests
