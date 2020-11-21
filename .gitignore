@@ -43,6 +43,10 @@ tests/lattice_bjorken/data
 tests/lattice_bjorken/nonconformal_bjorken.pdf
 
 
+# tests/lattice_trento_2d_smooth
+tests/lattice_trento_2d_smooth
+
+
 # tests/omp_test (results need to be automated...)
 tests/omp_test/omp_test.pdf
 
