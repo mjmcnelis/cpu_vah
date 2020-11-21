@@ -10,9 +10,9 @@ The C++ module is based off the hydrodynamic code [GPU VH](https://github.com/ba
     
 CPU VAH can run three hydrodynamic models with shear and bulk viscosity:
 
-    VAH = anisotropic hydrodynamics
-    VH  = second-order viscous hydrodynamics (quasiparticle)
-    VH2 = second-order viscous hydrodynamics (standard)
+    vah = anisotropic hydrodynamics
+    vh  = second-order viscous hydrodynamics (quasiparticle)
+    vh2 = second-order viscous hydrodynamics (standard)
 
 
 ## References
