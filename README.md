@@ -182,4 +182,4 @@ Then to use the auto grid, set `auto_grid = 1` in `parameters/lattice.properties
 
     sh hydro.sh n p 
 
-If you want to re-train the regression models, follow the steps in `scripts/auto_grid.README.txt`
+If you want to re-train the regression models, follow the steps in `scripts/auto_grid/README.txt`
