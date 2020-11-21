@@ -18,9 +18,25 @@ python/figures
 python/.ipynb_checkpoints
 
 
-# tests
-tests/conformal_bjorken/results
-tests/conformal_gubser/results
+# tests/conformal_bjorken
+tests/conformal_bjorken/data/vah
+tests/conformal_bjorken/data/semi_analytic
+
+tests/conformal_bjorken/figures/bjorken_plot.pdf
+tests/conformal_bjorken/figures/bjorken_adaptive.pdf
+
+
+# tests/conformal_gubser
+tests/conformal_gubser/data/vah
+tests/conformal_gubser/data/semi_analytic
+tests/conformal_gubser/figures/gubser_aniso_test.pdf
+tests/conformal_gubser/figures/gubser_aniso_2d.png
+tests/conformal_gubser/figures/gubser_timestep.pdf
+
+
+# tests/omp_test
+tests/omp_test/omp_test.pdf
+
 
 tests/lattice_trento_fluctuating/fireball/vah/xy_plane
 tests/lattice_trento_fluctuating/fireball/vh/xy_plane
@@ -30,4 +46,3 @@ tests/lattice_trento_fluctuating/freezeout/vh/*.dat
 tests/lattice_trento_fluctuating/freezeout/vh2/*.dat
 tests/lattice_trento_fluctuating/initial_profile/*.dat
 tests/lattice_trento_fluctuating/*.png
-
