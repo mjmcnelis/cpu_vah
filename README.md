@@ -97,6 +97,8 @@ The most important runtime parameters to adjust are
                                         5 to read in energy density profile from file (tables/e_block.dat)
                                         6 to read in energy density profile from memory (JETSCAPE)
                                         
+    impact_parameter                    impact parameter (only used if initial_condition_type = 4)
+                                        
     trento_average_over_events          0 to run fluctuating Trento event (set initial_condition_type = 4)
                                         1 to run smooth Trento event and store initial energy density profile in tables/ (set initial_condition_type = 4)
                                         
@@ -127,13 +129,13 @@ The most important runtime parameters to adjust are
     tau_coarse_factor                   number of time steps between freezeout finder calls (e.g. 2)
     
 
-The Bayesian model parameters *P<sub>B</sub>* can be replaced during runtime. To generate *s* model parameter samples, go to `scripts/auto_grid` and do
+You can replace the impact parameter *b* (if `initial_condition_type = 4`) and Bayesian model parameters *P<sub>B</sub>* during runtime. To generate *s* model parameter samples, go to `scripts/auto_grid` and do
 
     sh sample_model_parameters.sh s        
     
 The model parameter samples are stored in `python/model_parameters`
 
-Then run *n* hydro events with `model_parameters_p.dat`  (*p* ∈ [1, *s*])
+Then run *n* hydro events with `model_parameters_p.dat`  (*p* ∈ [1, *s*]), do
 
     sh hydro.sh n p    
 
