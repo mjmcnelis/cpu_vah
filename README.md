@@ -181,7 +181,7 @@ The regression models used for the auto-grid are located in `tests/auto_grid/reg
 
         sh predict_fireball_radius.sh h s n
 
-where *h* ∈ [*vah*, *vh*, *vh2*] is the hydrodynamic model you wish to run, *s* is the number of model parameter samples (see above) and *n* is the number of hydro events per job used to generate the training data (default value is *n = 1*). The script generates new `model_parameters` and `fireball_size_predictions` directories in `python`.
+where *h* ∈ [*vah*, *vh*, *vh2*] is the hydrodynamic model you wish to run, *s* is the number of model parameter samples (see above) and *n* is the number of hydro events per job used to generate the training data (we used *n = 1*). The script generates new `model_parameters` and `fireball_size_predictions` directories in `python`.
 
 Then to use the auto grid, set `auto_grid = 1` in `parameters/lattice.properties` and do (see above)
 
