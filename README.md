@@ -166,13 +166,13 @@ The most important macro parameters to adjust are
 
 ## Tests
 
-You can run the various tests performed in the code documentation paper in `scripts`. The files and jobs needed to run the tests are located in `tests` and `jobs`, respectively. 
+You can run the various tests performed in the code documentation paper in `scripts`. 
+
+The files and jobs needed to run the tests are located in `tests` and `jobs`, respectively. 
+
+You need to copy `e_block.dat` in `tables` to the appropriate `initial_profile` directory in `tests`. You also need to edit the project number in `jobs`.
 
 Results from the test runs are stored in `tests`.
-
-You need to copy `e_block.dat` in `tables` to the `initial_profile` directories in `tests`. Since only smooth initial energy density profiles are provided, you cannot run the `lattice_trento_fluctuating` test unless you rename `lattice_smooth.properties` to `lattice.properties`.
-
-You also need to edit the project number in `jobs`.
 
 
 ## Auto grid
