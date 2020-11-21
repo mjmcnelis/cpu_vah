@@ -170,7 +170,7 @@ You can run the various tests performed in the code documentation paper in `scri
 
 Results from the test runs are stored in `tests`.
 
-You need to copy `tables/example/e_block.dat` to the `initial_profile` directories in `tests`. Since only the smooth 3D Trento energy density profile is provided, you cannot run the `lattice_trento_fluctuating` test unless you rename `lattice_smooth.properties` to `lattice.properties`.
+You need to copy `e_block.dat` in `tables` to the `initial_profile` directories in `tests`. Since only smooth initial energy density profiles are provided, you cannot run the `lattice_trento_fluctuating` test unless you rename `lattice_smooth.properties` to `lattice.properties`.
 
 You also need to edit the project number in `jobs`.
 
