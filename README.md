@@ -99,7 +99,7 @@ The most important runtime parameters to adjust are
                                         6 to read in energy density profile from memory (JETSCAPE)
                                         
     trento_average_over_events          0 to run fluctuating Trento event (set initial_condition_type = 4)
-                                        1 to run smooth Trento event (set initial_condition_type = 4)
+                                        1 to run smooth Trento event and store profile in tables/ (set initial_condition_type = 4)
                                         
     trento_number_of_average_events     number of events to event-average (e.g. 2000)
     
@@ -158,12 +158,22 @@ The most important macro parameters to adjust are
     CONFORMAL_EOS       (comment to use QCD equation of state)
     FREEZEOUT_VH        (write viscous hydrodymamic variables on freezeout surface for iS3D)
     JETSCAPE            (store the freezeout surface in memory; comment to output surface.dat)
-    FLAGS               (to print warnings during runtime)
-    PRINT_PARAMETERS    (to print the runtime parameters)
-    
+    FLAGS               (print warnings during runtime)
+    PRINT_PARAMETERS    (print the runtime parameters)
     OPENMP              (accelerate simulation with OpenMP)
 
 
 ## Tests
 
-Python files for training automated grid are located in python/
+You can run the various tests performed in the code documentation paper in `scripts`
+
+The files and jobs needed to run the tests are located in `tests` and `jobs`, respectively.\
+You will need to copy to `tables/example/e_block.dat` to the `initial_profile` directory in `tests` 
+    - Only 1 smooth Trento profile is provided
+
+Simulation results from the test runs are stored in `tests`
+
+
+## Auto grid
+
+Python files for training automated grid are located in python
