@@ -172,11 +172,11 @@ Results from the test runs are stored in `tests`
 
 ## Auto grid
 
-The regression models used for the auto-grid are located in `tests/auto_grid/regression_models`. To launch them, go to `scripts/auto_grid` and do
+The regression models used for the auto-grid are located in `tests/auto_grid/regression_model`. To launch them, go to `scripts/auto_grid` and do
 
-        sh predict_fireball_radius.sh h s
+        sh predict_fireball_radius.sh h s n
 
-where *h* ∈ [*vah*, *vh*, *vh2*] is hydrodynamic model you wish to run and *s* is the number of model parameter samples (see above). The script generates the `model_parameters` and `fireball_size_predictions` directories in `python`.
+where *h* ∈ [*vah*, *vh*, *vh2*] is hydrodynamic model you wish to run, *s* is the number of model parameter samples (see above) and *n* is the number of hydro events per model parameter sample used to generate the training data (default value is *n = 1*). The script generates the `model_parameters` and `fireball_size_predictions` directories in `python`.
 
 Then to use the auto grid, set `auto_grid = 1` in `parameters/lattice.properties` and do (see above)
 
