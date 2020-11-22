@@ -47,19 +47,46 @@ tests/lattice_bjorken/nonconformal_bjorken.pdf
 tests/lattice_trento_2d_smooth
 
 
-# tests/omp_test (results need to be automated...)
-tests/omp_test/omp_test.pdf
+# tests/lattice_trento_smooth
+tests/lattice_trento_smooth/lattice_trento_x_axis.pdf
+tests/lattice_trento_smooth/lattice_trento_z_axis.pdf
+tests/lattice_trento_smooth/lattice_trento_adaptive.pdf
 
 
+# tests/lattice_trento_fluctuating
+tests/lattice_trento_fluctuating/fireball.png
+tests/lattice_trento_fluctuating/freezeout_x.png
+tests/lattice_trento_fluctuating/freezeout_z.png
 tests/lattice_trento_fluctuating/fireball/vah/xy_plane
 tests/lattice_trento_fluctuating/fireball/vh/xy_plane
 tests/lattice_trento_fluctuating/fireball/vh2/xy_plane
-tests/lattice_trento_fluctuating/freezeout/vah/*.dat
-tests/lattice_trento_fluctuating/freezeout/vh/*.dat
-tests/lattice_trento_fluctuating/freezeout/vh2/*.dat
-tests/lattice_trento_fluctuating/initial_profile/*.dat
-tests/lattice_trento_fluctuating/*.png
+tests/lattice_trento_fluctuating/freezeout
 
+
+# tests/auto_grid
+tests/auto_grid/benchmark_test/auto_grid/vah/fireball_radius
+tests/auto_grid/benchmark_test/auto_grid/vah/benchmarks
+tests/auto_grid/benchmark_test/auto_grid/vh/fireball_radius
+tests/auto_grid/benchmark_test/auto_grid/vh/benchmarks
+tests/auto_grid/benchmark_test/auto_grid/vh2/fireball_radius
+tests/auto_grid/benchmark_test/auto_grid/vh2/benchmarks
+
+tests/auto_grid/benchmark_test/fixed_grid/vah/fireball_radius
+tests/auto_grid/benchmark_test/fixed_grid/vah/benchmarks
+tests/auto_grid/benchmark_test/fixed_grid/vh/fireball_radius
+tests/auto_grid/benchmark_test/fixed_grid/vh/benchmarks
+tests/auto_grid/benchmark_test/fixed_grid/vh2/fireball_radius
+tests/auto_grid/benchmark_test/fixed_grid/vh2/benchmarks
+
+tests/auto_grid/train_data/vah/fireball_radius
+tests/auto_grid/train_data/vh/fireball_radius
+tests/auto_grid/train_data/vh2/fireball_radius
+tests/auto_grid/train_data/vah/model_parameters
+tests/auto_grid/train_data/vh/model_parameters
+tests/auto_grid/train_data/vh2/model_parameters
+
+# tests/omp_test (results need to be automated...)
+tests/omp_test/omp_test.pdf
 
 
 
