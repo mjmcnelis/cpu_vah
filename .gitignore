@@ -15,8 +15,14 @@ tables/energy_density/lattice_trento/fluctuating/large
 # python
 python/model_parameters
 python/fireball_size_predictions
-python/figures
+python/
 python/.ipynb_checkpoints
+python/benchmarks_vah.pdf
+python/benchmarks_vh.pdf
+python/benchmarks_vh2.pdf
+python/scatter_mean_vah.pdf
+python/scatter_mean_vh.pdf
+python/scatter_mean_vh2.pdf
 
 
 # tests/conformal_bjorken
