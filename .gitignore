@@ -63,7 +63,7 @@ tests/lattice_trento_2d_smooth
 
 
 # tests/lattice_trento_smooth
-tests/lattice_trento_smooth/vah/adaptive
+tests/lattice_trento_smooth/data/vah/adaptive
 tests/lattice_trento_smooth/data/vah/x_axis
 tests/lattice_trento_smooth/data/vah/z_axis
 tests/lattice_trento_smooth/data/vh/adaptive
@@ -79,13 +79,16 @@ tests/lattice_trento_smooth/lattice_trento_adaptive.pdf
 
 
 # tests/lattice_trento_fluctuating
-tests/lattice_trento_fluctuating/fireball.png
-tests/lattice_trento_fluctuating/freezeout_x.png
-tests/lattice_trento_fluctuating/freezeout_z.png
 tests/lattice_trento_fluctuating/fireball/vah/xy_plane
 tests/lattice_trento_fluctuating/fireball/vh/xy_plane
 tests/lattice_trento_fluctuating/fireball/vh2/xy_plane
-tests/lattice_trento_fluctuating/freezeout
+tests/lattice_trento_fluctuating/fireball/fireball.png
+
+tests/lattice_trento_fluctuating/freezeout/vah
+tests/lattice_trento_fluctuating/freezeout/vh
+tests/lattice_trento_fluctuating/freezeout/vh2
+tests/lattice_trento_fluctuating/freezeout/freezeout_x.png
+tests/lattice_trento_fluctuating/freezeout/freezeout_z.png
 
 
 # tests/auto_grid
