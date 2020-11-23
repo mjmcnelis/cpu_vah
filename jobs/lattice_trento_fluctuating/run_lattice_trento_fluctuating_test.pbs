@@ -1,0 +1,31 @@
+#!/bin/bash -l
+#PBS -l walltime=00:30:00,nodes=1:ppn=28
+#PBS -j oe
+#PBS -A PAS0254
+cd cpu_vah
+
+export OMP_NUM_THREADS=28
+set OMP_NUM_THREADS 28
+
+./cpu_vah
+
+cp output/surface_slice_x.dat tests/lattice_trento_fluctuating/freezeout/$HYDRO
+cp output/surface_slice_z.dat tests/lattice_trento_fluctuating/freezeout/$HYDRO
+
+cp output/Rinv_shear_x.dat tests/lattice_trento_fluctuating/freezeout/$HYDRO
+cp output/Rinv_shear_z.dat tests/lattice_trento_fluctuating/freezeout/$HYDRO
+
+cp output/Rinv_bulk_x.dat tests/lattice_trento_fluctuating/freezeout/$HYDRO
+cp output/Rinv_bulk_z.dat tests/lattice_trento_fluctuating/freezeout/$HYDRO
+
+cp output/Rinv_dB_x.dat tests/lattice_trento_fluctuating/freezeout/$HYDRO
+cp output/Rinv_dB_z.dat tests/lattice_trento_fluctuating/freezeout/$HYDRO
+
+cp output/regulate_viscous_x.dat tests/lattice_trento_fluctuating/freezeout/$HYDRO
+cp output/regulate_viscous_z.dat tests/lattice_trento_fluctuating/freezeout/$HYDRO
+
+cp output/regulate_dB_x.dat tests/lattice_trento_fluctuating/freezeout/$HYDRO
+cp output/regulate_dB_z.dat tests/lattice_trento_fluctuating/freezeout/$HYDRO
+
+cd tests/lattice_trento_fluctuating/fireball/$HYDRO
+make

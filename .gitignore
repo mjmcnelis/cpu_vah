@@ -63,6 +63,16 @@ tests/lattice_trento_2d_smooth
 
 
 # tests/lattice_trento_smooth
+tests/lattice_trento_smooth/vah/adaptive
+tests/lattice_trento_smooth/data/vah/x_axis
+tests/lattice_trento_smooth/data/vah/z_axis
+tests/lattice_trento_smooth/data/vh/adaptive
+tests/lattice_trento_smooth/data/vh/x_axis
+tests/lattice_trento_smooth/data/vh/z_axis
+tests/lattice_trento_smooth/data/vh2/adaptive
+tests/lattice_trento_smooth/data/vh2/x_axis
+tests/lattice_trento_smooth/data/vh2/z_axis
+
 tests/lattice_trento_smooth/lattice_trento_x_axis.pdf
 tests/lattice_trento_smooth/lattice_trento_z_axis.pdf
 tests/lattice_trento_smooth/lattice_trento_adaptive.pdf
@@ -104,7 +114,7 @@ tests/auto_grid/train_data/vh2/model_parameters
 tests/omp_test/omp_test.pdf
 
 
-tests/lattice_trento_smooth/git_ignore
+tests/lattice_trento_fluctuating/git_ignore
 
 
 
