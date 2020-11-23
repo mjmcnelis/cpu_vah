@@ -48,8 +48,6 @@ tests/conformal_trento/data/vh/adaptive
 tests/conformal_trento/data/vh/x_axis
 tests/conformal_trento/data/vh/z_axis
 
-tests/conformal_trento/git_ignore
-
 tests/conformal_trento/conformal_trento_vah_vh_x_axis.pdf
 tests/conformal_trento/conformal_trento_vah_vh_z_axis.pdf
 tests/conformal_trento/conformal_trento_adaptive.pdf
@@ -105,6 +103,8 @@ tests/auto_grid/train_data/vh2/model_parameters
 # tests/omp_test (results need to be automated...)
 tests/omp_test/omp_test.pdf
 
+
+tests/lattice_trento_smooth/git_ignore
 
 
 
