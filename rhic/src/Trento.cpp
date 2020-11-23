@@ -451,12 +451,12 @@ void set_trento_energy_density_and_flow_profile(lattice_parameters lattice, init
 
 	longitudinal_energy_density_extension(eL, lattice, initial);
 
-	FILE *energy;												// make energy density block file (only if openmp turned off)
+	FILE *energy;														// make energy density block file (only if openmp turned off)
 
 	if(initial.trento_average_over_events)
 	{
-		energy = fopen("tables/e_block_trento_avg.dat", "w");	// block file of energy denisty [GeV/fm^-3]
-		fprintf(energy, "%d\n%d\n%d\n", nx, ny, nz);			// write grid points at header ()
+		energy = fopen("tables/energy_density/new/e_block.dat", "w");	// block file of energy denisty [GeV/fm^-3]
+		fprintf(energy, "%d\n%d\n%d\n", nx, ny, nz);					// write grid points at header ()
 	}
 
 	for(int k = 2; k < nz + 2; k++)

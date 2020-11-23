@@ -8,6 +8,8 @@ eos
 
 
 # tables
+tables/e_block.dat
+tables/energy_density/new
 tables/energy_density/lattice_trento/fluctuating/small
 tables/energy_density/lattice_trento/fluctuating/large
 
@@ -39,6 +41,15 @@ tests/conformal_gubser/gubser_timestep.pdf
 
 
 # tests/conformal_trento
+tests/conformal_trento/data/vah/adaptive
+tests/conformal_trento/data/vah/x_axis
+tests/conformal_trento/data/vah/z_axis
+tests/conformal_trento/data/vh/adaptive
+tests/conformal_trento/data/vh/x_axis
+tests/conformal_trento/data/vh/z_axis
+
+tests/conformal_trento/git_ignore
+
 tests/conformal_trento/conformal_trento_vah_vh_x_axis.pdf
 tests/conformal_trento/conformal_trento_vah_vh_z_axis.pdf
 tests/conformal_trento/conformal_trento_adaptive.pdf
