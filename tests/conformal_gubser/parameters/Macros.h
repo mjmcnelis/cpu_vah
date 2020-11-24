@@ -59,7 +59,7 @@
 #endif
 
 #ifndef BOOST_INVARIANT
-	//#define VORTICITY			// include vorticity terms in relaxation equations
+	#define VORTICITY			// include vorticity terms in relaxation equations
 #endif
 
 

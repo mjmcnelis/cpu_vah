@@ -142,7 +142,10 @@ typedef struct
 
 // external variables
 extern hydro_variables *q, *Q, *qI;
-extern fluid_velocity *u, *up, *uI;
+
+extern fluid_velocity *u, *up;
+//extern fluid_velocity *u, *up, *uI;		// delete uI
+
 extern precision *e, *lambda, *aT, *aL;
 
 #ifdef ANISO_HYDRO

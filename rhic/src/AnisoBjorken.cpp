@@ -72,7 +72,7 @@ double dpl_dt(double e, double pl, double pt, double b, double lambda, double aT
 	double taubulkInv = eos.beta_bulk() / (s * zeta_over_s(T, hydro));
 
 	aniso_transport_coefficients_nonconformal aniso;
-	aniso.compute_transport_coefficients(e, p, pl, pt, beq, beq, lambda, aT, aL, mbar, mass, mdmde);
+	aniso.compute_transport_coefficients(e, p, pl, pt, b, beq, lambda, aT, aL, mbar, mass, mdmde);
 
 	return taubulkInv * (p - (2.*pt + pl) / 3.)  -  2./3. * taupiInv * (pl - pt)  +  aniso.zeta_LL / t;
 }
@@ -95,7 +95,7 @@ double dpt_dt(double e, double pl, double pt, double b, double lambda, double aT
 	double taubulkInv = eos.beta_bulk() / (s * zeta_over_s(T, hydro));
 
 	aniso_transport_coefficients_nonconformal aniso;
-	aniso.compute_transport_coefficients(e, p, pl, pt, beq, beq, lambda, aT, aL, mbar, mass, mdmde);
+	aniso.compute_transport_coefficients(e, p, pl, pt, b, beq, lambda, aT, aL, mbar, mass, mdmde);
 
 	return taubulkInv * (p - (2.*pt + pl) / 3.)  +  taupiInv * (pl - pt) / 3.  +  aniso.zeta_LT / t;
 }
@@ -115,7 +115,7 @@ double db_dt(double e, double pl, double pt, double b, double lambda, double aT,
 	double Pi = (pl + 2.*pt)/3. - p;
 
 	// previous unstable version (because the 4.db term makes equation unstable if 4.m_dot/m > taubulk_inverse)
-	//return (beq - b) * taubulkInv  +  mdmde * (e + pl) * (e - 2.*pt - pl - 4.*b) / (t * mass * mass);
+	return (beq - b) * taubulkInv  +  mdmde * (e + pl) * (e - 2.*pt - pl - 4.*b) / (t * mass * mass);
 
 	// simple regulated unstable version
 	//return (beq - b) * fmax(0., taubulkInv + 4. * mdmde * (e + pl) / (t * mass * mass))  +  mdmde * (e + pl) * (e - 2.*pt - pl - 4.*beq) / (t * mass * mass);
@@ -126,7 +126,7 @@ double db_dt(double e, double pl, double pt, double b, double lambda, double aT,
 	//return (beq - b) * taubulkInv  +  mdmde * (e + pl) * (e - 2.*pt - pl - 4.*beq) / (t * mass * mass);
 
 	// option #2:
-	return (beq - b) * taubulkInv  +  mdmde * (e + p) * (e - 2.*pt - pl - 4.*beq) / (t * mass * mass);
+	//return (beq - b) * taubulkInv  +  mdmde * (e + p) * (e - 2.*pt - pl - 4.*beq) / (t * mass * mass);
 
 	// option #3:
 	//return (beq - b) * taubulkInv  +  mdmde / (t * mass * mass) * ((e + pl) * (e - 3.*p - 4.*beq)  -  (e + p) * 3. * Pi);
@@ -318,11 +318,22 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 		double b2  = b  + db1/2.;
 
 		equation_of_state_new eos2(e2, conformal_prefactor);
+		double beq2 = eos2.equilibrium_mean_field();
 		double mass2 = eos2.T * eos2.z_quasi();
 		aniso_variables X2 = find_anisotropic_variables(e2, pl2, pt2, b2, mass2, lambda, aT, aL);
 		lambda = X2.lambda;
 		aT = X2.aT;
 		aL = X2.aL;
+
+
+		// regulate db
+		double db2_reg = b2 - beq2;
+
+		if(db2_reg < 0 && fabs(beq2 / db2_reg) < 1.)
+		{
+			b2 = beq2  +  db2_reg * fabs(beq2 / db2_reg);
+		}
+
 
 		double de2  = dt *  de_dt(e2, pl2, pt2, b2, lambda, aT, aL, t + dt/2., hydro);
 		double dpl2 = dt * dpl_dt(e2, pl2, pt2, b2, lambda, aT, aL, t + dt/2., hydro);
@@ -335,11 +346,22 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 		double b3  = b  + db2/2.;
 
 		equation_of_state_new eos3(e3, conformal_prefactor);
+		double beq3 = eos3.equilibrium_mean_field();
 		double mass3 = eos3.T * eos3.z_quasi();
 		aniso_variables X3 = find_anisotropic_variables(e3, pl3, pt3, b3, mass3, lambda, aT, aL);
 		lambda = X3.lambda;
 		aT = X3.aT;
 		aL = X3.aL;
+
+
+		// regulate db
+		double db3_reg = b3 - beq3;
+
+		if(db3_reg < 0 && fabs(beq3 / db3_reg) < 1.)
+		{
+			b3 = beq3  +  db3_reg * fabs(beq3 / db3_reg);
+		}
+
 
 		double de3  = dt *  de_dt(e3, pl3, pt3, b3, lambda, aT, aL, t + dt/2., hydro);
 		double dpl3 = dt * dpl_dt(e3, pl3, pt3, b3, lambda, aT, aL, t + dt/2., hydro);
@@ -352,11 +374,21 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 		double b4  = b  + db3;
 
 		equation_of_state_new eos4(e4, conformal_prefactor);
+		double beq4 = eos4.equilibrium_mean_field();
 		double mass4 = eos4.T * eos4.z_quasi();
 		aniso_variables X4 = find_anisotropic_variables(e4, pl4, pt4, b4, mass4, lambda, aT, aL);
 		lambda = X4.lambda;
 		aT = X4.aT;
 		aL = X4.aL;
+
+		// regulate db
+		double db4_reg = b4 - beq4;
+
+		if(db4_reg < 0 && fabs(beq4 / db4_reg) < 1.)
+		{
+			b4 = beq4  +  db4_reg * fabs(beq4 / db4_reg);
+		}
+
 
 		double de4  = dt *  de_dt(e4, pl4, pt4, b4, lambda, aT, aL, t + dt, hydro);
 		double dpl4 = dt * dpl_dt(e4, pl4, pt4, b4, lambda, aT, aL, t + dt, hydro);
@@ -369,15 +401,21 @@ void run_semi_analytic_aniso_bjorken(lattice_parameters lattice, initial_conditi
 		b  += (db1   +  2. * db2   +  2. * db3   +  db4)  / 6.;
 
 		equation_of_state_new eos_end(e, conformal_prefactor);
-		double T_end = eos_end.T;
-		double mass_end = T_end * eos_end.z_quasi();
 		double beq_end = eos_end.equilibrium_mean_field();
-
+		double mass_end = eos_end.T * eos_end.z_quasi();
 		aniso_variables X_end = find_anisotropic_variables(e, pl, pt, b, mass_end, lambda, aT, aL);
-
 		lambda = X_end.lambda;
 		aT = X_end.aT;
 		aL = X_end.aL;
+
+		// regulate db
+		double db_end_reg = b - beq_end;
+
+		if(db_end_reg < 0 && fabs(beq_end / db_end_reg) < 1.)
+		{
+			b = beq_end  +  db_end_reg * fabs(beq_end / db_end_reg);
+		}
+
 
 		beq_dot = (beq_end - beq) / dt;
 

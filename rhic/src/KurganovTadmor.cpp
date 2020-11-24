@@ -520,9 +520,17 @@ void evolve_hydro_one_time_step(int n, precision t, precision dt, precision dt_p
 
 	t += dt;																// next intermediate time step
 
-#ifdef ANISO_HYDRO
-	set_inferred_variables_aniso_hydro(qI, e, uI, t, lattice, hydro);		// compute (uI, e)
 
+
+	// swap u and up before reconstructing inferred variables
+	swap_fluid_velocity(&u, &up);											// swap u and up
+
+
+
+
+#ifdef ANISO_HYDRO
+	//set_inferred_variables_aniso_hydro(qI, e, uI, t, lattice, hydro);		// compute (uI, e)
+	set_inferred_variables_aniso_hydro(qI, e, u, t, lattice, hydro);		// compute (u, e)
 
 // should I regulate or solve for aniso variables first?...
 
@@ -530,37 +538,51 @@ void evolve_hydro_one_time_step(int n, precision t, precision dt, precision dt_p
 	set_anisotropic_variables(qI, e, lambda, aT, aL, lattice, hydro);		// compute (lambda, aT, aL)
 #endif
 
-	regulate_residual_currents(t, qI, e, uI, lattice, hydro, RK2);			// regulate qI
+	//regulate_residual_currents(t, qI, e, uI, lattice, hydro, RK2);		// regulate qI
+	regulate_residual_currents(t, qI, e, u, lattice, hydro, RK2);			// regulate qI (replace uI -> u)
+
 																			// note: never tested putting it before previous line
 #else
-	set_inferred_variables_viscous_hydro(qI, e, uI, t, lattice, hydro);
-	regulate_viscous_currents(t, qI, e, uI, lattice, hydro, RK2);
+	//set_inferred_variables_viscous_hydro(qI, e, uI, t, lattice, hydro);
+	set_inferred_variables_viscous_hydro(qI, e, u, t, lattice, hydro);		// compute (u, e)
+
+	//regulate_viscous_currents(t, qI, e, uI, lattice, hydro, RK2);			// regulate qI
+	regulate_viscous_currents(t, qI, e, u, lattice, hydro, RK2);			// regulate qI (replace uI -> u)
 #endif
 
-	set_ghost_cells(qI, e, uI, lattice);									// set (qI, uI, e) ghost cells
+	//set_ghost_cells(qI, e, uI, lattice);									// set (qI, uI, e) ghost cells
+	set_ghost_cells(qI, e, u, lattice);										// set (qI, u, e) ghost cells
 
 	dt_prev = dt;															// update previous time step
 
 	RK2 = 1;
 
-	euler_step(t, qI, Q, e, lambda, aT, aL, u, uI, dt, dt_prev, lattice, hydro, update, RK2);	// second intermediate euler step
+	//euler_step(t, qI, Q, e, lambda, aT, aL, u, uI, dt, dt_prev, lattice, hydro, update, RK2);	// second intermediate euler step
+																			// Q = qI + dt.(S - dHx/dx - dHy/dy - dHn/dn)
+
+	euler_step(t, qI, Q, e, lambda, aT, aL, up, u, dt, dt_prev, lattice, hydro, update, RK2);	// second intermediate euler step
 																			// Q = qI + dt.(S - dHx/dx - dHy/dy - dHn/dn)
 
 #ifdef ANISO_HYDRO
-	set_inferred_variables_aniso_hydro(Q, e, up, t, lattice, hydro);		// compute (u, e)
+	//set_inferred_variables_aniso_hydro(Q, e, up, t, lattice, hydro);		// compute (u, e)
+	set_inferred_variables_aniso_hydro(Q, e, u, t, lattice, hydro);			// compute (u, e)
 
 #ifdef LATTICE_QCD
 	set_anisotropic_variables(Q, e, lambda, aT, aL, lattice, hydro);		// compute (lambda, aT, aL)
 #endif
 
-	regulate_residual_currents(t, Q, e, up, lattice, hydro, RK2);			// regulate Q
+	//regulate_residual_currents(t, Q, e, up, lattice, hydro, RK2);			// regulate Q
+	regulate_residual_currents(t, Q, e, u, lattice, hydro, RK2);			// regulate Q
 #else
-	set_inferred_variables_viscous_hydro(Q, e, up, t, lattice, hydro);
-	regulate_viscous_currents(t, Q, e, up, lattice, hydro, RK2);
+	//set_inferred_variables_viscous_hydro(Q, e, up, t, lattice, hydro);
+	set_inferred_variables_viscous_hydro(Q, e, u, t, lattice, hydro);		// using u
+
+	//regulate_viscous_currents(t, Q, e, up, lattice, hydro, RK2);
+	regulate_viscous_currents(t, Q, e, u, lattice, hydro, RK2);				// using u
 #endif
 
 	swap_hydro_variables(&q, &Q);											// swap q and Q
-	swap_fluid_velocity(&u, &up);											// swap u and up
+	//swap_fluid_velocity(&u, &up);											// swap u and up
 
 	set_ghost_cells(q, e, u, lattice);										// set (Q, u, e) ghost cells
 }

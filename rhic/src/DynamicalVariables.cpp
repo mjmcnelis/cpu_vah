@@ -6,7 +6,8 @@
 
 
 hydro_variables *q, *Q, *qI;			// fluid dynamic variables
-fluid_velocity *u, *up, *uI;
+fluid_velocity *u, *up;					// delete uI
+//fluid_velocity *u, *up, *uI;
 precision *e, *lambda, *aT, *aL;		// anisotropic variables
 
 #ifdef ANISO_HYDRO
@@ -77,7 +78,7 @@ void allocate_memory(lattice_parameters lattice)
 
 	u  = (fluid_velocity *)calloc(length, sizeof(fluid_velocity));
 	up = (fluid_velocity *)calloc(length, sizeof(fluid_velocity));
-	uI = (fluid_velocity *)calloc(length, sizeof(fluid_velocity));
+	//uI = (fluid_velocity *)calloc(length, sizeof(fluid_velocity));		// ditch uI
 
 	q  = (hydro_variables *)calloc(length, sizeof(hydro_variables));
 	Q  = (hydro_variables *)calloc(length, sizeof(hydro_variables));
@@ -106,7 +107,7 @@ void free_memory()
 	free(e);
 	free(u);
 	free(up);
-	free(uI);
+	//free(uI);		// ditch uI
 	free(q);
 	free(qI);
 	free(Q);
