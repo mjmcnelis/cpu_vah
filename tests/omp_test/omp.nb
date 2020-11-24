@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       158,          7]
-NotebookDataLength[     33588,        857]
-NotebookOptionsPosition[     32995,        839]
-NotebookOutlinePosition[     33411,        855]
-CellTagsIndexPosition[     33368,        852]
+NotebookDataLength[     30822,        755]
+NotebookOptionsPosition[     29685,        728]
+NotebookOutlinePosition[     30100,        744]
+CellTagsIndexPosition[     30057,        741]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -33,6 +33,8 @@ Cell["Data", "Subsection",
   3.7717808568417883`*^9}},ExpressionUUID->"b4e15d25-413f-4eb0-b01f-\
 c9bfc0481110"],
 
+Cell[CellGroupData[{
+
 Cell[BoxData[{
  RowBox[{
   RowBox[{
@@ -41,283 +43,40 @@ Cell[BoxData[{
      RowBox[{"NotebookDirectory", "[", "]"}]}]}], ";"}], 
   "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
  RowBox[{
-  RowBox[{"runtime1VAH", "=", 
+  RowBox[{"runtimeVAH", "=", 
    RowBox[{
     RowBox[{"Take", "[", 
      RowBox[{"Import", "[", 
-      RowBox[{"wd", "<>", "\"\</vah/benchmarks_1.dat\>\""}], "]"}], "]"}], 
-    "[", 
+      RowBox[{"wd", "<>", "\"\</vah/benchmarks.dat\>\""}], "]"}], "]"}], "[", 
+    
     RowBox[{"[", 
      RowBox[{"All", ",", 
       RowBox[{"{", 
        RowBox[{"6", ",", "2"}], "}"}]}], "]"}], "]"}]}], 
   ";"}], "\[IndentingNewLine]", 
  RowBox[{
-  RowBox[{"runtime2VAH", "=", 
+  RowBox[{"runtimeVH", "=", 
    RowBox[{
     RowBox[{"Take", "[", 
      RowBox[{"Import", "[", 
-      RowBox[{"wd", "<>", "\"\</vah/benchmarks_2.dat\>\""}], "]"}], "]"}], 
-    "[", 
+      RowBox[{"wd", "<>", "\"\</vh/benchmarks.dat\>\""}], "]"}], "]"}], "[", 
     RowBox[{"[", 
      RowBox[{"All", ",", 
       RowBox[{"{", 
        RowBox[{"6", ",", "2"}], "}"}]}], "]"}], "]"}]}], 
   ";"}], "\[IndentingNewLine]", 
- RowBox[{
-  RowBox[{"runtime3VAH", "=", 
-   RowBox[{
-    RowBox[{"Take", "[", 
-     RowBox[{"Import", "[", 
-      RowBox[{"wd", "<>", "\"\</vah/benchmarks_3.dat\>\""}], "]"}], "]"}], 
-    "[", 
-    RowBox[{"[", 
-     RowBox[{"All", ",", 
-      RowBox[{"{", 
-       RowBox[{"6", ",", "2"}], "}"}]}], "]"}], "]"}]}], 
-  ";"}], "\[IndentingNewLine]", 
- RowBox[{
-  RowBox[{"runtime4VAH", "=", 
-   RowBox[{
-    RowBox[{"Take", "[", 
-     RowBox[{"Import", "[", 
-      RowBox[{"wd", "<>", "\"\</vah/benchmarks_4.dat\>\""}], "]"}], "]"}], 
-    "[", 
-    RowBox[{"[", 
-     RowBox[{"All", ",", 
-      RowBox[{"{", 
-       RowBox[{"6", ",", "2"}], "}"}]}], "]"}], "]"}]}], 
-  ";"}], "\[IndentingNewLine]", 
- RowBox[{
-  RowBox[{
-   RowBox[{"runtime5VAH", "=", 
-    RowBox[{
-     RowBox[{"Take", "[", 
-      RowBox[{"Import", "[", 
-       RowBox[{"wd", "<>", "\"\</vah/benchmarks_5.dat\>\""}], "]"}], "]"}], 
-     "[", 
-     RowBox[{"[", 
-      RowBox[{"All", ",", 
-       RowBox[{"{", 
-        RowBox[{"6", ",", "2"}], "}"}]}], "]"}], "]"}]}], ";"}], 
-  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
- RowBox[{
-  RowBox[{"runtime1VH", "=", 
-   RowBox[{
-    RowBox[{"Take", "[", 
-     RowBox[{"Import", "[", 
-      RowBox[{"wd", "<>", "\"\</vh/benchmarks_1.dat\>\""}], "]"}], "]"}], "[", 
-    RowBox[{"[", 
-     RowBox[{"All", ",", 
-      RowBox[{"{", 
-       RowBox[{"6", ",", "2"}], "}"}]}], "]"}], "]"}]}], 
-  ";"}], "\[IndentingNewLine]", 
- RowBox[{
-  RowBox[{"runtime2VH", "=", 
-   RowBox[{
-    RowBox[{"Take", "[", 
-     RowBox[{"Import", "[", 
-      RowBox[{"wd", "<>", "\"\</vh/benchmarks_2.dat\>\""}], "]"}], "]"}], "[", 
-    RowBox[{"[", 
-     RowBox[{"All", ",", 
-      RowBox[{"{", 
-       RowBox[{"6", ",", "2"}], "}"}]}], "]"}], "]"}]}], 
-  ";"}], "\[IndentingNewLine]", 
- RowBox[{
-  RowBox[{"runtime3VH", "=", 
-   RowBox[{
-    RowBox[{"Take", "[", 
-     RowBox[{"Import", "[", 
-      RowBox[{"wd", "<>", "\"\</vh/benchmarks_3.dat\>\""}], "]"}], "]"}], "[", 
-    RowBox[{"[", 
-     RowBox[{"All", ",", 
-      RowBox[{"{", 
-       RowBox[{"6", ",", "2"}], "}"}]}], "]"}], "]"}]}], 
-  ";"}], "\[IndentingNewLine]", 
- RowBox[{
-  RowBox[{"runtime4VH", "=", 
-   RowBox[{
-    RowBox[{"Take", "[", 
-     RowBox[{"Import", "[", 
-      RowBox[{"wd", "<>", "\"\</vh/benchmarks_4.dat\>\""}], "]"}], "]"}], "[", 
-    RowBox[{"[", 
-     RowBox[{"All", ",", 
-      RowBox[{"{", 
-       RowBox[{"6", ",", "2"}], "}"}]}], "]"}], "]"}]}], 
-  ";"}], "\[IndentingNewLine]", 
- RowBox[{
-  RowBox[{
-   RowBox[{"runtime5VH", "=", 
-    RowBox[{
-     RowBox[{"Take", "[", 
-      RowBox[{"Import", "[", 
-       RowBox[{"wd", "<>", "\"\</vh/benchmarks_5.dat\>\""}], "]"}], "]"}], 
-     "[", 
-     RowBox[{"[", 
-      RowBox[{"All", ",", 
-       RowBox[{"{", 
-        RowBox[{"6", ",", "2"}], "}"}]}], "]"}], "]"}]}], ";"}], 
-  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
- RowBox[{
-  RowBox[{"runtime1VH2", "=", 
-   RowBox[{
-    RowBox[{"Take", "[", 
-     RowBox[{"Import", "[", 
-      RowBox[{"wd", "<>", "\"\</vh2/benchmarks_1.dat\>\""}], "]"}], "]"}], 
-    "[", 
-    RowBox[{"[", 
-     RowBox[{"All", ",", 
-      RowBox[{"{", 
-       RowBox[{"6", ",", "2"}], "}"}]}], "]"}], "]"}]}], 
-  ";"}], "\[IndentingNewLine]", 
- RowBox[{
-  RowBox[{"runtime2VH2", "=", 
-   RowBox[{
-    RowBox[{"Take", "[", 
-     RowBox[{"Import", "[", 
-      RowBox[{"wd", "<>", "\"\</vh2/benchmarks_2.dat\>\""}], "]"}], "]"}], 
-    "[", 
-    RowBox[{"[", 
-     RowBox[{"All", ",", 
-      RowBox[{"{", 
-       RowBox[{"6", ",", "2"}], "}"}]}], "]"}], "]"}]}], 
-  ";"}], "\[IndentingNewLine]", 
- RowBox[{
-  RowBox[{"runtime3VH2", "=", 
-   RowBox[{
-    RowBox[{"Take", "[", 
-     RowBox[{"Import", "[", 
-      RowBox[{"wd", "<>", "\"\</vh2/benchmarks_3.dat\>\""}], "]"}], "]"}], 
-    "[", 
-    RowBox[{"[", 
-     RowBox[{"All", ",", 
-      RowBox[{"{", 
-       RowBox[{"6", ",", "2"}], "}"}]}], "]"}], "]"}]}], 
-  ";"}], "\[IndentingNewLine]", 
- RowBox[{
-  RowBox[{"runtime4VH2", "=", 
-   RowBox[{
-    RowBox[{"Take", "[", 
-     RowBox[{"Import", "[", 
-      RowBox[{"wd", "<>", "\"\</vh2/benchmarks_4.dat\>\""}], "]"}], "]"}], 
-    "[", 
-    RowBox[{"[", 
-     RowBox[{"All", ",", 
-      RowBox[{"{", 
-       RowBox[{"6", ",", "2"}], "}"}]}], "]"}], "]"}]}], 
-  ";"}], "\[IndentingNewLine]", 
- RowBox[{
-  RowBox[{
-   RowBox[{"runtime5VH2", "=", 
-    RowBox[{
-     RowBox[{"Take", "[", 
-      RowBox[{"Import", "[", 
-       RowBox[{"wd", "<>", "\"\</vh2/benchmarks_5.dat\>\""}], "]"}], "]"}], 
-     "[", 
-     RowBox[{"[", 
-      RowBox[{"All", ",", 
-       RowBox[{"{", 
-        RowBox[{"6", ",", "2"}], "}"}]}], "]"}], "]"}]}], ";"}], 
-  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
- RowBox[{
-  RowBox[{
-   RowBox[{"runtimeVAH", "=", 
-    RowBox[{"Table", "[", 
-     RowBox[{
-      RowBox[{"{", 
-       RowBox[{
-        RowBox[{"runtime1VAH", "[", 
-         RowBox[{"[", 
-          RowBox[{"i", ",", "1"}], "]"}], "]"}], ",", 
-        RowBox[{"Mean", "[", 
-         RowBox[{"{", 
-          RowBox[{
-           RowBox[{"runtime1VAH", "[", 
-            RowBox[{"[", 
-             RowBox[{"i", ",", "2"}], "]"}], "]"}], ",", 
-           RowBox[{"runtime2VAH", "[", 
-            RowBox[{"[", 
-             RowBox[{"i", ",", "2"}], "]"}], "]"}], ",", 
-           RowBox[{"runtime3VAH", "[", 
-            RowBox[{"[", 
-             RowBox[{"i", ",", "2"}], "]"}], "]"}], ",", 
-           RowBox[{"runtime4VAH", "[", 
-            RowBox[{"[", 
-             RowBox[{"i", ",", "2"}], "]"}], "]"}], ",", 
-           RowBox[{"runtime5VAH", "[", 
-            RowBox[{"[", 
-             RowBox[{"i", ",", "2"}], "]"}], "]"}]}], "}"}], "]"}]}], "}"}], 
-      ",", 
-      RowBox[{"{", 
-       RowBox[{"i", ",", "1", ",", 
-        RowBox[{"Length", "[", "runtime1VAH", "]"}]}], "}"}]}], "]"}]}], 
-   ";"}], "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
- RowBox[{
-  RowBox[{
-   RowBox[{"runtimeVH", "=", 
-    RowBox[{"Table", "[", 
-     RowBox[{
-      RowBox[{"{", 
-       RowBox[{
-        RowBox[{"runtime1VH", "[", 
-         RowBox[{"[", 
-          RowBox[{"i", ",", "1"}], "]"}], "]"}], ",", 
-        RowBox[{"Mean", "[", 
-         RowBox[{"{", 
-          RowBox[{
-           RowBox[{"runtime1VH", "[", 
-            RowBox[{"[", 
-             RowBox[{"i", ",", "2"}], "]"}], "]"}], ",", 
-           RowBox[{"runtime2VH", "[", 
-            RowBox[{"[", 
-             RowBox[{"i", ",", "2"}], "]"}], "]"}], ",", 
-           RowBox[{"runtime3VH", "[", 
-            RowBox[{"[", 
-             RowBox[{"i", ",", "2"}], "]"}], "]"}], ",", 
-           RowBox[{"runtime4VH", "[", 
-            RowBox[{"[", 
-             RowBox[{"i", ",", "2"}], "]"}], "]"}], ",", 
-           RowBox[{"runtime5VH", "[", 
-            RowBox[{"[", 
-             RowBox[{"i", ",", "2"}], "]"}], "]"}]}], "}"}], "]"}]}], "}"}], 
-      ",", 
-      RowBox[{"{", 
-       RowBox[{"i", ",", "1", ",", 
-        RowBox[{"Length", "[", "runtime1VH", "]"}]}], "}"}]}], "]"}]}], ";"}],
-   "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{
    RowBox[{"runtimeVH2", "=", 
-    RowBox[{"Table", "[", 
-     RowBox[{
-      RowBox[{"{", 
-       RowBox[{
-        RowBox[{"runtime1VH2", "[", 
-         RowBox[{"[", 
-          RowBox[{"i", ",", "1"}], "]"}], "]"}], ",", 
-        RowBox[{"Mean", "[", 
-         RowBox[{"{", 
-          RowBox[{
-           RowBox[{"runtime1VH2", "[", 
-            RowBox[{"[", 
-             RowBox[{"i", ",", "2"}], "]"}], "]"}], ",", 
-           RowBox[{"runtime2VH2", "[", 
-            RowBox[{"[", 
-             RowBox[{"i", ",", "2"}], "]"}], "]"}], ",", 
-           RowBox[{"runtime3VH2", "[", 
-            RowBox[{"[", 
-             RowBox[{"i", ",", "2"}], "]"}], "]"}], ",", 
-           RowBox[{"runtime4VH2", "[", 
-            RowBox[{"[", 
-             RowBox[{"i", ",", "2"}], "]"}], "]"}], ",", 
-           RowBox[{"runtime5VH2", "[", 
-            RowBox[{"[", 
-             RowBox[{"i", ",", "2"}], "]"}], "]"}]}], "}"}], "]"}]}], "}"}], 
-      ",", 
-      RowBox[{"{", 
-       RowBox[{"i", ",", "1", ",", 
-        RowBox[{"Length", "[", "runtime1VH2", "]"}]}], "}"}]}], "]"}]}], 
-   ";"}], "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+    RowBox[{
+     RowBox[{"Take", "[", 
+      RowBox[{"Import", "[", 
+       RowBox[{"wd", "<>", "\"\</vh2/benchmarks.dat\>\""}], "]"}], "]"}], "[", 
+     RowBox[{"[", 
+      RowBox[{"All", ",", 
+       RowBox[{"{", 
+        RowBox[{"6", ",", "2"}], "}"}]}], "]"}], "]"}]}], ";"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{"redTran", "=", 
    RowBox[{"{", 
@@ -660,98 +419,113 @@ Cell[BoxData[{
       RowBox[{"FrameMargins", "\[Rule]", "0"}]}], "]"}]}], ";"}], 
   "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
  RowBox[{
-  RowBox[{"Show", "[", 
-   RowBox[{"{", 
+  RowBox[{
+   RowBox[{"Show", "[", 
     RowBox[{"{", 
-     RowBox[{
-      RowBox[{"ListLogLogPlot", "[", 
-       RowBox[{
-        RowBox[{"{", 
-         RowBox[{"runtimeVAH", ",", "runtimeVH", ",", "runtimeVH2"}], "}"}], 
-        ",", 
-        RowBox[{"PlotRange", "\[Rule]", 
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"ListLogLogPlot", "[", 
+        RowBox[{
+         RowBox[{"{", 
+          RowBox[{"runtimeVAH", ",", "runtimeVH", ",", "runtimeVH2"}], "}"}], 
+         ",", 
+         RowBox[{"PlotRange", "\[Rule]", 
+          RowBox[{"{", 
+           RowBox[{
+            RowBox[{"{", 
+             RowBox[{"0.9", ",", "30"}], "}"}], ",", 
+            RowBox[{"{", 
+             RowBox[{"100", ",", "10000"}], "}"}]}], "}"}]}], ",", 
+         RowBox[{"Frame", "\[Rule]", "True"}], ",", 
+         RowBox[{"FrameStyle", "\[Rule]", "Black"}], ",", 
+         RowBox[{"FrameLabel", "\[Rule]", 
+          RowBox[{"{", 
+           RowBox[{
+            RowBox[{"{", 
+             RowBox[{
+              RowBox[{"Style", "[", 
+               RowBox[{"\"\<Runtime (s)\>\"", ",", 
+                RowBox[{"FontSize", "\[Rule]", "16"}], ",", 
+                RowBox[{"FontFamily", "\[Rule]", "\"\<Arial\>\""}]}], "]"}], 
+              ",", "\"\<\>\""}], "}"}], ",", 
+            RowBox[{"{", 
+             RowBox[{
+              RowBox[{"Style", "[", 
+               RowBox[{"\"\<Threads\>\"", ",", 
+                RowBox[{"FontSize", "\[Rule]", "16"}], ",", 
+                RowBox[{"FontFamily", "\[Rule]", "\"\<Arial\>\""}]}], "]"}], 
+              ",", "\"\<\>\""}], "}"}]}], "}"}]}], ",", 
+         RowBox[{"PlotMarkers", "->", 
+          RowBox[{"{", 
+           RowBox[{"\"\<\[FilledCircle]\>\"", ",", "10"}], "}"}]}], ",", 
+         RowBox[{"PlotStyle", "\[Rule]", 
+          RowBox[{"{", 
+           RowBox[{"redSolid", ",", "blueSolid", ",", "greenSolid"}], "}"}]}],
+          ",", 
+         RowBox[{"FrameTicks", "\[Rule]", 
+          RowBox[{"{", 
+           RowBox[{
+            RowBox[{"{", 
+             RowBox[{"logticks", ",", "nologticks"}], "}"}], ",", 
+            RowBox[{"{", 
+             RowBox[{"xticks", ",", "noxticks"}], "}"}]}], "}"}]}], ",", 
+         RowBox[{"AspectRatio", "\[Rule]", "0.9"}], ",", 
+         RowBox[{"BaseStyle", "\[Rule]", "13"}], ",", 
+         RowBox[{"Epilog", "\[Rule]", 
+          RowBox[{"Inset", "[", 
+           RowBox[{"legend1", ",", 
+            RowBox[{"{", 
+             RowBox[{
+              RowBox[{"Log", "[", "13", "]"}], ",", 
+              RowBox[{"Log", "[", "4000", "]"}]}], "}"}]}], "]"}]}], ",", 
+         RowBox[{"ImageSize", "\[Rule]", "400"}]}], "]"}], ",", 
+       "\[IndentingNewLine]", "\[IndentingNewLine]", 
+       RowBox[{"LogLogPlot", "[", 
+        RowBox[{
          RowBox[{"{", 
           RowBox[{
-           RowBox[{"{", 
-            RowBox[{"0.9", ",", "30"}], "}"}], ",", 
-           RowBox[{"{", 
-            RowBox[{"100", ",", "10000"}], "}"}]}], "}"}]}], ",", 
-        RowBox[{"Frame", "\[Rule]", "True"}], ",", 
-        RowBox[{"FrameStyle", "\[Rule]", "Black"}], ",", 
-        RowBox[{"FrameLabel", "\[Rule]", 
+           RowBox[{
+            RowBox[{"runtimeVAH", "[", 
+             RowBox[{"[", 
+              RowBox[{"1", ",", "2"}], "]"}], "]"}], "/", "x"}], ",", 
+           RowBox[{
+            RowBox[{"runtimeVH", "[", 
+             RowBox[{"[", 
+              RowBox[{"1", ",", "2"}], "]"}], "]"}], "/", "x"}], ",", 
+           RowBox[{
+            RowBox[{"runtimeVH2", "[", 
+             RowBox[{"[", 
+              RowBox[{"1", ",", "2"}], "]"}], "]"}], "/", "x"}]}], "}"}], ",", 
          RowBox[{"{", 
-          RowBox[{
-           RowBox[{"{", 
-            RowBox[{
-             RowBox[{"Style", "[", 
-              RowBox[{"\"\<Runtime (s)\>\"", ",", 
-               RowBox[{"FontSize", "\[Rule]", "16"}], ",", 
-               RowBox[{"FontFamily", "\[Rule]", "\"\<Arial\>\""}]}], "]"}], 
-             ",", "\"\<\>\""}], "}"}], ",", 
-           RowBox[{"{", 
-            RowBox[{
-             RowBox[{"Style", "[", 
-              RowBox[{"\"\<Threads\>\"", ",", 
-               RowBox[{"FontSize", "\[Rule]", "16"}], ",", 
-               RowBox[{"FontFamily", "\[Rule]", "\"\<Arial\>\""}]}], "]"}], 
-             ",", "\"\<\>\""}], "}"}]}], "}"}]}], ",", 
-        RowBox[{"PlotMarkers", "->", 
-         RowBox[{"{", 
-          RowBox[{"\"\<\[FilledCircle]\>\"", ",", "10"}], "}"}]}], ",", 
-        RowBox[{"PlotStyle", "\[Rule]", 
-         RowBox[{"{", 
-          RowBox[{"redSolid", ",", "blueSolid", ",", "greenSolid"}], "}"}]}], 
-        ",", 
-        RowBox[{"FrameTicks", "\[Rule]", 
-         RowBox[{"{", 
-          RowBox[{
-           RowBox[{"{", 
-            RowBox[{"logticks", ",", "nologticks"}], "}"}], ",", 
-           RowBox[{"{", 
-            RowBox[{"xticks", ",", "noxticks"}], "}"}]}], "}"}]}], ",", 
-        RowBox[{"AspectRatio", "\[Rule]", "0.9"}], ",", 
-        RowBox[{"BaseStyle", "\[Rule]", "13"}], ",", 
-        RowBox[{"Epilog", "\[Rule]", 
-         RowBox[{"Inset", "[", 
-          RowBox[{"legend1", ",", 
-           RowBox[{"{", 
-            RowBox[{
-             RowBox[{"Log", "[", "13", "]"}], ",", 
-             RowBox[{"Log", "[", "4000", "]"}]}], "}"}]}], "]"}]}], ",", 
-        RowBox[{"ImageSize", "\[Rule]", "400"}]}], "]"}], ",", 
-      "\[IndentingNewLine]", "\[IndentingNewLine]", 
-      RowBox[{"LogLogPlot", "[", 
-       RowBox[{
-        RowBox[{"{", 
-         RowBox[{
-          RowBox[{
-           RowBox[{"runtimeVAH", "[", 
-            RowBox[{"[", 
-             RowBox[{"1", ",", "2"}], "]"}], "]"}], "/", "x"}], ",", 
-          RowBox[{
-           RowBox[{"runtimeVH", "[", 
-            RowBox[{"[", 
-             RowBox[{"1", ",", "2"}], "]"}], "]"}], "/", "x"}], ",", 
-          RowBox[{
-           RowBox[{"runtimeVH2", "[", 
-            RowBox[{"[", 
-             RowBox[{"1", ",", "2"}], "]"}], "]"}], "/", "x"}]}], "}"}], ",", 
-        
-        RowBox[{"{", 
-         RowBox[{"x", ",", "1", ",", "30"}], "}"}], ",", 
-        RowBox[{"PlotStyle", "\[Rule]", 
-         RowBox[{"{", 
-          RowBox[{"redTran", ",", "blueTran", ",", "greenTran"}], "}"}]}]}], 
-       "]"}]}], "}"}], "}"}], "]"}], 
+          RowBox[{"x", ",", "1", ",", "30"}], "}"}], ",", 
+         RowBox[{"PlotStyle", "\[Rule]", 
+          RowBox[{"{", 
+           RowBox[{"redTran", ",", "blueTran", ",", "greenTran"}], "}"}]}]}], 
+        "]"}]}], "}"}], "}"}], "]"}], ";"}], 
   "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{
    RowBox[{"Export", "[", 
     RowBox[{
      RowBox[{"wd", "<>", "\"\</omp_test.pdf\>\""}], ",", "%"}], "]"}], ";"}], 
-  "\[IndentingNewLine]"}], "\[IndentingNewLine]", "runtimeVAH", "\
-\[IndentingNewLine]", "runtimeVH", "\[IndentingNewLine]", "runtimeVH2"}], \
-"Input",
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"Print", "[", 
+   RowBox[{"\"\<vah runtimes = \>\"", ",", " ", 
+    RowBox[{"runtimeVAH", "//", "MatrixForm"}]}], "]"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{"Print", "[", "]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"Print", "[", 
+   RowBox[{"\"\<vh runtimes = \>\"", ",", " ", 
+    RowBox[{"runtimeVH", "//", "MatrixForm"}]}], "]"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{"Print", "[", "]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"Print", "[", 
+   RowBox[{"\"\<vh2 runtimes = \>\"", ",", " ", 
+    RowBox[{"runtimeVH2", "//", "MatrixForm"}]}], "]"}], 
+  ";"}], "\[IndentingNewLine]"}], "Input",
  CellChangeTimes->{{3.771848328802774*^9, 3.7718483397990217`*^9}, {
    3.771848941658997*^9, 3.771848945424567*^9}, {3.771850791481722*^9, 
    3.7718508409974937`*^9}, {3.772298470302199*^9, 3.772298534085359*^9}, {
@@ -832,13 +606,128 @@ Cell[BoxData[{
    3.8138759879358053`*^9}, {3.813876018135262*^9, 3.8138760221750307`*^9}, {
    3.8138760995416117`*^9, 3.813876203207231*^9}, 3.8138762826779013`*^9, {
    3.8138771679048367`*^9, 3.813877182178111*^9}, {3.813885582442216*^9, 
-   3.813885585538746*^9}, {3.813885934648878*^9, 3.813885962912779*^9}},
+   3.813885585538746*^9}, {3.813885934648878*^9, 3.813885962912779*^9}, {
+   3.815180867211619*^9, 3.815181066998706*^9}},
  CellLabel->
-  "In[298]:=",ExpressionUUID->"11c2af0f-0262-42e7-a4d8-0ecfe7db6478"]
+  "In[3084]:=",ExpressionUUID->"11c2af0f-0262-42e7-a4d8-0ecfe7db6478"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"vah runtimes = \"\>", "\[InvisibleSpace]", 
+   TagBox[
+    RowBox[{"(", "\[NoBreak]", GridBox[{
+       {"1", "9531"},
+       {"2", "4943.5`"},
+       {"5", "2160.3`"},
+       {"10", "1156.9`"},
+       {"20", "699.23`"},
+       {"28", "524.51`"}
+      },
+      GridBoxAlignment->{"Columns" -> {{Center}}, "Rows" -> {{Baseline}}},
+      GridBoxSpacings->{"Columns" -> {
+          Offset[0.27999999999999997`], {
+           Offset[0.7]}, 
+          Offset[0.27999999999999997`]}, "Rows" -> {
+          Offset[0.2], {
+           Offset[0.4]}, 
+          Offset[0.2]}}], "\[NoBreak]", ")"}],
+    Function[BoxForm`e$, 
+     MatrixForm[BoxForm`e$]]]}],
+  SequenceForm["vah runtimes = ", 
+   MatrixForm[{{1, 9531}, {2, 4943.5}, {5, 2160.3}, {10, 1156.9}, {
+     20, 699.23}, {28, 524.51}}]],
+  Editable->False]], "Print",
+ CellChangeTimes->{{3.815180933741803*^9, 3.815181048411474*^9}, 
+   3.815181122695918*^9},
+ CellLabel->
+  "During evaluation of \
+In[3084]:=",ExpressionUUID->"1f505ba1-be1e-4b29-89fb-75d6774d4ee5"],
+
+Cell[BoxData["\<\"\"\>"], "Print",
+ CellChangeTimes->{{3.815180933741803*^9, 3.815181048411474*^9}, 
+   3.8151811226989326`*^9},
+ CellLabel->
+  "During evaluation of \
+In[3084]:=",ExpressionUUID->"b3610559-d020-4a7f-9256-0c5d0c33d9f8"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"vh runtimes = \"\>", "\[InvisibleSpace]", 
+   TagBox[
+    RowBox[{"(", "\[NoBreak]", GridBox[{
+       {"1", "3096.4`"},
+       {"2", "1721.2`"},
+       {"5", "729.68`"},
+       {"10", "418.98`"},
+       {"20", "276.81`"},
+       {"28", "230.14`"}
+      },
+      GridBoxAlignment->{"Columns" -> {{Center}}, "Rows" -> {{Baseline}}},
+      GridBoxSpacings->{"Columns" -> {
+          Offset[0.27999999999999997`], {
+           Offset[0.7]}, 
+          Offset[0.27999999999999997`]}, "Rows" -> {
+          Offset[0.2], {
+           Offset[0.4]}, 
+          Offset[0.2]}}], "\[NoBreak]", ")"}],
+    Function[BoxForm`e$, 
+     MatrixForm[BoxForm`e$]]]}],
+  SequenceForm["vh runtimes = ", 
+   MatrixForm[{{1, 3096.4}, {2, 1721.2}, {5, 729.68}, {10, 418.98}, {
+     20, 276.81}, {28, 230.14}}]],
+  Editable->False]], "Print",
+ CellChangeTimes->{{3.815180933741803*^9, 3.815181048411474*^9}, 
+   3.815181122705989*^9},
+ CellLabel->
+  "During evaluation of \
+In[3084]:=",ExpressionUUID->"2e9bf8c3-8e38-49c6-ad38-143bea2aa847"],
+
+Cell[BoxData["\<\"\"\>"], "Print",
+ CellChangeTimes->{{3.815180933741803*^9, 3.815181048411474*^9}, 
+   3.815181122708366*^9},
+ CellLabel->
+  "During evaluation of \
+In[3084]:=",ExpressionUUID->"d845fcd2-1d19-4f91-9ba4-ee0d6d3babfd"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"vh2 runtimes = \"\>", "\[InvisibleSpace]", 
+   TagBox[
+    RowBox[{"(", "\[NoBreak]", GridBox[{
+       {"1", "2962.4`"},
+       {"2", "1705.2`"},
+       {"5", "801.35`"},
+       {"10", "479.44`"},
+       {"20", "389.35`"},
+       {"28", "263.67`"}
+      },
+      GridBoxAlignment->{"Columns" -> {{Center}}, "Rows" -> {{Baseline}}},
+      GridBoxSpacings->{"Columns" -> {
+          Offset[0.27999999999999997`], {
+           Offset[0.7]}, 
+          Offset[0.27999999999999997`]}, "Rows" -> {
+          Offset[0.2], {
+           Offset[0.4]}, 
+          Offset[0.2]}}], "\[NoBreak]", ")"}],
+    Function[BoxForm`e$, 
+     MatrixForm[BoxForm`e$]]]}],
+  SequenceForm["vh2 runtimes = ", 
+   MatrixForm[{{1, 2962.4}, {2, 1705.2}, {5, 801.35}, {10, 479.44}, {
+     20, 389.35}, {28, 263.67}}]],
+  Editable->False]], "Print",
+ CellChangeTimes->{{3.815180933741803*^9, 3.815181048411474*^9}, 
+   3.815181122710388*^9},
+ CellLabel->
+  "During evaluation of \
+In[3084]:=",ExpressionUUID->"f55af48d-7883-4b1d-b7f4-bc9f677bed05"]
+}, Open  ]]
+}, Open  ]]
 }, Open  ]]
 },
 WindowSize->{1006, 790},
-WindowMargins->{{114, Automatic}, {Automatic, 0}},
+WindowMargins->{{Automatic, 57}, {Automatic, 0}},
 PrivateNotebookOptions->{"VersionedStylesheet"->{"Default.nb"[8.] -> False}},
 FrontEndVersion->"12.0 for Mac OS X x86 (64-bit) (April 8, 2019)",
 StyleDefinitions->"Default.nb"
@@ -857,7 +746,16 @@ Notebook[{
 Cell[558, 20, 306, 6, 52, "Input",ExpressionUUID->"c9c6d8b7-fa11-47e0-88b3-fca3909c61b3"],
 Cell[CellGroupData[{
 Cell[889, 30, 154, 3, 54, "Subsection",ExpressionUUID->"b4e15d25-413f-4eb0-b01f-c9bfc0481110"],
-Cell[1046, 35, 31933, 801, 2030, "Input",ExpressionUUID->"11c2af0f-0262-42e7-a4d8-0ecfe7db6478"]
+Cell[CellGroupData[{
+Cell[1068, 37, 24881, 574, 1463, "Input",ExpressionUUID->"11c2af0f-0262-42e7-a4d8-0ecfe7db6478"],
+Cell[CellGroupData[{
+Cell[25974, 615, 1061, 30, 108, "Print",ExpressionUUID->"1f505ba1-be1e-4b29-89fb-75d6774d4ee5"],
+Cell[27038, 647, 235, 5, 24, "Print",ExpressionUUID->"b3610559-d020-4a7f-9256-0c5d0c33d9f8"],
+Cell[27276, 654, 1064, 30, 108, "Print",ExpressionUUID->"2e9bf8c3-8e38-49c6-ad38-143bea2aa847"],
+Cell[28343, 686, 233, 5, 24, "Print",ExpressionUUID->"d845fcd2-1d19-4f91-9ba4-ee0d6d3babfd"],
+Cell[28579, 693, 1066, 30, 108, "Print",ExpressionUUID->"f55af48d-7883-4b1d-b7f4-bc9f677bed05"]
+}, Open  ]]
+}, Open  ]]
 }, Open  ]]
 }
 ]

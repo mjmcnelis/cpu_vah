@@ -8,3 +8,5 @@ export OMP_NUM_THREADS=2
 set OMP_NUM_THREADS 2
 
 ./cpu_vah
+
+cp output/benchmarks/benchmarks.dat tests/omp_test/$HYDRO
