@@ -185,18 +185,18 @@ const precision * const __restrict__ e_current, const precision * const __restri
 				precision un_p = 0;
 			#endif
 
-				get_primary_neighbor_cells(e_current, e1, sim, sip, sjm, sjp, skm, skp);
+				get_energy_density_neighbor_cells(e_current, e1, sim, sip, sjm, sjp, skm, skp);
 
 				get_fluid_velocity_neighbor_cells(u_current[simm], u_current[sim], u_current[sip], u_current[sipp], u_current[sjmm], u_current[sjm], u_current[sjp], u_current[sjpp], u_current[skmm], u_current[skm], u_current[skp], u_current[skpp], ui1, uj1, uk1, vxi, vyj, vnk, t2);
 
-				get_hydro_neighbor_cells(q_current[sim],  q_current[sip],  qi1);
-				get_hydro_neighbor_cells(q_current[simm], q_current[sipp], qi2);
+				get_hydro_variables_neighbor_cells(q_current[sim],  q_current[sip],  qi1);
+				get_hydro_variables_neighbor_cells(q_current[simm], q_current[sipp], qi2);
 
-				get_hydro_neighbor_cells(q_current[sjm],  q_current[sjp],  qj1);
-				get_hydro_neighbor_cells(q_current[sjmm], q_current[sjpp], qj2);
+				get_hydro_variables_neighbor_cells(q_current[sjm],  q_current[sjp],  qj1);
+				get_hydro_variables_neighbor_cells(q_current[sjmm], q_current[sjpp], qj2);
 
-				get_hydro_neighbor_cells(q_current[skm],  q_current[skp],  qk1);
-				get_hydro_neighbor_cells(q_current[skmm], q_current[skpp], qk2);
+				get_hydro_variables_neighbor_cells(q_current[skm],  q_current[skp],  qk1);
+				get_hydro_variables_neighbor_cells(q_current[skmm], q_current[skpp], qk2);
 
 
 
@@ -502,8 +502,8 @@ void evolve_hydro_one_time_step(int n, precision t, precision dt, precision dt_p
 {
 	int RK2 = 0;
 
-	if(lattice.adaptive_time_step && !hit_CFL)								// first intermediate euler step
-	{																		// qI = q + dt.(S - dHx/dx - dHy/dy - dHn/dn)
+	if(lattice.adaptive_time_step && !hit_CFL)								// compute  qI
+	{
 		if(n == 0)
 		{
 			euler_step(t, q, qI, e, lambda, aT, aL, up, u, dt, dt_prev, lattice, hydro, update, RK2);
@@ -520,70 +520,47 @@ void evolve_hydro_one_time_step(int n, precision t, precision dt, precision dt_p
 
 	t += dt;																// next intermediate time step
 
-
-
-	// swap u and up before reconstructing inferred variables
 	swap_fluid_velocity(&u, &up);											// swap u and up
 
 
-
-
 #ifdef ANISO_HYDRO
-	//set_inferred_variables_aniso_hydro(qI, e, uI, t, lattice, hydro);		// compute (uI, e)
 	set_inferred_variables_aniso_hydro(qI, e, u, t, lattice, hydro);		// compute (u, e)
 
-// should I regulate or solve for aniso variables first?...
+	// todo: try regulating before solving for aniso variables
 
 #ifdef LATTICE_QCD
-	set_anisotropic_variables(qI, e, lambda, aT, aL, lattice, hydro);		// compute (lambda, aT, aL)
+	set_anisotropic_variables(qI, e, lambda, aT, aL, lattice, hydro);		// compute X = (lambda, aT, aL)
 #endif
+	regulate_residual_currents(t, qI, e, u, lattice, hydro, RK2);			// regulate qI
 
-	//regulate_residual_currents(t, qI, e, uI, lattice, hydro, RK2);		// regulate qI
-	regulate_residual_currents(t, qI, e, u, lattice, hydro, RK2);			// regulate qI (replace uI -> u)
-
-																			// note: never tested putting it before previous line
 #else
-	//set_inferred_variables_viscous_hydro(qI, e, uI, t, lattice, hydro);
 	set_inferred_variables_viscous_hydro(qI, e, u, t, lattice, hydro);		// compute (u, e)
-
-	//regulate_viscous_currents(t, qI, e, uI, lattice, hydro, RK2);			// regulate qI
-	regulate_viscous_currents(t, qI, e, u, lattice, hydro, RK2);			// regulate qI (replace uI -> u)
+	regulate_viscous_currents(t, qI, e, u, lattice, hydro, RK2);			// regulate qI
 #endif
 
-	//set_ghost_cells(qI, e, uI, lattice);									// set (qI, uI, e) ghost cells
 	set_ghost_cells(qI, e, u, lattice);										// set (qI, u, e) ghost cells
 
 	dt_prev = dt;															// update previous time step
 
 	RK2 = 1;
 
-	//euler_step(t, qI, Q, e, lambda, aT, aL, u, uI, dt, dt_prev, lattice, hydro, update, RK2);	// second intermediate euler step
-																			// Q = qI + dt.(S - dHx/dx - dHy/dy - dHn/dn)
-
 	euler_step(t, qI, Q, e, lambda, aT, aL, up, u, dt, dt_prev, lattice, hydro, update, RK2);	// second intermediate euler step
 																			// Q = qI + dt.(S - dHx/dx - dHy/dy - dHn/dn)
 
 #ifdef ANISO_HYDRO
-	//set_inferred_variables_aniso_hydro(Q, e, up, t, lattice, hydro);		// compute (u, e)
 	set_inferred_variables_aniso_hydro(Q, e, u, t, lattice, hydro);			// compute (u, e)
 
 #ifdef LATTICE_QCD
-	set_anisotropic_variables(Q, e, lambda, aT, aL, lattice, hydro);		// compute (lambda, aT, aL)
+	set_anisotropic_variables(Q, e, lambda, aT, aL, lattice, hydro);		// compute X = (lambda, aT, aL)
 #endif
-
-	//regulate_residual_currents(t, Q, e, up, lattice, hydro, RK2);			// regulate Q
 	regulate_residual_currents(t, Q, e, u, lattice, hydro, RK2);			// regulate Q
-#else
-	//set_inferred_variables_viscous_hydro(Q, e, up, t, lattice, hydro);
-	set_inferred_variables_viscous_hydro(Q, e, u, t, lattice, hydro);		// using u
 
-	//regulate_viscous_currents(t, Q, e, up, lattice, hydro, RK2);
-	regulate_viscous_currents(t, Q, e, u, lattice, hydro, RK2);				// using u
+#else
+	set_inferred_variables_viscous_hydro(Q, e, u, t, lattice, hydro);		// compute (u, e)
+	regulate_viscous_currents(t, Q, e, u, lattice, hydro, RK2);				// regulate Q
 #endif
 
 	swap_hydro_variables(&q, &Q);											// swap q and Q
-	//swap_fluid_velocity(&u, &up);											// swap u and up
-
 	set_ghost_cells(q, e, u, lattice);										// set (Q, u, e) ghost cells
 }
 

@@ -65,9 +65,11 @@ To run the python3 scripts, install `python/3.6`.
 
 To run CPU VAH with the Intel compiler on the Ohio Supercomputer Center (OSC), login and do
 
+    cd cpu_vah
     sh makefile.sh icpc
     module load python/3.6
     module load intel/19.0.3
+    sh hydro.sh 1
 
 
 ## Source files
@@ -109,7 +111,7 @@ The most important runtime parameters to adjust are
 
     ---------------------------------------------------------------------------------
 
-    number_of_points_x                  number of physical grid points along x-direction (and similarly for y, eta)
+    lattice_points_x                    number of physical grid points along x-direction (and similarly for y, eta)
 
     lattice_spacing_x                   lattice spacing (and similarly for y, eta)
 

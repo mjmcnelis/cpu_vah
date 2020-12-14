@@ -302,46 +302,6 @@ void transverse_projection::test_transverse_projector()
 }
 
 
-void transverse_projection::transverse_project_vorticity(precision & wtx, precision & wty, precision & wtn, precision & wxy, precision & wxn, precision & wyn)
-{
-	// omegaT^{\mu\nu} = Xi^\mu_\alpha Xi^\nu_\beta D^{[\alpha} u^{\beta]}
-
-	// omegaT^{\tau i} components
-	precision row1 =                Xitx * wtx  +  Xity * wty  +  t2 * Xitn * wtn;
-	precision row2 = Xitt * wtx                 +  Xity * wxy  +  t2 * Xitn * wxn;
-	precision row3 = Xitt * wty  -  Xitx * wxy                 +  t2 * Xitn * wyn;
-	precision row4 = Xitt * wtn  -  Xitx * wxn  -  Xity * wyn                    ;
-
-	precision wtx_pro = Xitx * row1  -  Xixx * row2  -  Xixy * row3  -  t2 * Xixn * row4;
-	precision wty_pro = Xity * row1  -  Xixy * row2  -  Xiyy * row3  -  t2 * Xiyn * row4;
-	precision wtn_pro = Xitn * row1  -  Xixn * row2  -  Xiyn * row3  -  t2 * Xinn * row4;
-
-	// omegaT^{xi} components
-	row1 =                Xixx * wtx  +  Xixy * wty  +  t2 * Xixn * wtn;
-	row2 = Xitx * wtx                 +  Xixy * wxy  +  t2 * Xixn * wxn;
-	row3 = Xitx * wty  -  Xixx * wxy                 +  t2 * Xixn * wyn;
-	row4 = Xitx * wtn  -  Xixx * wxn  -  Xixy * wyn                    ;
-
-	precision wxy_pro = Xity * row1  -  Xixy * row2  -  Xiyy * row3  -  t2 * Xiyn * row4;
-	precision wxn_pro = Xitn * row1  -  Xixn * row2  -  Xiyn * row3  -  t2 * Xinn * row4;
-
-	// omegaT^{yn}
-	row1 =                Xixy * wtx  +  Xiyy * wty  +  t2 * Xiyn * wtn;
-	row2 = Xity * wtx                 +  Xiyy * wxy  +  t2 * Xiyn * wxn;
-	row3 = Xity * wty  -  Xixy * wxy                 +  t2 * Xiyn * wyn;
-	row4 = Xity * wtn  -  Xixy * wxn  -  Xiyy * wyn                    ;
-
-	precision wyn_pro = Xitn * row1  -  Xixn * row2  -  Xiyn * row3  -  t2 * Xinn * row4;
-
-	wtx = wtx_pro;
-	wty = wty_pro;
-	wtn = wtn_pro;
-	wxy = wxy_pro;
-	wxn = wxn_pro;
-	wyn = wyn_pro;
-}
-
-
 //////////////////////////////////////////////////////////////////////
 
 double_transverse_projection::double_transverse_projection(transverse_projection Xi, precision t2_in, precision t4_in)

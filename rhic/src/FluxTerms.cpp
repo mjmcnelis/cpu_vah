@@ -32,7 +32,7 @@ precision minmod_derivative(precision qm, precision q, precision qp, precision T
 
 precision compute_max_local_propagation_speed(const precision * const __restrict__ v_data, precision v, precision Theta)
 {
-	precision vmm = v_data[0];
+	precision vmm = v_data[0];		// this is for computing the CFL condition
 	precision vm  = v_data[1];
 	precision vp  = v_data[2];
 	precision vpp = v_data[3];

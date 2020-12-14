@@ -42,7 +42,8 @@ class freezeout_finder
 		double ***cube;										// 2+1d hypercube
 		double ****hypercube;								// 3+1d hypercube
 
-		float *****hydro_evolution;							// for storing hydro information on 2.nx.ny.nz hypergrid
+		float *****hydro_info;								// for storing hydro variables on 2.nx.ny.nz hypergrid
+
 
 	#ifndef JETSCAPE
 		std::ofstream freezeout_surface_file;				// file for output/surface.dat
@@ -62,12 +63,10 @@ class freezeout_finder
 		freezeout_finder(lattice_parameters lattice, hydro_parameters hydro);
 		~freezeout_finder();
 
-	#ifdef JETSCAPE
-		freezeout_surface surface;
-	#endif
+		freezeout_surface surface;							// particlization hypersurface
 
-		void set_hydro_evolution(double t_set, hydro_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u);
-		void swap_and_set_hydro_evolution(hydro_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u);
+		void load_initial_grid(double t_set, hydro_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u);
+		void load_current_grid(hydro_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u);
 
 		void construct_energy_density_cube(float ****energy_density, int ix, int iy);
 		void construct_energy_density_hypercube(float ****energy_density, int ix, int iy, int iz);

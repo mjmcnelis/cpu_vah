@@ -423,7 +423,7 @@ void regulate_viscous_currents(precision t, hydro_variables * const __restrict__
  				precision factor_bulk = 1;
 
  			#ifdef MONITOR_REGULATIONS
- 				if(RK2)
+ 				if(!RK2)
  				{	// most regulations occur after first intermediate Euler step (very few after RK2 averaging)
 
  					viscous_regulation[s] = 0;
@@ -441,7 +441,7 @@ void regulate_viscous_currents(precision t, hydro_variables * const __restrict__
 						factor_bulk = tanh_function(fabs(sqrt_three * Pi / (rho_max * Teq)));
 
 					#ifdef MONITOR_REGULATIONS
-						if(RK2)
+						if(!RK2)
 						{
 							viscous_regulation[s] = 1;
 						}
@@ -464,7 +464,7 @@ void regulate_viscous_currents(precision t, hydro_variables * const __restrict__
 							factor_bulk = factor;
 
 						#ifdef MONITOR_REGULATIONS
-							if(RK2)
+							if(!RK2)
 							{
 								viscous_regulation[s] = 1;
 							}

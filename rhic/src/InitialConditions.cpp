@@ -31,7 +31,7 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 }
 
 
-void set_initial_T_taumu_variables(double t, int nx, int ny, int nz, hydro_parameters hydro)
+void set_initial_timelike_Tmunu_components(double t, int nx, int ny, int nz, hydro_parameters hydro)
 {
 	#pragma omp parallel for collapse(3)
 	for(int k = 2; k < nz + 2; k++)
@@ -129,7 +129,7 @@ void set_initial_T_taumu_variables(double t, int nx, int ny, int nz, hydro_param
 }
 
 
-void set_anisotropic_initial_condition(int nx, int ny, int nz, hydro_parameters hydro)
+void set_initial_anisotropy(int nx, int ny, int nz, hydro_parameters hydro)
 {
 	precision plpt_ratio = hydro.plpt_ratio_initial;
 	precision conformal_prefactor = hydro.conformal_eos_prefactor;
@@ -320,7 +320,7 @@ void set_Glauber_energy_density_and_flow_profile(int nx, int ny, int nz, double 
 }
 */
 
-void read_block_energy_density_file(int nx, int ny, int nz, hydro_parameters hydro)
+void read_block_energy_density_from_file(int nx, int ny, int nz, hydro_parameters hydro)
 {
 	// load block energy density file to energy density e[s]
 	// and set u, up components to 0 (assumes no flow profile)
@@ -409,17 +409,17 @@ void read_block_energy_density_file(int nx, int ny, int nz, hydro_parameters hyd
 
 
 
-void set_trento_energy_density_profile(int nx, int ny, int nz, hydro_parameters hydro, std::vector<double> trento)
+void set_trento_energy_density_profile_from_memory(int nx, int ny, int nz, hydro_parameters hydro, std::vector<double> trento)
 {
 	if(trento.size() == 0)
 	{
-		printf("set_trento_energy_density_profile error: trento energy density profile is empty (initial condition type only compatible with JETSCAPE)\n");
+		printf("set_trento_energy_density_profile_from_memory error: trento energy density profile is empty (initial condition type only compatible with JETSCAPE)\n");
 		exit(-1);
 	}
 
 	if((nx * ny * nz) != trento.size())
 	{
-		printf("set_trento_energy_density_profile error: physical grid points and trento energy density vector size are inconsistent\n");
+		printf("set_trento_energy_density_profile_from_memory error: physical grid points and trento energy density vector size are inconsistent\n");
 		exit(-1);
 	}
 
@@ -486,7 +486,7 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 			set_viscous_bjorken_initial_condition(nx, ny, nz, initial, hydro);
 		#endif
 
-			set_initial_T_taumu_variables(t, nx, ny, nz, hydro);
+			set_initial_timelike_Tmunu_components(t, nx, ny, nz, hydro);
 
 			break;
 		}
@@ -521,7 +521,7 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 			set_ideal_gubser_initial_conditions(lattice, dt, initial, hydro);
 		#endif
 
-			set_initial_T_taumu_variables(t, nx, ny, nz, hydro);
+			set_initial_timelike_Tmunu_components(t, nx, ny, nz, hydro);
 
 			break;
 		}
@@ -555,7 +555,7 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 			double T0_hat = run_semi_analytic_aniso_gubser(lattice, initial, hydro);
 
 			set_aniso_gubser_energy_density_and_flow_profile(T0_hat, nx, ny, nz, dt, dx, dy, dz, hydro, initial);
-			set_initial_T_taumu_variables(t, nx, ny, nz, hydro);
+			set_initial_timelike_Tmunu_components(t, nx, ny, nz, hydro);
 
 			break;
 		}
@@ -563,26 +563,26 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 		{
 			printf("Trento (fluid velocity initialized to zero)\n\n");
 			set_trento_energy_density_and_flow_profile(lattice, initial, hydro);
-			set_anisotropic_initial_condition(nx, ny, nz, hydro);
-			set_initial_T_taumu_variables(t, nx, ny, nz, hydro);
+			set_initial_anisotropy(nx, ny, nz, hydro);
+			set_initial_timelike_Tmunu_components(t, nx, ny, nz, hydro);
 
 			break;
 		}
 		case 5:		// read custom energy density block file
 		{
 			printf("Reading custom energy density block file... (fluid velocity initialized to zero)\n\n");
-			read_block_energy_density_file(nx, ny, nz, hydro);
-			set_anisotropic_initial_condition(nx, ny, nz, hydro);
-			set_initial_T_taumu_variables(t, nx, ny, nz, hydro);
+			read_block_energy_density_from_file(nx, ny, nz, hydro);
+			set_initial_anisotropy(nx, ny, nz, hydro);
+			set_initial_timelike_Tmunu_components(t, nx, ny, nz, hydro);
 
 			break;
 		}
 		case 6:		// read trento energy density profile from JETSCAPE C++ vector
 		{
 			printf("Reading trento energy density profile from JETSCAPE C++ vector... (fluid velocity initialized to zero)\n\n");
-			set_trento_energy_density_profile(nx, ny, nz, hydro, trento);
-			set_anisotropic_initial_condition(nx, ny, nz, hydro);
-			set_initial_T_taumu_variables(t, nx, ny, nz, hydro);
+			set_trento_energy_density_profile_from_memory(nx, ny, nz, hydro, trento);
+			set_initial_anisotropy(nx, ny, nz, hydro);
+			set_initial_timelike_Tmunu_components(t, nx, ny, nz, hydro);
 			break;
 		}
 		default:

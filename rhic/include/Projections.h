@@ -152,7 +152,6 @@ class transverse_projection
 		~transverse_projection();
 
 		void transverse_project_vector(precision & At, precision & Ax, precision & Ay, precision & An);
-		void transverse_project_vorticity(precision & wtx, precision & wty, precision & wtn, precision & wxy, precision & wxn, precision & wyn);
 
 		void test_transverse_projector();
 };

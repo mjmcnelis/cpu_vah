@@ -5,7 +5,7 @@
 #include "../include/Macros.h"
 
 
-void get_primary_neighbor_cells(const precision * const __restrict__ E, precision * const __restrict__ e1, int sim, int sip, int sjm, int sjp, int skm, int skp)
+void get_energy_density_neighbor_cells(const precision * const __restrict__ E, precision * const __restrict__ e1, int sim, int sip, int sjm, int sjp, int skm, int skp)
 {
 	// energy density of neighbor cells stored in e1 = (e_sim, e_sip, e_sjm, e_sjp, e_skm, e_skp)
 	e1[0] = E[sim];		// i-1
@@ -175,7 +175,7 @@ void get_fluid_velocity_neighbor_cells(	fluid_velocity u_simm, fluid_velocity u_
 }
 
 
-void get_hydro_neighbor_cells(hydro_variables qm, hydro_variables qp, precision * const __restrict__ q)
+void get_hydro_variables_neighbor_cells(hydro_variables qm, hydro_variables qp, precision * const __restrict__ q)
 {
 	int n = 0;
 

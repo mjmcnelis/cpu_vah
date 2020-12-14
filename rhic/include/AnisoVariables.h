@@ -10,8 +10,6 @@ const int N_max = 100;	      			// max number of iterations   (probably need to 
 const precision tol_dX = 1.e-4;    		// tolerance for dX
 const precision tol_F = 1.e-4;    		// tolerance for F
 
-typedef enum {newton, broyden} jacobian;
-
 typedef struct
 {
 	precision lambda;

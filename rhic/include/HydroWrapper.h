@@ -4,7 +4,7 @@
 
 #include "FreezeoutSurface.h"
 
-// #ifdef _OPENMP       // Derek: my code does not have openmp acceleration, is it required?
+// #ifdef _OPENMP       // Derek: my code does not have openmp acceleration, is it required? (old note)
 // #include <omp.h>
 // #endif
 
@@ -54,7 +54,7 @@ class HYDRO
         std::vector<double> Pi;                                 // bulk pressure [GeV/fm^3]
 
 
-        void read_trento_energy_density_profile(std::vector<double> energy_vector);
+        void read_trento_energy_density_profile_from_memory(std::vector<double> energy_vector);
 
         void store_freezeout_surface(freezeout_surface surface);
         void free_freezeout_surface();

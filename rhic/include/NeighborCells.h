@@ -8,8 +8,8 @@
 // get neighbor cells of hydroydynamic variables along (x,y,n)
 // to compute derivatives appearing in source and flux terms
 
-// primary variables (e)
-void get_primary_neighbor_cells(const precision * const __restrict__ E, precision * const __restrict__ e1, int sim, int sip, int sjm, int sjp, int skm, int skp);
+// energy density (e)
+void get_energy_density_neighbor_cells(const precision * const __restrict__ E, precision * const __restrict__ e1, int sim, int sip, int sjm, int sjp, int skm, int skp);
 
 
 // fluid velocity (u)
@@ -21,6 +21,6 @@ void get_fluid_velocity_neighbor_cells(	fluid_velocity u_simm, fluid_velocity u_
 
 
 // hydro variables (q)
-void get_hydro_neighbor_cells(hydro_variables qm, hydro_variables qp, precision * const __restrict__ q);
+void get_hydro_variables_neighbor_cells(hydro_variables qm, hydro_variables qp, precision * const __restrict__ q);
 
 #endif

@@ -70,11 +70,12 @@ int main(int argc, char **argv)
 // example code in JETSCAPE:
 /*
 
-HYDRO vah;                                              // make HYDRO class
-vah.read_trento_energy_density_profile(trento_energy);  // pass energy density vector from trento
-vah.start_hydro_no_arguments();                         // run hydro
+HYDRO vah;                                                          // make HYDRO class
+vah.read_trento_energy_density_profile_from_memory(trento_energy);  // pass energy density vector from trento
+vah.start_hydro_no_arguments();                                     // run hydro
 
-IS3D particlization;                                    // make IS3D class and pass freezeout surface from vah (pinn is extraneous)
+IS3D particlization;                                                // make IS3D class and pass freezeout surface from vah (pinn is extraneous)
+
 particlization.read_fo_surf_from_memory(vah.tau, vah.x, vah.y, vah.eta,
                     vah.dsigma_tau, vah.dsigma_x, vah.dsigma_y, vah.dsigma_eta,
                     vah.ux, vah.uy, vah.un,
@@ -82,9 +83,9 @@ particlization.read_fo_surf_from_memory(vah.tau, vah.x, vah.y, vah.eta,
                     vah.pixx, vah.pixy, vah.pixn, vah.piyy, vah.piyn, vah.pinn,
                     vah.Pi);
 
-vah.free_freezeout_surface();                           // free surface memory in vah
+vah.free_freezeout_surface();                                       // free surface memory in vah
 
-particlization.run_particlization(0);                   // run particle sampler (argument = 0 uses surface from memory)
+particlization.run_particlization(0);                               // run particle sampler (argument = 0 uses surface from memory)
 
 */
 

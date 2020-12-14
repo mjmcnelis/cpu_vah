@@ -91,7 +91,7 @@ long number_of_cells_above_freezeout_temperature(lattice_parameters lattice, hyd
 }
 
 
-precision set_the_time_step(int n, precision t, precision dt_prev, precision t_next_output, lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro)
+precision set_time_step(int n, precision t, precision dt_prev, precision t_next_output, lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro)
 {
 	precision dt_fix = lattice.fixed_time_step;
 	precision dt_min = lattice.min_time_step;
@@ -195,7 +195,7 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 	printf("Running 3+1d hydro simulation...\n\n");
 #endif
 
-	freezeout_finder fo_finder(lattice, hydro);         // freezeout finder class
+	freezeout_finder finder(lattice, hydro);			// freezeout finder class
 	int freezeout_period = lattice.tau_coarse_factor;   // time steps between freezeout finder calls
 	int grid_below_Tswitch = 0;                         // number of times freezeout finder searches a grid below Tswitch
 	int freezeout_depth = 3;                            // max number of time steps freezeout finder goes below Tswitch
@@ -213,7 +213,7 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 	//----------------------------------------------------------
 	for(int n = 0; n < lattice.max_time_steps; n++)
 	{
-		dt = set_the_time_step(n, t, dt_prev, t_out + dt_out, lattice, initial, hydro);
+		dt = set_time_step(n, t, dt_prev, t_out + dt_out, lattice, initial, hydro);
 
 		if(hydro.run_hydro == 1)                                // outputs hydro data at regular time intervals (if hydro.output = 1)
 		{
@@ -234,7 +234,7 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 				if(hydro.output)
 				{
 					number_outputs++;
-					output_dynamical_variables(t, dt_prev, lattice, initial, hydro);
+					output_hydro_simulation(t, dt_prev, lattice, initial, hydro);
 				}
 
 				if(all_cells_below_freezeout_temperature(lattice, hydro))
@@ -252,7 +252,7 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 				if(hydro.output)
 				{
 					number_outputs++;
-					output_dynamical_variables(t, dt_prev, lattice, initial, hydro);
+					output_hydro_simulation(t, dt_prev, lattice, initial, hydro);
 				}
 
 				if(all_cells_below_freezeout_temperature(lattice, hydro))
@@ -280,7 +280,7 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 				print_hydro_center(n, t, lattice, hydro, cells_above_Tswitch);
 			#endif
 
-				fo_finder.set_hydro_evolution(t, q, e, u);
+				finder.load_initial_grid(t, q, e, u);			// todo: can move this above evolution loop
 			}
 			else if(n % freezeout_period == 0)                  // find freezeout cells
 			{
@@ -289,12 +289,12 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 				print_hydro_center(n, t, lattice, hydro, cells_above_Tswitch);
 			#endif
 
-				fo_finder.swap_and_set_hydro_evolution(q, e, u);
+				finder.load_current_grid(q, e, u);
 
 			#ifdef BOOST_INVARIANT
-				fo_finder.find_2d_freezeout_cells(t, hydro);
+				finder.find_2d_freezeout_cells(t, hydro);
 			#else
-				fo_finder.find_3d_freezeout_cells(t, hydro);
+				finder.find_3d_freezeout_cells(t, hydro);
 			#endif
 
 				if(all_cells_below_freezeout_temperature(lattice, hydro))
@@ -361,14 +361,14 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 
 	if(hydro.run_hydro == 2)
 	{
-		fo_finder.free_finder_memory(sample);
+		finder.free_finder_memory(sample);
 		printf("\nFinished hydro evolution\n");
-		return fo_finder.surface;                   // return freezeout surface
+		return finder.surface;                   	// return freezeout surface
 	}
 
 	printf("\nFinished hydro evolution\n");
 
-	freezeout_surface surface;                      // return an empty surface (default)
+	freezeout_surface surface;						// return an empty surface (default)
 
 	return surface;
 }

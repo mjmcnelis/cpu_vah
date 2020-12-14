@@ -1427,7 +1427,7 @@ void output_viscous_regulations(const int * const __restrict__ viscous_regulatio
 }
 
 
-void output_dynamical_variables(double t, double dt_prev, lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro)
+void output_hydro_simulation(double t, double dt_prev, lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro)
 {
 	int initial_type = initial.initial_condition_type;
 

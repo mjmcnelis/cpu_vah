@@ -30,7 +30,7 @@ HYDRO::~HYDRO()
 
 
 
-void HYDRO::read_trento_energy_density_profile(std::vector<double> trento_energy)
+void HYDRO::read_trento_energy_density_profile_from_memory(std::vector<double> trento_energy)
 {
     // read initial energy density profile from TRENTo (for JETSCAPE, initial_condition_type = 6)
     // note: units should be [GeV/fm^3], later converted to [fm^-4]
@@ -44,18 +44,18 @@ void HYDRO::store_freezeout_surface(freezeout_surface surface)
 {
 	printf("\nStoring freezeout surface in memory for particlization module...\n\n");
 
-	long number_of_cells = surface.tau.size();
+	long total_cells = surface.tau.size();
 
-	if(number_of_cells == 0)
+	if(total_cells == 0)
 	{
 		printf("HYDRO::save_freezeout_surface flag: freezeout surface is empty\n");
 		return;
 	}
 	else
 	{
-		printf("Number of freezeout cells = %ld\n", number_of_cells);
+		printf("Number of freezeout cells = %ld\n", total_cells);
 
-		for(long i = 0; i < number_of_cells; i++)
+		for(long i = 0; i < total_cells; i++)
 		{
 			tau.push_back((double)surface.tau[i]);
 			x.push_back(  (double)surface.x[i]);

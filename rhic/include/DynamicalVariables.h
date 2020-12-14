@@ -144,7 +144,7 @@ typedef struct
 extern hydro_variables *q, *Q, *qI;
 
 extern fluid_velocity *u, *up;
-//extern fluid_velocity *u, *up, *uI;		// delete uI
+//extern fluid_velocity *u, *up, *uI;		// deleted uI
 
 extern precision *e, *lambda, *aT, *aL;
 

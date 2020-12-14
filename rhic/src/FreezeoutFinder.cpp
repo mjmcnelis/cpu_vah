@@ -97,7 +97,7 @@ freezeout_finder::freezeout_finder(lattice_parameters lattice, hydro_parameters 
  	// allocate memory
  	hypercube = calloc_4d_array(hypercube, 2, 2, 2, 2);
  	cube = calloc_3d_array(cube, 2, 2, 2);
- 	hydro_evolution = calloc_5d_array(hydro_evolution, independent_hydro_variables, 2, nx, ny, nz);
+ 	hydro_info = calloc_5d_array(hydro_info, independent_hydro_variables, 2, nx, ny, nz);
 }
 
 freezeout_finder::~freezeout_finder()
@@ -106,7 +106,7 @@ freezeout_finder::~freezeout_finder()
 }
 
 
-void freezeout_finder::set_hydro_evolution(double t_set, hydro_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u)
+void freezeout_finder::load_initial_grid(double t_set, hydro_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u)
 {
   t_prev = t_set;
 
@@ -121,45 +121,45 @@ void freezeout_finder::set_hydro_evolution(double t_set, hydro_variables * const
 
         // set current hydro variables written to first index 1:
 
-        hydro_evolution[0][1][i-2][j-2][k-2] = (float)u[s].ux;
-        hydro_evolution[1][1][i-2][j-2][k-2] = (float)u[s].uy;
+        hydro_info[0][1][i-2][j-2][k-2] = (float)u[s].ux;
+        hydro_info[1][1][i-2][j-2][k-2] = (float)u[s].uy;
 
       #ifndef BOOST_INVARIANT
-        hydro_evolution[2][1][i-2][j-2][k-2] = (float)u[s].un;
+        hydro_info[2][1][i-2][j-2][k-2] = (float)u[s].un;
       #endif
 
-        hydro_evolution[3][1][i-2][j-2][k-2] = (float)e[s];
+        hydro_info[3][1][i-2][j-2][k-2] = (float)e[s];
 
       #ifdef ANISO_HYDRO                                              // independent anisotropic hydro variables
-        hydro_evolution[4][1][i-2][j-2][k-2] = (float)q[s].pl;
-        hydro_evolution[5][1][i-2][j-2][k-2] = (float)q[s].pt;
+        hydro_info[4][1][i-2][j-2][k-2] = (float)q[s].pl;
+        hydro_info[5][1][i-2][j-2][k-2] = (float)q[s].pt;
 
       #ifdef PIMUNU
-        hydro_evolution[6][1][i-2][j-2][k-2] = (float)q[s].pixx;
-        hydro_evolution[7][1][i-2][j-2][k-2] = (float)q[s].pixy;
+        hydro_info[6][1][i-2][j-2][k-2] = (float)q[s].pixx;
+        hydro_info[7][1][i-2][j-2][k-2] = (float)q[s].pixy;
       #endif
 
       #ifdef WTZMU
-        hydro_evolution[8][1][i-2][j-2][k-2] = (float)q[s].WxTz;
-        hydro_evolution[9][1][i-2][j-2][k-2] = (float)q[s].WyTz;
+        hydro_info[8][1][i-2][j-2][k-2] = (float)q[s].WxTz;
+        hydro_info[9][1][i-2][j-2][k-2] = (float)q[s].WyTz;
       #endif
 
       #else                                                           // independent viscous hydro variables
 
       #ifdef PIMUNU
-        hydro_evolution[4][1][i-2][j-2][k-2] = (float)q[s].pixx;
-        hydro_evolution[5][1][i-2][j-2][k-2] = (float)q[s].pixy;
+        hydro_info[4][1][i-2][j-2][k-2] = (float)q[s].pixx;
+        hydro_info[5][1][i-2][j-2][k-2] = (float)q[s].pixy;
       #ifndef BOOST_INVARIANT
-        hydro_evolution[6][1][i-2][j-2][k-2] = (float)q[s].pixn;
+        hydro_info[6][1][i-2][j-2][k-2] = (float)q[s].pixn;
       #endif
-        hydro_evolution[7][1][i-2][j-2][k-2] = (float)q[s].piyy;
+        hydro_info[7][1][i-2][j-2][k-2] = (float)q[s].piyy;
       #ifndef BOOST_INVARIANT
-        hydro_evolution[8][1][i-2][j-2][k-2] = (float)q[s].piyn;
+        hydro_info[8][1][i-2][j-2][k-2] = (float)q[s].piyn;
       #endif
       #endif
 
       #ifdef PI
-        hydro_evolution[9][1][i-2][j-2][k-2] = (float)q[s].Pi;
+        hydro_info[9][1][i-2][j-2][k-2] = (float)q[s].Pi;
       #endif
 
       #endif
@@ -169,7 +169,7 @@ void freezeout_finder::set_hydro_evolution(double t_set, hydro_variables * const
 }
 
 
-void freezeout_finder::swap_and_set_hydro_evolution(hydro_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u)
+void freezeout_finder::load_current_grid(hydro_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u)
 {
   #pragma omp parallel for collapse(3)
   for(int i = 2; i < nx + 2; i++)
@@ -184,50 +184,50 @@ void freezeout_finder::swap_and_set_hydro_evolution(hydro_variables * const __re
 
         for(int n = 0; n < independent_hydro_variables; n++)
         {
-          hydro_evolution[n][0][i-2][j-2][k-2] = hydro_evolution[n][1][i-2][j-2][k-2];
+          hydro_info[n][0][i-2][j-2][k-2] = hydro_info[n][1][i-2][j-2][k-2];
         }
 
         // set current hydro variables written to first index 1:
 
-        hydro_evolution[0][1][i-2][j-2][k-2] = (float)u[s].ux;
-        hydro_evolution[1][1][i-2][j-2][k-2] = (float)u[s].uy;
+        hydro_info[0][1][i-2][j-2][k-2] = (float)u[s].ux;
+        hydro_info[1][1][i-2][j-2][k-2] = (float)u[s].uy;
 
       #ifndef BOOST_INVARIANT
-        hydro_evolution[2][1][i-2][j-2][k-2] = (float)u[s].un;
+        hydro_info[2][1][i-2][j-2][k-2] = (float)u[s].un;
       #endif
 
-        hydro_evolution[3][1][i-2][j-2][k-2] = (float)e[s];
+        hydro_info[3][1][i-2][j-2][k-2] = (float)e[s];
 
       #ifdef ANISO_HYDRO														                  // independent anisotropic hydro variables
-        hydro_evolution[4][1][i-2][j-2][k-2] = (float)q[s].pl;
-        hydro_evolution[5][1][i-2][j-2][k-2] = (float)q[s].pt;
+        hydro_info[4][1][i-2][j-2][k-2] = (float)q[s].pl;
+        hydro_info[5][1][i-2][j-2][k-2] = (float)q[s].pt;
 
       #ifdef PIMUNU
-        hydro_evolution[6][1][i-2][j-2][k-2] = (float)q[s].pixx;
-        hydro_evolution[7][1][i-2][j-2][k-2] = (float)q[s].pixy;
+        hydro_info[6][1][i-2][j-2][k-2] = (float)q[s].pixx;
+        hydro_info[7][1][i-2][j-2][k-2] = (float)q[s].pixy;
       #endif
 
       #ifdef WTZMU
-        hydro_evolution[8][1][i-2][j-2][k-2] = (float)q[s].WxTz;
-        hydro_evolution[9][1][i-2][j-2][k-2] = (float)q[s].WyTz;
+        hydro_info[8][1][i-2][j-2][k-2] = (float)q[s].WxTz;
+        hydro_info[9][1][i-2][j-2][k-2] = (float)q[s].WyTz;
       #endif
 
       #else																	                          // independent viscous hydro variables
 
       #ifdef PIMUNU
-        hydro_evolution[4][1][i-2][j-2][k-2] = (float)q[s].pixx;
-        hydro_evolution[5][1][i-2][j-2][k-2] = (float)q[s].pixy;
+        hydro_info[4][1][i-2][j-2][k-2] = (float)q[s].pixx;
+        hydro_info[5][1][i-2][j-2][k-2] = (float)q[s].pixy;
       #ifndef BOOST_INVARIANT
-        hydro_evolution[6][1][i-2][j-2][k-2] = (float)q[s].pixn;
+        hydro_info[6][1][i-2][j-2][k-2] = (float)q[s].pixn;
       #endif
-        hydro_evolution[7][1][i-2][j-2][k-2] = (float)q[s].piyy;
+        hydro_info[7][1][i-2][j-2][k-2] = (float)q[s].piyy;
       #ifndef BOOST_INVARIANT
-        hydro_evolution[8][1][i-2][j-2][k-2] = (float)q[s].piyn;
+        hydro_info[8][1][i-2][j-2][k-2] = (float)q[s].piyn;
       #endif
       #endif
 
       #ifdef PI
-        hydro_evolution[9][1][i-2][j-2][k-2] = (float)q[s].Pi;
+        hydro_info[9][1][i-2][j-2][k-2] = (float)q[s].Pi;
       #endif
 
       #endif
@@ -309,7 +309,7 @@ void freezeout_finder::find_2d_freezeout_cells(double t_current, hydro_parameter
       double cell_y = dy * ((double)j  -  (double)(ny - 1) / 2.);
       double cell_z = 0;
 
-      construct_energy_density_cube(hydro_evolution[3], i, j);                  // energy density cube
+      construct_energy_density_cube(hydro_info[3], i, j);                       // energy density cube
       cornelius.find_surface_3d(cube);                                          // find centroid and normal vector of each cube
       int freezeout_cells = cornelius.get_Nelements();
 
@@ -362,16 +362,16 @@ void freezeout_finder::find_2d_freezeout_cells(double t_current, hydro_parameter
         double ds3 = 0;
 
         // interpolate contravariant flow velocity
-        double ux = linear_interpolate_3d(hydro_evolution[0], i, j, t_frac, x_frac, y_frac);
-        double uy = linear_interpolate_3d(hydro_evolution[1], i, j, t_frac, x_frac, y_frac);
+        double ux = linear_interpolate_3d(hydro_info[0], i, j, t_frac, x_frac, y_frac);
+        double uy = linear_interpolate_3d(hydro_info[1], i, j, t_frac, x_frac, y_frac);
       #ifndef BOOST_INVARIANT
-        double un = linear_interpolate_3d(hydro_evolution[2], i, j, t_frac, x_frac, y_frac);  // for index tracking (never called)
+        double un = linear_interpolate_3d(hydro_info[2], i, j, t_frac, x_frac, y_frac);  // for index tracking (never called)
       #else
         double un = 0;
       #endif
 
         // interpolate thermodynamic variables
-        double e = linear_interpolate_3d(hydro_evolution[3], i, j, t_frac, x_frac, y_frac);
+        double e = linear_interpolate_3d(hydro_info[3], i, j, t_frac, x_frac, y_frac);
 
         equation_of_state_new eos(e, conformal_prefactor);
         double T = eos.T;
@@ -379,12 +379,12 @@ void freezeout_finder::find_2d_freezeout_cells(double t_current, hydro_parameter
 
         // interpolate anisotropic or viscous hydrodynamic variables
       #ifdef ANISO_HYDRO                                                        // write vah freezeout surface
-        double pl = linear_interpolate_3d(hydro_evolution[4], i, j, t_frac, x_frac, y_frac);
-        double pt = linear_interpolate_3d(hydro_evolution[5], i, j, t_frac, x_frac, y_frac);
+        double pl = linear_interpolate_3d(hydro_info[4], i, j, t_frac, x_frac, y_frac);
+        double pt = linear_interpolate_3d(hydro_info[5], i, j, t_frac, x_frac, y_frac);
 
       #ifdef PIMUNU
-        double pixx = linear_interpolate_3d(hydro_evolution[6], i, j, t_frac, x_frac, y_frac);
-        double pixy = linear_interpolate_3d(hydro_evolution[7], i, j, t_frac, x_frac, y_frac);
+        double pixx = linear_interpolate_3d(hydro_info[6], i, j, t_frac, x_frac, y_frac);
+        double pixy = linear_interpolate_3d(hydro_info[7], i, j, t_frac, x_frac, y_frac);
       #else
         double pixx = 0;
         double pixy = 0;
@@ -393,7 +393,7 @@ void freezeout_finder::find_2d_freezeout_cells(double t_current, hydro_parameter
         double WxTz = 0;
         double WyTz = 0;
 
-      #ifdef FREEZEOUT_VH                                                     // freezeout surface in vh format
+      #ifdef FREEZEOUT_VH                                  // freezeout surface in vh format
 
         // compute pi^\munu and Pi components (using interpolated values)
 
@@ -438,7 +438,8 @@ void freezeout_finder::find_2d_freezeout_cells(double t_current, hydro_parameter
         surface.piyy.push_back((float)(piyy * hbarc));
         surface.piyn.push_back((float)(piyn * hbarc));
 
-          surface.Pi.push_back((float)(Pi * hbarc));
+        surface.Pi.push_back((float)(Pi * hbarc));
+
       #else
         freezeout_surface_file  << t    << " " << x    << " " << y    << " " << eta  << " "
                                 << ds0  << " " << ds1  << " " << ds2  << " " << ds3  << " "
@@ -465,16 +466,16 @@ void freezeout_finder::find_2d_freezeout_cells(double t_current, hydro_parameter
       #else                                                                   // write vh freezeout surface (a)
 
       #ifdef PIMUNU
-        double pixx = linear_interpolate_3d(hydro_evolution[4], i, j, t_frac, x_frac, y_frac);
-        double pixy = linear_interpolate_3d(hydro_evolution[5], i, j, t_frac, x_frac, y_frac);
+        double pixx = linear_interpolate_3d(hydro_info[4], i, j, t_frac, x_frac, y_frac);
+        double pixy = linear_interpolate_3d(hydro_info[5], i, j, t_frac, x_frac, y_frac);
       #ifndef BOOST_INVARIANT
-        double pixn = linear_interpolate_3d(hydro_evolution[6], i, j, t_frac, x_frac, y_frac);  // for index tracking
+        double pixn = linear_interpolate_3d(hydro_info[6], i, j, t_frac, x_frac, y_frac);  // for index tracking
       #else
         double pixn = 0;
       #endif
-        double piyy = linear_interpolate_3d(hydro_evolution[7], i, j, t_frac, x_frac, y_frac);
+        double piyy = linear_interpolate_3d(hydro_info[7], i, j, t_frac, x_frac, y_frac);
       #ifndef BOOST_INVARIANT
-        double piyn = linear_interpolate_3d(hydro_evolution[8], i, j, t_frac, x_frac, y_frac);
+        double piyn = linear_interpolate_3d(hydro_info[8], i, j, t_frac, x_frac, y_frac);
       #else
         double piyn = 0;
       #endif
@@ -488,7 +489,7 @@ void freezeout_finder::find_2d_freezeout_cells(double t_current, hydro_parameter
       #endif
 
       #ifdef PI
-        double Pi = linear_interpolate_3d(hydro_evolution[9], i, j, t_frac, x_frac, y_frac);
+        double Pi = linear_interpolate_3d(hydro_info[9], i, j, t_frac, x_frac, y_frac);
       #else
         double Pi = 0;
       #endif
@@ -636,7 +637,7 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
         double cell_y = dy * ((double)j  -  (double)(ny - 1) / 2.);
         double cell_z = dz * ((double)k  -  (double)(nz - 1) / 2.);
 
-        construct_energy_density_hypercube(hydro_evolution[3], i, j, k);        // energy density hyper cube
+        construct_energy_density_hypercube(hydro_info[3], i, j, k);             // energy density hyper cube
         cornelius.find_surface_4d(hypercube);                                   // find centroid and normal vector of each hypercube
         int freezeout_cells = cornelius.get_Nelements();
 
@@ -690,12 +691,12 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
           double ds3 = t_current * cornelius.get_normal_elem(n, 3);             // I remember manual said used t_current
 
           // interpolate contravariant flow velocity
-          double ux = linear_interpolate_4d(hydro_evolution[0], i, j, k, t_frac, x_frac, y_frac, z_frac);
-          double uy = linear_interpolate_4d(hydro_evolution[1], i, j, k, t_frac, x_frac, y_frac, z_frac);
-          double un = linear_interpolate_4d(hydro_evolution[2], i, j, k, t_frac, x_frac, y_frac, z_frac);
+          double ux = linear_interpolate_4d(hydro_info[0], i, j, k, t_frac, x_frac, y_frac, z_frac);
+          double uy = linear_interpolate_4d(hydro_info[1], i, j, k, t_frac, x_frac, y_frac, z_frac);
+          double un = linear_interpolate_4d(hydro_info[2], i, j, k, t_frac, x_frac, y_frac, z_frac);
 
           // interpolate thermodynamic variables
-          double e = linear_interpolate_4d(hydro_evolution[3], i, j, k, t_frac, x_frac, y_frac, z_frac);
+          double e = linear_interpolate_4d(hydro_info[3], i, j, k, t_frac, x_frac, y_frac, z_frac);
 
           equation_of_state_new eos(e, conformal_prefactor);
           double T = eos.T;
@@ -704,20 +705,20 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
 
         #ifdef ANISO_HYDRO                                                      // write vah freezeout surface
 
-          double pl = linear_interpolate_4d(hydro_evolution[4], i, j, k, t_frac, x_frac, y_frac, z_frac);
-          double pt = linear_interpolate_4d(hydro_evolution[5], i, j, k, t_frac, x_frac, y_frac, z_frac);
+          double pl = linear_interpolate_4d(hydro_info[4], i, j, k, t_frac, x_frac, y_frac, z_frac);
+          double pt = linear_interpolate_4d(hydro_info[5], i, j, k, t_frac, x_frac, y_frac, z_frac);
 
         #ifdef PIMUNU
-          double pixx = linear_interpolate_4d(hydro_evolution[6], i, j, k, t_frac, x_frac, y_frac, z_frac);
-          double pixy = linear_interpolate_4d(hydro_evolution[7], i, j, k, t_frac, x_frac, y_frac, z_frac);
+          double pixx = linear_interpolate_4d(hydro_info[6], i, j, k, t_frac, x_frac, y_frac, z_frac);
+          double pixy = linear_interpolate_4d(hydro_info[7], i, j, k, t_frac, x_frac, y_frac, z_frac);
         #else
           double pixx = 0;
           double pixy = 0;
         #endif
 
         #ifdef WTZMU
-          double WxTz = linear_interpolate_4d(hydro_evolution[8], i, j, k, t_frac, x_frac, y_frac, z_frac);
-          double WyTz = linear_interpolate_4d(hydro_evolution[9], i, j, k, t_frac, x_frac, y_frac, z_frac);
+          double WxTz = linear_interpolate_4d(hydro_info[8], i, j, k, t_frac, x_frac, y_frac, z_frac);
+          double WyTz = linear_interpolate_4d(hydro_info[9], i, j, k, t_frac, x_frac, y_frac, z_frac);
         #else
           double WxTz = 0;
           double WyTz = 0;
@@ -808,11 +809,11 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
         #else                                                                   // write vh freezeout surface
 
         #ifdef PIMUNU
-          double pixx = linear_interpolate_4d(hydro_evolution[4], i, j, k, t_frac, x_frac, y_frac, z_frac);
-          double pixy = linear_interpolate_4d(hydro_evolution[5], i, j, k, t_frac, x_frac, y_frac, z_frac);
-          double pixn = linear_interpolate_4d(hydro_evolution[6], i, j, k, t_frac, x_frac, y_frac, z_frac);
-          double piyy = linear_interpolate_4d(hydro_evolution[7], i, j, k, t_frac, x_frac, y_frac, z_frac);
-          double piyn = linear_interpolate_4d(hydro_evolution[8], i, j, k, t_frac, x_frac, y_frac, z_frac);
+          double pixx = linear_interpolate_4d(hydro_info[4], i, j, k, t_frac, x_frac, y_frac, z_frac);
+          double pixy = linear_interpolate_4d(hydro_info[5], i, j, k, t_frac, x_frac, y_frac, z_frac);
+          double pixn = linear_interpolate_4d(hydro_info[6], i, j, k, t_frac, x_frac, y_frac, z_frac);
+          double piyy = linear_interpolate_4d(hydro_info[7], i, j, k, t_frac, x_frac, y_frac, z_frac);
+          double piyn = linear_interpolate_4d(hydro_info[8], i, j, k, t_frac, x_frac, y_frac, z_frac);
         #else
           double pixx = 0;
           double pixy = 0;
@@ -822,7 +823,7 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
         #endif
 
         #ifdef PI
-          double Pi = linear_interpolate_4d(hydro_evolution[9], i, j, k, t_frac, x_frac, y_frac, z_frac);
+          double Pi = linear_interpolate_4d(hydro_info[9], i, j, k, t_frac, x_frac, y_frac, z_frac);
         #else
           double Pi = 0;
         #endif
@@ -882,7 +883,7 @@ void freezeout_finder::free_finder_memory(int sample)
 #endif
 
 	delete [] lattice_spacing;
-	free_5d_array(hydro_evolution, independent_hydro_variables, 2, nx, ny);
+	free_5d_array(hydro_info, independent_hydro_variables, 2, nx, ny);
 	free_4d_array(hypercube, 2, 2, 2);
 	free_3d_array(cube, 2, 2);
 
