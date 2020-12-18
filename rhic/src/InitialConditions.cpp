@@ -248,78 +248,6 @@ void set_initial_anisotropy(int nx, int ny, int nz, hydro_parameters hydro)
 }
 
 
-// void longitudinal_energy_density_profile(double * const __restrict__ eL, int nz, double dz, initial_condition_parameters initial)
-// {
-// 	double etaFlat = initial.rapidity_mean;
-// 	double etaVariance = initial.rapidity_variance;
-
-// 	// profile along eta direction is a smooth plateu that exponentially decays when |eta| > etaFlat
-// 	for(int k = 0; k < nz; k++)
-// 	{
-// 		double eta = (k - (nz - 1.)/2.) * dz;				// physical eta points
-// 		double etaScaled = fabs(eta)  -  0.5 * etaFlat;
-
-// 		eL[k] = exp(- 0.5 * etaScaled * etaScaled / etaVariance * THETA_FUNCTION(etaScaled));
-// 	}
-// }
-
-/*
-// Optical or MC glauber initial energy density profile
-void set_Glauber_energy_density_and_flow_profile(int nx, int ny, int nz, double dx, double dy, double dz, initial_condition_parameters initial, hydro_parameters hydro)
-{
-	int initial_condition_type = initial.initial_condition_type;
-
-	double T0 = initial.initialCentralTemperatureGeV;									// central temperature (GeV)
-	//double e0 = equilibrium_energy_density(T0 / hbarc, hydro.conformal_eos_prefactor);	// energy density scale factor
-	double e0 = equilibrium_energy_density_new(T0 / hbarc, hydro.conformal_eos_prefactor);	// energy density scale factor
-
-
-	precision e_min = hydro.energy_min;
-
-	double eT[nx * ny];		// normalized transverse profile
-	double eL[nz];			// normalized longitudinal profile
-
-	// compute normalized transverse and longitudinal profiles
-	if(initial_condition_type == 4)
-	{
-		Optical_Glauber_energy_density_transverse_profile(eT, nx, ny, dx, dy, initial);
-	}
-	else if(initial_condition_type == 5)
-	{
-		MC_Glauber_energy_density_transverse_profile(eT, nx, ny, dx, dy, initial);
-	}
-
-	longitudinal_energy_density_profile(eL, nz, dz, initial);
-
-	for(int k = 2; k < nz + 2; k++)
-	{
-		for(int j = 2; j < ny + 2; j++)
-		{
-			for(int i = 2; i < nx + 2; i++)
-			{
-				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
-
-				precision e_s = e0 * eT[i - 2 + (j - 2) * nx] * eL[k - 2];
-
-				e[s] = energy_density_cutoff(e_min, e_s);
-
-				u[s].ux = 0.0;		// zero initial velocity
-				u[s].uy = 0.0;
-			#ifndef BOOST_INVARIANT
-				u[s].un = 0.0;
-			#endif
-
-				up[s].ux = 0.0;		// also set up = u
-				up[s].uy = 0.0;
-			#ifndef BOOST_INVARIANT
-				up[s].un = 0.0;
-			#endif
-			}
-		}
-	}
-}
-*/
-
 void read_block_energy_density_from_file(int nx, int ny, int nz, hydro_parameters hydro)
 {
 	// load block energy density file to energy density e[s]
@@ -433,11 +361,12 @@ void set_trento_energy_density_profile_from_memory(int nx, int ny, int nz, hydro
 			for(int i = 2; i < nx + 2; i++)
 			{
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
-		        int st = linear_column_index(i - 2, j - 2, k - 2, nx, ny);           // TRENTo vector has no ghost cells
+		        int st = linear_column_index(i - 2, j - 2, k - 2, nx, ny);           		// TRENTo vector has no ghost cells
 
-		        e[s] = energy_density_cutoff(hydro.energy_min, trento[st] / hbarc);  // convert units to [fm^-4] (todo: do I need put in 1/tau0?)
+		        // is this right? should review Derek's CPU VH again (is this right?)
 
-		        // e[s] = energy_density_cutoff(hydro.energy_min, trento[st] / (t0 * hbarc));
+		        e[s] = energy_density_cutoff(hydro.energy_min, trento[st] / (t0 * hbarc));	// convert units to fm^-4, rescale by tau0
+		        // e[s] = energy_density_cutoff(hydro.energy_min, trento[st] / hbarc);
 
 		        u[s].ux = 0;		// zero initial velocity
 				u[s].uy = 0;
