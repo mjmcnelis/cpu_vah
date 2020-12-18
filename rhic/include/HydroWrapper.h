@@ -2,15 +2,13 @@
 #ifndef HYDROWRAPPER_H
 #define HYDROWRAPPER_H
 
+#include <fstream>
 #include "FreezeoutSurface.h"
-
-// #ifdef _OPENMP       // Derek: my code does not have openmp acceleration, is it required? (old note)
-// #include <omp.h>
-// #endif
+#include "Macros.h"
 
 class HYDRO
 {
-    // this is a C++ wrapper for OSU hydro codes (cpu-vh, gpu-vh, cpu_vah, etc)
+    // this is a C++ wrapper for OSU hydro codes (cpu-vh, gpu-vh, cpu_vah, BEShydro, etc)
     // originally written by Derek Everett 2018
 
     private:
@@ -19,13 +17,11 @@ class HYDRO
         HYDRO();
         ~HYDRO();
 
-        // input initial energy density profile from TRENTo:
-
+        // for holding initial energy density input vector from TRENTo:
         std::vector<double> trento_energy_density_profile;      // [GeV/fm^3] (note: no ghost cells included)
 
 
-        // output freezeout surface info to pass to iS3D:
-
+        // output freezeout surface vectors to pass to iS3D:
         std::vector<double> tau;                                // contravariant freezeout cell position
         std::vector<double> x;
         std::vector<double> y;
@@ -53,6 +49,11 @@ class HYDRO
 
         std::vector<double> Pi;                                 // bulk pressure [GeV/fm^3]
 
+
+        // output freezeout surface to file (output/surface.dat)
+    #ifndef JETSCAPE
+        std::ofstream freezeout_surface_file;
+    #endif
 
         void read_trento_energy_density_profile_from_memory(std::vector<double> energy_vector);
 

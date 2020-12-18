@@ -411,6 +411,8 @@ void read_block_energy_density_from_file(int nx, int ny, int nz, hydro_parameter
 
 void set_trento_energy_density_profile_from_memory(int nx, int ny, int nz, hydro_parameters hydro, std::vector<double> trento)
 {
+	precision t0 = hydro.tau_initial;
+
 	if(trento.size() == 0)
 	{
 		printf("set_trento_energy_density_profile_from_memory error: trento energy density profile is empty (initial condition type only compatible with JETSCAPE)\n");
@@ -433,7 +435,9 @@ void set_trento_energy_density_profile_from_memory(int nx, int ny, int nz, hydro
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 		        int st = linear_column_index(i - 2, j - 2, k - 2, nx, ny);           // TRENTo vector has no ghost cells
 
-		        e[s] = energy_density_cutoff(hydro.energy_min, trento[st] / hbarc);  // convert units to [fm^-4]
+		        e[s] = energy_density_cutoff(hydro.energy_min, trento[st] / hbarc);  // convert units to [fm^-4] (todo: do I need put in 1/tau0?)
+
+		        // e[s] = energy_density_cutoff(hydro.energy_min, trento[st] / (t0 * hbarc));
 
 		        u[s].ux = 0;		// zero initial velocity
 				u[s].uy = 0;

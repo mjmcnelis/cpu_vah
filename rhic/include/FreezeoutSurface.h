@@ -5,11 +5,10 @@
 #include <stdlib.h>
 #include <vector>
 
-class freezeout_surface
+typedef struct
 {
- private:													// standard vh format for iS3D (convert to double at end of simulation)
+    // standard vh format for iS3D (convert to double at end of simulation)
 
- public:
     std::vector<float> tau;                                	// contravariant freezeout cell position
     std::vector<float> x;
     std::vector<float> y;
@@ -37,9 +36,7 @@ class freezeout_surface
 
     std::vector<float> Pi;                                 	// bulk pressure [GeV/fm^3]
 
-   freezeout_surface();
-   ~freezeout_surface();
-};
+} freezeout_surface;
 
 #endif
 

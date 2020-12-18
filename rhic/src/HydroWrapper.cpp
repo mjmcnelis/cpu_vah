@@ -5,7 +5,6 @@
 #include "../include/EnergyVector.h"
 #include "../include/Parameters.h"
 #include "../include/Print.h"
-#include "../include/Macros.h"
 #include "../include/Hydrodynamics.h"
 #include "../include/Output.h"
 #include "../include/OpenMP.h"
@@ -18,7 +17,9 @@ using namespace std;
 
 HYDRO::HYDRO()
 {
-
+#ifndef JETSCAPE
+	freezeout_surface_file.open("output/surface.dat");			// for writing freezeout surface to file
+#endif
 }
 
 
@@ -57,6 +58,8 @@ void HYDRO::store_freezeout_surface(freezeout_surface surface)
 
 		for(long i = 0; i < total_cells; i++)
 		{
+			// freezeout surface vectors for JETSCAPE are in physical units (i.e. energy density GeV/fm^3, etc)
+		#ifdef JETSCAPE
 			tau.push_back((double)surface.tau[i]);
 			x.push_back(  (double)surface.x[i]);
 			y.push_back(  (double)surface.y[i]);
@@ -82,8 +85,36 @@ void HYDRO::store_freezeout_surface(freezeout_surface surface)
 			piyn.push_back((double)surface.piyn[i]);
 
 			Pi.push_back((double)surface.Pi[i]);
+
+
+			// freezeout surface file in hbarc = 1 units (i.e. energy density in fm^-4, etc)
+			// these units will be undone in iS3D, which reads in this file as input
+		#else
+			freezeout_surface_file
+			<< surface.tau[i]          << " " << surface.x[i]            << " " << surface.y[i]            << " " << surface.eta[i]        << " "
+			<< surface.dsigma_tau[i]   << " " << surface.dsigma_x[i]     << " " << surface.dsigma_y[i]     << " " << surface.dsigma_eta[i] << " "
+			<< surface.ux[i]           << " " << surface.uy[i]           << " " << surface.un[i]           << " "
+			<< surface.E[i] / hbarc    << " " << surface.T[i] / hbarc    << " " << surface.P[i] / hbarc    << " "
+			<< surface.pixx[i] / hbarc << " " << surface.pixy[i] / hbarc << " " << surface.pixn[i] / hbarc << " "
+			<< surface.piyy[i] / hbarc << " " << surface.piyn[i] / hbarc << " " << surface.Pi[i] / hbarc   << endl;
+
+		#endif
+
+			// todo 1: make a freezeout_surface of nonzero length by default
+
+			// todo 2: write freezeout_surface to surface.dat here as another option
+
+			// todo 3: make freezeout_surface as struct rather than a class (not critical)
+
+
+			// I'm guessing putting these together will help out in sims script (i.e. surface.dat empty if event fails)
+
+			// open surface.dat at beginning (make the file a class member in HYDRO instead of freezeout_finder)
 		}
 	}
+#ifndef JETSCAPE
+	freezeout_surface_file.close();
+#endif
 }
 
 

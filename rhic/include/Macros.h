@@ -4,18 +4,18 @@
 
 // macro parameters to fix hydrodynamic variables at compile time
 
-//#define ANISO_HYDRO				// run anisotropic hydro (comment to run 2nd order viscous hydro)
+// #define ANISO_HYDRO             // run anisotropic hydrodynamics
+								// comment to run second-order viscous hydrodynamics
 
-#define BOOST_INVARIANT 		// run 2+1d hydro (comment to run 3+1d hydro)
+#define BOOST_INVARIANT 		// option to run 2+1d hydro
+								// comment to run 3+1d hydro
 
 #define RANDOM_MODEL_PARAMETERS // option to use python/random_model_parameters/model_parameters_x.dat (x = 1st command line argument)
 								// comment to use the fixed values in parameters/
 								// note: model parameters is a subset of all parameters
 
-//#define JETSCAPE 				// store freezeout surface in vector array for JETSCAPE (no surface.dat)
-								// also need to define FREEZEOUT_VH to run JETSCAPE mode
-
-#define FREEZEOUT_VH			// option to convert vah to vh variables on freezeout surface
+// #define JETSCAPE 				// option to store freezeout surface variables in vectors for JETSCAPE SIMS
+								// comment to write freezeout surface to output/surface.dat (JETSCAPE SIMS with MAP parameters)
 
 #define BEST					// use the best eos (I don't think this is used anymore)
 
@@ -63,9 +63,11 @@
 
 #define PRINT_PARAMETERS		// option to print parameters
 
+// #define FLAGS					// option to print warnings during runtime
+
 //#define FREEZEOUT_SIZE			// output maximum radius of freezeout surface
 
-#define FREEZEOUT_SLICE
+// #define FREEZEOUT_SLICE
 
 //#define BENCHMARKS				// output benchmark data (e.g. hydro run time)
 

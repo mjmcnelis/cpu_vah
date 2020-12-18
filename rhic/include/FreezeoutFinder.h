@@ -33,27 +33,22 @@ class freezeout_finder
 		double dy;
 		double dz;
 
-		int dimension;										// dimension of freezeout surface
-		double *lattice_spacing;							// spacetime lattice spacing is uniform
+		int dimension;										// dimension of freezeout surface (2 or 3)
+		double *lattice_spacing;							// holds spacetime lattice spacing (spatial = uniform, temporal = adaptive)
 
 		double e_switch;									// freezeout energy density
 		int independent_hydro_variables;					// default value is 10 (independent components of Tmunu)
 
-		double ***cube;										// 2+1d hypercube
-		double ****hypercube;								// 3+1d hypercube
+		double ***cube;										// for storing 2+1d hypercube (2+1d hydro)
+		double ****hypercube;								// for storing 3+1d hypercube (3+1d hydro)
 
 		float *****hydro_info;								// for storing hydro variables on 2.nx.ny.nz hypergrid
 
-
-	#ifndef JETSCAPE
-		std::ofstream freezeout_surface_file;				// file for output/surface.dat
-	#endif
-
 	#ifdef FREEZEOUT_SLICE
-		std::vector<float> tau_slice_x;
+		std::vector<float> tau_slice_x;						// coordinates of freezeout cells in tau-x slice (y = eta = 0)
 		std::vector<float> x_slice_x;
 	#ifndef BOOST_INVARIANT
-		std::vector<float> tau_slice_z;
+		std::vector<float> tau_slice_z;						// coordinates of freezeout cells in tau-eta slice (x = y = 0)
 		std::vector<float> eta_slice_z;
 	#endif
 	#endif

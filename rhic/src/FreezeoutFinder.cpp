@@ -13,41 +13,13 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 }
 
 
-freezeout_surface::freezeout_surface()
-{
-
-}
-
-
-freezeout_surface::~freezeout_surface()
-{
-
-}
-
-
 freezeout_finder::freezeout_finder(lattice_parameters lattice, hydro_parameters hydro)
 {
-
   if(hydro.run_hydro != 2)
   {
-  #ifdef JETSCAPE
-    printf("freezeout_finder::freezeout_finder flag: set run_hydro = 2 in JETSCAPE mode (otherwise freezeout surface will be empty)\n\n");
-  #endif
-
+    printf("freezeout_finder::freezeout_finder flag: set run_hydro = 2, otherwise freezeout surface will be empty\n\n");
     return;
   }
-
-#ifdef JETSCAPE
-#ifdef ANISO_HYDRO
-#ifndef FREEZEOUT_VH
-    printf("freezeout_finder::freezeout_finder error: need to define FREEZEOUT_VH to run anisotropic hydro in JETSCAPE mode\n");
-    exit(-1);
-#endif
-#endif
-
-#else
-	freezeout_surface_file.open("output/surface.dat");
-#endif
 
   max_radius = 0;                             // default values
   tau_coord = 0;
@@ -287,12 +259,12 @@ double linear_interpolate_3d(float ****f, int ix, int iy, double x0, double x1, 
 
 void freezeout_finder::find_2d_freezeout_cells(double t_current, hydro_parameters hydro)
 {
-  // write freezeout cell's centroid / normal vector and hydro variable to file
+  // write freezeout cell's centroid / normal vector and hydro variables to vectors
 
   lattice_spacing[0] = t_current - t_prev;                                      // update temporal lattice spacing
 
-  Cornelius cornelius;                                                          // initialize cornelius (can move to class later)
-  cornelius.init(dimension, e_switch, lattice_spacing);
+  Cornelius cornelius;                                                          // initialize cornelius
+  cornelius.init(dimension, e_switch, lattice_spacing);                         // todo: moving inside parallelizable loop is so slow, why?
 
   double conformal_prefactor = hydro.conformal_eos_prefactor;
 
@@ -324,17 +296,16 @@ void freezeout_finder::find_2d_freezeout_cells(double t_current, hydro_parameter
         double y = cornelius.get_centroid_elem(n, 2) + cell_y;
         double eta = 0;
 
-
       #ifdef FREEZEOUT_SLICE
         if(fabs(y) <= dy)
         {
-          tau_slice_x.push_back(t);
+          tau_slice_x.push_back(t);           // for freezeout slice plot
           x_slice_x.push_back(x);
         }
       #endif
 
       #ifdef FREEZEOUT_SIZE
-        double r = sqrt(x * x  +  y * y);
+        double r = sqrt(x * x  +  y * y);     // for max fireball radius
 
         if(r > r_max_call)
         {
@@ -350,35 +321,34 @@ void freezeout_finder::find_2d_freezeout_cells(double t_current, hydro_parameter
         }
       #endif
 
+        // uncomment for debugging
         // if(!(t_frac >= 0 && t_frac <= 1) || !(x_frac >= 0 && x_frac <= 1) || !(y_frac >= 0 && y_frac <= 1))
         // {
         //   printf("freezeout_finder::find_2d_freezeout_cells error: freezeout cell outside cube\n");
         //   exit(-1);
         // }
 
-        double ds0 = t_current * cornelius.get_normal_elem(n, 0);               // covariant surface normal vector
+        // get covariant surface normal vector (need to multiply by jacobian factor tau)
+        double ds0 = t_current * cornelius.get_normal_elem(n, 0);
         double ds1 = t_current * cornelius.get_normal_elem(n, 1);
-        double ds2 = t_current * cornelius.get_normal_elem(n, 2);               // don't I want to use tau instead of t_current?
+        double ds2 = t_current * cornelius.get_normal_elem(n, 2);
         double ds3 = 0;
 
-        // interpolate contravariant flow velocity
+        // interpolate contravariant fluid velcoity
         double ux = linear_interpolate_3d(hydro_info[0], i, j, t_frac, x_frac, y_frac);
         double uy = linear_interpolate_3d(hydro_info[1], i, j, t_frac, x_frac, y_frac);
-      #ifndef BOOST_INVARIANT
-        double un = linear_interpolate_3d(hydro_info[2], i, j, t_frac, x_frac, y_frac);  // for index tracking (never called)
-      #else
+     // double un = linear_interpolate_3d(hydro_info[2], i, j, t_frac, x_frac, y_frac); // leave commented for index tracking
         double un = 0;
-      #endif
 
         // interpolate thermodynamic variables
-        double e = linear_interpolate_3d(hydro_info[3], i, j, t_frac, x_frac, y_frac);
-
-        equation_of_state_new eos(e, conformal_prefactor);
+        double E = linear_interpolate_3d(hydro_info[3], i, j, t_frac, x_frac, y_frac);
+        equation_of_state_new eos(E, conformal_prefactor);
         double T = eos.T;
-        double p = eos.equilibrium_pressure();
+        double P = eos.equilibrium_pressure();
 
-        // interpolate anisotropic or viscous hydrodynamic variables
-      #ifdef ANISO_HYDRO                                                        // write vah freezeout surface
+
+        // interpolate aniso hydro variables
+      #ifdef ANISO_HYDRO
         double pl = linear_interpolate_3d(hydro_info[4], i, j, t_frac, x_frac, y_frac);
         double pt = linear_interpolate_3d(hydro_info[5], i, j, t_frac, x_frac, y_frac);
 
@@ -393,16 +363,12 @@ void freezeout_finder::find_2d_freezeout_cells(double t_current, hydro_parameter
         double WxTz = 0;
         double WyTz = 0;
 
-      #ifdef FREEZEOUT_VH                                  // freezeout surface in vh format
-
         // compute pi^\munu and Pi components (using interpolated values)
-
         double Dxx = -1.  -  ux * ux;                     // \Delta^\munu
         double Dxy = - ux * uy;
         double Dyy = -1.  -  uy * uy;
 
         double piyy = (- pixx * (1.  +  uy * uy)  +  2. * pixy * ux * uy) / (1.  +  ux * ux);   // piperp^yy (reconstruction)
-
 
         // pi^\munu = (pl - pt)/3 . (\Delta^\munu + 3.z^\mu.z^\nu)  +  piperp^\munu     (Wperp = 0)
         pixx = (pl - pt) * Dxx / 3.  +  pixx;             // pixx on rhs is piperp^xx, etc
@@ -411,75 +377,19 @@ void freezeout_finder::find_2d_freezeout_cells(double t_current, hydro_parameter
         piyy = (pl - pt) * Dyy / 3.  +  piyy;
         double piyn = 0;
 
-        double Pi = (pl + 2.*pt)/3. - p;
+        double Pi = (pl + 2.*pt)/3. - P;
 
-      #ifdef JETSCAPE
-        surface.tau.push_back((float)t);                  // append freezeout surface
-        surface.x.push_back(  (float)x);
-        surface.y.push_back(  (float)y);
-        surface.eta.push_back((float)eta);
-
-        surface.dsigma_tau.push_back((float)ds0);
-        surface.dsigma_x.push_back(  (float)ds1);
-        surface.dsigma_y.push_back(  (float)ds2);
-        surface.dsigma_eta.push_back((float)ds3);
-
-        surface.ux.push_back((float)ux);
-        surface.uy.push_back((float)uy);
-        surface.un.push_back((float)un);
-
-        surface.E.push_back((float)(e * hbarc));          // undo hbarc = 1 units
-        surface.T.push_back((float)(T * hbarc));
-        surface.P.push_back((float)(p * hbarc));
-
-        surface.pixx.push_back((float)(pixx * hbarc));
-        surface.pixy.push_back((float)(pixy * hbarc));
-        surface.pixn.push_back((float)(pixn * hbarc));
-        surface.piyy.push_back((float)(piyy * hbarc));
-        surface.piyn.push_back((float)(piyn * hbarc));
-
-        surface.Pi.push_back((float)(Pi * hbarc));
-
+      // interpolate viscous hydro variables
       #else
-        freezeout_surface_file  << t    << " " << x    << " " << y    << " " << eta  << " "
-                                << ds0  << " " << ds1  << " " << ds2  << " " << ds3  << " "
-                                << ux   << " " << uy   << " " << un   << " "
-                                << e    << " " << T    << " " << p    << " "
-                                << pixx << " " << pixy << " " << pixn << " " << piyy << " " << piyn << " "
-                                << Pi   << endl;
-      #endif
-
-      #else
-
-      #ifndef JETSCAPE
-        freezeout_surface_file  << t    << " " << x    << " " << y    << " " << eta  << " "
-                                << ds0  << " " << ds1  << " " << ds2  << " " << ds3  << " "
-                                << ux   << " " << uy   << " " << un   << " "
-                                << e    << " " << T    << " " << p    << " "
-                                << pl   << " " << pt   << " "
-                                << pixx << " " << pixy << " "
-                                << WxTz << " " << WyTz << endl;
-      #endif
-
-      #endif
-
-      #else                                                                   // write vh freezeout surface (a)
 
       #ifdef PIMUNU
         double pixx = linear_interpolate_3d(hydro_info[4], i, j, t_frac, x_frac, y_frac);
         double pixy = linear_interpolate_3d(hydro_info[5], i, j, t_frac, x_frac, y_frac);
-      #ifndef BOOST_INVARIANT
-        double pixn = linear_interpolate_3d(hydro_info[6], i, j, t_frac, x_frac, y_frac);  // for index tracking
-      #else
+     // double pixn = linear_interpolate_3d(hydro_info[6], i, j, t_frac, x_frac, y_frac); // leave commented for index tracking
         double pixn = 0;
-      #endif
         double piyy = linear_interpolate_3d(hydro_info[7], i, j, t_frac, x_frac, y_frac);
-      #ifndef BOOST_INVARIANT
-        double piyn = linear_interpolate_3d(hydro_info[8], i, j, t_frac, x_frac, y_frac);
-      #else
+     // double piyn = linear_interpolate_3d(hydro_info[8], i, j, t_frac, x_frac, y_frac); // leave commented for index tracking
         double piyn = 0;
-      #endif
-
       #else
         double pixx = 0;
         double pixy = 0;
@@ -494,7 +404,8 @@ void freezeout_finder::find_2d_freezeout_cells(double t_current, hydro_parameter
         double Pi = 0;
       #endif
 
-      #ifdef JETSCAPE
+      #endif
+
         surface.tau.push_back((float)t);                  // append freezeout surface
         surface.x.push_back(  (float)x);
         surface.y.push_back(  (float)y);
@@ -509,9 +420,9 @@ void freezeout_finder::find_2d_freezeout_cells(double t_current, hydro_parameter
         surface.uy.push_back((float)uy);
         surface.un.push_back((float)un);
 
-        surface.E.push_back((float)(e * hbarc));          // undo hbarc = 1 units
+        surface.E.push_back((float)(E * hbarc));          // undo hbarc = 1 units (for JETSCAPE vectors)
         surface.T.push_back((float)(T * hbarc));
-        surface.P.push_back((float)(p * hbarc));
+        surface.P.push_back((float)(P * hbarc));
 
         surface.pixx.push_back((float)(pixx * hbarc));
         surface.pixy.push_back((float)(pixy * hbarc));
@@ -520,16 +431,6 @@ void freezeout_finder::find_2d_freezeout_cells(double t_current, hydro_parameter
         surface.piyn.push_back((float)(piyn * hbarc));
 
         surface.Pi.push_back((float)(Pi * hbarc));
-      #else
-        freezeout_surface_file  << t    << " " << x    << " " << y    << " " << eta  << " "
-                                << ds0  << " " << ds1  << " " << ds2  << " " << ds3  << " "
-                                << ux   << " " << uy   << " " << un   << " "
-                                << e    << " " << T    << " " << p    << " "
-                                << pixx << " " << pixy << " " << pixn << " " << piyy << " " << piyn << " "
-                                << Pi   << endl;
-      #endif
-
-      #endif
 
       } // n
 
@@ -537,10 +438,6 @@ void freezeout_finder::find_2d_freezeout_cells(double t_current, hydro_parameter
   } // i
 
   t_prev = t_current;         // set previous time for the next freezeout finder call
-
-#ifdef FREEZEOUT_SIZE
-  //printf("max radius in call = %lf fm\n", r_max_call);
-#endif
 }
 
 
@@ -654,7 +551,7 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
           double eta = cornelius.get_centroid_elem(n, 3) + cell_z;
 
         #ifdef FREEZEOUT_SLICE
-        if(fabs(y) <= dy && fabs(eta) < dz)
+        if(fabs(y) <= dy && fabs(eta) < dz)                                     // for freezeout slice
         {
           tau_slice_x.push_back(t);
           x_slice_x.push_back(x);
@@ -666,7 +563,7 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
         }
         #endif
 
-        #ifdef FREEZEOUT_SIZE
+        #ifdef FREEZEOUT_SIZE                                                   // for fireball radius
           double r = sqrt(x * x  +  y * y  +  eta * eta);                       // radius in grid (not cartesian radius)
 
           if(r > max_radius)
@@ -679,32 +576,33 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
           }
       #endif
 
+          // uncomment for debugging
           // if(!(t_frac >= 0 && t_frac <= 1) || !(x_frac >= 0 && x_frac <= 1) || !(y_frac >= 0 && y_frac <= 1) || !(z_frac >= 0 && z_frac <= 1))
           // {
           //   printf("freezeout_finder::find_2d_freezeout_cells error: freezeout cell outside cube\n");
           //   exit(-1);
           // }
 
-          double ds0 = t_current * cornelius.get_normal_elem(n, 0);             // covariant surface normal vector
+          // get covariant surface normal vector (need to multiply by jacobian factor tau)
+          double ds0 = t_current * cornelius.get_normal_elem(n, 0);
           double ds1 = t_current * cornelius.get_normal_elem(n, 1);
-          double ds2 = t_current * cornelius.get_normal_elem(n, 2);             // don't I want to use tau instead of t_current?
-          double ds3 = t_current * cornelius.get_normal_elem(n, 3);             // I remember manual said used t_current
+          double ds2 = t_current * cornelius.get_normal_elem(n, 2);
+          double ds3 = t_current * cornelius.get_normal_elem(n, 3);
 
-          // interpolate contravariant flow velocity
+          // interpolate contravariant fluid velocity
           double ux = linear_interpolate_4d(hydro_info[0], i, j, k, t_frac, x_frac, y_frac, z_frac);
           double uy = linear_interpolate_4d(hydro_info[1], i, j, k, t_frac, x_frac, y_frac, z_frac);
           double un = linear_interpolate_4d(hydro_info[2], i, j, k, t_frac, x_frac, y_frac, z_frac);
 
           // interpolate thermodynamic variables
-          double e = linear_interpolate_4d(hydro_info[3], i, j, k, t_frac, x_frac, y_frac, z_frac);
-
-          equation_of_state_new eos(e, conformal_prefactor);
+          double E = linear_interpolate_4d(hydro_info[3], i, j, k, t_frac, x_frac, y_frac, z_frac);
+          equation_of_state_new eos(E, conformal_prefactor);
           double T = eos.T;
-          double p = eos.equilibrium_pressure();
+          double P = eos.equilibrium_pressure();
 
 
-        #ifdef ANISO_HYDRO                                                      // write vah freezeout surface
-
+          // interpolate aniso hydro variables
+        #ifdef ANISO_HYDRO
           double pl = linear_interpolate_4d(hydro_info[4], i, j, k, t_frac, x_frac, y_frac, z_frac);
           double pt = linear_interpolate_4d(hydro_info[5], i, j, k, t_frac, x_frac, y_frac, z_frac);
 
@@ -723,9 +621,6 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
           double WxTz = 0;
           double WyTz = 0;
         #endif
-
-
-        #ifdef FREEZEOUT_VH                                                   // freezeout surface vh format
 
           // compute pi^\munu and Pi components (using interpolated values)
 
@@ -753,60 +648,11 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
           piyy = (pl - pt) * Dyy / 3.  +  piyy;
           piyn = (pl - pt) * Dyn / 3.  +  WyTz * zn  +  piyn;
 
-          double Pi = (pl + 2.*pt)/3. - p;
+          double Pi = (pl + 2.*pt)/3. - P;
 
-        #ifdef JETSCAPE
-          surface.tau.push_back((float)t);                  // append freezeout surface
-          surface.x.push_back(  (float)x);
-          surface.y.push_back(  (float)y);
-          surface.eta.push_back((float)eta);
 
-          surface.dsigma_tau.push_back((float)ds0);
-          surface.dsigma_x.push_back(  (float)ds1);
-          surface.dsigma_y.push_back(  (float)ds2);
-          surface.dsigma_eta.push_back((float)ds3);
-
-          surface.ux.push_back((float)ux);
-          surface.uy.push_back((float)uy);
-          surface.un.push_back((float)un);
-
-          surface.E.push_back((float)(e * hbarc));          // undo hbarc = 1 units
-          surface.T.push_back((float)(T * hbarc));
-          surface.P.push_back((float)(p * hbarc));
-
-          surface.pixx.push_back((float)(pixx * hbarc));
-          surface.pixy.push_back((float)(pixy * hbarc));
-          surface.pixn.push_back((float)(pixn * hbarc));
-          surface.piyy.push_back((float)(piyy * hbarc));
-          surface.piyn.push_back((float)(piyn * hbarc));
-
-          surface.Pi.push_back((float)(Pi * hbarc));
-
+        // interpolate viscous hydro variables
         #else
-          freezeout_surface_file  << t    << " " << x    << " " << y    << " " << eta  << " "
-                                  << ds0  << " " << ds1  << " " << ds2  << " " << ds3  << " "
-                                  << ux   << " " << uy   << " " << un   << " "
-                                  << e    << " " << T    << " " << p    << " "
-                                  << pixx << " " << pixy << " " << pixn << " " << piyy << " " << piyn << " "
-                                  << Pi   << endl;
-        #endif
-
-        #else                                                                 // freezeout surface vah format
-
-        #ifndef JETSCAPE
-          freezeout_surface_file  << t    << " " << x    << " " << y    << " " << eta  << " "
-                                  << ds0  << " " << ds1  << " " << ds2  << " " << ds3  << " "
-                                  << ux   << " " << uy   << " " << un   << " "
-                                  << e    << " " << T    << " " << p    << " "
-                                  << pl   << " " << pt   << " "
-                                  << pixx << " " << pixy << " "
-                                  << WxTz << " " << WyTz << endl;
-        #endif
-
-        #endif
-
-
-        #else                                                                   // write vh freezeout surface
 
         #ifdef PIMUNU
           double pixx = linear_interpolate_4d(hydro_info[4], i, j, k, t_frac, x_frac, y_frac, z_frac);
@@ -828,8 +674,8 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
           double Pi = 0;
         #endif
 
+        #endif
 
-        #ifdef JETSCAPE
           surface.tau.push_back((float)t);                  // append freezeout surface
           surface.x.push_back(  (float)x);
           surface.y.push_back(  (float)y);
@@ -844,9 +690,9 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
           surface.uy.push_back((float)uy);
           surface.un.push_back((float)un);
 
-          surface.E.push_back((float)(e * hbarc));          // undo hbarc = 1 units
+          surface.E.push_back((float)(E * hbarc));          // undo hbarc = 1 units
           surface.T.push_back((float)(T * hbarc));
-          surface.P.push_back((float)(p * hbarc));
+          surface.P.push_back((float)(P * hbarc));
 
           surface.pixx.push_back((float)(pixx * hbarc));
           surface.pixy.push_back((float)(pixy * hbarc));
@@ -855,16 +701,7 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
           surface.piyn.push_back((float)(piyn * hbarc));
 
           surface.Pi.push_back((float)(Pi * hbarc));
-        #else
-          freezeout_surface_file  << t    << " " << x    << " " << y    << " " << eta  << " "
-                                  << ds0  << " " << ds1  << " " << ds2  << " " << ds3  << " "
-                                  << ux   << " " << uy   << " " << un   << " "
-                                  << e    << " " << T    << " " << p    << " "
-                                  << pixx << " " << pixy << " " << pixn << " " << piyy << " " << piyn << " "
-                                  << Pi   << endl;
-        #endif
 
-        #endif
         } // n
       } // k
     } // j
@@ -876,20 +713,15 @@ void freezeout_finder::find_3d_freezeout_cells(double t_current, hydro_parameter
 
 void freezeout_finder::free_finder_memory(int sample)
 {
-	printf("\nFreeing freezeout_finder memory... (except freezeout surface)\n");
-
-#ifndef JETSCAPE
-  freezeout_surface_file.close();
-#endif
-
+  // deallocate memory in freezeout finder (except freezeout_surface)
 	delete [] lattice_spacing;
 	free_5d_array(hydro_info, independent_hydro_variables, 2, nx, ny);
 	free_4d_array(hypercube, 2, 2, 2);
 	free_3d_array(cube, 2, 2);
 
 
+// output freezeout slices
 #ifdef FREEZEOUT_SLICE
-
   int cells_x = tau_slice_x.size();
 
   printf("\nNumber of freezeout cells in tau-x slice = %d\n", cells_x);
@@ -930,6 +762,7 @@ void freezeout_finder::free_finder_memory(int sample)
 #endif
 
 
+// output fireball radius
 #ifdef FREEZEOUT_SIZE
   printf("Max radius of freezeout surface = %.3f fm\n", max_radius);
 
