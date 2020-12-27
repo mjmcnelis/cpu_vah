@@ -50,25 +50,19 @@
 	#define B_FIELD_COMPONENTS 0			// or maybe regulate db
 #endif
 
-#ifdef E_CHECK
-	#define E_CHECK_COMPONENTS 1
-#else
-	#define E_CHECK_COMPONENTS 0
-#endif
-
 
 #define NUMBER_OF_RESIDUAL_CURRENTS (PIMUNU_COMPONENTS + WTZMU_COMPONENTS)
 #define NUMBER_OF_VISCOUS_CURRENTS (PIMUNU_COMPONENTS + PI_COMPONENTS)
 
 
 #ifdef ANISO_HYDRO
-	#define NUMBER_CONSERVED_VARIABLES (CONSERVATION_LAWS + 2 + B_FIELD_COMPONENTS + NUMBER_OF_RESIDUAL_CURRENTS + E_CHECK_COMPONENTS)
+	#define NUMBER_CONSERVED_VARIABLES (CONSERVATION_LAWS + 2 + B_FIELD_COMPONENTS + NUMBER_OF_RESIDUAL_CURRENTS)
 #else
-	#define NUMBER_CONSERVED_VARIABLES (CONSERVATION_LAWS + NUMBER_OF_VISCOUS_CURRENTS + E_CHECK_COMPONENTS)
+	#define NUMBER_CONSERVED_VARIABLES (CONSERVATION_LAWS + NUMBER_OF_VISCOUS_CURRENTS)
 #endif
 
 
-// hydro variables
+// dynamical variables
 typedef struct
 {
 	precision ttt;
@@ -142,11 +136,9 @@ typedef struct
 
 // external variables
 extern hydro_variables *q, *Q, *qI;
-
 extern fluid_velocity *u, *up;
-//extern fluid_velocity *u, *up, *uI;		// deleted uI
-
-extern precision *e, *lambda, *aT, *aL;
+extern precision *e;
+extern precision *lambda, *aT, *aL;
 
 #ifdef ANISO_HYDRO
 #ifdef LATTICE_QCD

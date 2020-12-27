@@ -9,7 +9,7 @@
 #include "../include/NeighborCells.h"
 #include "../include/OpenMP.h"
 
-const precision sqrt_variables = sqrt(NUMBER_CONSERVED_VARIABLES - B_FIELD_COMPONENTS - E_CHECK_COMPONENTS);
+const precision sqrt_variables = sqrt(NUMBER_CONSERVED_VARIABLES - B_FIELD_COMPONENTS);
 
 
 inline int linear_column_index(int i, int j, int k, int nx, int ny)
@@ -104,7 +104,6 @@ precision compute_dt_CFL(precision t, lattice_parameters lattice, hydro_paramete
 			}
 		}
 	}
-
 #ifdef ADAPTIVE_FILE
 	FILE * dt_CFL_bound;
 	dt_CFL_bound = fopen("output/adaptive/dt_CFL.dat", "a");
@@ -380,11 +379,6 @@ precision compute_dt_source(precision t, const hydro_variables * const __restric
 
 	return dt_source;
 }
-
-
-
-
-
 
 
 

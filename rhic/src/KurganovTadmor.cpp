@@ -33,12 +33,9 @@ const precision * const __restrict__ e_current, const precision * const __restri
 	precision Theta = hydro.flux_limiter;
 
 	precision t2 = t * t;
-	
+
 	int stride_y = nx + 4;                                                  // strides for neighbor cells along x, y, n (stride_x = 1)
 	int stride_z = (nx + 4) * (ny + 4);                                     // stride formulas based from linear_column_index()
-	
-	//int grid = nx * ny * nz;
-	//int taubulk_regulated_total = 0;
 
 	#pragma omp parallel for collapse(3)
 	for(int k = 2; k < nz + 2; k++)
@@ -149,7 +146,7 @@ const precision * const __restrict__ e_current, const precision * const __restri
 
 				precision e_s = e_current[s];                   // energy density
 
-			#ifdef ANISO_HYDRO                                  
+			#ifdef ANISO_HYDRO
 			#ifdef LATTICE_QCD
 				precision lambda_s = lambda_current[s];         // anisotropic variables
 				precision aT_s = aT_current[s];
@@ -178,7 +175,7 @@ const precision * const __restrict__ e_current, const precision * const __restri
 			#else
 				precision un_p = 0;
 			#endif
-				
+
 				// for numerical spatial derivatives
 				get_energy_density_neighbor_cells(e_current, e1, sim, sip, sjm, sjp, skm, skp);
 
@@ -196,13 +193,6 @@ const precision * const __restrict__ e_current, const precision * const __restri
 				// compute source term S
 			#ifdef ANISO_HYDRO
 				int taubulk_regulated = source_terms_aniso_hydro(S, qs, e_s, lambda_s, aT_s, aL_s, t, qi1, qj1, qk1, e1, ui1, uj1, uk1, ux, uy, un, ux_p, uy_p, un_p, dt_prev, dx, dy, dn, hydro);
-
-			// #ifdef MONITOR_B
-			// 	b_regulation[s] = taubulk_regulated;
-			// #endif
-
-			// 	taubulk_regulated_total += taubulk_regulated;
-
 			#else
 				source_terms_viscous_hydro(S, qs, e_s, t, qi1, qj1, qk1, e1, ui1, uj1, uk1, ux, uy, un, ux_p, uy_p, un_p, dt_prev, dx, dy, dn, hydro);
 			#endif
@@ -212,7 +202,7 @@ const precision * const __restrict__ e_current, const precision * const __restri
 				flux_terms(Hy_plus, Hy_minus, qs, qj1, qj2, vyj, uy / ut, Theta);
 				flux_terms(Hn_plus, Hn_minus, qs, qk1, qk2, vnk, un / ut, Theta);
 
-				// store the results                            
+				// store the results
 				if(!update)                                     // store total source function qI <== E
 				{
 					for(int n = 0; n < NUMBER_CONSERVED_VARIABLES; n++)
@@ -271,7 +261,7 @@ const precision * const __restrict__ e_current, const precision * const __restri
 				#ifdef PI
 					q_update[s].Pi = E[a]; a++;
 				#endif
-				}                                               
+				}
 				else if(!RK2)                                   // store first intermediate euler step qI <== q + E.dt
 				{
 					for(int n = 0; n < NUMBER_CONSERVED_VARIABLES; n++)
@@ -330,7 +320,7 @@ const precision * const __restrict__ e_current, const precision * const __restri
 				#ifdef PI
 					q_update[s].Pi = qs[a]; a++;
 				#endif
-				}                                               
+				}
 				else                                            // store RK2 update Q <== (q + (qI + EI.dt))/2
 				{
 					for(int n = 0; n < NUMBER_CONSERVED_VARIABLES; n++)
@@ -393,10 +383,6 @@ const precision * const __restrict__ e_current, const precision * const __restri
 			}
 		}
 	}
-	// if(RK2)
-	// {
-	// 	printf("\ntaubulk regulated in %.2f%% of grid at t = %lf\n", 100. * (double)taubulk_regulated_total / grid, t);
-	// }
 }
 
 
@@ -405,7 +391,7 @@ void recompute_euler_step(const hydro_variables * const __restrict__ q_current, 
  	int nx = lattice.lattice_points_x;
 	int ny = lattice.lattice_points_y;
 	int nz = lattice.lattice_points_eta;
-	
+
 	// recompute qI after computing adaptive step
 
 	#pragma omp parallel for collapse(3)
@@ -476,7 +462,7 @@ void evolve_hydro_one_time_step(int n, precision t, precision dt, precision dt_p
 {
 	// first intermediate euler step
 	int RK2 = 0;
-                                                                                        
+
 	if(lattice.adaptive_time_step && !hit_CFL)                                      // qI <== q + E.dt
 	{
 		if(n == 0)
@@ -493,7 +479,7 @@ void evolve_hydro_one_time_step(int n, precision t, precision dt, precision dt_p
 		euler_step(t, q, qI, e, lambda, aT, aL, up, u, dt, dt_prev, lattice, hydro, update, RK2);
 	}
 
-	t += dt;					
+	t += dt;
 
 	swap_fluid_velocity(&u, &up);                                                   // swap u <==> up
 
@@ -509,13 +495,13 @@ void evolve_hydro_one_time_step(int n, precision t, precision dt, precision dt_p
 	regulate_viscous_currents(t, qI, e, u, lattice, hydro, RK2);                    // regulate viscous qI
 #endif
 	set_ghost_cells(qI, e, u, lattice);                                             // for (qI, e, u)
-	
-	// second intermediate Euler step 
+
+	// second intermediate Euler step
 	dt_prev = dt;                                                                   // update previous time step
 	RK2 = 1;                                                                        // so that Q <== RK2 update
 
-	euler_step(t, qI, Q, e, lambda, aT, aL, up, u, dt, dt_prev, lattice, hydro, update, RK2);	
-													
+	euler_step(t, qI, Q, e, lambda, aT, aL, up, u, dt, dt_prev, lattice, hydro, update, RK2);
+
 #ifdef ANISO_HYDRO
 	set_inferred_variables_aniso_hydro(Q, e, u, t, lattice, hydro);                 // compute aniso (e, u)
 #ifdef LATTICE_QCD

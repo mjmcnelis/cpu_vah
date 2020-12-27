@@ -39,7 +39,7 @@ bool all_cells_below_freezeout_temperature(lattice_parameters lattice, hydro_par
 
 	precision T_switch = hydro.freezeout_temperature_GeV;
 	precision e_switch = equilibrium_energy_density_new(T_switch / hbarc, hydro.conformal_eos_prefactor);
-	
+
 	for(int k = 2; k < nz + 2; k++)
 	{
 		for(int j = 2; j < ny + 2; j++)
@@ -96,9 +96,9 @@ precision set_time_step(int n, precision t, precision dt_prev, precision t_next_
 	precision dt_min = lattice.min_time_step;
 
 	precision dt = dt_fix;                                                  // default time step is fixed
-	
+
 	// compute adaptive time step
-	if(lattice.adaptive_time_step)                                          
+	if(lattice.adaptive_time_step)
 	{
 		if(n == 0)
 		{
@@ -111,10 +111,10 @@ precision set_time_step(int n, precision t, precision dt_prev, precision t_next_
 			precision dt_source = 1./0.;
 
 			if(!hit_CFL_bound)                                      // skip dt_source calculation after hit CFL bound
-			{                                                       
+			{
 				int update = 0;                                 // get total source function E:
 				euler_step(t, q, qI, e, lambda, aT, aL, up, u, dt_prev, dt_prev, lattice, hydro, update, hit_CFL_bound);
-				
+
 				dt_source = compute_dt_source(t, Q, q, qI, dt_prev, lattice);
 
 				if(dt_source >= dt_CFL)
@@ -127,9 +127,9 @@ precision set_time_step(int n, precision t, precision dt_prev, precision t_next_
 			dt = compute_adaptive_time_step(t, dt_CFL, dt_source, dt_min);
 		}
 	}
-	
+
 	// further adjust dt to output hydro evolution at specific times (except Bjorken)
-	if(hydro.run_hydro == 1 && initial.initial_condition_type != 1) 
+	if(hydro.run_hydro == 1 && initial.initial_condition_type != 1)
 	{
 		if(after_output)
 		{
@@ -170,7 +170,7 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 	long ny = lattice.lattice_points_y;
 	long nz = lattice.lattice_points_eta;
 	long grid_size = nx * ny * nz;
-	
+
 	set_initial_conditions(t, lattice, initial, hydro, trento);  // initialize (q, e, u)
 	set_ghost_cells(q, e, u, lattice);                           // for (q, e, u)
 

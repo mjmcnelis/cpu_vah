@@ -54,7 +54,7 @@ void print_run_time(double t, double duration, double steps, lattice_parameters 
     threads = omp_get_max_threads();
 #endif
 
-	printf("Lifetime               = %.5g fm/c\n", t);
+	printf("\nLifetime               = %.5g fm/c\n", t);
 	printf("Run time               = %.4g s\n", duration);
 	printf("Number of time steps   = %d\n", (int)steps);
 	printf("Average time/step      = %.4g s\n", duration / steps);
@@ -75,8 +75,6 @@ void print_run_time(double t, double duration, double steps, lattice_parameters 
 		benchmarks = fopen(fname, "a");
 	}
 
-
-	// same data that was printed above
 	fprintf(benchmarks, "%.5g\t%.5g\t%d\t%.5g\t%.5g\t%d\n", t, duration, (int)steps, duration / steps, 1000. * duration / (nx * ny * nz * steps), threads);
 	fclose(benchmarks);
 #endif

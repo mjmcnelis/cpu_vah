@@ -264,11 +264,6 @@ void get_hydro_variables_neighbor_cells(hydro_variables qm, hydro_variables qp, 
 	q[n]	 = qm.Pi;
 	q[n + 1] = qp.Pi;	n += 2;
 #endif
-
-#ifdef E_CHECK
-	q[n]	 = qm.e_check;
-	q[n + 1] = qp.e_check;
-#endif
 }
 
 

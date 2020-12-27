@@ -175,11 +175,6 @@ int source_terms_aniso_hydro(precision * const __restrict__ S, const precision *
 	precision WnTz = 0;
 #endif
 
-#ifdef E_CHECK
-	precision e_check = q[a];
-#endif
-
-
 
 // relaxation times and transport coefficients
 //-------------------------------------------------
@@ -1056,11 +1051,6 @@ precision lambda_piTW = 0;
 	S[a] = dWnTz / ut  +  div_v * WnTz;		a++;
 #endif
 
-#ifdef E_CHECK
-	precision de = - (e_check + pl) * thetaL  -  (e_check + pt) * thetaT  +  pi_sT  -  WTz_Dz_u  +  WTz_z_NabT_u;
-	S[a] = de / ut  +  div_v * e_check;
-#endif
-
 #endif
 	return taubulk_regulated;
 }
@@ -1174,10 +1164,6 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 #else
 	precision Pi = 0;
 	//precision lambda_bulkPipi = 0;
-#endif
-
-#ifdef E_CHECK
-	precision e_check = q[a];
 #endif
 
 	precision de_dx = central_derivative(e1, 0, dx); 		// energy density derivatives
@@ -1488,12 +1474,6 @@ void source_terms_viscous_hydro(precision * const __restrict__ S, const precisio
 	precision dPi = - Pi * taubulkInv  -  (betabulk  +  delta_bulkPibulkPi * Pi) * theta  +  lambda_bulkPipi * pi_sigma;
 
 	S[a] = dPi / ut  +  div_v * Pi; a++;
-#endif
-
-#ifdef E_CHECK
-	precision de = - (e_check + p + Pi) * theta   +  pi_sigma;			// use e_s or e_check?
-
-	S[a] = de / ut  +  div_v * e_check;
 #endif
 
 #endif
