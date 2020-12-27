@@ -51,7 +51,7 @@ bool all_cells_below_freezeout_temperature(lattice_parameters lattice, hydro_par
 
 				if(e[s] >= e_switch)
 				{
-                    return false;
+					return false;
 				}
 			}
 
@@ -210,7 +210,6 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 #endif
 
 	// fluid dynamic evolution
-	//----------------------------------------------------------
 	for(int n = 0; n < lattice.max_time_steps; n++)
 	{
 		dt = set_time_step(n, t, dt_prev, t_out + dt_out, lattice, initial, hydro);
@@ -229,7 +228,7 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 				long cells_above_Tswitch = number_of_cells_above_freezeout_temperature(lattice, hydro);
 				print_hydro_center(n, t, lattice, hydro, cells_above_Tswitch);
 
-				// number_outputs++;
+				number_outputs++;
 				output_hydro_simulation(t, dt_prev, lattice, initial, hydro);
 
 				if(all_cells_below_freezeout_temperature(lattice, hydro))
@@ -321,7 +320,7 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
     printf("End omp time = %lf\n", t2);
   	double duration = t2 - t1;
 #else
-  	double duration = (clock() - start) / (double)CLOCKS_PER_SEC;  // hydro evolution runtime in seconds (ignores initalization runtime)
+  	double duration = (clock() - start) / (double)CLOCKS_PER_SEC;
 #endif
 
 	print_run_time(t, duration, (double)steps, lattice, sample);
