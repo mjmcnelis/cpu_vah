@@ -24,8 +24,21 @@ If you use this code, please cite the following papers:
      M. McNelis, D. Bazow and U. Heinz, Phys. Rev. C 97, 054912 (2018)
 
 
+## Setup
+The default Makefile uses the `gcc` compiler but there is another one in `makefiles` that uses the `icpc` compiler (also assumes OpenMP support). To switch them out, do
+
+    sh makefile.sh icpc     # or gcc
+
+To set up the code on the Ohio Supercomputer Center, for example, login and do
+
+    git clone https://github.com/mjmcnelis/cpu_vah.git
+    cd cpu_vah && sh makefile.sh icpc
+    module load intel/19.0.3
+    module load python/3.6-conda5.2
+
+
 ## Running the code
-To compile and run the simulation with the default runtime `parameters`, do
+To compile and run the simulation, do
 
     sh hydro.sh 1
 
