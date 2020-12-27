@@ -20,7 +20,6 @@ VAH can run three hydrodynamic models with shear and bulk viscosity:
 If you use this code, please cite the following papers:
 
      D. Bazow, U. Heinz and M. Strickland, Comput. Phys. Commun. 225 (2018) 92-113
-     D.P. Bazow, Fluid dynamics for the anisotropically expanding quark gluon plasma, Ph.D. thesis (2017)
      M. McNelis, D. Bazow and U. Heinz, Phys. Rev. C 97, 054912 (2018)
 
 
