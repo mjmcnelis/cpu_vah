@@ -37,7 +37,6 @@ const precision * const __restrict__ e_current, const precision * const __restri
 	int stride_y = nx + 4;                                                  // strides for neighbor cells along x, y, n (stride_x = 1)
 	int stride_z = (nx + 4) * (ny + 4);                                     // stride formulas based from linear_column_index()
 	
-	// old debug for regulating mean-field
 	//int grid = nx * ny * nz;
 	//int taubulk_regulated_total = 0;
 
