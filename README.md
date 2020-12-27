@@ -25,7 +25,7 @@ If you use this code, please cite the following papers:
 
 
 ## Running the code
-To compile and run the hydrodynamic simulation with the default runtime `parameters`, do
+To compile and run the simulation with the default runtime `parameters`, do
 
     sh hydro.sh 1
 
@@ -33,7 +33,7 @@ Results from the simulation are stored in `output`.\
 Semi-analytic solutions (e.g. Bjorken and Gubser) are stored in `semi_analytic`.
 
 
-## Runtime parameters
+## Parameters
 
 The runtime parameters are located in `parameters`
 
@@ -55,9 +55,6 @@ or simply run the executable
 
     ./cpu_vah p
 
-
-## Macro parameters
-
 The macro parameters are located in `rhic/include`
 
     Macros.h
@@ -68,6 +65,6 @@ The macro parameters are located in `rhic/include`
 
 You can run the various tests performed in the code documentation paper in `scripts`. Some of these tests require access to multiple computing nodes.
 
-The files and jobs needed to run the tests are located in `tables`, `tests` and `jobs`. You will need to edit the project number in `jobs`.
+The files and jobs needed to run the tests are located in `tables`, `tests` and `jobs`. You will need to edit the project number and email address in `jobs`.
 
 Results from the test runs are stored in `tests`.
