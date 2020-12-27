@@ -32,13 +32,14 @@ const precision * const __restrict__ e_current, const precision * const __restri
 
 	precision Theta = hydro.flux_limiter;
 
-	precision t2 = t * t;						
-
+	precision t2 = t * t;
+	
 	int stride_y = nx + 4;                                                  // strides for neighbor cells along x, y, n (stride_x = 1)
 	int stride_z = (nx + 4) * (ny + 4);                                     // stride formulas based from linear_column_index()
-
+	
+	// old debug for regulating mean-field
 	//int grid = nx * ny * nz;
-	//int taubulk_regulated_total = 0;                                      // old debug for regulating mean-field
+	//int taubulk_regulated_total = 0;
 
 	#pragma omp parallel for collapse(3)
 	for(int k = 2; k < nz + 2; k++)
@@ -149,9 +150,9 @@ const precision * const __restrict__ e_current, const precision * const __restri
 
 				precision e_s = e_current[s];                   // energy density
 
-			#ifdef ANISO_HYDRO                                      // anisotropic variables
+			#ifdef ANISO_HYDRO                                  
 			#ifdef LATTICE_QCD
-				precision lambda_s = lambda_current[s];
+				precision lambda_s = lambda_current[s];         // anisotropic variables
 				precision aT_s = aT_current[s];
 				precision aL_s = aL_current[s];
 			#else
