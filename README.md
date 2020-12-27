@@ -25,7 +25,7 @@ If you use this code, please cite the following papers:
 
 
 ## Setup
-The default Makefile uses the `gcc` compiler but there is another one in `makefiles` that uses the `icpc` compiler (also assumes OpenMP support). To switch them out, do
+The default Makefile uses the gcc compiler but there is another one in `makefiles` that uses the icpc compiler (also assumes OpenMP support). To switch them out, do
 
     sh makefile.sh icpc     # or gcc
 
@@ -38,7 +38,7 @@ To set up the code on the Ohio Supercomputer Center, for example, login and do
 
 
 ## Running the code
-To compile and run the simulation, do
+To compile and run the hydrodynamic simulation once, do
 
     sh hydro.sh 1
 
@@ -53,20 +53,6 @@ The runtime parameters are located in `parameters`
     hydro.properties
     initial.properties
     lattice.properties
-
-You can replace the impact parameter *b* (if `initial_condition_type = 4`) and Bayesian model parameters *P<sub>B</sub>* during runtime. To generate *s* model parameter samples, go to `scripts/auto_grid` and do
-
-    sh sample_model_parameters.sh s
-
-The model parameter samples are stored in `python/model_parameters`.
-
-To run the simulation with `model_parameters_p.dat`  (*p* ∈ [1, *s*]), do
-
-    sh hydro.sh 1 p
-
-or simply run the executable
-
-    ./cpu_vah p
 
 The macro parameters are located in `rhic/include`
 
