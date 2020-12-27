@@ -43,13 +43,17 @@ void HYDRO::read_trento_energy_density_profile_from_memory(std::vector<double> t
 
 void HYDRO::store_freezeout_surface(freezeout_surface surface)
 {
+#ifdef JETSCAPE
 	printf("\nStoring freezeout surface in memory for particlization module...\n\n");
+#else
+	printf("\nWriting freezeout surface to file...\n\n");
+#endif
 
 	long total_cells = surface.tau.size();
 
 	if(total_cells == 0)
 	{
-		printf("HYDRO::save_freezeout_surface flag: freezeout surface is empty\n");
+		printf("HYDRO::store_freezeout_surface flag: freezeout surface is empty\n");
 		return;
 	}
 	else
@@ -100,16 +104,7 @@ void HYDRO::store_freezeout_surface(freezeout_surface surface)
 
 		#endif
 
-			// todo 1: make a freezeout_surface of nonzero length by default
-
-			// todo 2: write freezeout_surface to surface.dat here as another option
-
-			// todo 3: make freezeout_surface as struct rather than a class (not critical)
-
-
-			// I'm guessing putting these together will help out in sims script (i.e. surface.dat empty if event fails)
-
-			// open surface.dat at beginning (make the file a class member in HYDRO instead of freezeout_finder)
+			// sims script: should surface.dat be empty if event fails?
 		}
 	}
 #ifndef JETSCAPE
@@ -198,15 +193,10 @@ void HYDRO::start_hydro(int argc, char **argv)
 	initial_condition_parameters initial = load_initial_condition_parameters(sample_parameters, random);
 	lattice_parameters lattice = load_lattice_parameters(hydro, initial, sample_parameters, sample);
 
-
 	if(hydro.run_hydro)                 // main hydro simulation (freezeout surface empty by default)
 	{
 		print_hydro_mode(hydro);
 		store_freezeout_surface(run_hydro(lattice, initial, hydro, sample, trento_energy_density_profile));
-	}
-	else
-	{
-		output_semi_analytic_solution_if_any(lattice, initial, hydro);
 	}
 
 	printf("\nEnd of hydro simulation\n");
@@ -228,15 +218,10 @@ void HYDRO::start_hydro_no_arguments()
 	initial_condition_parameters initial = load_initial_condition_parameters(sample_parameters, random);
 	lattice_parameters lattice = load_lattice_parameters(hydro, initial, sample_parameters, sample);
 
-
 	if(hydro.run_hydro)                 // main hydro simulation (freezeout surface empty by default)
 	{
 		print_hydro_mode(hydro);
 		store_freezeout_surface(run_hydro(lattice, initial, hydro, sample, trento_energy_density_profile));
-	}
-	else
-	{
-		output_semi_analytic_solution_if_any(lattice, initial, hydro);
 	}
 
 	printf("\nEnd of hydro simulation\n");

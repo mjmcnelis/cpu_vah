@@ -26,14 +26,19 @@ void print_line()
 
 void print_hydro_mode(hydro_parameters hydro)
 {
+	string dimension = "3+1d";
+#ifdef BOOST_INVARIANT
+	dimension = "2+1d";
+#endif
+
 #ifdef ANISO_HYDRO
 	printf("\n:::::::::::::::::::::::::::::::::::::::::::\n");
-	printf(":::  Running viscous anisotropic hydro  :::\n");
+	printf(":::   Running %s anisotropic hydro    :::\n", dimension.c_str());
 	printf(":::::::::::::::::::::::::::::::::::::::::::\n\n");
 #else
-	printf("\n::::::::::::::::::::::::::::::::::::::::::::::\n");
-	printf(":::   Running second order viscous hydro   :::\n");
-	printf("::::::::::::::::::::::::::::::::::::::::::::::\n\n");
+	printf("\n:::::::::::::::::::::::::::::::::::::::::::::::::::\n");
+	printf(":::   Running %s second order viscous hydro   :::\n", dimension.c_str());
+	printf(":::::::::::::::::::::::::::::::::::::::::::::::::::\n\n");
 #endif
 }
 

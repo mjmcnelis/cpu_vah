@@ -1476,50 +1476,5 @@ void output_hydro_simulation(double t, double dt_prev, lattice_parameters lattic
 }
 
 
-void output_semi_analytic_solution_if_any(lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro)
-{
-	switch(initial.initial_condition_type)
-	{
-		case 1:		// Bjorken
-		{
-		#ifdef ANISO_HYDRO
-			printf("\nRunning semi-analytic anisotropic Bjorken solution...\n");
-			run_semi_analytic_aniso_bjorken(lattice, initial, hydro);
-		#else
-			printf("\nRunning semi-analytic viscous Bjorken solution...\n");
-			run_semi_analytic_viscous_bjorken(lattice, initial, hydro);
-		#endif
-			break;
-		}
-		case 3:		// anisotropic Gubser
-		{
-
-		#ifdef ANISO_HYDRO
-			printf("\nRunning semi-analytic anisotropic Gubser solution...\n");
-			double T0_hat = run_semi_analytic_aniso_gubser(lattice, initial, hydro);
-		#else
-			printf("\nRunning semi-analytic viscous Gubser solution...\n");
-			double T0_hat = run_semi_analytic_viscous_gubser(lattice, initial, hydro);
-		#endif
-			break;
-		}
-		default:
-		{
-			printf("\nNo semi-analytic solution to run...\n");
-			break;
-		}
-	}
-}
-
-
-
-
-
-
-
-
-
-
-
 
 

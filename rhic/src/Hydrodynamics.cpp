@@ -167,7 +167,7 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 	}
 
 	precision dt = dt_start;                            // initialize time step
-	precision dt_prev = dt;                             // previous time step
+	precision dt_prev = dt;                             // and previous time step
 
 	print_parameters(lattice, hydro);
 	allocate_memory(lattice);
@@ -179,24 +179,24 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 
 	precision t = hydro.tau_initial;                             // initial longitudinal proper time
 
-	set_initial_conditions(t, lattice, initial, hydro, trento);  // initial conditions for (q, e, u)
+	set_initial_conditions(t, lattice, initial, hydro, trento);  // initialize grid for (q, e, u)
 
-	set_ghost_cells(q, e, u, lattice);                           // initialize ghost cells in (q, e, u)
+	set_ghost_cells(q, e, u, lattice);                           // for (q, e, u)
 
 	precision t_out = t;                                         // output times
 	precision dt_out = lattice.output_interval;
 
 	bool double_dt_out = true;									 // double output interval after three outputs
-  	int number_outputs = 0;                                      // set to false if want regular outputs
+  	int number_outputs = 0;
 
-#ifdef BOOST_INVARIANT
-	printf("Running 2+1d hydro simulation...\n\n");
-#else
-	printf("Running 3+1d hydro simulation...\n\n");
-#endif
+	freezeout_finder finder(lattice, hydro);			// initialize freezeout finder
 
-	freezeout_finder finder(lattice, hydro);			// freezeout finder class
-	int freezeout_period = lattice.tau_coarse_factor;   // time steps between freezeout finder calls
+	if(hydro.run_hydro == 2)
+	{
+		finder.load_initial_grid(t, q, e, u);
+	}
+
+	int freezeout_period = lattice.tau_coarse_factor;   // freezeout finder call period
 	int grid_below_Tswitch = 0;                         // number of times freezeout finder searches a grid below Tswitch
 	int freezeout_depth = 3;                            // max number of time steps freezeout finder goes below Tswitch
 
@@ -226,16 +226,11 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 
 			if(n == 0 || initial.initial_condition_type == 1)   // output first time or output bjorken at every time step
 			{
-			#ifdef PRINT_HYDRO
 				long cells_above_Tswitch = number_of_cells_above_freezeout_temperature(lattice, hydro);
 				print_hydro_center(n, t, lattice, hydro, cells_above_Tswitch);
-			#endif
 
-				if(hydro.output)
-				{
-					number_outputs++;
-					output_hydro_simulation(t, dt_prev, lattice, initial, hydro);
-				}
+				// number_outputs++;
+				output_hydro_simulation(t, dt_prev, lattice, initial, hydro);
 
 				if(all_cells_below_freezeout_temperature(lattice, hydro))
 				{
@@ -244,28 +239,22 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 			}
 			else if(fabs(t - t_out - dt_out) < dt_eps) 			// output hydrodynamic quantities at regular time intervals
 			{
-			#ifdef PRINT_HYDRO
 				long cells_above_Tswitch = number_of_cells_above_freezeout_temperature(lattice, hydro);
 				print_hydro_center(n, t, lattice, hydro, cells_above_Tswitch);
-			#endif
 
-				if(hydro.output)
-				{
-					number_outputs++;
-					output_hydro_simulation(t, dt_prev, lattice, initial, hydro);
-				}
+				number_outputs++;
+				output_hydro_simulation(t, dt_prev, lattice, initial, hydro);
 
 				if(all_cells_below_freezeout_temperature(lattice, hydro))
 				{
-				#ifndef FREEZEOUT_SLICE
-					break;
-				#else
+				#ifdef FREEZEOUT_SLICE
 					if(t > 17.0)								// this is for the freezeout slice plot
 					{
 						printf("Ending hydro simulation at t = %lf fm/c for freezeout slice plot\n", t);
 						break;
 					}
 				#endif
+					break;
 				}
 
 				t_out += dt_out;
@@ -273,21 +262,16 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 		}
 		else if(hydro.run_hydro == 2)                           // construct freezeout surface
 		{
-			if(n == 0)                                          // initialize hydro info in freezeout finder
+			if(n == 0)
 			{
-			#ifdef PRINT_HYDRO
 				long cells_above_Tswitch = number_of_cells_above_freezeout_temperature(lattice, hydro);
 				print_hydro_center(n, t, lattice, hydro, cells_above_Tswitch);
-			#endif
 
-				finder.load_initial_grid(t, q, e, u);			// todo: can move this above evolution loop
 			}
 			else if(n % freezeout_period == 0)                  // find freezeout cells
 			{
-			#ifdef PRINT_HYDRO
 				long cells_above_Tswitch = number_of_cells_above_freezeout_temperature(lattice, hydro);
 				print_hydro_center(n, t, lattice, hydro, cells_above_Tswitch);
-			#endif
 
 				finder.load_current_grid(q, e, u);
 
@@ -309,20 +293,6 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 				break;
 			}
 		}
-		else if(hydro.run_hydro == 3)                           // print center every PRINT_PERIOD step
-		{
-			if(n % PRINT_PERIOD == 0)
-			{
-			#ifdef PRINT_HYDRO
-				long cells_above_Tswitch = number_of_cells_above_freezeout_temperature(lattice, hydro);
-				print_hydro_center(n, t, lattice, hydro, cells_above_Tswitch);
-			#endif
-                if(all_cells_below_freezeout_temperature(lattice, hydro))
-                {
-                    break;
-                }
-			}
-		}
 
 		int update = 1;
 
@@ -339,7 +309,6 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 			dt_out = 2. * lattice.output_interval;
 		}
 	}
-	//----------------------------------------------------------
 
 	if(steps >= lattice.max_time_steps)
 	{
@@ -362,15 +331,11 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 	if(hydro.run_hydro == 2)
 	{
 		finder.free_finder_memory(sample);
-		printf("\nFinished hydro evolution\n");
-		return finder.surface;                   	// return freezeout surface
 	}
 
 	printf("\nFinished hydro evolution\n");
 
-	freezeout_surface surface;						// return an empty surface (default)
-
-	return surface;
+	return finder.surface;
 }
 
 

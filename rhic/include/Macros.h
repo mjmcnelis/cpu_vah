@@ -56,11 +56,6 @@
 	#define VORTICITY			// include vorticity terms in relaxation equations
 #endif
 
-
-
-#define PRINT_HYDRO				// option to print current hydro info at center of grid (comment for no printing)
-#define PRINT_PERIOD 1			// number of steps per print for run_hydro = 3 (leave this defined!)
-
 #define PRINT_PARAMETERS		// option to print parameters
 
 // #define FLAGS					// option to print warnings during runtime

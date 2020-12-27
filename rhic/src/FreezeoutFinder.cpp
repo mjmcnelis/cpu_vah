@@ -17,7 +17,6 @@ freezeout_finder::freezeout_finder(lattice_parameters lattice, hydro_parameters 
 {
   if(hydro.run_hydro != 2)
   {
-    printf("freezeout_finder::freezeout_finder flag: set run_hydro = 2, otherwise freezeout surface will be empty\n\n");
     return;
   }
 

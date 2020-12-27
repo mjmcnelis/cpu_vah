@@ -11,6 +11,4 @@ void output_freezeout_slice_z(double t, lattice_parameters lattice, hydro_parame
 
 void output_hydro_simulation(double t, double dt_prev, lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro);
 
-void output_semi_analytic_solution_if_any(lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro);
-
 #endif
