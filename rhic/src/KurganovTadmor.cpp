@@ -34,11 +34,11 @@ const precision * const __restrict__ e_current, const precision * const __restri
 
 	precision t2 = t * t;						
 
-	int stride_y = nx + 4;							// strides for neighbor cells along x, y, n (stride_x = 1)
-	int stride_z = (nx + 4) * (ny + 4);					// stride formulas based from linear_column_index()
+	int stride_y = nx + 4;                                                  // strides for neighbor cells along x, y, n (stride_x = 1)
+	int stride_z = (nx + 4) * (ny + 4);                                     // stride formulas based from linear_column_index()
 
 	//int grid = nx * ny * nz;
-	//int taubulk_regulated_total = 0;					// old debug for regulating mean-field
+	//int taubulk_regulated_total = 0;                                      // old debug for regulating mean-field
 
 	#pragma omp parallel for collapse(3)
 	for(int k = 2; k < nz + 2; k++)
@@ -47,55 +47,55 @@ const precision * const __restrict__ e_current, const precision * const __restri
 		{
 			for(int i = 2; i < nx + 2; i++)
 			{
-				precision qs[NUMBER_CONSERVED_VARIABLES];	// dynamical variables at cell s
-				precision E[NUMBER_CONSERVED_VARIABLES];	// total source function E at cell s
-				precision  S[NUMBER_CONSERVED_VARIABLES];	// external source terms S at cell s
+				precision qs[NUMBER_CONSERVED_VARIABLES];       // dynamical variables at cell s
+				precision E[NUMBER_CONSERVED_VARIABLES];        // total source function E at cell s
+				precision  S[NUMBER_CONSERVED_VARIABLES];       // external source terms S at cell s
 
-				precision e1[6];				// energy density of 6 neighbor cells {i-1, i+1, j-1, j+1, k-1, k+1}
+				precision e1[6];                                // energy density of 6 neighbor cells {i-1, i+1, j-1, j+1, k-1, k+1}
 
-				precision qi1[2 * NUMBER_CONSERVED_VARIABLES];	// dynamical variables of 2 neighbor cells along x {i-1, i+1}
-				precision qj1[2 * NUMBER_CONSERVED_VARIABLES];	// dynamical variables of 2 neighbor cells along y {j-1, j+1}
-				precision qk1[2 * NUMBER_CONSERVED_VARIABLES];	// dynamical variables of 2 neighbor cells along n {k-1, k+1}
+				precision qi1[2 * NUMBER_CONSERVED_VARIABLES];  // dynamical variables of 2 neighbor cells along x {i-1, i+1}
+				precision qj1[2 * NUMBER_CONSERVED_VARIABLES];  // dynamical variables of 2 neighbor cells along y {j-1, j+1}
+				precision qk1[2 * NUMBER_CONSERVED_VARIABLES];  // dynamical variables of 2 neighbor cells along n {k-1, k+1}
 
-				precision qi2[2 * NUMBER_CONSERVED_VARIABLES];	// dynamical variables of 2 neighbor cells along x {i-2, i+2}
-				precision qj2[2 * NUMBER_CONSERVED_VARIABLES];	// dynamical variables of 2 neighbor cells along y {j-2, j+2}
-				precision qk2[2 * NUMBER_CONSERVED_VARIABLES];	// dynamical variables of 2 neighbor cells along n {k-2, k+2}
+				precision qi2[2 * NUMBER_CONSERVED_VARIABLES];  // dynamical variables of 2 neighbor cells along x {i-2, i+2}
+				precision qj2[2 * NUMBER_CONSERVED_VARIABLES];  // dynamical variables of 2 neighbor cells along y {j-2, j+2}
+				precision qk2[2 * NUMBER_CONSERVED_VARIABLES];  // dynamical variables of 2 neighbor cells along n {k-2, k+2}
 
-				precision ui1[6];				// fluid velocity of 2 neighbor cells along x {i-1, i+1}
-				precision uj1[6];				// fluid velocity of 2 neighbor cells along y {j-1, j+1}
-				precision uk1[6];				// fluid velocity of 2 neighbor cells along n {k-1, k+1}
+				precision ui1[6];                               // fluid velocity of 2 neighbor cells along x {i-1, i+1}
+				precision uj1[6];                               // fluid velocity of 2 neighbor cells along y {j-1, j+1}
+				precision uk1[6];                               // fluid velocity of 2 neighbor cells along n {k-1, k+1}
 
-				precision vxi[4];				// vx of 4 neighbor cells along x {i-2, i-1, i+1, i+2}
-				precision vyj[4];				// vy of 4 neighbor cells along y {j-2, j-1, j+1, j+2}
-				precision vnk[4];				// vn of 4 neighbor cells along n {k-2, k-1, k+1, k+2}
+				precision vxi[4];                               // vx of 4 neighbor cells along x {i-2, i-1, i+1, i+2}
+				precision vyj[4];                               // vy of 4 neighbor cells along y {j-2, j-1, j+1, j+2}
+				precision vnk[4];                               // vn of 4 neighbor cells along n {k-2, k-1, k+1, k+2}
 
-				precision  Hx_plus[NUMBER_CONSERVED_VARIABLES];	// Hx_{i + 1/2}
-				precision Hx_minus[NUMBER_CONSERVED_VARIABLES];	// Hx_{i - 1/2}
+				precision  Hx_plus[NUMBER_CONSERVED_VARIABLES]; // Hx_{i + 1/2}
+				precision Hx_minus[NUMBER_CONSERVED_VARIABLES]; // Hx_{i - 1/2}
 
-				precision  Hy_plus[NUMBER_CONSERVED_VARIABLES];	// Hy_{j + 1/2}
-				precision Hy_minus[NUMBER_CONSERVED_VARIABLES];	// Hy_{j - 1/2}
+				precision  Hy_plus[NUMBER_CONSERVED_VARIABLES]; // Hy_{j + 1/2}
+				precision Hy_minus[NUMBER_CONSERVED_VARIABLES]; // Hy_{j - 1/2}
 
-				precision  Hn_plus[NUMBER_CONSERVED_VARIABLES];	// Hn_{k + 1/2}
-				precision Hn_minus[NUMBER_CONSERVED_VARIABLES];	// Hn_{k - 1/2}
+				precision  Hn_plus[NUMBER_CONSERVED_VARIABLES]; // Hn_{k + 1/2}
+				precision Hn_minus[NUMBER_CONSERVED_VARIABLES]; // Hn_{k - 1/2}
 
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
-				int simm = s - 2;				// neighbor cell indices (x)
+				int simm = s - 2;                               // neighbor cell indices (x)
 				int sim  = s - 1;
 				int sip  = s + 1;
 				int sipp = s + 2;
 
-				int sjmm = s - 2*stride_y;			// neighbor cell indices (y)
+				int sjmm = s - 2*stride_y;                      // neighbor cell indices (y)
 				int sjm  = s - stride_y;
 				int sjp  = s + stride_y;
 				int sjpp = s + 2*stride_y;
 
-				int skmm = s - 2*stride_z;			// neighbor cell indices (n)
+				int skmm = s - 2*stride_z;                      // neighbor cell indices (n)
 				int skm  = s - stride_z;
 				int skp  = s + stride_z;
 				int skpp = s + 2*stride_z;
 
-				qs[0] = q_current[s].ttt;			// dynamical variables of cell s
+				qs[0] = q_current[s].ttt;                       // dynamical variables of cell s
 				qs[1] = q_current[s].ttx;
 				qs[2] = q_current[s].tty;
 
@@ -147,9 +147,9 @@ const precision * const __restrict__ e_current, const precision * const __restri
 				qs[a] = q_current[s].Pi; a++;
 			#endif
 
-				precision e_s = e_current[s];			// energy density
+				precision e_s = e_current[s];                   // energy density
 
-			#ifdef ANISO_HYDRO					// anisotropic variables
+			#ifdef ANISO_HYDRO                                      // anisotropic variables
 			#ifdef LATTICE_QCD
 				precision lambda_s = lambda_current[s];
 				precision aT_s = aT_current[s];
@@ -161,7 +161,7 @@ const precision * const __restrict__ e_current, const precision * const __restri
 			#endif
 			#endif
 
-				precision ux = u_current[s].ux;			// current fluid velocity
+				precision ux = u_current[s].ux;                 // current fluid velocity
 				precision uy = u_current[s].uy;
 			#ifndef BOOST_INVARIANT
 				precision un = u_current[s].un;
@@ -171,7 +171,7 @@ const precision * const __restrict__ e_current, const precision * const __restri
 
 				precision ut = sqrt(1.  +  ux * ux  +  uy * uy  +  t2 * un * un);
 
-				precision ux_p = u_previous[s].ux;		// previous fluid velocity
+				precision ux_p = u_previous[s].ux;              // previous fluid velocity
 				precision uy_p = u_previous[s].uy;
 			#ifndef BOOST_INVARIANT
 				precision un_p = u_previous[s].un;
@@ -212,8 +212,8 @@ const precision * const __restrict__ e_current, const precision * const __restri
 				flux_terms(Hy_plus, Hy_minus, qs, qj1, qj2, vyj, uy / ut, Theta);
 				flux_terms(Hn_plus, Hn_minus, qs, qk1, qk2, vnk, un / ut, Theta);
 
-				// store the results
-				if(!update)					// store total source function qI <== E
+				// store the results                            
+				if(!update)                                     // store total source function qI <== E
 				{
 					for(int n = 0; n < NUMBER_CONSERVED_VARIABLES; n++)
 					{
@@ -271,8 +271,8 @@ const precision * const __restrict__ e_current, const precision * const __restri
 				#ifdef PI
 					q_update[s].Pi = E[a]; a++;
 				#endif
-				}
-				else if(!RK2)					// store first intermediate euler step qI <== q + E.dt
+				}                                               
+				else if(!RK2)                                   // store first intermediate euler step qI <== q + E.dt
 				{
 					for(int n = 0; n < NUMBER_CONSERVED_VARIABLES; n++)
 					{
@@ -330,16 +330,16 @@ const precision * const __restrict__ e_current, const precision * const __restri
 				#ifdef PI
 					q_update[s].Pi = qs[a]; a++;
 				#endif
-				}
-				else 						// store RK2 update Q <== (q + (qI + EI.dt))/2
+				}                                               
+				else                                            // store RK2 update Q <== (q + (qI + EI.dt))/2
 				{
 					for(int n = 0; n < NUMBER_CONSERVED_VARIABLES; n++)
 					{
 						qs[n] += dt * (S[n]  +  (Hx_minus[n] - Hx_plus[n]) / dx  +  (Hy_minus[n] - Hy_plus[n]) / dy  +  (Hn_minus[n] - Hn_plus[n]) / dn);
 					}
 
-					q_update[s].ttt = (q[s].ttt  +  qs[0]) / 2.;	// here q is the extern variable, not
-					q_update[s].ttx = (q[s].ttx  +  qs[1]) / 2.;	// one of the euler_step(..) arguments
+					q_update[s].ttt = (q[s].ttt  +  qs[0]) / 2.;    // here q is the extern variable, not
+					q_update[s].ttx = (q[s].ttx  +  qs[1]) / 2.;    // one of the euler_step(..) arguments
 					q_update[s].tty = (q[s].tty  +  qs[2]) / 2.;
 
 					a = 3;
@@ -417,7 +417,7 @@ void recompute_euler_step(const hydro_variables * const __restrict__ q_current, 
 			{
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
-				q_update[s].ttt = q_current[s].ttt  +  dt * q_update[s].ttt;	// qI <== (q + E.dt_new)
+				q_update[s].ttt = q_current[s].ttt  +  dt * q_update[s].ttt;    // qI <== (q + E.dt_new)
 				q_update[s].ttx = q_current[s].ttx  +  dt * q_update[s].ttx;
 				q_update[s].tty = q_current[s].tty  +  dt * q_update[s].tty;
 			#ifndef BOOST_INVARIANT
@@ -476,8 +476,8 @@ void evolve_hydro_one_time_step(int n, precision t, precision dt, precision dt_p
 {
 	// first intermediate euler step
 	int RK2 = 0;
-
-	if(lattice.adaptive_time_step && !hit_CFL)					// qI <== q + E.dt
+                                                                                        
+	if(lattice.adaptive_time_step && !hit_CFL)                                      // qI <== q + E.dt
 	{
 		if(n == 0)
 		{
@@ -495,40 +495,39 @@ void evolve_hydro_one_time_step(int n, precision t, precision dt, precision dt_p
 
 	t += dt;					
 
-	swap_fluid_velocity(&u, &up);							// swap u <==> up
+	swap_fluid_velocity(&u, &up);                                                   // swap u <==> up
 
 #ifdef ANISO_HYDRO
-	set_inferred_variables_aniso_hydro(qI, e, u, t, lattice, hydro);		// compute aniso (e, u)
+	set_inferred_variables_aniso_hydro(qI, e, u, t, lattice, hydro);                // compute aniso (e, u)
 	// todo: try regulating before solving for aniso variables (haven't done yet)
 #ifdef LATTICE_QCD
-	set_anisotropic_variables(qI, e, lambda, aT, aL, lattice, hydro);		// compute aniso X = (lambda, aT, aL)
+	set_anisotropic_variables(qI, e, lambda, aT, aL, lattice, hydro);               // compute aniso X = (lambda, aT, aL)
 #endif
-	regulate_residual_currents(t, qI, e, u, lattice, hydro, RK2);			// regulate aniso qI
+	regulate_residual_currents(t, qI, e, u, lattice, hydro, RK2);                   // regulate aniso qI
 #else
-	set_inferred_variables_viscous_hydro(qI, e, u, t, lattice, hydro);		// compute viscous (e, u)
-	regulate_viscous_currents(t, qI, e, u, lattice, hydro, RK2);			// regulate viscous qI
+	set_inferred_variables_viscous_hydro(qI, e, u, t, lattice, hydro);              // compute viscous (e, u)
+	regulate_viscous_currents(t, qI, e, u, lattice, hydro, RK2);                    // regulate viscous qI
 #endif
-	set_ghost_cells(qI, e, u, lattice);						// for (qI, e, u)
-	
+	set_ghost_cells(qI, e, u, lattice);                                             // for (qI, e, u)
 	
 	// second intermediate Euler step 
-	dt_prev = dt;									// update previous time step
-	RK2 = 1;									// so that Q <== RK2 update
+	dt_prev = dt;                                                                   // update previous time step
+	RK2 = 1;                                                                        // so that Q <== RK2 update
 
 	euler_step(t, qI, Q, e, lambda, aT, aL, up, u, dt, dt_prev, lattice, hydro, update, RK2);	
 													
 #ifdef ANISO_HYDRO
-	set_inferred_variables_aniso_hydro(Q, e, u, t, lattice, hydro);			// compute aniso (e, u)
+	set_inferred_variables_aniso_hydro(Q, e, u, t, lattice, hydro);                 // compute aniso (e, u)
 #ifdef LATTICE_QCD
-	set_anisotropic_variables(Q, e, lambda, aT, aL, lattice, hydro);		// compute aniso X = (lambda, aT, aL)
+	set_anisotropic_variables(Q, e, lambda, aT, aL, lattice, hydro);                // compute aniso X = (lambda, aT, aL)
 #endif
-	regulate_residual_currents(t, Q, e, u, lattice, hydro, RK2);			// regulate aniso Q
+	regulate_residual_currents(t, Q, e, u, lattice, hydro, RK2);                    // regulate aniso Q
 #else
-	set_inferred_variables_viscous_hydro(Q, e, u, t, lattice, hydro);		// compute viscous (e, u)
-	regulate_viscous_currents(t, Q, e, u, lattice, hydro, RK2);			// regulate viscous Q
+	set_inferred_variables_viscous_hydro(Q, e, u, t, lattice, hydro);               // compute viscous (e, u)
+	regulate_viscous_currents(t, Q, e, u, lattice, hydro, RK2);                     // regulate viscous Q
 #endif
-	swap_hydro_variables(&q, &Q);							// swap q <==> Q
-	set_ghost_cells(q, e, u, lattice);						// for (q, e, u)
+	swap_hydro_variables(&q, &Q);                                                   // swap q <==> Q
+	set_ghost_cells(q, e, u, lattice);                                              // for (q, e, u)
 }
 
 
