@@ -19,7 +19,7 @@ inline precision central_derivative(const precision * const __restrict__ f, int 
 }
 
 
-int source_terms_aniso_hydro(precision * const __restrict__ S, const precision * const __restrict__ q, precision e_s, precision lambda_s, precision aT_s, precision aL_s, precision t, const precision * const __restrict__ qi1, const precision * const __restrict__ qj1, const precision * const __restrict__ qk1, const precision * const __restrict__ e1, const precision * const __restrict__ ui1, const precision * const __restrict__ uj1, const precision * const __restrict__ uk1, precision ux, precision uy, precision un, precision ux_p, precision uy_p, precision un_p, precision dt_prev, precision dx, precision dy, precision dn, hydro_parameters hydro)
+void source_terms_aniso_hydro(precision * const __restrict__ S, const precision * const __restrict__ q, precision e_s, precision lambda_s, precision aT_s, precision aL_s, precision t, const precision * const __restrict__ qi1, const precision * const __restrict__ qj1, const precision * const __restrict__ qk1, const precision * const __restrict__ e1, const precision * const __restrict__ ui1, const precision * const __restrict__ uj1, const precision * const __restrict__ uk1, precision ux, precision uy, precision un, precision ux_p, precision uy_p, precision un_p, precision dt_prev, precision dx, precision dy, precision dn, hydro_parameters hydro)
 {
 	int taubulk_regulated = 0;
 #ifdef ANISO_HYDRO
@@ -215,17 +215,9 @@ precision lambda_piTW = 0;
 	precision taupi_inverse = T / (5. * etabar);			// set relaxation times
 	precision taubulk_inverse = 0;
 
-
-
-
-
 	// Debug 2: need to check Wperp-related coefficients
 	aniso_transport_coefficients aniso;
 	aniso.compute_transport_coefficients(e_s, pl, pt, conformal_eos_prefactor);
-
-
-
-
 
 
 	zeta_LL    = aniso.zeta_LL;								// set pl coefficients
@@ -268,11 +260,7 @@ precision lambda_piTW = 0;
 	precision taubulk_inverse = eos.beta_bulk() / (s * zetabar);
 
 	aniso_transport_coefficients_nonconformal aniso;
-
 	aniso.compute_transport_coefficients(e_s, p, pl, pt, b, beq, lambda_s, aT_s, aL_s, mbar, mass, mdmde);
-	//aniso.compute_transport_coefficients(e_s, p, pl, pt, beq, beq, lambda_s, aT_s, aL_s, mbar, mass, mdmde);
-
-
 
 	zeta_LL    = aniso.zeta_LL;								// set pl coefficients
 	zeta_TL    = aniso.zeta_TL;
@@ -486,7 +474,6 @@ precision lambda_piTW = 0;
 	precision dun_dy = central_derivative(uj1, 4, dy);
 	precision dun_dn = central_derivative(uk1, 4, dn);
 
-
 	// ut derivatives
 	precision dut_dt = vx * dux_dt  +  vy * duy_dt  +  t2 * vn * dun_dt  +  t * vn * un;
 	precision dut_dx = vx * dux_dx  +  vy * duy_dx  +  t2 * vn * dun_dx;
@@ -494,36 +481,14 @@ precision lambda_piTW = 0;
 	precision dut_dn = vx * dux_dn  +  vy * duy_dn  +  t2 * vn * dun_dn;
 
 	// spatial velocity divergence
-	//precision dvx_dx = (dux_dx  -  vx * dut_dx) / ut;
-	//precision dvy_dy = (duy_dy  -  vy * dut_dy) / ut;
-	//precision dvn_dn = (dun_dn  -  vn * dut_dn) / ut;
-	//precision div_v = dvx_dx  +  dvy_dy  +  dvn_dn;
-
 	precision div_v = (dux_dx  -  vx * dut_dx  +  duy_dy  -  vy * dut_dy  +  dun_dn  -  vn * dut_dn) / ut;
 
-
-
-
-
-	// Debug 3: I removed these terms, was I wrong?
-	// other spatial velocity derivatives (is this still needed?)
-	//precision dvx_dn = (dux_dn  -  vx * dut_dn) / ut;
-	//precision dvy_dn = (duy_dn  -  vy * dut_dn) / ut;
-
-
-
-
-
-// scalar, longitudinal and transverse expansion rates: theta = D_\mu u^\mu, thetaL = z_\mu Dz u^\mu, thetaT = NablaT_\mu u^\mu
-//-------------------------------------------------
+	// scalar, longitudinal and transverse expansion rates: theta = D_\mu u^\mu, thetaL = z_\mu Dz u^\mu, thetaT = NablaT_\mu u^\mu
 	precision theta = dut_dt  +  dux_dx  +  duy_dy  +  dun_dn  +  ut / t;
 	precision thetaL = - zt2 * dut_dt  +  ztzn * (t2 * dun_dt  -  dut_dn)  +  t2 * zn2 * dun_dn  +  t * zn2 * ut;
 	precision thetaT = theta  -  thetaL;
 
-
-
-// longitudinal vector derivatives
-//-------------------------------------------------
+	// longitudinal vector derivatives
 	precision dzt_dt = t * (dun_dt  -  un * (ux * dux_dt  +  uy * duy_dt) / utperp2) / utperp  +  zt / t;
 	precision dzt_dx = t * (dun_dx  -  un * (ux * dux_dx  +  uy * duy_dx) / utperp2) / utperp;
 	precision dzt_dy = t * (dun_dy  -  un * (ux * dux_dy  +  uy * duy_dy) / utperp2) / utperp;
@@ -535,20 +500,9 @@ precision lambda_piTW = 0;
 	precision dzn_dn = (dut_dn  -  ut * (ux * dux_dn  +  uy * duy_dn) / utperp2) / (t * utperp);
 
 
-
 #if (NUMBER_OF_RESIDUAL_CURRENTS != 0)
-
-
-
-
-
-	// Debug 4: test projection properties in 3d (should test actual projections, not random vector/tensor)
 	transverse_projection Xi(ut, ux, uy, un, zt, zn, t2);	// Xi^{\mu\nu}
 	double_transverse_projection Xi_2(Xi, t2, t4);			// Xi^{\mu\nu\alpha\beta}
-
-
-
-
 
 	// acceleration = D u^\mu
 	precision at = ut * dut_dt  +  ux * dut_dx  +  uy * dut_dy  +  un * dut_dn  +  t * un2;
@@ -607,7 +561,6 @@ precision lambda_piTW = 0;
 	precision wTyn = (-dun_dy  +  duy_dn / t2  -  uy * an  +  un * ay  +  zn * (Dz_uy + z_Dy_u)) / 2.;
 #endif
 
-
 #endif
 
 	// L^munu components and derivatives
@@ -645,7 +598,6 @@ precision lambda_piTW = 0;
 	precision Iyy = - tau_pipi * (pity * sTty  -  pixy * sTxy  -  piyy * sTyy  -  t2 * piyn * sTyn);
 	precision Iyn = - tau_pipi * (pity * sTtn  +  pitn * sTty  -  pixy * sTxn  -  pixn * sTxy  -  piyy * sTyn  -  piyn * sTyy  -  t2 * (piyn * sTnn  +  pinn * sTyn)) / 2.;
 	precision Inn = - tau_pipi * (pitn * sTtn  -  pixn * sTxn  -  piyn * sTyn  -  t2 * pinn * sTnn);
-
 
 #ifdef WTZMU
 	// 2 . WTz^{(\mu} . \dot{z}^{\nu)}
@@ -783,7 +735,6 @@ precision lambda_piTW = 0;
 
 	precision dWnn_dn = 2. * (dWnTz_dn * zn  +  WnTz * dzn_dn);
 
-
 	// 2nd order scalar terms in dpl and dpt
 	precision WTz_D_z = WtTz * D_zt  -  t2 * WnTz * D_zn;
 	precision WTz_Dz_u = WtTz * Dz_ut  -  WxTz * Dz_ux  -  WyTz * Dz_uy  -  t2 * WnTz * Dz_un;
@@ -791,7 +742,6 @@ precision lambda_piTW = 0;
 
 	precision IplW = - 2. * WTz_D_z  +  lambda_WuL * WTz_Dz_u  +  lambda_WTL * WTz_z_NabT_u;
 	precision IptW = WTz_D_z  +  lambda_WuT * WTz_Dz_u  -  lambda_WTT * WTz_z_NabT_u;
-
 
 	// first-order gradient terms in dWTz (need to project first 2)
 	// 2 . eta_u^W . Dz u^\mu  -  tau_z^W . Dz^\mu
@@ -807,7 +757,6 @@ precision lambda_piTW = 0;
 	Ix -= 2. * eta_TW * z_NabTx_u;
 	Iy -= 2. * eta_TW * z_NabTy_u;
 	In -= 2. * eta_TW * z_NabTn_u;
-
 
 	// second-order gradient terms in dWTz
 	// - piT^{\mu\nu} . Dz_\nu
@@ -851,7 +800,6 @@ precision lambda_piTW = 0;
 	Iy -= lambda_piTW * (pity * z_NabTt_u  -  pixy * z_NabTx_u  -  piyy * z_NabTy_u  -  t2 * piyn * z_NabTn_u);
 	In -= lambda_piTW * (pitn * z_NabTt_u  -  pixn * z_NabTx_u  -  piyn * z_NabTy_u  -  t2 * pinn * z_NabTn_u);
 #endif
-
 
 	// Christofel terms: G_W^\mu  =  u^\alpha . \Gamma^\mu_{\alpha\beta} . WTz^\beta
 	precision Gt = tun * WnTz;
@@ -935,30 +883,6 @@ precision lambda_piTW = 0;
 	a++;
 #endif
 
-
-
-
-#ifdef B_FIELD
-	// regulate bulk relaxation time:
-	precision edot = - (e_s + pl) * thetaL  -  (e_s + pt) * thetaT  +  pi_sT  -  WTz_Dz_u  +  WTz_z_NabT_u;		// energy conservation law
-
-	//taubulk_inverse = taubulk_inverse / fmin(1., 0.25 * taubulk_inverse * mass * mass / (mdmde * edot));
-
-#ifdef REGULATE_TAU_BULK
-	if(taubulk_inverse < mdmde * edot / (mass * mass))			// enforce taubulk_inverse >= mdot/m
-	{
-	#ifdef FLAGS
-		printf("Regulating tau_bulk\n");
-	#endif
-		taubulk_inverse = mdmde * edot / (mass * mass);
-		taubulk_regulated = 1;
-	}
-#endif
-
-#endif
-
-
-
 	// pl and pt relaxation equation (need to include bulk)
 	precision dpl = (p - pavg) * taubulk_inverse  -  dp * taupi_inverse / 1.5  +  zeta_LL * thetaL  +  zeta_TL * thetaT  +  IplW  -  lambda_piL * pi_sT;
 	precision dpt =	(p - pavg) * taubulk_inverse  +  dp * taupi_inverse / 3.0  +  zeta_LT * thetaL  +  zeta_TT * thetaT  +  IptW  +  lambda_piT * pi_sT;
@@ -966,48 +890,15 @@ precision lambda_piTW = 0;
 	S[a] = dpl / ut  +  div_v * pl;		a++;
 	S[a] = dpt / ut  +  div_v * pt;		a++;
 
-
 	// b field relaxation equation
 #ifdef B_FIELD
-
-	// regulate bulk relaxation time:
-	//precision edot = - (e_s + pl) * thetaL  -  (e_s + pt) * thetaT  +  pi_sT  -  WTz_Dz_u  +  WTz_z_NabT_u;		// energy conservation law
-
-	//taubulk_inverse = taubulk_inverse / fmin(1., 0.25 * taubulk_inverse * mass * mass / (mdmde * edot));		// enforce taubulk <= 4m/mdot
-
-	// if(taubulk_inverse < 4. * mdmde * edot / (mass * mass))
-	// {
-	// 	taubulk_inverse = 4. * mdmde * edot / (mass * mass);
-	// }
-
-
-	precision db = (beq - b) * taubulk_inverse  -  mdmde * edot * (e_s - 2.*pt - pl - 4.*b) / (mass * mass);	// previous unstable version
-
-
-	// simple regulated unstable version (this doesn't work)
-	//precision db = (beq - b) * fmax(0., taubulk_inverse - 4. * mdmde * edot / (mass * mass))  -  mdmde * edot * (e_s - 2.*pt - pl - 4.*beq) / (mass * mass);
-
-
-	// mdot regulation
-	//kappa = min(1., mass * mass / () );
-
-	//precision db = (beq - b) * taubulk_inverse  -  kappa * mdmde * edot * (e_s - 2.*pt - pl - 4.*b) / (mass * mass);
-
-
-
-	//precision db = (beq - b) * taubulk_inverse  -  mdmde * edot * (e_s - 2.*pt - pl - 4.*beq) / (mass * mass);	// option #1
-	//precision db = (beq - b) * taubulk_inverse  +  mdmde * (e_s + p) * theta * (e_s - 2.*pt - pl - 4.*beq) / (mass * mass);	// option #2
-
-
-
-
-	// option #3
-	//precision db = (beq - b) * taubulk_inverse  -  mdmde / (mass * mass) * (edot * (e_s - 3.*p - 4.*beq)  +  (e_s + p) * theta * 3. * (pavg - p));
+	precision edot = - (e_s + pl) * thetaL  -  (e_s + pt) * thetaT  +  pi_sT  -  WTz_Dz_u  +  WTz_z_NabT_u;		// energy conservation law
+	precision db = (beq - b) * taubulk_inverse  -  mdmde * edot * (e_s - 2.*pt - pl - 4.*b) / (mass * mass);
 
 	S[a] = db / ut  +  div_v * b;		a++;
 #endif
 
-	// piT relaxation equation (checked it, looks ok)
+	// piT relaxation equation
 #ifdef PIMUNU
 	precision dpitt = - pitt * taupi_inverse  +  Itt  -  Ptt  -  Gtt;
 	precision dpitx = - pitx * taupi_inverse  +  Itx  -  Ptx  -  Gtx;
@@ -1052,7 +943,6 @@ precision lambda_piTW = 0;
 #endif
 
 #endif
-	return taubulk_regulated;
 }
 
 
