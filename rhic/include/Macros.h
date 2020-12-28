@@ -4,10 +4,10 @@
 // simulation mode
 #define ANISO_HYDRO                        // run anisotropic hydro (comment to run 2nd order viscous hydro)
 #define BOOST_INVARIANT                    // run 2+1d hydro (comment to run 3+1d hydro)
-#define JETSCAPE                           // store freezeout surface in HYDRO wrapper (comment to write freezeout surface to file)
+//#define JETSCAPE                         // store freezeout surface in HYDRO wrapper (comment to write freezeout surface to file)
 
 
-// equation of state:
+// equation of state
 //#define CONFORMAL_EOS                    // use conformal equation of state (comment to use QCD)
 
 #ifndef CONFORMAL_EOS
@@ -15,7 +15,7 @@
 #endif
 
 
-// hydrodynamic variables:
+// hydrodynamic variables
 #ifdef ANISO_HYDRO                         
 	#define PIMUNU                     // switch to include transverse shear stress (can comment)
 
@@ -37,13 +37,13 @@
 #endif
 
 
-// parameters:
+// parameters
 #define RANDOM_MODEL_PARAMETERS            // option to use python/random_model_parameters/model_parameters_x.dat (x = 1st command line argument)
                                            // comment to use the fixed values in parameters/ (note: model parameters is a subset of all parameters)
 //#define PRINT_PARAMETERS                 // switch to print parameters during runtime
 
 
-// output (comment for production runs):
+// output (comment for production runs)
 //#define FLAGS                            // switch to print warnings during runtime
 
 //#define FREEZEOUT_SIZE                   // switch to output maximum transverse radius of freezeout surface 
