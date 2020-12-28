@@ -314,20 +314,20 @@ hydro_parameters load_hydro_parameters(bool sample_parameters, random_model_para
 
 	if(hydro.energy_min < hotqcd_e_min)
 	{
-		printf("load_hydro_parameters error: energy_min = %.3f is smaller than minimum energy density = %lf in hotqcd eos table\n", hydro.energy_min, hotqcd_e_min);
+		printf("load_hydro_parameters error: energy_min = %.3e is smaller than minimum energy density = %3e in hotqcd eos table\n", hydro.energy_min, hotqcd_e_min);
 		exit(-1);
 	}
 	#endif
 
 	if(hydro.tau_initial == 0)
 	{
-		printf("load_hydro_parameters error: tau_initial = %.3f is not allowed\n", hydro.tau_initial);
+		printf("load_hydro_parameters error: set tau_initial > 0\n");
 		exit(-1);
 	}
 
 	if(fabs(hydro.flux_limiter - 1.5) > 0.5)
 	{
-		printf("load_hydro_parameters error: flux_limiter = %.3g is out of bounds\n", hydro.flux_limiter);
+		printf("load_hydro_parameters error: flux_limiter = %.3g is not between [1,2]\n", hydro.flux_limiter);
 		exit(-1);
 	}
 
