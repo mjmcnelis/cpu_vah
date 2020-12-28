@@ -5,6 +5,7 @@ output
 semi_analytic
 eos
 *.DS_Store
+rhic/include/Macros.h
 
 
 # tables
