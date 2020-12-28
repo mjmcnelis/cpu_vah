@@ -4,7 +4,6 @@
 
 #include "Parameters.h"
 #include "Precision.h"
-//#include <stdlib.h>
 #include <vector>
 
 void set_initial_conditions(precision t, lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro, std::vector<double> trento);

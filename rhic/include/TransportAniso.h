@@ -8,13 +8,13 @@
 #include "Parameters.h"
 
 // todo: possibly use cubic spline interpolation for the xi data (could be more accurate than a fit)
-// I don't think this is really critical 
+// I don't think this is really critical
 
 const precision delta = 0.01;	// piecewise interval where hypergeometric functions are Taylor expanded
 
 class aniso_transport_coefficients
 {
-	// conformal vahydro transport coefficients (nonconformal case will be a separate class) 
+	// conformal vahydro transport coefficients (nonconformal case will be a separate class)
 
 	private:
 		int alpha;			// # generalized powers (0 : alpha - 1)
@@ -26,7 +26,7 @@ class aniso_transport_coefficients
 		// waste as little time opening and reading the files
 
 	public:
-		
+
 		precision zeta_LL;			// pl coefficients
 		precision zeta_TL;
 		precision lambda_WuL;
@@ -82,12 +82,11 @@ class aniso_transport_coefficients
 		aniso_transport_coefficients();
 		~aniso_transport_coefficients();
 
-		void test_kinetic_solution(precision e, precision pl, precision pt, precision aL2, precision prefactor);			// do I still need this?
+		void test_kinetic_solution(precision e, precision pl, precision pt, precision aL2, precision prefactor);
 
 		void compute_hypergeometric_functions(precision z);
 
 		void compute_transport_coefficients(precision e, precision pl, precision pt, precision conformal_eos_prefactor);
-		// my idea last night was to use conformal vahydro to propagate initial conditions instead of free-streaming
 };
 
 

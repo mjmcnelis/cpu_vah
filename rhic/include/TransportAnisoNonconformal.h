@@ -8,7 +8,6 @@
 #include "Parameters.h"
 
 const precision g = 51.4103536012791;			// quasiparticle degeneracy factor (Eq. 46)
-												// isn't this related to conformal_prefactor? (rename it something else?)
 												// g = (2.(Nc.Nc - 1) + 4.Nc.Nf.7/8) . pi^4 / 90
 
 const int pbar_pts = 16;

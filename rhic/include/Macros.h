@@ -15,26 +15,11 @@
 #define JETSCAPE 				// store freezeout surface in vector array for JETSCAPE (no surface.dat)
 								// also need to define FREEZEOUT_VH to run JETSCAPE mode
 
-#define FREEZEOUT_VH			// option to convert vah to vh variables on freezeout surface
-
-#define BEST					// use the best eos (I don't think this is used anymore)
-
 //#define CONFORMAL_EOS			// conformal equation of state
 
 #ifndef CONFORMAL_EOS
 	#define LATTICE_QCD			// lattice qcd equation of state
 #endif
-
-// #ifdef ANISO_HYDRO
-// #ifdef LATTICE_QCD
-// 	//#define REGULATE_TAU_BULK	// option to regulate the bulk relaxation time in nonconformal anisotropic hydro
-// #endif							// (it doesn't stablize mean field equation...)
-// #endif
-
-
-//#define E_CHECK				// separately evolve energy density w/ KT algorithm as a cross check
-								// can be commented (still have issue with piperp evolution when turned on)
-
 
 #ifdef ANISO_HYDRO				// residual shear stress
 
@@ -61,11 +46,6 @@
 #ifndef BOOST_INVARIANT
 	#define VORTICITY			// include vorticity terms in relaxation equations
 #endif
-
-
-
-#define PRINT_HYDRO				// option to print current hydro info at center of grid (comment for no printing)
-#define PRINT_PERIOD 1			// number of steps per print for run_hydro = 3 (leave this defined!)
 
 //#define PRINT_PARAMETERS		// option to print parameters
 

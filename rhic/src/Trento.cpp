@@ -14,27 +14,12 @@
 
 using namespace std;
 
-#define THETA_FUNCTION(X) ((double)X < (double)0 ? (double)0 : (double)1)
-
 
 inline int linear_column_index(int i, int j, int k, int nx, int ny)
 {
 	return i  +  nx * (j  +  ny * k);
 }
 
-
-// inline double Theta(double x)
-// {
-// 	if(x > 0)
-// 	{
-// 		return 1.;
-// 	}
-// 	else if(x < 0)
-// 	{
-// 		return 0;
-// 	}
-// 	return 0.5;
-// }
 
 inline double Theta(double x)
 {
