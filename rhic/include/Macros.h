@@ -1,79 +1,66 @@
-
 #ifndef MACROS_H_
 #define MACROS_H_
 
-// macro parameters to fix hydrodynamic variables at compile time
+// simulation mode
+#define ANISO_HYDRO                        // run anisotropic hydro (comment to run 2nd order viscous hydro)
+#define BOOST_INVARIANT                    // run 2+1d hydro (comment to run 3+1d hydro)
+#define JETSCAPE                           // store freezeout surface in HYDRO wrapper (comment to write freezeout surface to file)
 
-#define ANISO_HYDRO				// run anisotropic hydro (comment to run 2nd order viscous hydro)
 
-#define BOOST_INVARIANT 		// run 2+1d hydro (comment to run 3+1d hydro)
-
-#define RANDOM_MODEL_PARAMETERS // option to use python/random_model_parameters/model_parameters_x.dat (x = 1st command line argument)
-								// comment to use the fixed values in parameters/
-								// note: model parameters is a subset of all parameters
-
-#define JETSCAPE 				// store freezeout surface in vector array for JETSCAPE (no surface.dat)
-								// also need to define FREEZEOUT_VH to run JETSCAPE mode
-
-//#define CONFORMAL_EOS			// conformal equation of state
+// equation of state:
+//#define CONFORMAL_EOS                    // use conformal equation of state (comment to use QCD)
 
 #ifndef CONFORMAL_EOS
-	#define LATTICE_QCD			// lattice qcd equation of state
+	#define LATTICE_QCD                // QCD equation of state (leave defined)
 #endif
 
-#ifdef ANISO_HYDRO				// residual shear stress
 
-	#define PIMUNU 				// transverse shear stress
+// hydrodynamic variables:
+#ifdef ANISO_HYDRO                         
+	#define PIMUNU                     // switch to include transverse shear stress (can comment)
 
 	#ifndef BOOST_INVARIANT
-		#define WTZMU 			// longitudinal momentum diffusion current
+		#define WTZMU              // switch to include longitudinal momentum diffusion current (can comment)
 	#endif
-
 	#ifdef LATTICE_QCD
-		#define B_FIELD 		// mean field
+		#define B_FIELD            // mean field (leave defined)
 	#endif
-
-#else							// viscous stress tensor
-
-	#define PIMUNU				// shear stress
+#else                                     
+	#define PIMUNU                     // switch to include standard shear stress (can comment)
 
 	#ifndef CONFORMAL_EOS
-		#define PI 				// bulk pressure
+		#define PI                 // switch to include bulk pressure (can comment)
 	#endif
-
 #endif
-
 #ifndef BOOST_INVARIANT
-	#define VORTICITY			// include vorticity terms in relaxation equations
+	#define VORTICITY                  // switch to include vorticity terms in relaxation equations (can comment)
 #endif
 
-//#define PRINT_PARAMETERS		// option to print parameters
 
-//#define FLAGS					// option to print warnings that could repeat during runtime (doesn't include nans or exit(-1) errors)
+// parameters:
+#define RANDOM_MODEL_PARAMETERS            // option to use python/random_model_parameters/model_parameters_x.dat (x = 1st command line argument)
+                                           // comment to use the fixed values in parameters/ (note: model parameters is a subset of all parameters)
+//#define PRINT_PARAMETERS                 // switch to print parameters during runtime
 
-//#define FREEZEOUT_SIZE			// output maximum radius of freezeout surface
 
-//#define FREEZEOUT_SLICE			// output tau-x and/or tau-eta slice up to tau = 17 fm (comment for real runs)
+// output (comment for production runs):
+//#define FLAGS                            // switch to print warnings during runtime
 
-#define BENCHMARKS				// output benchmark data (e.g. hydro run time)
+//#define FREEZEOUT_SIZE                   // switch to output maximum transverse radius of freezeout surface 
+//#define FREEZEOUT_SLICE                  // switch to output tau-x (and tau-eta) slice up to tau = 17 fm/c 
 
-#define ADAPTIVE_FILE			// output adaptive time steps
+//#define BENCHMARKS                       // switch to output runtime benchmarks
+//#define ADAPTIVE_FILE                    // switch to output adaptive time step 
 
-//#define MONITOR_TTAUMU			// output violations of T^{\tau\mu} reproduction in InferredVariables.cpp
-
-//#define MONITOR_REGULATIONS		// output regulation of residual shear or shear and bulk
-
+//#define MONITOR_TTAUMU                   // switch to output T^{\tau\mu} violations 
+//#define MONITOR_REGULATIONS              // switch to output residual shear (or shear + bulk) regulation
 #ifdef ANISO_HYDRO
-	//#define MONITOR_PLPT		// output pl,pt regulation
-
+	//#define MONITOR_PLPT             // switch to output pl, pt regulation (i.e. enforce pl, pt > 0 at edge of grid)
 #ifdef LATTICE_QCD
-	//#define MONITOR_B			// output b regulation
+	//#define MONITOR_B                // switch to output b regulation
 #endif
 #endif
-
 #endif
-
-
 
 
 
