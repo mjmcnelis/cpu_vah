@@ -471,9 +471,7 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro, initial_condi
 		std::cerr << "No configuration file %s found for hydro parameters\n";
 	}
 
-	//lattice.min_time_step = 5. * pow(10., round(log10(hydro.tau_initial)) - 2.);		// min time step ~ 20x smaller than t0
-
-	lattice.min_time_step = hydro.tau_initial / 20.;
+	lattice.min_time_step = hydro.tau_initial / 20.;		// min time step ~ 20x smaller than t0
 
 
 	if(lattice.resolve_nucleons)
@@ -512,7 +510,7 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro, initial_condi
 		double eta_flat = initial.rapidity_flat;
 		double eta_sigma = sqrt(initial.rapidity_variance);
 
-		double Lz = eta_flat  +  10. * eta_sigma;			 // hard-coded to cover 5 sigmas
+		double Lz = eta_flat  +  10. * eta_sigma;			 // hard-coded to cover 5 eta_sigmas
 		double dz = round_two_decimals(eta_sigma / 5.);
 
 		lattice.lattice_spacing_eta = dz;
@@ -648,11 +646,11 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro, initial_condi
 	}
 #endif
 
-	double dt = lattice.fixed_time_step;						// dt = default starting time step
+	double dt = lattice.fixed_time_step;						// dt = default starting time step is fixed_time_step
 
 	if(!time_step_within_CFL_bound(dt, lattice))
 	{
-		printf("load_lattice_parameters flag: fixed time step dt = %.2g greater than strict CFL bound. Adjusting fixed time step...\n", dt);
+		printf("load_lattice_parameters flag: fixed time step dt = %.2g greater than fixed CFL bound: flooring fixed_time_step...\n", dt);
 		double dx = lattice.lattice_spacing_x;
 		double dy = lattice.lattice_spacing_y;
 		double dz = lattice.lattice_spacing_eta;
@@ -662,12 +660,12 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro, initial_condi
 
 	if(lattice.adaptive_time_step)
 	{
-		dt = lattice.min_time_step;								// if adaptive, starting time step is min
+		dt = lattice.min_time_step;								// if adaptive, starting time step is min_time_step
 	}
 
 	if(!time_step_within_CFL_bound(dt, lattice))
 	{
-		printf("load_lattice_parameters flag: starting time step dt = %.2g greater than strict CFL bound. Adjusting min time step...\n", dt);
+		printf("load_lattice_parameters flag: starting time step dt = %.2g greater than fixed CFL bound: flooring min_time_step...\n", dt);
 		double dx = lattice.lattice_spacing_x;
 		double dy = lattice.lattice_spacing_y;
 		double dz = lattice.lattice_spacing_eta;

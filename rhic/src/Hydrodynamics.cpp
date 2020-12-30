@@ -202,8 +202,6 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 	// fluid dynamic evolution
 	for(int n = 0; n < lattice.max_time_steps; n++)
 	{
-		dt = set_time_step(n, t, dt_prev, t_out + dt_out, lattice, initial, hydro);
-
 		if(hydro.run_hydro == 1)                                    // output hydro evolution
 		{
 		#ifdef FREEZEOUT_SLICE
@@ -276,9 +274,11 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 
 			if(grid_below_Tswitch >= freezeout_depth)
 			{
-				break;
+				break;		// stop hydro evolution
 			}
 		}
+
+		dt = set_time_step(n, t, dt_prev, t_out + dt_out, lattice, initial, hydro);
 
 		int update = 1;                                             // RK2 iteration:
 
