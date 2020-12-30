@@ -5,6 +5,11 @@
 #define ANISO_HYDRO                        // run anisotropic hydro (comment to run 2nd order viscous hydro)
 #define BOOST_INVARIANT                    // run 2+1d hydro (comment to run 3+1d hydro)
 //#define JETSCAPE                         // store freezeout surface in HYDRO wrapper (comment to write freezeout surface to file)
+                                           // todo: in case of fatal error (e.g. nan), return empty surface in run_hydro() w/o exiting program
+                                           // places program can crash: initial conditions (read in incorrectly)
+                                           //                           reconstruct inferred (nan) and aniso variables (nan, gsl error)
+                                           //                           Cornelius
+                                           //                           exceed max_time_steps
 
 
 // equation of state
@@ -40,7 +45,7 @@
 // parameters
 #define RANDOM_MODEL_PARAMETERS            // option to use python/random_model_parameters/model_parameters_x.dat (x = 1st command line argument)
                                            // comment to use the fixed values in parameters/ (note: model parameters is a subset of all parameters)
-#define PRINT_PARAMETERS                 // switch to print parameters during runtime
+//#define PRINT_PARAMETERS                 // switch to print parameters during runtime
 
 
 // output (comment for production runs)

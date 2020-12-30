@@ -22,7 +22,6 @@ mkdir tests/conformal_trento/data/$1/x_axis
 mkdir tests/conformal_trento/data/$1/z_axis
 
 sh clear_results.sh
-
 make clean
 make
 

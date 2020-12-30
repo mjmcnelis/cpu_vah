@@ -22,7 +22,6 @@ mkdir tests/lattice_trento_smooth/data/$1/x_axis
 mkdir tests/lattice_trento_smooth/data/$1/z_axis
 
 sh clear_results.sh
-
 make clean
 make
 

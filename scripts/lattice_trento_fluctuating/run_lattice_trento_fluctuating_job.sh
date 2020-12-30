@@ -21,7 +21,6 @@ mkdir tests/lattice_trento_fluctuating/fireball/$1/xy_plane
 mkdir tests/lattice_trento_fluctuating/freezeout/$1
 
 sh clear_results.sh
-
 make clean
 make
 
