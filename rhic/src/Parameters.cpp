@@ -471,8 +471,6 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro, initial_condi
 		std::cerr << "No configuration file %s found for hydro parameters\n";
 	}
 
-	lattice.min_time_step = hydro.tau_initial / 20.;		// min time step ~ 20x smaller than t0
-
 
 	if(lattice.resolve_nucleons)
 	{
@@ -524,7 +522,6 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro, initial_condi
 		lattice.lattice_points_eta = nz;
 	}
 #endif
-
 
 	if(sample_parameters)
 	{
@@ -637,7 +634,6 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro, initial_condi
 		}
 	}
 
-
 #ifdef BOOST_INVARIANT
 	if(lattice.lattice_points_eta > 1)
 	{
@@ -645,6 +641,8 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro, initial_condi
 		lattice.lattice_points_eta = 1;		// automatic default
 	}
 #endif
+
+	lattice.min_time_step = hydro.tau_initial / 20.;			// min time step ~ 20x smaller than t0
 
 	double dt = lattice.fixed_time_step;						// dt = default starting time step is fixed_time_step
 
