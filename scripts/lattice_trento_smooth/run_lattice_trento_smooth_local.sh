@@ -12,7 +12,6 @@ cp tests/lattice_trento_smooth/parameters/$1/hydro.properties parameters
 cp tests/lattice_trento_smooth/parameters/$1/lattice.properties parameters
 cp tests/lattice_trento_smooth/parameters/$1/initial.properties parameters
 cp tests/lattice_trento_smooth/parameters/$1/Macros.h rhic/include
-cp tests/lattice_trento_smooth/parameters/$1/OpenMP.h rhic/include
 
 rm -r tests/lattice_trento_smooth/data/$1/adaptive
 rm -r tests/lattice_trento_smooth/data/$1/x_axis

@@ -92,13 +92,11 @@ long number_of_cells_above_freezeout_temperature(lattice_parameters lattice, hyd
 
 precision set_time_step(int n, precision t, precision dt_prev, precision t_next_output, lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro)
 {
-	precision dt_fix = lattice.fixed_time_step;
 	precision dt_min = lattice.min_time_step;
 
-	precision dt = dt_fix;                                                  // default time step is fixed
+	precision dt = lattice.fixed_time_step;                         // default time step is fixed
 
-	// compute adaptive time step
-	if(lattice.adaptive_time_step)
+	if(lattice.adaptive_time_step)                                  // compute adaptive time step
 	{
 		if(n == 0)
 		{
@@ -106,15 +104,18 @@ precision set_time_step(int n, precision t, precision dt_prev, precision t_next_
 		}
 		else
 		{
-			precision dt_CFL = compute_dt_CFL(t, lattice, hydro);   // less strict CFL condition dx / (8.ax)
+			precision dt_CFL = compute_dt_CFL(t, lattice, hydro);
 
 			precision dt_source = 1./0.;
 
 			if(!hit_CFL_bound)                                      // skip dt_source calculation after hit CFL bound
 			{
-				int update = 0;                                 // get total source function E:
+				int update = 0;
+
+				// get total source function qI <= E
 				euler_step(t, q, qI, e, lambda, aT, aL, up, u, dt_prev, dt_prev, lattice, hydro, update, hit_CFL_bound);
 
+				// here Q holds previous q (from swap_hydro_variables)
 				dt_source = compute_dt_source(t, Q, q, qI, dt_prev, lattice);
 
 				if(dt_source >= dt_CFL)
@@ -153,31 +154,24 @@ precision set_time_step(int n, precision t, precision dt_prev, precision t_next_
 
 freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro, int sample, std::vector<double> trento)
 {
-	precision t = hydro.tau_initial;                             // initial longtudinal proper time
-	precision dt = lattice.fixed_time_step;                      // initial time step
+	print_parameters(lattice, hydro);
+	allocate_memory(lattice);                                    // grid allocation
 
-	if(lattice.adaptive_time_step)
+	precision t = hydro.tau_initial;                             // starting longtudinal proper time
+	precision dt = lattice.min_time_step;                        // initial time step
+
+	if(!lattice.adaptive_time_step)
 	{
-		dt = lattice.min_time_step;
+		dt = lattice.fixed_time_step;
 	}
 
 	precision dt_prev = dt;                                      // previous time step
 
-	print_parameters(lattice, hydro);
-	allocate_memory(lattice);                                    // grid allocation
-
-	long nx = lattice.lattice_points_x;
-	long ny = lattice.lattice_points_y;
-	long nz = lattice.lattice_points_eta;
-	long grid_size = nx * ny * nz;
-
-	set_initial_conditions(t, lattice, initial, hydro, trento);  // initialize (q, e, u)
+	set_initial_conditions(t, lattice, initial, hydro, trento);  // initialize (q, e, u, up)
 	set_ghost_cells(q, e, u, lattice);                           // for (q, e, u)
 
 	precision t_out = t;                                         // track hydro evolution output times
 	precision dt_out = lattice.output_interval;
-
-	bool double_dt_out = true;                                   // double output interval after three outputs
   	int number_outputs = 0;
 
 	freezeout_finder finder(lattice, hydro);                     // initialize freezeout finder
@@ -193,9 +187,8 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 
 	int steps = 0;
 
-#ifdef OPENMP
+#ifdef _OPENMP
   	double t1 = omp_get_wtime();
-	printf("Staring omp time = %lf\n", t1);
 #else
   	clock_t start = clock();
 #endif
@@ -290,9 +283,9 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 
 		steps++;
 
-		if(number_outputs == 3 && double_dt_out)
+		if(number_outputs == 3)
 		{
-			dt_out = 2. * lattice.output_interval;
+			dt_out = 2. * lattice.output_interval;		// double output interval after three outputs
 		}
 	}
 
@@ -302,9 +295,8 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 		exit(-1);
 	}
 
-#ifdef OPENMP
+#ifdef _OPENMP
   	double t2 = omp_get_wtime();
-	printf("End omp time = %lf\n", t2);
   	double duration = t2 - t1;
 #else
   	double duration = (clock() - start) / (double)CLOCKS_PER_SEC;

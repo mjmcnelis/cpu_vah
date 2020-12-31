@@ -50,7 +50,7 @@ void print_run_time(double t, double duration, double steps, lattice_parameters 
 	int nz = lattice.lattice_points_eta;
 
     int threads = 1;
-#ifdef OPENMP
+#ifdef _OPENMP
     threads = omp_get_max_threads();
 #endif
 

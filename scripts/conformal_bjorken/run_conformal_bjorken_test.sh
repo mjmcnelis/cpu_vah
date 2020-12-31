@@ -8,7 +8,6 @@ cp tests/conformal_bjorken/parameters/hydro.properties parameters
 cp tests/conformal_bjorken/parameters/lattice.properties parameters
 cp tests/conformal_bjorken/parameters/initial.properties parameters
 cp tests/conformal_bjorken/parameters/Macros.h rhic/include
-cp tests/conformal_bjorken/parameters/OpenMP.h rhic/include
 
 rm -r tests/conformal_bjorken/data
 mkdir tests/conformal_bjorken/data

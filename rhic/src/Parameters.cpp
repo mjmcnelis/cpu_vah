@@ -35,9 +35,10 @@ bool time_step_within_CFL_bound(double dt, lattice_parameters lattice)
 
 
 
-double compute_conformal_prefactor(double flavors)
+double compute_conformal_prefactor()
 {
 	double colors = 3.;
+	double flavors = 3.;
 
 	return M_PI * M_PI * (2. * (colors * colors  - 1.)  +  3.5 * colors * flavors) / 30.;
 }
@@ -129,12 +130,6 @@ hydro_parameters load_hydro_parameters(bool sample_parameters, random_model_para
 		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
 		delimiterPos = line.find("=");
 		line = line.substr(delimiterPos + 1);
-		hydro.output = atoi(line.c_str());
-
-		getline(cFile, line);
-		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
-		delimiterPos = line.find("=");
-		line = line.substr(delimiterPos + 1);
 		hydro.tau_initial = atof(line.c_str());
 
 		getline(cFile, line);
@@ -148,12 +143,6 @@ hydro_parameters load_hydro_parameters(bool sample_parameters, random_model_para
 		delimiterPos = line.find("=");
 		line = line.substr(delimiterPos + 1);
 		hydro.kinetic_theory_model = atoi(line.c_str());
-
-		getline(cFile, line);
-		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
-		delimiterPos = line.find("=");
-		line = line.substr(delimiterPos + 1);
-		quark_flavors = atof(line.c_str());
 
 		getline(cFile, line);
 		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
@@ -262,7 +251,7 @@ hydro_parameters load_hydro_parameters(bool sample_parameters, random_model_para
 		std::cerr << "No configuration file %s found for hydro parameters\n";
 	}
 
-	hydro.conformal_eos_prefactor = compute_conformal_prefactor(quark_flavors);
+	hydro.conformal_eos_prefactor = compute_conformal_prefactor();
 
 #ifdef RANDOM_MODEL_PARAMETERS    				// overwrite hydro model parameters
 	if(sample_parameters)
@@ -283,11 +272,9 @@ hydro_parameters load_hydro_parameters(bool sample_parameters, random_model_para
 	printf("\nHydro parameters:");
 	printf("\n-----------------\n");
 	printf("run_hydro                  = %d\n",		hydro.run_hydro);
-	printf("output                     = %d\n",		hydro.output);
 	printf("tau_initial                = %.3g\n",	hydro.tau_initial);
 	printf("plpt_ratio_initial         = %.2g\n", 	hydro.plpt_ratio_initial);
 	printf("kinetic_theory_model       = %d\n", 	hydro.kinetic_theory_model);
-	printf("quark_flavors              = %.1f\n", 	quark_flavors);
 	printf("conformal_eos_prefactor    = %.6g\n", 	hydro.conformal_eos_prefactor);
 	printf("temperature_etas           = %d\n", 	hydro.temperature_etas);
 	printf("constant_etas              = %.3g\n", 	hydro.constant_etas);

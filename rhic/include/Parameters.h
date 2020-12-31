@@ -27,14 +27,13 @@ typedef struct
 typedef struct
 {
 	int run_hydro;
-	int output;
 
 	double tau_initial;
 	double plpt_ratio_initial;
 
 	int kinetic_theory_model;
 
-	double conformal_eos_prefactor;	 // e = conformal_eos_prefactor * T^4
+	double conformal_eos_prefactor;	 // for e = conformal_eos_prefactor.T^4
 
 	int temperature_etas;
 
@@ -106,16 +105,14 @@ typedef struct
 	int nucleus_A;
 	int nucleus_B;
 
-	double initialCentralTemperatureGeV;	// initial central temperature for a central collision
+	double initialCentralTemperatureGeV;
 	double impact_parameter;
-
-	// longitudinal energy density profile parameters
-	double rapidity_variance; 	// \sigma^{2}_{\eta}
-	double rapidity_flat; 		// flat region around \ets_s = 0
+	double rapidity_variance;
+	double rapidity_flat;
 
 	double q_gubser;
 
-	double trento_normalization_GeV;		// trento parameters
+	double trento_normalization_GeV;
 	double trento_nucleon_width;
 	double trento_min_nucleon_distance;
 	double trento_geometric_parameter;

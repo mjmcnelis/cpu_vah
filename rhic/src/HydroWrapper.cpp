@@ -149,7 +149,7 @@ void HYDRO::free_freezeout_surface()
 
 void HYDRO::start_hydro(int argc, char **argv)
 {
-#ifdef OPENMP
+#ifdef _OPENMP
 	printf("Running CPU-VAH with OpenMP acceleration: number of threads = %d\n\n", omp_get_max_threads());
 #endif
 
@@ -206,7 +206,7 @@ void HYDRO::start_hydro(int argc, char **argv)
 
 void HYDRO::start_hydro_no_arguments()
 {
-#ifdef OPENMP
+#ifdef _OPENMP
 	printf("Running CPU-VAH with OpenMP acceleration: number of threads = %d\n\n", omp_get_max_threads());
 #endif
 

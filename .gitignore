@@ -59,10 +59,6 @@ tests/lattice_bjorken/data
 tests/lattice_bjorken/nonconformal_bjorken.pdf
 
 
-# tests/lattice_trento_2d_smooth
-tests/lattice_trento_2d_smooth
-
-
 # tests/lattice_trento_smooth
 tests/lattice_trento_smooth/data/vah/adaptive
 tests/lattice_trento_smooth/data/vah/x_axis
@@ -117,6 +113,10 @@ tests/auto_grid/train_data/vh2/model_parameters
 # tests/omp_test (results need to be automated...)
 tests/omp_test/omp_test.pdf
 
+# other
+tests/lattice_trento_2d_smooth
+tests/lattice_trento_multiple_events
+tests/modified_distribution
 
 
 

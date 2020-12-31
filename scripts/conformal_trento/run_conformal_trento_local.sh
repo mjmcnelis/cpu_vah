@@ -12,7 +12,6 @@ cp tests/conformal_trento/parameters/$1/hydro.properties parameters
 cp tests/conformal_trento/parameters/$1/lattice.properties parameters
 cp tests/conformal_trento/parameters/$1/initial.properties parameters
 cp tests/conformal_trento/parameters/$1/Macros.h rhic/include
-cp tests/conformal_trento/parameters/$1/OpenMP.h rhic/include
 
 rm -r tests/conformal_trento/data/$1/adaptive
 rm -r tests/conformal_trento/data/$1/x_axis
