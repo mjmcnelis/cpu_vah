@@ -3,7 +3,7 @@
 #PBS -j oe
 #PBS -A PAS0254
 
-cd cpu_vah
+cd $HOME/cpu_vah
 
 for((n = 1; n <= $EVENTS; n++))
 do

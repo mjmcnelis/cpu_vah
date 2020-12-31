@@ -63,6 +63,6 @@ The macro parameters are located in `rhic/include`
 
 You can run the various tests performed in the code documentation paper in `scripts`. Some of these tests require access to multiple computing nodes.
 
-The files and jobs needed to run the tests are located in `tables`, `tests` and `jobs`. You will need to edit the project number and email address in `jobs`.
+The files and jobs needed to run the tests are located in `tables`, `tests` and `jobs`. You will need to edit the project number in `jobs`.
 
 Results from the test runs are stored in `tests`. You can plot the test results with the Mathematica notebooks.

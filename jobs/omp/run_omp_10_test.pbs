@@ -2,7 +2,7 @@
 #PBS -l walltime=00:30:00,nodes=1:ppn=10
 #PBS -j oe
 #PBS -A PAS0254
-cd cpu_vah
+cd $HOME/cpu_vah
 
 export OMP_NUM_THREADS=10
 set OMP_NUM_THREADS 10
