@@ -43,14 +43,15 @@
 
 
 // parameters
-#define RANDOM_MODEL_PARAMETERS            // option to use python/random_model_parameters/model_parameters_x.dat (x = 1st command line argument)
-                                           // comment to use the fixed values in parameters/ (note: model parameters is a subset of all parameters)
+#define RANDOM_MODEL_PARAMETERS            // switch to use python/model_parameters/model_parameters_p.dat if do ./cpu_vah p
+                                           // note: parameter sample {b, P_B} is a subset of all runtime parameters
 //#define PRINT_PARAMETERS                 // switch to print parameters during runtime
 
 
-// output (comment for production runs)
-//#define FLAGS                            // switch to print warnings during runtime
+//#define FLAGS                            // switch to print warnings during runtime for debugging (comment for production runs)
 
+
+// output (comment for production runs)
 //#define FREEZEOUT_SIZE                   // switch to output maximum transverse radius of freezeout surface
 //#define FREEZEOUT_SLICE                  // switch to output tau-x (and tau-eta) slice up to tau = 17 fm/c
 
