@@ -13,5 +13,5 @@ do
 	echo
 done
 
-cp python/model_parameters_$JOBID.dat tests/auto_grid/train_data/$HYDRO/model_parameters
+cp python/model_parameters/model_parameters_$JOBID.dat tests/auto_grid/train_data/$HYDRO/model_parameters
 cp output/fireball_radius/fireball_radius_$JOBID.dat tests/auto_grid/train_data/$HYDRO/fireball_radius
