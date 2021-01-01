@@ -18,7 +18,6 @@ cp tests/auto_grid/generate_training_data_fluctuating/parameters/$1/hydro.proper
 cp tests/auto_grid/generate_training_data_fluctuating/parameters/$1/lattice.properties parameters
 cp tests/auto_grid/generate_training_data_fluctuating/parameters/$1/initial.properties parameters
 cp tests/auto_grid/generate_training_data_fluctuating/parameters/$1/Macros.h rhic/include
-cp tests/auto_grid/generate_training_data_fluctuating/parameters/$1/OpenMP.h rhic/include
 
 sh clear_results.sh
 

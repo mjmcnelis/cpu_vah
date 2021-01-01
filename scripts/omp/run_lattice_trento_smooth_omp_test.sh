@@ -12,7 +12,6 @@ cp tests/omp_test/parameters/$1/hydro.properties parameters
 cp tests/omp_test/parameters/$1/lattice.properties parameters
 cp tests/omp_test/parameters/$1/initial.properties parameters
 cp tests/omp_test/parameters/$1/Macros.h rhic/include
-cp tests/omp_test/parameters/$1/OpenMP.h rhic/include
 
 rm -r output
 mkdir output

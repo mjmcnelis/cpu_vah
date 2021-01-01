@@ -16,7 +16,6 @@ cp tests/auto_grid/benchmark_test/auto_grid/$1/hydro.properties parameters
 cp tests/auto_grid/benchmark_test/auto_grid/$1/lattice.properties parameters
 cp tests/auto_grid/benchmark_test/auto_grid/$1/initial.properties parameters
 cp tests/auto_grid/benchmark_test/auto_grid/$1/Macros.h rhic/include
-cp tests/auto_grid/benchmark_test/auto_grid/$1/OpenMP.h rhic/include
 
 
 echo 'Copying model parameters...'

@@ -43,7 +43,8 @@
 //#define ADAPTIVE_FILE
 
 //#define MONITOR_TTAUMU
-//#define MONITOR_REGULATIONS
+#define MONITOR_REGULATIONS
+
 #ifdef ANISO_HYDRO
 	//#define MONITOR_PLPT
 #ifdef LATTICE_QCD

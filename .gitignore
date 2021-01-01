@@ -118,7 +118,7 @@ tests/lattice_trento_2d_smooth
 tests/lattice_trento_multiple_events
 tests/modified_distribution
 
-
+scripts/modified_distribution
 
 
 
