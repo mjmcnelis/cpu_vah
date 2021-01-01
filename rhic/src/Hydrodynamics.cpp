@@ -181,9 +181,8 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 		finder.load_initial_grid(t, q, e, u);
 	}
 
-	int freezeout_period = lattice.tau_coarse_factor;            // freezeout finder call period
 	int grid_below_Tswitch = 0;                                  // number of times freezeout finder searches a grid below Tswitch
-	int freezeout_depth = 3;                                     // stop hydro evolution if grid_below_Tswitch >= freezeout_depth
+	int freezeout_depth = 3;                                     // stop hydro evolution once grid_below_Tswitch = freezeout_depth
 
 	int steps = 0;
 
@@ -249,7 +248,7 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 				print_hydro_center(n, t, lattice, hydro, cells_above_Tswitch);
 
 			}
-			else if(n % freezeout_period == 0)                  // search for freezeout cells
+			else if(n % hydro.freezeout_finder_period == 0)         // search for freezeout cells
 			{
 				long cells_above_Tswitch = number_of_cells_above_freezeout_temperature(lattice, hydro);
 				print_hydro_center(n, t, lattice, hydro, cells_above_Tswitch);

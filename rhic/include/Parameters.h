@@ -51,6 +51,8 @@ typedef struct
 	double zetas_skew;
 
 	double freezeout_temperature_GeV;
+	int freezeout_finder_period;
+
 	double flux_limiter;
 
 	double energy_min;
@@ -93,8 +95,6 @@ typedef struct
 
 	double delta_0;
 	double alpha;
-
-	int tau_coarse_factor;
 
 } lattice_parameters;
 

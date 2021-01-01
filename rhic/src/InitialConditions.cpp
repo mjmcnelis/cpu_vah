@@ -403,7 +403,7 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 	printf("\nInitial conditions = ");
 	switch(initial.initial_condition_type)
 	{
-		case 1:		// viscous hydro or anisotropic hydro bjorken
+		case 1:		// Bjorken
 		{
 			printf("Bjorken\n\n");
 
@@ -421,27 +421,30 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 
 			break;
 		}
-		case 2:		// viscous hydro gubser
+		case 2:     // Gubser
 		{
-		#ifdef PIMUNU
-			printf("Viscous Gubser\n\n");
-		#else
-			printf("Ideal Gubser\n\n");
-		#endif
+			printf("Gubser\n\n");
 
 		#ifndef BOOST_INVARIANT
-			printf("Gubser initial condition error: define BOOST_INVARIANT in /rhic/include/Marcos.h..\n");
-			exit(-1);
-		#endif
-		#ifdef ANISO_HYDRO
-			printf("Gubser initial condition error: undefine ANISO_HYDRO in /rhic/include/Marcos.h..\n");
+			printf("set_initial_conditions error: need to define BOOST_INVARIANT for Gubser\n");
 			exit(-1);
 		#endif
 		#ifndef CONFORMAL_EOS
-			printf("\nGubser initial condition error: define CONFORMAL_EOS in /rhic/include/Marcos.h, exiting...\n");
+			printf("\nset_initial_conditions error: need to define CONFORMAL_EOS for Gubser\n");
 			exit(-1);
 		#endif
 
+			if(hydro.temperature_etas)
+			{
+				printf("set_initial_conditions error: need to set temperature_etas = 0 for Gubser\n");
+				exit(-1);
+			}
+
+		#ifdef ANISO_HYDRO
+			printf("Running semi-analytic aniso Gubser solution...\n\n");
+			double T0_hat = run_semi_analytic_aniso_gubser(lattice, initial, hydro);
+			set_aniso_gubser_energy_density_and_flow_profile(T0_hat, nx, ny, nz, dt, dx, dy, dz, hydro, initial);
+		#else
 		#ifdef PIMUNU
 			printf("Running semi-analytic viscous Gubser solution...\n\n");
 			double T0_hat = run_semi_analytic_viscous_gubser(lattice, initial, hydro);
@@ -451,46 +454,13 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 			run_analytic_ideal_gubser(lattice, initial, hydro);
 			set_ideal_gubser_initial_conditions(lattice, dt, initial, hydro);
 		#endif
+		#endif
 
 			set_initial_timelike_Tmunu_components(t, nx, ny, nz, hydro);
 
 			break;
 		}
-		case 3:		// anisotropic hydro gubser
-		{
-			printf("Anisotropic Gubser (residual shear stress initialized to zero)\n\n");
-
-		#ifndef ANISO_HYDRO
-			printf("Aniso Gubser error: ANISO_HYDRO not defined in /rhic/include/Marcos.h, exiting...\n");
-			exit(-1);
-		#endif
-
-		#ifndef BOOST_INVARIANT
-			printf("Aniso Gubser error: BOOST_INVARIANT not defined in /rhic/include/Marcos.h, exiting...\n");
-			exit(-1);
-		#endif
-
-		#ifndef CONFORMAL_EOS
-			printf("\nGubser initial condition error: CONFORMAL_EOS not defined in /rhic/include/Marcos.h, exiting...\n");
-			exit(-1);
-		#endif
-
-			if(hydro.temperature_etas)
-			{
-				printf("Gubser initial condition error: temperature dependent eta/s breaks conformal invariance\n");
-				exit(-1);
-			}
-
-			printf("Running semi-analytic anisotropic Gubser solution...\n\n");
-
-			double T0_hat = run_semi_analytic_aniso_gubser(lattice, initial, hydro);
-
-			set_aniso_gubser_energy_density_and_flow_profile(T0_hat, nx, ny, nz, dt, dx, dy, dz, hydro, initial);
-			set_initial_timelike_Tmunu_components(t, nx, ny, nz, hydro);
-
-			break;
-		}
-		case 4:		// trento
+		case 3:		// trento (custom version Pb+Pb 2.76 TeV)
 		{
 			printf("Trento (fluid velocity initialized to zero)\n\n");
 			set_trento_energy_density_and_flow_profile(lattice, initial, hydro);
@@ -499,7 +469,7 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 
 			break;
 		}
-		case 5:		// read custom energy density block file
+		case 4:		// read custom energy density block file
 		{
 			printf("Reading custom energy density block file... (fluid velocity initialized to zero)\n\n");
 			read_block_energy_density_from_file(nx, ny, nz, hydro);
@@ -508,7 +478,7 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 
 			break;
 		}
-		case 6:		// read trento energy density profile from JETSCAPE C++ vector
+		case 5:		// read trento energy density profile from JETSCAPE C++ vector
 		{
 			printf("Reading trento energy density profile from JETSCAPE C++ vector... (fluid velocity initialized to zero)\n\n");
 			set_trento_energy_density_profile_from_memory(nx, ny, nz, hydro, trento);
@@ -518,7 +488,7 @@ void set_initial_conditions(precision t, lattice_parameters lattice, initial_con
 		}
 		default:
 		{
-			printf("\n\nset_initial_conditions error: initial condition type %d is not an option (see parameters/initial.properties)\n", initial.initial_condition_type);
+			printf("\n\nset_initial_conditions error: initial condition type %d is not an option (see initial.properties)\n", initial.initial_condition_type);
 			exit(-1);
 		}
 	}

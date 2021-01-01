@@ -5,7 +5,6 @@ output
 semi_analytic
 eos
 *.DS_Store
-rhic/include/Macros.h
 
 
 # tables
@@ -117,8 +116,13 @@ tests/omp_test/omp_test.pdf
 tests/lattice_trento_2d_smooth
 tests/lattice_trento_multiple_events
 tests/modified_distribution
+tests/conformal_gubser_ideal
+tests/conformal_gubser_viscous
 
+scripts/conformal_gubser_ideal
+scripts/conformal_gubser_viscous
 scripts/modified_distribution
+
 
 
 

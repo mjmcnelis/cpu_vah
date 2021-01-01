@@ -33,8 +33,8 @@ class freezeout_finder
 		double dy;
 		double dz;
 
-		int dimension;										// dimension of freezeout surface (2 or 3)
-		double *lattice_spacing;							// holds spacetime lattice spacing (spatial = uniform, temporal = adaptive)
+		int dimension;										// spacetime dimension for Cornelius
+		double *lattice_spacing;							// spacetime lattice spacing for Cornelius
 
 		double e_switch;									// freezeout energy density
 		int independent_hydro_variables;					// default value is 10 (independent components of Tmunu)

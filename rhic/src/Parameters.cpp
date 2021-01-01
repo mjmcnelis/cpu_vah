@@ -220,6 +220,12 @@ hydro_parameters load_hydro_parameters(bool sample_parameters, random_model_para
 		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
 		delimiterPos = line.find("=");
 		line = line.substr(delimiterPos + 1);
+		hydro.freezeout_finder_period = atoi(line.c_str());
+
+		getline(cFile, line);
+		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
+		delimiterPos = line.find("=");
+		line = line.substr(delimiterPos + 1);
 		hydro.flux_limiter = atof(line.c_str());
 
 		getline(cFile, line);
@@ -288,6 +294,7 @@ hydro_parameters load_hydro_parameters(bool sample_parameters, random_model_para
 	printf("zetas_width_GeV            = %.3g\n", 	hydro.zetas_width_GeV);
 	printf("zetas_skew                 = %.3g\n", 	hydro.zetas_skew);
 	printf("freezeout_temperature_GeV  = %.3f\n", 	hydro.freezeout_temperature_GeV);
+	printf("freezeout_finder_period    = %d\n", 	hydro.freezeout_finder_period);
 	printf("flux_limiter               = %.3g\n", 	hydro.flux_limiter);
 	printf("energy_min                 = %.1e\n", 	hydro.energy_min);
 	printf("pressure_min               = %.1e\n", 	hydro.pressure_min);
@@ -446,12 +453,6 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro, initial_condi
 		delimiterPos = line.find("=");
 		line = line.substr(delimiterPos + 1);
 		lattice.alpha = atof(line.c_str());
-
-		getline(cFile, line);
-		line.erase(remove_if(line.begin(), line.end(), ::isspace), line.end());
-		delimiterPos = line.find("=");
-		line = line.substr(delimiterPos + 1);
-		lattice.tau_coarse_factor = atoi(line.c_str());
 	}
 	else
 	{
@@ -682,7 +683,6 @@ lattice_parameters load_lattice_parameters(hydro_parameters hydro, initial_condi
 	printf("min_time_step       = %.2e\n", 	lattice.min_time_step);
 	printf("delta_0             = %.3g\n", 	lattice.delta_0);
 	printf("alpha               = %.3g\n", 	lattice.alpha);
-	printf("tau_coarse_factor   = %d\n", 	lattice.tau_coarse_factor);
 	printf("\n");
 #endif
 

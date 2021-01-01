@@ -1429,9 +1429,9 @@ void output_viscous_regulations(const int * const __restrict__ viscous_regulatio
 
 void output_hydro_simulation(double t, double dt_prev, lattice_parameters lattice, initial_condition_parameters initial, hydro_parameters hydro)
 {
-	int initial_type = initial.initial_condition_type;
+	int initial_condition_type = initial.initial_condition_type;
 
-	if(initial_type == 1)
+	if(initial_condition_type == 1)
 	{
 		precision T0 = initial.initialCentralTemperatureGeV;
 		precision e0 = equilibrium_energy_density_new(T0 / hbarc, hydro.conformal_eos_prefactor);
@@ -1442,7 +1442,7 @@ void output_hydro_simulation(double t, double dt_prev, lattice_parameters lattic
 		output_viscous_bjorken(q, e, e0, t, lattice, hydro);
 	#endif
 	}
-	else if(initial_type == 2 || initial_type == 3)
+	else if(initial_condition_type == 2)
 	{
 		output_gubser(q, u, e, t, lattice);
 		output_residual_transverse_shear_validity(q, u, e, t, lattice, hydro);
