@@ -14,6 +14,12 @@ sh sample_model_parameters.sh $2
 
 cd ../..
 
+rm -r tests/auto_grid/train_data/$1/model_parameters
+rm -r tests/auto_grid/train_data/$1/fireball_radius
+
+mkdir tests/auto_grid/train_data/$1/model_parameters
+mkdir tests/auto_grid/train_data/$1/fireball_radius
+
 cp tests/auto_grid/generate_training_data_fluctuating/parameters/$1/hydro.properties parameters
 cp tests/auto_grid/generate_training_data_fluctuating/parameters/$1/lattice.properties parameters
 cp tests/auto_grid/generate_training_data_fluctuating/parameters/$1/initial.properties parameters

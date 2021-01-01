@@ -18,7 +18,7 @@ cp tests/auto_grid/benchmark_test/auto_grid/$1/initial.properties parameters
 cp tests/auto_grid/benchmark_test/auto_grid/$1/Macros.h rhic/include
 
 
-echo 'Copying model parameters...'
+echo 'Copying test model parameters...'
 
 rm -r python/model_parameters
 cp -r tests/auto_grid/benchmark_test/model_parameters python
@@ -38,6 +38,17 @@ python3 predict_fireball_radius.py $1 200 $3
 #
 # see auto_grid formula in python script:
 python3 grid_success_rate.py $1 200 $4 $5
+
+
+while true; do
+    read -p "Do you want to submit batch for auto-grid runtimes?" yn
+    case $yn in
+        [Yy]* ) echo 'Proceeding with job submissions'; break;;
+        [Nn]* ) echo 'Aborting job submissions (edit margin and sigma_factor)'; exit;;
+        * ) echo "Please answer yes or no.";;
+    esac
+done
+
 
 echo
 echo 'Clearing benchmarks and fireball radius data in auto_grid...'

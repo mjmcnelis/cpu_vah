@@ -12,3 +12,6 @@ do
 	./cpu_vah $JOBID
 	echo
 done
+
+cp output/fireball_radius/fireball_radius_$JOBID.dat tests/auto_grid/train_data/$HYDRO/fireball_radius
+cp python/model_parameters_$JOBID.dat tests/auto_grid/train_data/$HYDRO/model_parameters

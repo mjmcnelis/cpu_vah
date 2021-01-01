@@ -12,15 +12,15 @@ cd ../..
 
 # copy results from previous script (generate_training_data) to train_data directory
 #
-echo
-echo 'Copying training data...'
-echo
+#echo
+#echo 'Copying training data...'
+#echo
 
-rm -r tests/auto_grid/train_data/$1/model_parameters
-rm -r tests/auto_grid/train_data/$1/fireball_radius
-
-cp -r python/model_parameters tests/auto_grid/train_data/$1
-cp -r output/fireball_radius tests/auto_grid/train_data/$1
+#rm -r tests/auto_grid/train_data/$1/model_parameters
+#rm -r tests/auto_grid/train_data/$1/fireball_radius
+#
+#cp -r python/model_parameters tests/auto_grid/train_data/$1
+#cp -r output/fireball_radius tests/auto_grid/train_data/$1
 
 
 # check if any fireball_radius files are missing (python will skip them below)

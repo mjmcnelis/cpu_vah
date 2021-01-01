@@ -18,7 +18,7 @@ cp tests/auto_grid/benchmark_test/fixed_grid/$1/initial.properties parameters
 cp tests/auto_grid/benchmark_test/fixed_grid/$1/Macros.h rhic/include
 
 
-# copy model_parameters to python/
+# copy test model_parameters to python/
 #
 rm -r python/model_parameters
 cp -r tests/auto_grid/benchmark_test/model_parameters python
