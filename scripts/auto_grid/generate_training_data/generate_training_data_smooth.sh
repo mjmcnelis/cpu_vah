@@ -36,7 +36,7 @@ rm *.pbs.o*
 
 for((n = 1; n <= $2; n++))
 do
-    qsub -v JOBID="$n",EVENTS="$3" run_smooth_training_event.pbs
+    qsub -v HYDRO="$1",JOBID="$n",EVENTS="$3" run_smooth_training_event.pbs
 done
 
 
