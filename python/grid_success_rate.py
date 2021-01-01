@@ -39,8 +39,8 @@ print('Testing auto grid\'s fireball fit success rate...\n\n')
 print('Hydrodynamic simulation mode =', hydro_mode)
 print('Model parameter samples      =', samples)
 print()
-print('Margin parameter =', margin, 'fm')
-print('Sigma factor     =', sigma_factor)
+print('Buffer       =', margin, 'fm')
+print('Sigma factor =', sigma_factor)
 print()
 
 
@@ -87,7 +87,7 @@ average_margin /= success
 success_rate = 100. * success / total
 
 
-print("\nAuto grid with %.1f sigmas and %.1f fm extra margin was able to fit %ld / %ld fireball samples\n"
+print("\nAuto grid with %.1f sigmas and %.1f fm extra buffer was able to fit %ld / %ld fireball samples\n"
       % (sigma_factor, margin, success, total))
 print("Success rate   = %.2f"    % success_rate, "%")
 print("Average margin = %.2f fm" % average_margin)

@@ -32,19 +32,19 @@ mkdir fireball_size_predictions
 python3 predict_fireball_radius.py $1 200 $3
 
 
-# test fit success rate ($4 = margin, $5 = sigma_factor)
-#		 smooth: 	margin = 2.5    sigma_factor = 0
-#	fluctuating:	margin = 1      sigma_factor = 2
+# test fit success rate ($4 = buffer, $5 = sigma_factor)
+#		 smooth: 	buffer = 2.5    sigma_factor = 0
+#	fluctuating:	buffer = 1      sigma_factor = 2
 #
 # see auto_grid formula in python script:
 python3 grid_success_rate.py $1 200 $4 $5
 
 
 while true; do
-    read -p "Do you want to submit batch for auto-grid runtimes?" yn
+    read -p "Do you want to submit batch for auto-grid runtimes? " yn
     case $yn in
-        [Yy]* ) echo 'Proceeding with job submissions'; break;;
-        [Nn]* ) echo 'Aborting job submissions (edit margin and sigma_factor)'; exit;;
+        [Yy]* ) echo 'Continuing job submissions'; break;;
+        [Nn]* ) echo 'Aborting job submissions (edit buffer and sigma_factor)'; exit;;
         * ) echo "Please answer yes or no.";;
     esac
 done
@@ -78,7 +78,7 @@ done
 # $1 = hydro mode (vah, vh, vh2)
 # $2 = number of events per job for auto grid benchmark test (current job batch)
 # $3 = number of events per job for training grid (training job batch)
-# $4 = margin parameter (see above)
+# $4 = buffer parameter (see above)
 # $5 = sigma factor (see above)
 #
 # e.g. sh benchmark_auto_grid.sh vah 50 1 2.5 0
