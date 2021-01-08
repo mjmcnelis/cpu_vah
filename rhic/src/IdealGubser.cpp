@@ -36,6 +36,8 @@ void set_ideal_gubser_initial_conditions(lattice_parameters lattice, precision d
 
 	double T0_hat = T0 * t * pow((1. + q02 * t2) / (2. * q0 * t), 2./3.);		// initial central temperature mapped to deSitter space
 
+	printf("T0_hat = %.4f\n\n", T0_hat);
+
 	for(int i = 2; i < nx + 2; i++)
 	{
 		double x = (i - 2. - (nx - 1.)/2.) * dx;

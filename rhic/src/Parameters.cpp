@@ -41,6 +41,8 @@ double compute_conformal_prefactor()
 	double flavors = 3.;
 
 	return M_PI * M_PI * (2. * (colors * colors  - 1.)  +  3.5 * colors * flavors) / 30.;
+
+	// return 14.004;	// temporary (for freezeout surface test)
 }
 
 

@@ -118,6 +118,8 @@ tests/lattice_trento_multiple_events
 tests/modified_distribution
 tests/conformal_gubser_ideal
 tests/conformal_gubser_viscous
+tests/free_streaming
+tests/freezeout_spectra
 
 scripts/conformal_gubser_ideal
 scripts/conformal_gubser_viscous

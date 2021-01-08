@@ -33,7 +33,7 @@ HYDRO::~HYDRO()
 
 void HYDRO::read_trento_energy_density_profile_from_memory(std::vector<double> trento_energy)
 {
-    // read initial energy density profile from TRENTo (for JETSCAPE, initial_condition_type = 6)
+    // read initial energy density profile from TRENTo (for JETSCAPE, initial_condition_type = 5)
     // note: units should be [GeV/fm^3], later converted to [fm^-4]
 
 	trento_energy_density_profile = trento_energy;

@@ -1,7 +1,7 @@
 **VAH (c) Mike McNelis and Dennis Bazow**
 
-Created on 10/2015 by Dennis Bazow\
-Last edited on 12/2020 by Mike McNelis
+Created on 4/17 by Dennis Bazow\
+Last edited on 1/21 by Mike McNelis
 
 ## Summary
 A 3+1d relativistic hydrodynamic simulation for heavy-ion collisions.
@@ -56,7 +56,6 @@ The runtime parameters are located in `parameters`
 The macro parameters are located in `rhic/include`
 
     Macros.h
-    OpenMP.h
 
 
 ## Tests

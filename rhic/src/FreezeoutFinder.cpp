@@ -732,7 +732,8 @@ void freezeout_finder::free_finder_memory(int sample)
 
   for(int i = 0; i < cells_x; i++)
   {
-    fprintf(surface_slice_x, "%.4e\t%.4e\n", tau_slice_x[i], x_slice_x[i]);
+    // fprintf(surface_slice_x, "%.4e\t%.4e\n", tau_slice_x[i], x_slice_x[i]);
+    fprintf(surface_slice_x, "%.3f\t%.4e\n", x_slice_x[i], tau_slice_x[i]);
   }
 
   fclose(surface_slice_x);
@@ -750,7 +751,8 @@ void freezeout_finder::free_finder_memory(int sample)
 
   for(int i = 0; i < cells_z; i++)
   {
-    fprintf(surface_slice_z, "%.4e\t%.4e\n", tau_slice_z[i], eta_slice_z[i]);
+    // fprintf(surface_slice_z, "%.4e\t%.4e\n", tau_slice_z[i], eta_slice_z[i]);
+    fprintf(surface_slice_z, "%.3f\t%.4e\n", eta_slice_x[i], tau_slice_z[i]);
   }
 
   fclose(surface_slice_z);
