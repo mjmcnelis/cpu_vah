@@ -19,8 +19,10 @@ VAH can run three hydrodynamic models with shear and bulk viscosity:
 
 If you use this code, please cite the following papers:
 
-     D. Bazow, U. Heinz and M. Strickland, Comput. Phys. Commun. 225 (2018) 92-113
-     M. McNelis, D. Bazow and U. Heinz, Phys. Rev. C 97, 054912 (2018)
+    M. McNelis, D. Bazow and U. Heinz, arXiv:2101.02827 (2021)
+    M. McNelis, D. Bazow and U. Heinz, Phys. Rev. C 97, 054912 (2018)
+    D. Bazow, U. Heinz and M. Strickland, Comput. Phys. Commun. 225 (2018) 92-113
+
 
 
 ## Setup

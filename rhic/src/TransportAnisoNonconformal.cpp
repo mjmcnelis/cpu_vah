@@ -380,7 +380,8 @@ void aniso_transport_coefficients_nonconformal::compute_transport_coefficients(p
 	lambda_pipi = I_422 / I_402  -  1.  +  mdmde * (e + pl) * I_202 / I_402;
 #ifdef WTZMU
 	lambda_Wupi = lambda_WTW  -  1.;
-	lambda_WTpi = lambda_WuW  +  2.;
+	// lambda_WTpi = lambda_WuW  +  2.;
+	lambda_WTpi = lambda_Wupi  +  2.;		// fixed bug on 2/25/21 (haven't tested change to 3+1d simulation)
 #else
 	lambda_Wupi = 0;
 	lambda_WTpi = 0;
