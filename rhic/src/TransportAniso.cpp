@@ -301,7 +301,8 @@ void aniso_transport_coefficients::compute_transport_coefficients(precision e, p
 	lambda_pipi = I_422 / I_402  -  1.;
 #ifdef WTZMU
 	lambda_Wupi = lambda_WTW  -  1.;
-	lambda_WTpi = lambda_WuW  +  2.;
+	// lambda_WTpi = lambda_WuW  +  2.;
+	lambda_WTpi = lambda_Wupi  +  2.;		// fixed on 2/25/21 (have not tested change to 3+1d conformal simulation)
 #else
 	lambda_Wupi = 0;
 	lambda_WTpi = 0;
