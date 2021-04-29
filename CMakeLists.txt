@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 #set(CMAKE_CXX_COMPILER "icpc")
-project(vah)
+project(cpu_vah)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_HOME_DIRECTORY}")
 
@@ -10,7 +10,7 @@ find_package(GSL REQUIRED)
 # gcc flags
 #set(CMAKE_CXX_FLAGS "-O3 -fopenmp -march=native -std=c++11")
 
-#intel flags
+# intel flags
 set(CMAKE_CXX_FLAGS "-O3 -qopenmp -std=c++11")
 
 include_directories(${GSL_INCLUDE_DIR})

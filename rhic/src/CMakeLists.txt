@@ -21,7 +21,7 @@ set (SOURCES
     Parameters.cpp
     Print.cpp
     Projections.cpp
-    Regulations.cpp
+    Regulation.cpp
     SourceTerms.cpp
     TransportAniso.cpp
     TransportAnisoNonconformal.cpp
@@ -32,10 +32,10 @@ set (SOURCES
     ViscousGubser.cpp
     )
 
-add_library(VAH_lib SHARED ${SOURCES})
-add_executable(HydroWrapper ${SOURCES})
+add_library(cpu_vah_lib SHARED ${SOURCES})
+add_executable(cpu_vah ${SOURCES})
 
-target_link_libraries(VAH_lib ${GSL_LIBRARIES})
-target_link_libraries(HydroWrapper ${GSL_LIBRARIES})
+target_link_libraries(cpu_vah_lib ${GSL_LIBRARIES})
+target_link_libraries(cpu_vah ${GSL_LIBRARIES})
 
-install(TARGETS HydroWrapper DESTINATION ${CMAKE_HOME_DIRECTORY})
+install(TARGETS cpu_vah DESTINATION ${CMAKE_HOME_DIRECTORY})
