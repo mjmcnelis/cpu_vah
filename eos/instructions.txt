@@ -1,0 +1,94 @@
+Overview:
+
+The eos/ directory is used to make rational polynomial fits for the thermodynamic functions (QCD EoS and VH transport coefficients) used in the code. This allows the user to update the thermal functions if he/she wants to use a new QCD EoS.
+
+Before running the scripts, you need a QCD EoS table. The default table is HotQCD + SMASH. The corresponding file eos_hotqcd_smash.dat has four columns:
+
+		E [GeV/fm^3]	P [GeV/fm^3]	S [fm^-3]	T [GeV]
+			...				...			  ...		  ...
+
+
+If your table does not have this format, you will need to either reformat your data table or edit the read-in script the Mathematica notebooks.
+
+After reading in the table, the Mathematica notebooks convert the GeV units to fm^-1 (i.e. [T] = fm^-1, [E] = fm^-4, etc).
+
+--------------------------------------------------------------------------------------
+
+Instructions:
+
+1.	Run the Mathematica notebook hotqcd smash.nb to fit the QCD EoS functions (and mirror quasiparticle EoS). The fits are outputted to individual text files in thermal_function_fits/qcd_eos:
+
+		energy_density 			| E(T)
+		equilibrium_pressure 	| Peq(T)
+		speed_of_sound_squared	| cs2(T)
+		temperature 			| T(E) (i.e. the inverse of E(T))
+		z_quasi					| z(T)
+		mdmde_quasi				| (mdmde)(T)
+		equilibrium_mean_field	| Beq(T)
+
+
+2.	Run the following shell script, which rewrites the fits' algebraic formula in C-Form:
+
+		sh cform.sh qcd_eos
+
+	Important note: only run the above script once or else it will mess up the C-Form expressions.
+
+
+3.	Copy/paste the content of the text files to the appropriate functions in rhic/src/EquationOfState.cpp:
+
+		energy_density 			-->		equilibrium_energy_density_new()
+		equilibrium_pressure	-->		equation_of_state_new::equilibrium_pressure()
+		speed_of_sound_squared	-->		equation_of_state_new::speed_of_sound_squared()
+		temperature				-->		equation_of_state_new::equation_of_state_new()
+		z_quasi					-->		equation_of_state_new::z_quasi()
+		mdmde_quasi				-->		equation_of_state_new::mdmde_quasi()
+		equilibrium_mean_field	-->		equation_of_state_new::equilibrium_mean_field()
+
+
+4.	Copy/paste the content of z_quasi.txt to the function z_Quasiparticle() in vh_transport/qcd.cpp
+
+
+5.	Run the following code in vh_transport/, which computes the functions needed to compute the VH transport coefficients in vh transport.nb:
+
+		cd vh_transport
+		make
+
+
+6.	Run the Mathematica notebook vh transport.nb to fit the VH transport coefficients (betapi, betabulk are also used by VAH). Similar to step #1, the fits are outputted to individual text files in thermal_function_fits/vh_transport:
+
+		betapi 					| \beta_\pi(T)
+		betabulk 				| \beta_\bulk(T)
+		delta_pipi				| \delta_{\pi\pi}(T)
+		tau_pipi 				| \tau_{\pi\pi}(T)
+		lambda_pibulkPi			| \lambda_{\pi\Pi}(T)
+		delta_bulkPibulkPi		| \delta_{\Pi\Pi}(T)
+		lambda_bulkPipi			| \lambda_{\Pi\pi}(T)
+
+
+7.	Run the following shell script, which rewrites the fits from step #6 in C-Form:
+
+		sh cform.sh vh_transport
+
+	Important note: only run this script once!
+
+
+8. Copy/paste the content of the text files to the appropriate functions in rhic/src/TransportViscous.cpp (and EquationOfState.cpp):
+
+		betapi 					-->		viscous_transport_coefficients::compute_shear_transport_coefficients()
+										equation_of_state_new::beta_shear()
+
+		betabulk 				-->		viscous_transport_coefficients::compute_bulk_transport_coefficients()
+										equation_of_state_new::beta_bulk()
+
+		delta_pipi				-->		viscous_transport_coefficients::compute_shear_transport_coefficients()
+		tau_pipi
+		lambda_pibulkPi
+
+		delta_bulkPibulkPi		-->		viscous_transport_coefficients::compute_bulk_transport_coefficients()
+		lambda_bulkPipi
+
+		Note: unlike the other VH transport coefficients, betapi and betabulk have two functions
+
+
+
+

@@ -3,7 +3,6 @@ build
 cpu_vah
 output
 semi_analytic
-eos
 *.DS_Store
 
 
