@@ -6,6 +6,18 @@ semi_analytic
 *.DS_Store
 
 
+# mathematica
+tests/conformal_bjorken/conformal_bjorken.nb
+tests/conformal_gubser/conformal_gubser.nb
+tests/conformal_trento/conformal_trento.nb
+tests/lattice_bjorken/lattice_bjorken.nb
+tests/lattice_trento_smooth/lattice_trento_smooth.nb
+tests/lattice_trento_fluctuating/fireball/fireball.nb
+tests/lattice_trento_fluctuating/freezeout/freezeout_x.nb
+tests/lattice_trento_fluctuating/freezeout/freezeout_z.nb
+tests/omp_test/omp_test.nb
+
+
 # tables
 tables/e_block.dat
 tables/energy_density/new
