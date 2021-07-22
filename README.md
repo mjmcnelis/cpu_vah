@@ -66,4 +66,6 @@ You can run the various tests performed in the code documentation paper in `scri
 
 The files and jobs needed to run the tests are located in `tables`, `tests` and `jobs`. You will need to edit the project number in `jobs`.
 
-Results from the test runs are stored in `tests`. You can plot the test results with the Mathematica notebooks.
+Results from the test runs are stored in `tests`. You can plot the test results with the Mathematica notebooks from [vah_tests](https://github.com/mjmcnelis/vah_tests). To download the notebooks, do
+
+    cd tests && sh get_vah_tests.sh
