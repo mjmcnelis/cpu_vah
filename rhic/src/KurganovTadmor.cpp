@@ -11,7 +11,9 @@
 #include "../include/InferredVariables.h"
 #include "../include/NeighborCells.h"
 #include "../include/Regulation.h"
+#include "../include/RungeKutta.h"
 #include "../include/OpenMP.h"
+
 
 inline int linear_column_index(int i, int j, int k, int nx, int ny)
 {
@@ -20,7 +22,7 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 
 
 void euler_step(precision t, const hydro_variables * const __restrict__ q_current, hydro_variables * const __restrict__ q_update,
-const precision * const __restrict__ e_current, const precision * const __restrict__ lambda_current, const precision * const __restrict__ aT_current, const precision * const __restrict__ aL_current, const fluid_velocity * const __restrict__ u_previous, const fluid_velocity * const __restrict__ u_current, precision dt, precision dt_prev, lattice_parameters lattice, hydro_parameters hydro, int update, int RK2)
+const precision * const __restrict__ e_current, const precision * const __restrict__ lambda_current, const precision * const __restrict__ aT_current, const precision * const __restrict__ aL_current, const fluid_velocity * const __restrict__ u_previous, const fluid_velocity * const __restrict__ u_current, precision dt, precision dt_prev, lattice_parameters lattice, hydro_parameters hydro, int stage)
 {
 	int nx = lattice.lattice_points_x;
 	int ny = lattice.lattice_points_y;
@@ -45,7 +47,6 @@ const precision * const __restrict__ e_current, const precision * const __restri
 			for(int i = 2; i < nx + 2; i++)
 			{
 				precision qs[NUMBER_CONSERVED_VARIABLES];       // dynamical variables at cell s
-				precision E[NUMBER_CONSERVED_VARIABLES];        // total source function E at cell s
 				precision  S[NUMBER_CONSERVED_VARIABLES];       // external source terms S at cell s
 
 				precision e1[6];                                // energy density of 6 neighbor cells {i-1, i+1, j-1, j+1, k-1, k+1}
@@ -202,197 +203,89 @@ const precision * const __restrict__ e_current, const precision * const __restri
 				flux_terms(Hy_plus, Hy_minus, qs, qj1, qj2, vyj, uy / ut, Theta);
 				flux_terms(Hn_plus, Hn_minus, qs, qk1, qk2, vnk, un / ut, Theta);
 
-				// store the results
-				if(!update)                                     // store total source function qI <== E
+				if(!stage)							// get source function q^(1) <-- E(q)
 				{
 					for(int n = 0; n < NUMBER_CONSERVED_VARIABLES; n++)
 					{
-						E[n] = S[n]  +  (Hx_minus[n] - Hx_plus[n]) / dx  +  (Hy_minus[n] - Hy_plus[n]) / dy  +  (Hn_minus[n] - Hn_plus[n]) / dn;
+						qs[n] = S[n]  +  (Hx_minus[n] - Hx_plus[n]) / dx  +  (Hy_minus[n] - Hy_plus[n]) / dy  +  (Hn_minus[n] - Hn_plus[n]) / dn;
 					}
-
-					q_update[s].ttt = E[0];
-					q_update[s].ttx = E[1];
-					q_update[s].tty = E[2];
-
-					a = 3;
-				#ifndef BOOST_INVARIANT
-					q_update[s].ttn = E[a]; a++;
-				#endif
-
-				#ifdef ANISO_HYDRO
-					q_update[s].pl = E[a]; a++;
-					q_update[s].pt = E[a]; a++;
-				#endif
-
-				#ifdef B_FIELD
-					q_update[s].b = E[a]; a++;
-				#endif
-
-				#ifdef PIMUNU
-					q_update[s].pitt = E[a]; a++;
-					q_update[s].pitx = E[a]; a++;
-					q_update[s].pity = E[a]; a++;
-				#ifndef BOOST_INVARIANT
-					q_update[s].pitn = E[a]; a++;
-				#endif
-					q_update[s].pixx = E[a]; a++;
-					q_update[s].pixy = E[a]; a++;
-				#ifndef BOOST_INVARIANT
-					q_update[s].pixn = E[a]; a++;
-				#endif
-					q_update[s].piyy = E[a]; a++;
-				#ifndef BOOST_INVARIANT
-					q_update[s].piyn = E[a]; a++;
-					q_update[s].pinn = E[a]; a++;
-				#else
-				#ifndef ANISO_HYDRO
-					q_update[s].pinn = E[a]; a++;
-				#endif
-				#endif
-				#endif
-
-				#ifdef WTZMU
-					q_update[s].WtTz = E[a]; a++;
-					q_update[s].WxTz = E[a]; a++;
-					q_update[s].WyTz = E[a]; a++;
-					q_update[s].WnTz = E[a]; a++;
-				#endif
-
-				#ifdef PI
-					q_update[s].Pi = E[a]; a++;
-				#endif
 				}
-				else if(!RK2)                                   // store first intermediate euler step qI <== q + E.dt
+				else								// get intermediate Euler step q^(l) <-- dt.E(q^(l-1))
 				{
 					for(int n = 0; n < NUMBER_CONSERVED_VARIABLES; n++)
 					{
-						qs[n] += dt * (S[n]  +  (Hx_minus[n] - Hx_plus[n]) / dx  +  (Hy_minus[n] - Hy_plus[n]) / dy  +  (Hn_minus[n] - Hn_plus[n]) / dn);
+						qs[n] = dt * (S[n]  +  (Hx_minus[n] - Hx_plus[n]) / dx  +  (Hy_minus[n] - Hy_plus[n]) / dy  +  (Hn_minus[n] - Hn_plus[n]) / dn);
 					}
-
-					q_update[s].ttt = qs[0];
-					q_update[s].ttx = qs[1];
-					q_update[s].tty = qs[2];
-
-					a = 3;
-				#ifndef BOOST_INVARIANT
-					q_update[s].ttn = qs[a]; a++;
-				#endif
-
-				#ifdef ANISO_HYDRO
-					q_update[s].pl = qs[a]; a++;
-					q_update[s].pt = qs[a]; a++;
-				#endif
-
-				#ifdef B_FIELD
-					q_update[s].b = qs[a]; a++;
-				#endif
-
-				#ifdef PIMUNU
-					q_update[s].pitt = qs[a]; a++;
-					q_update[s].pitx = qs[a]; a++;
-					q_update[s].pity = qs[a]; a++;
-				#ifndef BOOST_INVARIANT
-					q_update[s].pitn = qs[a]; a++;
-				#endif
-					q_update[s].pixx = qs[a]; a++;
-					q_update[s].pixy = qs[a]; a++;
-				#ifndef BOOST_INVARIANT
-					q_update[s].pixn = qs[a]; a++;
-				#endif
-					q_update[s].piyy = qs[a]; a++;
-				#ifndef BOOST_INVARIANT
-					q_update[s].piyn = qs[a]; a++;
-					q_update[s].pinn = qs[a]; a++;
-				#else
-				#ifndef ANISO_HYDRO
-					q_update[s].pinn = qs[a]; a++;
-				#endif
-				#endif
-				#endif
-
-				#ifdef WTZMU
-					q_update[s].WtTz = qs[a]; a++;
-					q_update[s].WxTz = qs[a]; a++;
-					q_update[s].WyTz = qs[a]; a++;
-					q_update[s].WnTz = qs[a]; a++;
-				#endif
-
-				#ifdef PI
-					q_update[s].Pi = qs[a]; a++;
-				#endif
 				}
-				else                                            // store RK2 update Q <== (q + (qI + EI.dt))/2
-				{
-					for(int n = 0; n < NUMBER_CONSERVED_VARIABLES; n++)
-					{
-						qs[n] += dt * (S[n]  +  (Hx_minus[n] - Hx_plus[n]) / dx  +  (Hy_minus[n] - Hy_plus[n]) / dy  +  (Hn_minus[n] - Hn_plus[n]) / dn);
-					}
 
-					q_update[s].ttt = (q[s].ttt  +  qs[0]) / 2.;    // here q is the extern variable, not
-					q_update[s].ttx = (q[s].ttx  +  qs[1]) / 2.;    // one of the euler_step(..) arguments
-					q_update[s].tty = (q[s].tty  +  qs[2]) / 2.;
+				// store results
 
-					a = 3;
-				#ifndef BOOST_INVARIANT
-					q_update[s].ttn = (q[s].ttn  +  qs[a]) / 2.; a++;
-				#endif
+				q_update[s].ttt = qs[0];
+				
+				q_update[s].ttx = qs[1];
+				q_update[s].tty = qs[2];
 
-				#ifdef ANISO_HYDRO
-					q_update[s].pl = (q[s].pl  +  qs[a]) / 2.; a++;
-					q_update[s].pt = (q[s].pt  +  qs[a]) / 2.; a++;
-				#endif
+				a = 3;
+			#ifndef BOOST_INVARIANT
+				q_update[s].ttn = qs[a]; a++;
+			#endif
 
-				#ifdef B_FIELD
-					q_update[s].b = (q[s].b  +  qs[a]) / 2.; a++;
-				#endif
+			#ifdef ANISO_HYDRO
+				q_update[s].pl = qs[a]; a++;
+				q_update[s].pt = qs[a]; a++;
+			#endif
 
-				#ifdef PIMUNU
-					q_update[s].pitt = (q[s].pitt  +  qs[a]) / 2.; a++;
-					q_update[s].pitx = (q[s].pitx  +  qs[a]) / 2.; a++;
-					q_update[s].pity = (q[s].pity  +  qs[a]) / 2.; a++;
-				#ifndef BOOST_INVARIANT
-					q_update[s].pitn = (q[s].pitn  +  qs[a]) / 2.; a++;
-				#endif
-					q_update[s].pixx = (q[s].pixx  +  qs[a]) / 2.; a++;
-					q_update[s].pixy = (q[s].pixy  +  qs[a]) / 2.; a++;
-				#ifndef BOOST_INVARIANT
-					q_update[s].pixn = (q[s].pixn  +  qs[a]) / 2.; a++;
-				#endif
-					q_update[s].piyy = (q[s].piyy  +  qs[a]) / 2.; a++;
-				#ifndef BOOST_INVARIANT
-					q_update[s].piyn = (q[s].piyn  +  qs[a]) / 2.; a++;
-					q_update[s].pinn = (q[s].pinn  +  qs[a]) / 2.; a++;
-				#else
-				#ifndef ANISO_HYDRO
-					q_update[s].pinn = (q[s].pinn  +  qs[a]) / 2.; a++;
-				#endif
-				#endif
-				#endif
+			#ifdef B_FIELD
+				q_update[s].b = qs[a]; a++;
+			#endif
 
-				#ifdef WTZMU
-					q_update[s].WtTz = (q[s].WtTz  +  qs[a]) / 2.; a++;
-					q_update[s].WxTz = (q[s].WxTz  +  qs[a]) / 2.; a++;
-					q_update[s].WyTz = (q[s].WyTz  +  qs[a]) / 2.; a++;
-					q_update[s].WnTz = (q[s].WnTz  +  qs[a]) / 2.; a++;
-				#endif
+			#ifdef PIMUNU
+				q_update[s].pitt = qs[a]; a++;
+				q_update[s].pitx = qs[a]; a++;
+				q_update[s].pity = qs[a]; a++;
+			#ifndef BOOST_INVARIANT
+				q_update[s].pitn = qs[a]; a++;
+			#endif
+				q_update[s].pixx = qs[a]; a++;
+				q_update[s].pixy = qs[a]; a++;
+			#ifndef BOOST_INVARIANT
+				q_update[s].pixn = qs[a]; a++;
+			#endif
+				q_update[s].piyy = qs[a]; a++;
+			#ifndef BOOST_INVARIANT
+				q_update[s].piyn = qs[a]; a++;
+				q_update[s].pinn = qs[a]; a++;
+			#else
+			#ifndef ANISO_HYDRO
+				q_update[s].pinn = qs[a]; a++;
+			#endif
+			#endif
+			#endif
 
-				#ifdef PI
-					q_update[s].Pi = (q[s].Pi  +  qs[a]) / 2.; a++;
-				#endif
-				}
+			#ifdef WTZMU
+				q_update[s].WtTz = qs[a]; a++;
+				q_update[s].WxTz = qs[a]; a++;
+				q_update[s].WyTz = qs[a]; a++;
+				q_update[s].WnTz = qs[a]; a++;
+			#endif
+
+			#ifdef PI
+				q_update[s].Pi = qs[a]; a++;
+			#endif
 			}
 		}
 	}
 }
 
 
-void recompute_euler_step(const hydro_variables * const __restrict__ q_current, hydro_variables * const __restrict__ q_update, precision dt, lattice_parameters lattice)
+void recompute_euler_step(hydro_variables * const __restrict__ q_update, precision dt, lattice_parameters lattice)
  {
  	int nx = lattice.lattice_points_x;
 	int ny = lattice.lattice_points_y;
 	int nz = lattice.lattice_points_eta;
 
-	// recompute qI after computing adaptive step
+	// recompute first intermediate Euler step after computing adaptive step dt
+	// q_update is passed E(q)
 
 	#pragma omp parallel for collapse(3)
 	for(int k = 2; k < nz + 2; k++)
@@ -403,122 +296,313 @@ void recompute_euler_step(const hydro_variables * const __restrict__ q_current, 
 			{
 				int s = linear_column_index(i, j, k, nx + 4, ny + 4);
 
-				q_update[s].ttt = q_current[s].ttt  +  dt * q_update[s].ttt;    // qI <== (q + E.dt_new)
-				q_update[s].ttx = q_current[s].ttx  +  dt * q_update[s].ttx;
-				q_update[s].tty = q_current[s].tty  +  dt * q_update[s].tty;
+				q_update[s].ttt *= dt;    // q1 <== (q + E.dt_new)
+				q_update[s].ttx *= dt;
+				q_update[s].tty *= dt;
 			#ifndef BOOST_INVARIANT
-				q_update[s].ttn = q_current[s].ttn  +  dt * q_update[s].ttn;
+				q_update[s].ttn *= dt;
 			#endif
 
 			#ifdef ANISO_HYDRO
-				q_update[s].pl  = q_current[s].pl  +  dt * q_update[s].pl;
-				q_update[s].pt  = q_current[s].pt  +  dt * q_update[s].pt;
+				q_update[s].pl *= dt;
+				q_update[s].pt *= dt;
 			#endif
 
 			#ifdef B_FIELD
-				q_update[s].b  = q_current[s].b  +  dt * q_update[s].b;
+				q_update[s].b *= dt;
 			#endif
 
 			#ifdef PIMUNU
-				q_update[s].pitt = q_current[s].pitt  +  dt * q_update[s].pitt;
-				q_update[s].pitx = q_current[s].pitx  +  dt * q_update[s].pitx;
-				q_update[s].pity = q_current[s].pity  +  dt * q_update[s].pity;
+				q_update[s].pitt *= dt;
+				q_update[s].pitx *= dt;
+				q_update[s].pity *= dt;
 			#ifndef BOOST_INVARIANT
-				q_update[s].pitn = q_current[s].pitn  +  dt * q_update[s].pitn;
+				q_update[s].pitn *= dt;
 			#endif
-				q_update[s].pixx = q_current[s].pixx  +  dt * q_update[s].pixx;
-				q_update[s].pixy = q_current[s].pixy  +  dt * q_update[s].pixy;
+				q_update[s].pixx *= dt;
+				q_update[s].pixy *= dt;
 			#ifndef BOOST_INVARIANT
-				q_update[s].pixn = q_current[s].pixn  +  dt * q_update[s].pixn;
+				q_update[s].pixn *= dt;
 			#endif
-				q_update[s].piyy = q_current[s].piyy  +  dt * q_update[s].piyy;
+				q_update[s].piyy *= dt;
 			#ifndef BOOST_INVARIANT
-				q_update[s].piyn = q_current[s].piyn  +  dt * q_update[s].piyn;
-				q_update[s].pinn = q_current[s].pinn  +  dt * q_update[s].pinn;
+				q_update[s].piyn *= dt;
+				q_update[s].pinn *= dt;
 			#else
 			#ifndef ANISO_HYDRO
-				q_update[s].pinn = q_current[s].pinn  +  dt * q_update[s].pinn;
+				q_update[s].pinn *= dt;
 			#endif
 			#endif
 			#endif
 
 			#ifdef WTZMU
-				q_update[s].WtTz = q_current[s].WtTz  +  dt * q_update[s].WtTz;
-				q_update[s].WxTz = q_current[s].WxTz  +  dt * q_update[s].WxTz;
-				q_update[s].WyTz = q_current[s].WyTz  +  dt * q_update[s].WyTz;
-				q_update[s].WnTz = q_current[s].WnTz  +  dt * q_update[s].WnTz;
+				q_update[s].WtTz *= dt;
+				q_update[s].WxTz *= dt;
+				q_update[s].WyTz *= dt;
+				q_update[s].WnTz *= dt;
 			#endif
 
 			#ifdef PI
-				q_update[s].Pi = q_current[s].Pi  +  dt * q_update[s].Pi;
+				q_update[s].Pi *= dt;
 			#endif
 			}
 		}
 	}
 }
 
-
-void evolve_hydro_one_time_step(int n, precision t, precision dt, precision dt_prev, lattice_parameters lattice, hydro_parameters hydro, int update, bool hit_CFL)
+void evolve_hydro_one_time_step_2_stages(int n, precision t, precision dt, precision dt_prev, lattice_parameters lattice, hydro_parameters hydro, int stage, bool hit_CFL)
 {
-	// first intermediate euler step
-	int RK2 = 0;
+	int end_RK = 0;
+	precision t0 = t;																		// time at start of update
 
-	if(lattice.adaptive_time_step && !hit_CFL)                                      // qI <== q + E.dt
+	if(lattice.adaptive_time_step && !hit_CFL)                                      		// q1 <-- dt.E(t,q)
 	{
 		if(n == 0)
 		{
-			euler_step(t, q, qI, e, lambda, aT, aL, up, u, dt, dt_prev, lattice, hydro, update, RK2);
+			euler_step(t, q, q1, e, lambda, aT, aL, up, u, dt, dt_prev, lattice, hydro, stage);
 		}
 		else
 		{
-			recompute_euler_step(q, qI, dt, lattice);
+			recompute_euler_step(q1, dt, lattice);
 		}
 	}
 	else
 	{
-		euler_step(t, q, qI, e, lambda, aT, aL, up, u, dt, dt_prev, lattice, hydro, update, RK2);
+		euler_step(t, q, q1, e, lambda, aT, aL, up, u, dt, dt_prev, lattice, hydro, stage);
 	}
 
-	t += dt;
+	get_RK_stage_1(q, q1, A11, lattice);													// q1 <-- q + a11.q1
 
-	swap_fluid_velocity(&u, &up);                                                   // swap u <==> up
+	t = t0 + C1*dt;																			// set time, previous time step for second stage
+	dt_prev = t - t0;
+
+	swap_fluid_velocity(&u, &up);                                                   		// swap u <--> up before second stage
 
 #ifdef ANISO_HYDRO
-	set_inferred_variables_aniso_hydro(qI, e, u, t, lattice, hydro);                // compute aniso (e, u)
+	set_inferred_variables_aniso_hydro(t, q1, e, u, lattice, hydro);                		// compute aniso (e, u)
 	// todo: try regulating before solving for aniso variables (haven't done yet)
 #ifdef LATTICE_QCD
-	set_anisotropic_variables(qI, e, lambda, aT, aL, lattice, hydro);               // compute aniso X = (lambda, aT, aL)
+	set_anisotropic_variables(q1, e, lambda, aT, aL, lattice, hydro);               		// compute aniso X = (lambda, aT, aL)
 #endif
-	regulate_residual_currents(t, qI, e, u, lattice, hydro, RK2);                   // regulate aniso qI
+	regulate_residual_currents(t, q1, e, u, lattice, hydro, end_RK);                   		// regulate aniso q1
 #else
-	set_inferred_variables_viscous_hydro(qI, e, u, t, lattice, hydro);              // compute viscous (e, u)
-	regulate_viscous_currents(t, qI, e, u, lattice, hydro, RK2);                    // regulate viscous qI
+	set_inferred_variables_viscous_hydro(t, q1, e, u, lattice, hydro);              		// compute viscous (e, u)
+	regulate_viscous_currents(t, q1, e, u, lattice, hydro, end_RK);                    		// regulate viscous q1
 #endif
-	set_ghost_cells(qI, e, u, lattice);                                             // for (qI, e, u)
 
-	// second intermediate Euler step
-	dt_prev = dt;                                                                   // update previous time step
-	RK2 = 1;                                                                        // so that Q <== RK2 update
+	set_ghost_cells(q1, e, u, lattice);                                             		// for (q1, e, u)
 
-	euler_step(t, qI, Q, e, lambda, aT, aL, up, u, dt, dt_prev, lattice, hydro, update, RK2);
+	euler_step(t, q1, q2, e, lambda, aT, aL, up, u, dt, dt_prev, lattice, hydro, stage);	// q2 <-- dt.E(t + c1.dt, q1)
+
+	get_RK_stage_2(q, q1, q2, B0, B1, B2, lattice);											// q2 <-- b0.q + b1.q1 + b2.q2
+
+	end_RK = 1;																				// finished RK update for q2
+	t = t0 + dt;																			// time of updated step
 
 #ifdef ANISO_HYDRO
-	set_inferred_variables_aniso_hydro(Q, e, u, t, lattice, hydro);                 // compute aniso (e, u)
+	set_inferred_variables_aniso_hydro(t, q2, e, u, lattice, hydro);                		// compute aniso (e, u)
 #ifdef LATTICE_QCD
-	set_anisotropic_variables(Q, e, lambda, aT, aL, lattice, hydro);                // compute aniso X = (lambda, aT, aL)
+	set_anisotropic_variables(q2, e, lambda, aT, aL, lattice, hydro);               		// compute aniso X = (lambda, aT, aL)
 #endif
-	regulate_residual_currents(t, Q, e, u, lattice, hydro, RK2);                    // regulate aniso Q
+	regulate_residual_currents(t, q2, e, u, lattice, hydro, end_RK);                   		// regulate aniso q2
 #else
-	set_inferred_variables_viscous_hydro(Q, e, u, t, lattice, hydro);               // compute viscous (e, u)
-	regulate_viscous_currents(t, Q, e, u, lattice, hydro, RK2);                     // regulate viscous Q
+	set_inferred_variables_viscous_hydro(t, q2, e, u, lattice, hydro);              		// compute viscous (e, u)
+	regulate_viscous_currents(t, q2, e, u, lattice, hydro, end_RK);                    		// regulate viscous q2
 #endif
-	swap_hydro_variables(&q, &Q);                                                   // swap q <==> Q
-	set_ghost_cells(q, e, u, lattice);                                              // for (q, e, u)
+
+	swap_hydro_variables(&q, &q2);                                                  		// swap q <--> q2
+	set_ghost_cells(q, e, u, lattice);                                              		// for (q, e, u)
 }
 
 
+void evolve_hydro_one_time_step_3_stages(int n, precision t, precision dt, precision dt_prev, lattice_parameters lattice, hydro_parameters hydro, int stage, bool hit_CFL)
+{
+#if (STAGES == 3)
+	int end_RK = 0;
+	precision t0 = t;
+
+	if(lattice.adaptive_time_step && !hit_CFL)                                      		// q1 <-- dt.E(t,q)
+	{
+		if(n == 0)
+		{
+			euler_step(t, q, q1, e, lambda, aT, aL, up, u, dt, dt_prev, lattice, hydro, stage);
+		}
+		else
+		{
+			recompute_euler_step(q1, dt, lattice);
+		}
+	}
+	else
+	{
+		euler_step(t, q, q1, e, lambda, aT, aL, up, u, dt, dt_prev, lattice, hydro, stage);
+	}
+
+	get_RK_stage_1(q, q1, A11, lattice);													// q1 <-- q + a11.q1
+
+	t = t0 + C1*dt;																			// set time, previous time step for second stage
+	dt_prev = t - t0;                                                                   		
+
+#ifdef ANISO_HYDRO
+	set_inferred_variables_aniso_hydro(t, q1, e, uI, lattice, hydro);                		// compute aniso (e, uI)
+#ifdef LATTICE_QCD
+	set_anisotropic_variables(q1, e, lambda, aT, aL, lattice, hydro);               		// compute aniso X = (lambda, aT, aL)
+#endif
+	regulate_residual_currents(t, q1, e, uI, lattice, hydro, end_RK);                   	// regulate aniso q1
+#else
+	set_inferred_variables_viscous_hydro(t, q1, e, uI, lattice, hydro);             		// compute viscous (e, uI)
+	regulate_viscous_currents(t, q1, e, uI, lattice, hydro, end_RK);                    	// regulate viscous q1
+#endif
+
+	set_ghost_cells(q1, e, uI, lattice);                                             		// for (q1, e, uI)
+
+	euler_step(t, q1, q2, e, lambda, aT, aL, u, uI, dt, dt_prev, lattice, hydro, stage);	// q2 <-- dt.E(t + c1.dt, q1)
+
+	get_RK_stage_2(q, q1, q2, A20, A21, A22, lattice);										// q2 <-- a20.q + a21.q1 + a22.q2
+
+	t = t0 + C2*dt;																			// set time, previous time step for third stage
+	dt_prev = t - t0;																		
+
+#ifdef ANISO_HYDRO
+	set_inferred_variables_aniso_hydro(t, q2, e, uI, lattice, hydro);                		// compute aniso (e, uI)
+#ifdef LATTICE_QCD
+	set_anisotropic_variables(q2, e, lambda, aT, aL, lattice, hydro);               		// compute aniso X = (lambda, aT, aL)
+#endif
+	regulate_residual_currents(t, q2, e, uI, lattice, hydro, end_RK);                   	// regulate aniso q2
+#else
+	set_inferred_variables_viscous_hydro(t, q2, e, uI, lattice, hydro);              		// compute viscous (e, uI)
+	regulate_viscous_currents(t, q2, e, uI, lattice, hydro, end_RK);                    	// regulate viscous q2
+#endif
+
+	set_ghost_cells(q2, e, uI, lattice);                                            		// for (q2, e, uI)
+
+	euler_step(t, q2, q3, e, lambda, aT, aL, u, uI, dt, dt_prev, lattice, hydro, stage);	// q3 <-- dt.E(t + c2.dt, q2)							
+
+	get_RK_stage_3(q, q1, q2, q3, B0, B1, B2, B3, lattice);									// q3 <-- b0.q + b1.q1 + b2.q2 + b3.q3
+
+	end_RK = 1;																				// finished RK update for q3
+	t = t0 + dt;																			// time of updated step
+
+	swap_fluid_velocity(&u, &up);                                                   		// swap u <--> up after RK update
+
+#ifdef ANISO_HYDRO
+	set_inferred_variables_aniso_hydro(t, q3, e, u, lattice, hydro);                		// compute aniso (e, u)
+#ifdef LATTICE_QCD
+	set_anisotropic_variables(q3, e, lambda, aT, aL, lattice, hydro);               		// compute aniso X = (lambda, aT, aL)
+#endif
+	regulate_residual_currents(t, q3, e, u, lattice, hydro, end_RK);                   		// regulate aniso q3
+#else
+	set_inferred_variables_viscous_hydro(t, q3, e, u, lattice, hydro);              		// compute viscous (e, u)
+	regulate_viscous_currents(t, q3, e, u, lattice, hydro, end_RK);                    		// regulate viscous q3
+#endif
+
+	swap_hydro_variables(&q, &q3);                                                  		// swap q <--> q3
+	set_ghost_cells(q, e, u, lattice);                                              		// for (q, e, u)
+
+#endif
+}
 
 
+void evolve_hydro_one_time_step_4_stages(int n, precision t, precision dt, precision dt_prev, lattice_parameters lattice, hydro_parameters hydro, int stage, bool hit_CFL)
+{
+#if (STAGES == 4)
+	int end_RK = 0;
+	precision t0 = t;
 
+	if(lattice.adaptive_time_step && !hit_CFL)                                      		// q1 <-- dt.E(t,q)
+	{
+		if(n == 0)
+		{
+			euler_step(t, q, q1, e, lambda, aT, aL, up, u, dt, dt_prev, lattice, hydro, stage);
+		}
+		else
+		{
+			recompute_euler_step(q1, dt, lattice);
+		}
+	}
+	else
+	{
+		euler_step(t, q, q1, e, lambda, aT, aL, up, u, dt, dt_prev, lattice, hydro, stage);
+	}
+
+	get_RK_stage_1(q, q1, A11, lattice);													// q1 <-- q + a11.q1
+
+	t = t0 + C1*dt;																			// set time, previous time step for second stage
+	dt_prev = t - t0;                                                                   		
+
+#ifdef ANISO_HYDRO
+	set_inferred_variables_aniso_hydro(t, q1, e, uI, lattice, hydro);                		// compute aniso (e, uI)
+#ifdef LATTICE_QCD
+	set_anisotropic_variables(q1, e, lambda, aT, aL, lattice, hydro);               		// compute aniso X = (lambda, aT, aL)
+#endif
+	regulate_residual_currents(t, q1, e, uI, lattice, hydro, end_RK);                   	// regulate aniso q1
+#else
+	set_inferred_variables_viscous_hydro(t, q1, e, uI, lattice, hydro);             		// compute viscous (e, uI)
+	regulate_viscous_currents(t, q1, e, uI, lattice, hydro, end_RK);                    	// regulate viscous q1
+#endif
+
+	set_ghost_cells(q1, e, uI, lattice);                                             		// for (q1, e, uI)
+
+	euler_step(t, q1, q2, e, lambda, aT, aL, u, uI, dt, dt_prev, lattice, hydro, stage);	// q2 <-- dt.E(t + c1.dt, q1)
+
+	get_RK_stage_2(q, q1, q2, A20, A21, A22, lattice);										// q2 <-- a20.q + a21.q1 + a22.q2
+
+	t = t0 + C2*dt;																			// set time, previous time step for third stage
+	dt_prev = t - t0;																		
+
+#ifdef ANISO_HYDRO
+	set_inferred_variables_aniso_hydro(t, q2, e, uI, lattice, hydro);                		// compute aniso (e, uI)
+#ifdef LATTICE_QCD
+	set_anisotropic_variables(q2, e, lambda, aT, aL, lattice, hydro);               		// compute aniso X = (lambda, aT, aL)
+#endif
+	regulate_residual_currents(t, q2, e, uI, lattice, hydro, end_RK);                   	// regulate aniso q2
+#else
+	set_inferred_variables_viscous_hydro(t, q2, e, uI, lattice, hydro);              		// compute viscous (e, uI)
+	regulate_viscous_currents(t, q2, e, uI, lattice, hydro, end_RK);                    	// regulate viscous q2
+#endif
+
+	set_ghost_cells(q2, e, uI, lattice);                                            		// for (q2, e, uI)
+
+	euler_step(t, q2, q3, e, lambda, aT, aL, u, uI, dt, dt_prev, lattice, hydro, stage);	// q3 <-- dt.E(t + c2.dt, q2)												
+	get_RK_stage_3(q, q1, q2, q3, A30, A31, A32, A33, lattice);								// q3 <-- a30.q + a31.q1 + a32.q2 + a33.q3
+
+	t = t0 + C3*dt;																			// set time, previous time step for fourth stage
+	dt_prev = t - t0;	
+
+#ifdef ANISO_HYDRO
+	set_inferred_variables_aniso_hydro(t, q3, e, uI, lattice, hydro);                		// compute aniso (e, uI)
+#ifdef LATTICE_QCD
+	set_anisotropic_variables(q3, e, lambda, aT, aL, lattice, hydro);               		// compute aniso X = (lambda, aT, aL)
+#endif
+	regulate_residual_currents(t, q3, e, uI, lattice, hydro, end_RK);                   	// regulate aniso q3
+#else
+	set_inferred_variables_viscous_hydro(t, q3, e, uI, lattice, hydro);              		// compute viscous (e, uI)
+	regulate_viscous_currents(t, q3, e, uI, lattice, hydro, end_RK);                    	// regulate viscous q3
+#endif
+
+	set_ghost_cells(q3, e, uI, lattice);                                            		// for (q3, e, uI)
+
+	euler_step(t, q3, q4, e, lambda, aT, aL, u, uI, dt, dt_prev, lattice, hydro, stage);	// q4 <-- dt.E(t + c3.dt, q3)												
+	get_RK_stage_4(q, q1, q2, q3, q4, B0, B1, B2, B3, B4, lattice);							// q4 <-- b0.q + b1.q1 + b2.q2 + b3.q3 + b4.q4
+
+	end_RK = 1;																				// finished RK update for q4
+	t = t0 + dt;																			// time of updated step
+
+	swap_fluid_velocity(&u, &up);                                                   		// swap u <--> up after RK update
+
+#ifdef ANISO_HYDRO
+	set_inferred_variables_aniso_hydro(t, q4, e, u, lattice, hydro);                		// compute aniso (e, u)
+#ifdef LATTICE_QCD
+	set_anisotropic_variables(q4, e, lambda, aT, aL, lattice, hydro);               		// compute aniso X = (lambda, aT, aL)
+#endif
+	regulate_residual_currents(t, q4, e, u, lattice, hydro, end_RK);                   		// regulate aniso q4
+#else
+	set_inferred_variables_viscous_hydro(t, q4, e, u, lattice, hydro);              		// compute viscous (e, u)
+	regulate_viscous_currents(t, q4, e, u, lattice, hydro, end_RK);                    		// regulate viscous q4
+#endif
+
+	swap_hydro_variables(&q, &q4);                                                  		// swap q <--> q4
+	set_ghost_cells(q, e, u, lattice);                                              		// for (q, e, u)
+#endif
+}
 
 

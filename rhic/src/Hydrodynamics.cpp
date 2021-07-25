@@ -15,6 +15,7 @@
 #include "../include/KurganovTadmor.h"
 #include "../include/AdaptiveTimeStep.h"
 #include "../include/FreezeoutFinder.h"
+#include "../include/RungeKutta.h"
 #include "../include/OpenMP.h"
 
 using namespace std;
@@ -110,13 +111,19 @@ precision set_time_step(int n, precision t, precision dt_prev, precision t_next_
 
 			if(!hit_CFL_bound)                                      // skip dt_source calculation after hit CFL bound
 			{
-				int update = 0;
+				int stage = 0;
 
-				// get total source function qI <= E
-				euler_step(t, q, qI, e, lambda, aT, aL, up, u, dt_prev, dt_prev, lattice, hydro, update, hit_CFL_bound);
+				// get total source function q1 <-- E(q)
+				euler_step(t, q, q1, e, lambda, aT, aL, up, u, dt_prev, dt_prev, lattice, hydro, stage);
 
-				// here Q holds previous q (from swap_hydro_variables)
-				dt_source = compute_dt_source(t, Q, q, qI, dt_prev, lattice);
+				// here qs (s = STAGES) holds previous q; after swap_hydro_variables
+			#if (STAGES == 3)
+				dt_source = compute_dt_source(t, q3, q, q1, dt_prev, lattice);
+			#elif (STAGES == 4)
+				dt_source = compute_dt_source(t, q4, q, q1, dt_prev, lattice);
+			#else
+				dt_source = compute_dt_source(t, q2, q, q1, dt_prev, lattice);
+			#endif
 
 				if(dt_source >= dt_CFL)
 				{
@@ -272,9 +279,15 @@ freezeout_surface run_hydro(lattice_parameters lattice, initial_condition_parame
 			}
 		}
 
-		int update = 1;                                             // RK2 iteration:
+		int update = 1;                               	// do Runge Kutta iteration
 
-		evolve_hydro_one_time_step(n, t, dt, dt_prev, lattice, hydro, update, hit_CFL_bound);
+	#if (STAGES == 3)
+		evolve_hydro_one_time_step_3_stages(n, t, dt, dt_prev, lattice, hydro, update, hit_CFL_bound);
+	#elif (STAGES == 4)
+		evolve_hydro_one_time_step_4_stages(n, t, dt, dt_prev, lattice, hydro, update, hit_CFL_bound);
+	#else
+		evolve_hydro_one_time_step_2_stages(n, t, dt, dt_prev, lattice, hydro, update, hit_CFL_bound);
+	#endif
 
 		t += dt;
 

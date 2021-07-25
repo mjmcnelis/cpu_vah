@@ -26,7 +26,7 @@ inline int linear_column_index(int i, int j, int k, int nx, int ny)
 }
 
 
-void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u, precision t, lattice_parameters lattice, hydro_parameters hydro)
+void set_inferred_variables_aniso_hydro(precision t, const hydro_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u, lattice_parameters lattice, hydro_parameters hydro)
 {
 #ifdef ANISO_HYDRO
 	int nx = lattice.lattice_points_x;
@@ -231,7 +231,7 @@ void set_inferred_variables_aniso_hydro(const hydro_variables * const __restrict
 
 
 
-void set_inferred_variables_viscous_hydro(const hydro_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u, precision t, lattice_parameters lattice, hydro_parameters hydro)
+void set_inferred_variables_viscous_hydro(precision t, const hydro_variables * const __restrict__ q, precision * const __restrict__ e, fluid_velocity * const __restrict__ u, lattice_parameters lattice, hydro_parameters hydro)
 {
 	int nx = lattice.lattice_points_x;
 	int ny = lattice.lattice_points_y;

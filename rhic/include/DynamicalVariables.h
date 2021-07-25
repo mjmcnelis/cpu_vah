@@ -7,7 +7,6 @@
 #include "Precision.h"
 #include "Parameters.h"
 
-
 #ifdef BOOST_INVARIANT
 	#define CONSERVATION_LAWS 3
 #else
@@ -115,10 +114,6 @@ typedef struct
 	precision Pi;
 #endif
 
-#ifdef E_CHECK
-	precision e_check;
-#endif
-
 } hydro_variables;
 
 
@@ -134,11 +129,17 @@ typedef struct
 } fluid_velocity;
 
 
-// external variables
-extern hydro_variables *q, *Q, *qI;
-extern fluid_velocity *u, *up;
+// extern variables
+extern hydro_variables *q, *q1, *q2;		
+extern fluid_velocity *u, *up;		
 extern precision *e;
 extern precision *lambda, *aT, *aL;
+
+// additional (q,u) variables for third-order Runge Kutta
+extern hydro_variables *q3;
+extern hydro_variables *q4;
+extern fluid_velocity *uI;
+
 
 #ifdef ANISO_HYDRO
 #ifdef LATTICE_QCD

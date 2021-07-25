@@ -40,6 +40,7 @@ precision compute_adaptive_time_step(precision t, precision dt_CFL, precision dt
 precision compute_dt_CFL(precision t, lattice_parameters lattice, hydro_parameters hydro)
 {
 	precision dt_CFL = 1./0.;
+	precision prefactor = 1.;
 
 	int nx = lattice.lattice_points_x;
 	int ny = lattice.lattice_points_y;
@@ -104,14 +105,19 @@ precision compute_dt_CFL(precision t, lattice_parameters lattice, hydro_paramete
 			}
 		}
 	}
+
+#ifdef SPITERI_RUUTH
+	prefactor *= 2.;		// double CFL bound
+#else
+
 #ifdef ADAPTIVE_FILE
 	FILE * dt_CFL_bound;
 	dt_CFL_bound = fopen("output/adaptive/dt_CFL.dat", "a");
-	fprintf(dt_CFL_bound, "%.8f\t%.8f\n", t, dt_CFL / 8.);
+	fprintf(dt_CFL_bound, "%.8f\t%.8f\n", t, prefactor * dt_CFL / 8.);
 	fclose(dt_CFL_bound);
 #endif
 
-	return dt_CFL / 8.;
+	return prefactor * dt_CFL / 8.;
 }
 
 

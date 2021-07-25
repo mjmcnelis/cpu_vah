@@ -3,11 +3,17 @@
 #include "../include/Precision.h"
 #include "../include/DynamicalVariables.h"
 #include "../include/Parameters.h"
+#include "../include/RungeKutta.h"
 
-hydro_variables *q, *Q, *qI;			// dynamical variables
+hydro_variables *q, *q1, *q2;			// dynamical variables
 fluid_velocity *u, *up;					// fluid velocity
 precision *e;                           // energy density
 precision *lambda, *aT, *aL;            // anisotropic variables
+
+hydro_variables *q3;					// additional variables for third-order Runge-Kutta
+hydro_variables *q4;
+fluid_velocity *uI;
+
 
 #ifdef ANISO_HYDRO
 #ifdef LATTICE_QCD
@@ -79,8 +85,20 @@ void allocate_memory(lattice_parameters lattice)
 	up = (fluid_velocity *)calloc(length, sizeof(fluid_velocity));
 
 	q  = (hydro_variables *)calloc(length, sizeof(hydro_variables));
-	Q  = (hydro_variables *)calloc(length, sizeof(hydro_variables));
-	qI = (hydro_variables *)calloc(length, sizeof(hydro_variables));
+	q1 = (hydro_variables *)calloc(length, sizeof(hydro_variables));
+	q2 = (hydro_variables *)calloc(length, sizeof(hydro_variables));
+
+	// allocate additional variables for third-order Runge-Kutta
+#if (STAGES > 2)
+	q3 = (hydro_variables *)calloc(length, sizeof(hydro_variables));
+#endif
+#if (STAGES > 3)
+	q4 = (hydro_variables *)calloc(length, sizeof(hydro_variables));
+#endif
+
+#if (STAGES > 2)
+	uI = (fluid_velocity *)calloc(length, sizeof(fluid_velocity));
+#endif
 }
 
 
@@ -106,8 +124,12 @@ void free_memory()
 	free(u);
 	free(up);
 	free(q);
-	free(qI);
-	free(Q);
+	free(q1);
+	free(q2);
+
+	free(q3);
+	free(q4);
+	free(uI);
 }
 
 

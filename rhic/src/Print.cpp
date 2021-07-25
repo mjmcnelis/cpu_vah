@@ -333,4 +333,12 @@ void print_parameters(lattice_parameters lattice, hydro_parameters hydro)
 #else
 	printf("\nVorticity terms = Off\n");
 #endif
+
+#ifdef SHU_OSHER
+	printf("\nRunge-Kutta method = Shu-Osher\n");		
+#elif defined(SPITERI_RUUTH)
+printf("\nRunge-Kutta method = Spiteri-Ruuth\n");
+#else
+	printf("\nRunge-Kutta method = Heun\n");
+#endif
 }
