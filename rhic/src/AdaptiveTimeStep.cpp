@@ -108,7 +108,7 @@ precision compute_dt_CFL(precision t, lattice_parameters lattice, hydro_paramete
 
 #ifdef SPITERI_RUUTH
 	prefactor *= 2.;		// double CFL bound
-#else
+#endif
 
 #ifdef ADAPTIVE_FILE
 	FILE * dt_CFL_bound;
